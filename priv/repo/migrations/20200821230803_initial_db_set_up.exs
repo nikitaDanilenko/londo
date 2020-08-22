@@ -40,7 +40,7 @@ defmodule Londo.Repo.Migrations.InitialDbSetUp do
     end
 
     create table(:dashboard_projects, primary_key: false) do
-      add :dashboard_id, references(:dashboard, type: :uuid, on_delete: :delete_all), primary_key: true
+      add :dashboard_id, references(:dashboards, type: :uuid, on_delete: :delete_all), primary_key: true
       add :project_id, references(:projects, type: :uuid, on_delete: :delete_all), primary_key: true
     end
   end
