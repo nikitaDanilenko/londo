@@ -1,9 +1,9 @@
 defmodule Londo.Model.Dashboard do
   use Ecto.Schema
 
+  @primary_key {:id, Ecto.UUID, []}
   schema "dashboards" do
-    field :id, :uuid
-    field :user_id, :uuid
+    field :user_id, Ecto.UUID
     field :description, :string
   end
 

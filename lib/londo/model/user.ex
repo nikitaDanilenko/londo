@@ -1,8 +1,8 @@
 defmodule Londo.Model.User do
   use Ecto.Schema
 
+  @primary_key {:id, Ecto.UUID, []}
   schema "user" do
-    field :id, :uuid
     field :name, :string
     field :display_name, :string
     field :email, :string
