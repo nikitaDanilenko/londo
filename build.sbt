@@ -1,13 +1,20 @@
-name := """londo"""
+name := "londo"
 organization := "io.danilenko"
+version := "0.1.0"
 
-version := "0.1"
+val dottyVersion = "3.0.0-M3"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+scalaVersion := dottyVersion
 
-scalaVersion := "3.0.0-M3"
+lazy val root = project
+  .in(file("."))
+  .enablePlugins(PlayScala)
 
-libraryDependencies += guice
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
+libraryDependencies ++= Seq(
+  guice,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
+  "org.scalactic"          %% "scalactic"          % "3.2.2",
+  "org.scalatest"          %% "scalatest"          % "3.2.2" % Test
+)
 
 libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value))
