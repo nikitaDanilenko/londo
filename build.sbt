@@ -12,9 +12,7 @@ lazy val root = project
 
 libraryDependencies ++= Seq(
   guice,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
-  "org.scalactic"          %% "scalactic"          % "3.2.2",
-  "org.scalatest"          %% "scalatest"          % "3.2.2" % Test
+  "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
 )
 
 libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value))
