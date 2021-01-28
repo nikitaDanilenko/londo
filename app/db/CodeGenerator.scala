@@ -16,18 +16,20 @@ import scala.reflect.classTag
 
 object CodeGenerator {
 
-  private val injector = new GuiceApplicationBuilder().injector()
+  private val dbConfig: Config =
+    new GuiceApplicationBuilder()
+      .injector()
+      .instanceOf[Configuration]
+      .get[Config]("quill.dataSource")
 
-  private val configuration = injector.instanceOf[Configuration]
+  private val dataSource: PGSimpleDataSource = {
+    val ds = new PGSimpleDataSource()
+    ds.setUser(dbConfig.getString("user"))
+    ds.setPassword(dbConfig.getString("password"))
+    ds
+  }
 
-  private val dbConfig = configuration.get[Config]("db.default")
-
-  val dataSource = new PGSimpleDataSource()
-
-  dataSource.setUser(dbConfig.getString("username"))
-  dataSource.setPassword(dbConfig.getString("password"))
-
-  private val cg: ComposeableTraitsJdbcCodegen =
+  private val codeGenerator: ComposeableTraitsJdbcCodegen =
     new ComposeableTraitsJdbcCodegen(
       dataSource = dataSource,
       packagePrefix = "db.models",
@@ -48,9 +50,8 @@ object CodeGenerator {
     }
 
   def main(args: Array[String]): Unit = {
-    val paths = Future.sequence(cg.writeFiles("app/db/models"))
-    val finished = Await.result(paths, Duration(10, TimeUnit.SECONDS))
-    pprint.log(finished)
+    val paths = Future.sequence(codeGenerator.writeFiles("app/db/models"))
+    Await.result(paths, Duration(10, TimeUnit.SECONDS))
   }
 
 }
