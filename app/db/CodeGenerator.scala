@@ -7,10 +7,12 @@ import org.postgresql.ds.PGSimpleDataSource
 import play.api.Configuration
 import play.api.inject.guice.GuiceApplicationBuilder
 
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
+import scala.reflect.classTag
 
 object CodeGenerator {
 
@@ -34,6 +36,13 @@ object CodeGenerator {
 
       override val nameParser: NameParser = new SnakeCaseNames {
         override val generateQuerySchemas: Boolean = true
+      }
+
+      override def typer: Typer = { jdbcTypeInfo =>
+        jdbcTypeInfo.typeName match {
+          case Some("uuid") => Some(classTag[UUID])
+          case _            => super.typer(jdbcTypeInfo)
+        }
       }
 
     }
