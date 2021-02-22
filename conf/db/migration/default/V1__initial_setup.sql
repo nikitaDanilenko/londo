@@ -58,3 +58,50 @@ alter table dashboard_restriction_access
     add constraint dashboard_restriction_access_pk primary key (dashboard_restriction_id, user_id),
     add constraint dashboard_restriction_acess_dashboard_restriction_id_fk foreign key (dashboard_restriction_id) references dashboard_restriction(dashboard_id) on delete cascade,
     add constraint dashboard_restriction_access_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
+
+create table project(
+    id uuid not null,
+    name text not null,
+    description text,
+    parent_project_id uuid
+);
+
+alter table project
+    add constraint project_pk primary key (id),
+    add constraint project_parent_project_id_fk foreign key (parent_project_id) references project(id) on delete cascade;
+
+create table project_access(
+    project_id uuid not null,
+    user_id uuid not null
+);
+
+alter table project_access
+    add constraint project_access_project_id foreign key (project_id) references project(id) on delete cascade,
+    add constraint project_access_user_id foreign key (user_id) references user(id) on delete cascade;
+
+create table task_kind(
+    id uuid not null,
+    name text not null
+);
+
+alter table task_kind
+    add constraint task_kind_pk primary key (id);
+
+create table task(
+    id uuid not null,
+    project_id uuid not null,
+    name text not null,
+    unit text,
+    kind_id uuid not null,
+    reached int not null,
+    reachable int not null,
+    weight int not null
+);
+
+alter table task
+    add constraint task_pk primary key (id, project_id),
+    add constraint task_project_id foreign key (project_id) references project(id) on delete cascade,
+    add constraint task_kind_id_fk foreign key (kind_id) references task_kind(id) on delete cascade,
+    add constraint reached_non_negative check (reached >= 0),
+    add constraint reachable_larger_than_reached check (reachable >= reached),
+    add constraint weight_non_negative check (weight >= 0);
