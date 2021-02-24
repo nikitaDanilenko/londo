@@ -8,6 +8,8 @@ lazy val root = project
 
 scalaVersion := "2.13.3"
 
+val doobieVersion = "0.10.0"
+
 libraryDependencies ++= Seq(
   guice,
   "org.scalatestplus.play" %% "scalatestplus-play"   % "5.0.0" % Test,
@@ -19,7 +21,11 @@ libraryDependencies ++= Seq(
   "org.typelevel"          %% "cats-core"            % "2.2.0",
   "org.scalameta"          %% "scalafmt-dynamic"     % "2.6.1",
   "com.github.pathikrit"   %% "better-files"         % "3.9.1",
-  "org.scalameta"          %% "scalameta"            % "4.3.13"
+  "org.scalameta"          %% "scalameta"            % "4.3.13",
+  "org.tpolecat"           %% "doobie-core"          % doobieVersion,
+  "org.tpolecat"           %% "doobie-hikari"        % doobieVersion,
+  "org.tpolecat"           %% "doobie-postgres"      % doobieVersion,
+  "org.tpolecat"           %% "doobie-quill"         % doobieVersion
 )
 
 lazy val dbGenerate = Command.command("dbGenerate") { state =>
