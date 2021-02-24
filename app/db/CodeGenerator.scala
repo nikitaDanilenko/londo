@@ -36,11 +36,11 @@ object CodeGenerator {
     new GuiceApplicationBuilder()
       .injector()
       .instanceOf[Configuration]
-      .get[Config]("quill.dataSource")
+      .get[Config]("db.default")
 
   private val dataSource: PGSimpleDataSource = {
     val ds = new PGSimpleDataSource()
-    ds.setUser(dbConfig.getString("user"))
+    ds.setUser(dbConfig.getString("username"))
     ds.setPassword(dbConfig.getString("password"))
     ds
   }
