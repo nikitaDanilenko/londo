@@ -2,7 +2,7 @@ package db
 
 import com.typesafe.config.Config
 import io.getquill.codegen.jdbc.ComposeableTraitsJdbcCodegen
-import io.getquill.codegen.model.{ NameParser, SnakeCaseNames }
+import io.getquill.codegen.model._
 import org.postgresql.ds.PGSimpleDataSource
 import play.api.Configuration
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
+import scala.jdk.CollectionConverters._
 import scala.reflect.classTag
 
 object CodeGenerator {
@@ -29,6 +30,8 @@ object CodeGenerator {
     ds
   }
 
+  private val ignoredTables = dbConfig.getStringList("ignoredTables").asScala.toSet
+
   private val codeGenerator: ComposeableTraitsJdbcCodegen =
     new ComposeableTraitsJdbcCodegen(
       dataSource = dataSource,
@@ -45,6 +48,13 @@ object CodeGenerator {
           case Some("uuid") => Some(classTag[UUID])
           case _            => super.typer(jdbcTypeInfo)
         }
+      }
+
+      override def stereotype(
+          schemas: Seq[RawSchema[JdbcTableMeta, JdbcColumnMeta]]
+      ): Seq[TableStereotype[JdbcTableMeta, JdbcColumnMeta]] = {
+        val nonIgnoredTables = schemas.filter(rs => !ignoredTables.contains(rs.table.tableName))
+        super.stereotype(nonIgnoredTables)
       }
 
     }
