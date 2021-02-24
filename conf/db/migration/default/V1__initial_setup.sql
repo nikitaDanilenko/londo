@@ -38,7 +38,7 @@ create table dashboard(
 );
 
 alter table dashboard
-    add constraint dashboard_pk primary key (id, user_id),
+    add constraint dashboard_pk primary key (id),
     add constraint dashboard_user_id_fk foreign key (user_id) references "user"(id);
 
 create table dashboard_restriction(
@@ -77,7 +77,7 @@ create table project_access(
 
 alter table project_access
     add constraint project_access_project_id foreign key (project_id) references project(id) on delete cascade,
-    add constraint project_access_user_id foreign key (user_id) references user(id) on delete cascade;
+    add constraint project_access_user_id foreign key (user_id) references "user"(id) on delete cascade;
 
 create table task_kind(
     id uuid not null,
