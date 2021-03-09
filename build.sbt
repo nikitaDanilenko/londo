@@ -9,6 +9,7 @@ lazy val root = project
 scalaVersion := "2.13.3"
 
 val doobieVersion = "0.10.0"
+val circeVersion = "0.13.0"
 
 libraryDependencies ++= Seq(
   guice,
@@ -25,7 +26,14 @@ libraryDependencies ++= Seq(
   "org.tpolecat"           %% "doobie-core"          % doobieVersion,
   "org.tpolecat"           %% "doobie-hikari"        % doobieVersion,
   "org.tpolecat"           %% "doobie-postgres"      % doobieVersion,
-  "org.tpolecat"           %% "doobie-quill"         % doobieVersion
+  "org.tpolecat"           %% "doobie-quill"         % doobieVersion,
+  "io.circe"               %% "circe-core"           % circeVersion,
+  "io.circe"               %% "circe-generic"        % circeVersion,
+  "io.circe"               %% "circe-parser"         % circeVersion
+)
+
+scalacOptions ++= Seq(
+  "-Ymacro-annotations"
 )
 
 lazy val dbGenerate = Command.command("dbGenerate") { state =>
