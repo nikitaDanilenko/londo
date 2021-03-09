@@ -5,7 +5,6 @@ import doobie.quill.DoobieContext
 import doobie.util.transactor.Transactor
 import io.getquill.context.Context
 import io.getquill.{ CompositeNamingStrategy2, Escape, PostgresDialect, SnakeCase }
-import services.dao.MacroDAO
 
 import javax.inject.{ Inject, Singleton }
 
@@ -13,11 +12,10 @@ import javax.inject.{ Inject, Singleton }
 class DbContext @Inject() (dbConnection: DbConnection)
     extends DoobieContext.Postgres(CompositeNamingStrategy2[SnakeCase, Escape](SnakeCase, Escape))
     with PublicExtensions[PostgresDialect, CompositeNamingStrategy2[SnakeCase, Escape]]
-    with Context[PostgresDialect, CompositeNamingStrategy2[SnakeCase, Escape]]
-    with MacroDAO {
+    with Context[PostgresDialect, CompositeNamingStrategy2[SnakeCase, Escape]] {
 
   // TODO: Should the transactor be constructed here via injection?
-  def transactor[F[_]: Async](implicit contextShift: ContextShift[F]): Transactor[F] =
+  def transactor[F[_]: Async: ContextShift]: Transactor[F] =
     Transactor.fromDriverManager[F](
       driver = dbConnection.driver,
       url = dbConnection.url,
