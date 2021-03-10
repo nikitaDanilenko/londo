@@ -61,6 +61,7 @@ alter table dashboard_restriction_access
 
 create table project(
     id uuid not null,
+    owner_id uuid not null,
     name text not null,
     description text,
     parent_project_id uuid
@@ -68,7 +69,8 @@ create table project(
 
 alter table project
     add constraint project_pk primary key (id),
-    add constraint project_parent_project_id_fk foreign key (parent_project_id) references project(id) on delete cascade;
+    add constraint project_parent_project_id_fk foreign key (parent_project_id) references project(id) on delete cascade,
+    add constraint project_owner_id_fk foreign key (owner_id) references "user"(id) on delete cascade;
 
 create table project_access(
     project_id uuid not null,
