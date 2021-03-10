@@ -130,6 +130,14 @@ object CodeGenerator {
           case q"case class $sameName (...$newParamss)" =>
             q"@$annot case class $sameName (...$newParamss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }"
         }
+      //This is the case class pattern without annotations
+      case q"case class $tname (...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }"
+          if tname.value == caseClassName =>
+        caseClass.transform {
+          //We assume that the given case class consists only of a name and parameters, and copy everything else from the original case class
+          case q"case class $sameName (...$newParamss)" =>
+            q"case class $sameName (...$newParamss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }"
+        }
     }
   }
 
