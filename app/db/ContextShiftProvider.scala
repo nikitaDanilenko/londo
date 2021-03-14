@@ -1,4 +1,4 @@
-package controllers
+package db
 
 import cats.effect.{ ContextShift, IO }
 
