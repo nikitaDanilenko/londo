@@ -29,7 +29,10 @@ libraryDependencies ++= Seq(
   "org.tpolecat"           %% "doobie-quill"         % doobieVersion,
   "io.circe"               %% "circe-core"           % circeVersion,
   "io.circe"               %% "circe-generic"        % circeVersion,
-  "io.circe"               %% "circe-parser"         % circeVersion
+  "io.circe"               %% "circe-parser"         % circeVersion,
+  "org.sangria-graphql"    %% "sangria"              % "2.1.0",
+  "org.sangria-graphql"    %% "sangria-circe"        % "1.3.1",
+  "com.dripower"           %% "play-circe"           % "2812.0"
 )
 
 scalacOptions ++= Seq(
