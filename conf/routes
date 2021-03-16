@@ -3,3 +3,7 @@ GET     /                           controllers.HomeController.index
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+GET     /graphql-schema             controllers.graphql.GraphQLController.schema
+
+POST    /graphql                    controllers.graphql.GraphQLController.graphQL
