@@ -14,11 +14,11 @@ class DashboardDAO @Inject() (val dbContext: DbContext) {
   import dbContext.PublicSchema.DashboardDao
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](userId: UUID): F[Option[Dashboard]] =
-    run(findAction(userId)).map(_.headOption).transact(transactor[F])
+  def find[F[_]: Async: ContextShift](dashboardId: UUID): F[Option[Dashboard]] =
+    run(findAction(dashboardId)).map(_.headOption).transact(transactor[F])
 
-  def findAll[F[_]: Async: ContextShift](userIds: Seq[UUID]): F[List[Dashboard]] =
-    run(findAllAction(userIds)).transact(transactor[F])
+  def findAll[F[_]: Async: ContextShift](dashboardIds: Seq[UUID]): F[List[Dashboard]] =
+    run(findAllAction(dashboardIds)).transact(transactor[F])
 
   def insert[F[_]: Async: ContextShift](
       row: Dashboard
@@ -27,21 +27,21 @@ class DashboardDAO @Inject() (val dbContext: DbContext) {
   def insertAll[F[_]: Async: ContextShift](rows: Seq[Dashboard]): F[List[Dashboard]] =
     run(insertAllAction(rows)).transact(transactor[F])
 
-  def delete[F[_]: Async: ContextShift](userId: UUID): F[Dashboard] =
-    run(deleteAction(userId)).transact(transactor[F])
+  def delete[F[_]: Async: ContextShift](dashboardId: UUID): F[Dashboard] =
+    run(deleteAction(dashboardId)).transact(transactor[F])
 
-  def deleteAll[F[_]: Async: ContextShift](userIds: Seq[UUID]): F[Long] =
-    run(deleteAllAction(userIds)).transact(transactor[F])
+  def deleteAll[F[_]: Async: ContextShift](dashboardIds: Seq[UUID]): F[Long] =
+    run(deleteAllAction(dashboardIds)).transact(transactor[F])
 
-  private def findAction(userId: UUID) =
+  private def findAction(dashboardId: UUID) =
     quote {
-      DashboardDao.query.filter(_.id == lift(userId))
+      DashboardDao.query.filter(_.id == lift(dashboardId))
     }
 
-  private def findAllAction(userIds: Seq[UUID]) = {
-    val idSet = userIds.toSet
+  private def findAllAction(dashboardIds: Seq[UUID]) = {
+    val idSet = dashboardIds.toSet
     quote {
-      DashboardDao.query.filter(user => liftQuery(idSet).contains(user.id))
+      DashboardDao.query.filter(dashboard => liftQuery(idSet).contains(dashboard.id))
     }
   }
 
@@ -57,15 +57,15 @@ class DashboardDAO @Inject() (val dbContext: DbContext) {
       liftQuery(rows).foreach(e => DashboardDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(userId: UUID) =
+  private def deleteAction(dashboardId: UUID) =
     quote {
-      findAction(userId).delete
+      findAction(dashboardId).delete
         .returning(x => x)
     }
 
-  private def deleteAllAction(userIds: Seq[UUID]) =
+  private def deleteAllAction(dashboardIds: Seq[UUID]) =
     quote {
-      findAllAction(userIds).delete
+      findAllAction(dashboardIds).delete
     }
 
 }
