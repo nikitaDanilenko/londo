@@ -40,7 +40,13 @@ scalacOptions ++= Seq(
 )
 
 lazy val dbGenerate = Command.command("dbGenerate") { state =>
-  "runMain db.CodeGenerator" :: state
+  "runMain db.generators.CodeGenerator" :: state
 }
 
 commands += dbGenerate
+
+lazy val daoGenerate = Command.command("daoGenerate") { state =>
+  "runMain db.generators.DaoGenerator" :: state
+}
+
+commands += daoGenerate
