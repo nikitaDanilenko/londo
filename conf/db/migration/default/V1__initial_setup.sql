@@ -78,6 +78,7 @@ create table project_access(
 );
 
 alter table project_access
+    add constraint project_access_pk primary key (project_id, user_id),
     add constraint project_access_project_id foreign key (project_id) references project(id) on delete cascade,
     add constraint project_access_user_id foreign key (user_id) references "user"(id) on delete cascade;
 
