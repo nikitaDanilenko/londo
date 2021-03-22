@@ -1,4 +1,4 @@
-package db
+package db.generators
 
 import better.files._
 import com.typesafe.config.Config

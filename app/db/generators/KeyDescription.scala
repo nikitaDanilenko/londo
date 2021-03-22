@@ -1,4 +1,4 @@
-package db.generated
+package db.generators
 
 import scala.meta._
 
