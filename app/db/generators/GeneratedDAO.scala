@@ -25,7 +25,7 @@ object GeneratedDAO {
         q"""
         private def $findByFunctionNameAction(key: ${column.typeTerm}) = { 
           quote {
-            $typeQuery.filter(a => ${TermUtils.field("a", column.name)} == lift(key))
+            $typeQuery.filter(a => ${TermUtils.equality("a", column.name, Term.Name("key"), column.mandatory)} )
           }
         }
         """,
