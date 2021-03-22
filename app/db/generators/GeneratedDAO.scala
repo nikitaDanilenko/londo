@@ -8,47 +8,47 @@ object GeneratedDAO {
       typeName: Type.Name,
       daoPackage: String,
       keyDescription: KeyDescription,
-      partialFinds: List[PartialFind]
+      columnSearches: List[Column]
   ): Tree = {
     val daoPackageTerm = Pkg(ref = TermUtils.splitToTerm(daoPackage), stats = List.empty).ref
     val typeQuery = TermUtils.splitToTerm(s"PublicSchema.${typeName}Dao.query")
     val daoName = Type.Name(s"${typeName}DAO")
     val keyType = keyDescription.keyType
 
-    def fromQuery(partialFind: PartialFind): List[Defn.Def] = {
-      val field = partialFind.columnName.value.capitalize
+    def fromQuery(column: Column): List[Defn.Def] = {
+      val field = column.name.capitalize
       val findByFunctionNameAction = Term.Name(s"findBy${field}Action")
       val findByFunctionName = Term.Name(s"findBy$field")
       val deleteByFunctionNameAction = Term.Name(s"deleteBy${field}Action")
       val deleteByFunctionName = Term.Name(s"deleteBy$field")
       List(
         q"""
-        private def $findByFunctionNameAction(key: ${partialFind.columnType}) = { 
+        private def $findByFunctionNameAction(key: ${column.typeTerm}) = { 
           quote {
-            $typeQuery.filter(a => ${TermUtils.field("a", partialFind.columnName.value)} == lift(key))
+            $typeQuery.filter(a => ${TermUtils.field("a", column.name)} == lift(key))
           }
         }
         """,
         q"""
-        def $findByFunctionName[F[_]: Async: ContextShift](key: ${partialFind.columnType}): F[List[$typeName]] = {
+        def $findByFunctionName[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[List[$typeName]] = {
           run($findByFunctionNameAction(key)).transact(transactor[F])
         }
         """,
-        q"""private def $deleteByFunctionNameAction(key: ${partialFind.columnType}) = {
+        q"""private def $deleteByFunctionNameAction(key: ${column.typeTerm}) = {
           quote {
             $findByFunctionNameAction(key).delete
           }
         }
         """,
         q"""
-        def $deleteByFunctionName[F[_]: Async: ContextShift](key: ${partialFind.columnType}): F[Long] = {
+        def $deleteByFunctionName[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[Long] = {
           run($deleteByFunctionNameAction(key)).transact(transactor[F])
         }
        """
       )
     }
 
-    val additional = partialFinds.flatMap(fromQuery)
+    val additional = columnSearches.flatMap(fromQuery)
 
     val result = q"""
           package $daoPackageTerm {
@@ -92,22 +92,6 @@ object GeneratedDAO {
             ..$additional
           }}"""
     result
-  }
-
-}
-
-object TestMe {
-
-  import better.files._
-
-  def main(args: Array[String]): Unit = {
-    val gen = GeneratedDAO.create(
-      Type.Name("User"),
-      "db.generated.daos",
-      KeyDescription.Column2("id", "UUID", "email", "String"),
-      List(PartialFind("email", "String"))
-    )
-    File("app/db/generated/daos/UserDAO.scala").createFileIfNotExists(true).write(gen.toString())
   }
 
 }
