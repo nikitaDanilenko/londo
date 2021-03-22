@@ -74,15 +74,6 @@ object CodeGenerator {
 
     }
 
-  private val format: String => String = {
-    val scalafmt = Scalafmt.create(getClass.getClassLoader)
-    val config = File(".scalafmt.conf")
-    val file = File("CodeGen.scala")
-
-    scalafmt
-      .format(config.path, file.path, _)
-  }
-
   private def readGenerated(files: Seq[File]): Generated = {
     //Separate into the case classes and everything else
     val (caseClasses, everythingElse) =
@@ -109,13 +100,13 @@ object CodeGenerator {
       if (caseClassFile.exists) {
         val originalContent = caseClassFile.contentAsString.parse[Source].get
         val withReplaced = replaceCode(originalContent, caseClassStat, caseClassName).toString()
-        caseClassFile.overwrite(format(withReplaced))
+        caseClassFile.overwrite(Formatter.format(withReplaced))
       } else {
         val newContent = List(
           s"package $modelsPackageName",
           caseClass
         ).mkString("\n")
-        caseClassFile.write(format(newContent))
+        caseClassFile.write(Formatter.format(newContent))
       }
     }
   }
@@ -151,7 +142,7 @@ object CodeGenerator {
           s"import ${pathToModelsParts.tail.mkString(".")}._" +:
           generated.everythingElse.toVector.drop(1)).mkString("\n")
       }
-      format(newContent)
+      Formatter.format(newContent)
     }
     files.foreach(_.delete())
   }
