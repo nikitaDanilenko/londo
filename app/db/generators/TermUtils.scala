@@ -5,10 +5,10 @@ import scala.meta.Term
 object TermUtils {
   def field(arg: String, name: String): Term = Term.Select(Term.Name(arg), Term.Name(name))
 
-  def equality(arg: String, columnName: String, keyTerm: Term): Term = {
+  def equality(arg: String, columnName: String, keyTerm: Term, mandatory: Boolean): Term = {
     Term.ApplyInfix(
       field(arg, columnName),
-      Term.Name("=="),
+      Term.Name(if (mandatory) "==" else "==="),
       List.empty,
       List(Term.Apply(Term.Name("lift"), List(keyTerm)))
     )

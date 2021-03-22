@@ -11,60 +11,145 @@ object DaoGenerator {
   val daosToGenerate: Vector[DaoGeneratorParameters] = Vector(
     daoGeneratorParameters(
       typeName = "Dashboard",
-      keyDescription = KeyDescription.uuidColumn("dashboardId"),
-      columnSearches = List(Column.uuid("userId"))
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        )
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      )
     ),
     daoGeneratorParameters(
       typeName = "DashboardRestriction",
-      keyDescription = KeyDescription.uuidColumn("dashboardId"),
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "dashboardId",
+          mandatory = true
+        )
+      ),
       columnSearches = List.empty
     ),
     daoGeneratorParameters(
       typeName = "Project",
-      keyDescription = KeyDescription.uuidColumn("id"),
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        )
+      ),
       columnSearches = List(
-        Column.uuid("ownerId"),
-        Column.string("name"),
-        Column.uuid("parentProjectId")
+        Column.uuid(
+          name = "ownerId",
+          mandatory = true
+        ),
+        Column.string(
+          name = "name",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "parentProjectId",
+          mandatory = false
+        )
       )
     ),
     daoGeneratorParameters(
       typeName = "ProjectAccess",
-      keyDescription = KeyDescription.column2(Column.uuid("projectId"), Column.uuid("userId")),
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
       columnSearches = List(
-        Column.uuid("projectId"),
-        Column.uuid("userId")
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
       )
     ),
     daoGeneratorParameters(
       typeName = "Task",
-      keyDescription = KeyDescription.column2(Column.uuid("id"), Column.uuid("projectId")),
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        )
+      ),
       columnSearches = List(
-        Column.uuid("id"),
-        Column.uuid("projectId")
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        )
       )
     ),
     daoGeneratorParameters(
       typeName = "TaskKind",
-      keyDescription = KeyDescription.column1(Column.uuid("id")),
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        )
+      ),
       columnSearches = List.empty
     ),
     daoGeneratorParameters(
       typeName = "User",
-      keyDescription = KeyDescription.uuidColumn("id"),
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        )
+      ),
       columnSearches = List(
-        Column.string("email"),
-        Column.string("nickname")
+        Column.string(
+          name = "email",
+          mandatory = true
+        ),
+        Column.string(
+          name = "nickname",
+          mandatory = true
+        )
       )
     ),
     daoGeneratorParameters(
       typeName = "UserDetails",
-      keyDescription = KeyDescription.column1(Column.uuid("userId")),
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
       columnSearches = List.empty
     ),
     daoGeneratorParameters(
       typeName = "UserSettings",
-      keyDescription = KeyDescription.column1(Column.uuid("userId")),
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
       columnSearches = List.empty
     )
   )
