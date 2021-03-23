@@ -116,4 +116,4 @@ create table session_key(
 
 alter table session_key
     add constraint session_key_pk primary key (user_id),
-    add constraint session_key_user_id_fk foreign key (user_id) references user(id) on delete cascade;
+    add constraint session_key_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
