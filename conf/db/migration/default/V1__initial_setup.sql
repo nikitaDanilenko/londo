@@ -108,3 +108,12 @@ alter table task
     add constraint reached_non_negative check (reached >= 0),
     add constraint reachable_larger_than_reached check (reachable >= reached),
     add constraint weight_non_negative check (weight >= 0);
+
+create table session_key(
+    user_id uuid not null,
+    public_key text not null
+);
+
+alter table session_key
+    add constraint session_key_pk primary key (user_id),
+    add constraint session_key_user_id_fk foreign key (user_id) references user(id) on delete cascade;
