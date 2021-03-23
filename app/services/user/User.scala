@@ -8,5 +8,7 @@ case class User(
     nickname: String,
     email: String,
     passwordSalt: String,
-    passwordHash: String
+    passwordHash: String,
+    settings: UserSettings,
+    details: UserDetails
 )
