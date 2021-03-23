@@ -5,7 +5,13 @@ import cats.effect.IO
 import java.util.UUID
 import scala.util.Random
 
-case class UserCreation(nickname: String, email: String, password: String)
+case class UserCreation(
+    nickname: String,
+    email: String,
+    password: String,
+    settings: UserSettings,
+    details: UserDetails
+)
 
 object UserCreation {
 
@@ -19,7 +25,9 @@ object UserCreation {
         nickname = userCreation.nickname,
         email = userCreation.email,
         passwordSalt = salt,
-        passwordHash = "???"
+        passwordHash = "???",
+        settings = userCreation.settings,
+        details = userCreation.details
       )
     }
 
