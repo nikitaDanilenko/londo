@@ -23,6 +23,9 @@ class DashboardRestrictionDAO @Inject() (dbContext: DbContext) {
   def delete[F[_]: Async: ContextShift](key: UUID): F[DashboardRestriction] =
     run(deleteAction(key)).transact(transactor[F])
 
+  def update[F[_]: Async: ContextShift](row: DashboardRestriction): F[DashboardRestriction] =
+    run(updateAction(row)).transact(transactor[F])
+
   private def findAction(key: UUID) =
     quote {
       PublicSchema.DashboardRestrictionDao.query.filter(a => a.dashboardId == lift(key))
@@ -43,6 +46,11 @@ class DashboardRestrictionDAO @Inject() (dbContext: DbContext) {
   private def deleteAction(key: UUID) =
     quote {
       findAction(key).delete.returning(x => x)
+    }
+
+  private def updateAction(row: DashboardRestriction) =
+    quote {
+      PublicSchema.DashboardRestrictionDao.query.update(lift(row)).returning(x => x)
     }
 
 }

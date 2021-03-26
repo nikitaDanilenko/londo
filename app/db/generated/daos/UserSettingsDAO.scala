@@ -22,6 +22,9 @@ class UserSettingsDAO @Inject() (dbContext: DbContext) {
 
   def delete[F[_]: Async: ContextShift](key: UUID): F[UserSettings] = run(deleteAction(key)).transact(transactor[F])
 
+  def update[F[_]: Async: ContextShift](row: UserSettings): F[UserSettings] =
+    run(updateAction(row)).transact(transactor[F])
+
   private def findAction(key: UUID) =
     quote {
       PublicSchema.UserSettingsDao.query.filter(a => a.userId == lift(key))
@@ -40,6 +43,11 @@ class UserSettingsDAO @Inject() (dbContext: DbContext) {
   private def deleteAction(key: UUID) =
     quote {
       findAction(key).delete.returning(x => x)
+    }
+
+  private def updateAction(row: UserSettings) =
+    quote {
+      PublicSchema.UserSettingsDao.query.update(lift(row)).returning(x => x)
     }
 
 }

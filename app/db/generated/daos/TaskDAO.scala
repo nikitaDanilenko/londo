@@ -20,6 +20,7 @@ class TaskDAO @Inject() (dbContext: DbContext) {
     run(insertAllAction(rows)).transact(transactor[F])
 
   def delete[F[_]: Async: ContextShift](key: (UUID, UUID)): F[Task] = run(deleteAction(key)).transact(transactor[F])
+  def update[F[_]: Async: ContextShift](row: Task): F[Task] = run(updateAction(row)).transact(transactor[F])
 
   private def findAction(key: (UUID, UUID)) =
     quote {
@@ -39,6 +40,11 @@ class TaskDAO @Inject() (dbContext: DbContext) {
   private def deleteAction(key: (UUID, UUID)) =
     quote {
       findAction(key).delete.returning(x => x)
+    }
+
+  private def updateAction(row: Task) =
+    quote {
+      PublicSchema.TaskDao.query.update(lift(row)).returning(x => x)
     }
 
   private def findByIdAction(key: UUID) = {
