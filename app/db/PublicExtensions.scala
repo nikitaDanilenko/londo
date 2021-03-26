@@ -91,6 +91,18 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
     }
 
+    object SessionKeyDao {
+
+      def query =
+        quote {
+          querySchema[SessionKey](
+            "public.session_key"
+          )
+
+        }
+
+    }
+
     object UserDetailsDao {
 
       def query =
