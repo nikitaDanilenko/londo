@@ -151,6 +151,16 @@ object DaoGenerator {
         )
       ),
       columnSearches = List.empty
+    ),
+    daoGeneratorParameters(
+      typeName = "SessionKey",
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List.empty
     )
   )
 
