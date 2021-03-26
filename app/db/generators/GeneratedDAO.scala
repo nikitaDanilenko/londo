@@ -69,8 +69,8 @@ object GeneratedDAO {
               run(insertAllAction(rows)).transact(transactor[F])
             def delete[F[_]: Async: ContextShift](key: $keyType): F[$typeName] =
               run(deleteAction(key)).transact(transactor[F])
-            def update[F[_]: Async: ContextShift](row: $typeName): F[$typeName] =
-              run(updateAction(row)).transact(transactor[F])
+            def replace[F[_]: Async: ContextShift](row: $typeName): F[$typeName] =
+              run(replaceAction(row)).transact(transactor[F])
             private def findAction(key: $keyType) =
               quote {
                 $typeQuery.filter(a => ${keyDescription.compareKeys("a", "key")})
@@ -90,10 +90,11 @@ object GeneratedDAO {
                 findAction(key).delete
                   .returning(x => x)
               }
-            private def updateAction(row: $typeName) = 
+            private def replaceAction(row: $typeName) = 
               quote {
                 $typeQuery
-                  .update(lift(row))
+                  .insert(lift(row))
+                  .onConflictUpdate(..${keyDescription.keyColumns})((t, e) => t -> e)
                   .returning(x => x)
               }
               

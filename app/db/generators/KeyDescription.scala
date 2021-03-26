@@ -5,6 +5,7 @@ import scala.meta._
 sealed trait KeyDescription {
   def compareKeys(arg: String, key: String): Term
   def keyType: Type
+  def keyColumns: List[Term]
 }
 
 object KeyDescription {
@@ -21,6 +22,7 @@ object KeyDescription {
         )
 
       override val keyType: Type = column.typeTerm
+      override val keyColumns: List[Term] = List(q"_.${column.nameTerm}")
     }
 
   def column2(column1: Column, column2: Column): KeyDescription =
@@ -47,7 +49,7 @@ object KeyDescription {
         )
 
       override val keyType: Type = Type.Tuple(List(column1.typeTerm, column2.typeTerm))
-
+      override val keyColumns: List[Term] = List(q"_.${column1.nameTerm}", q"_.${column2.nameTerm}")
     }
 
 }
