@@ -23,8 +23,8 @@ class ProjectAccessDAO @Inject() (dbContext: DbContext) {
   def delete[F[_]: Async: ContextShift](key: (UUID, UUID)): F[ProjectAccess] =
     run(deleteAction(key)).transact(transactor[F])
 
-  def update[F[_]: Async: ContextShift](row: ProjectAccess): F[ProjectAccess] =
-    run(updateAction(row)).transact(transactor[F])
+  def replace[F[_]: Async: ContextShift](row: ProjectAccess): F[ProjectAccess] =
+    run(replaceAction(row)).transact(transactor[F])
 
   private def findAction(key: (UUID, UUID)) =
     quote {
@@ -46,9 +46,12 @@ class ProjectAccessDAO @Inject() (dbContext: DbContext) {
       findAction(key).delete.returning(x => x)
     }
 
-  private def updateAction(row: ProjectAccess) =
+  private def replaceAction(row: ProjectAccess) =
     quote {
-      PublicSchema.ProjectAccessDao.query.update(lift(row)).returning(x => x)
+      PublicSchema.ProjectAccessDao.query
+        .insert(lift(row))
+        .onConflictUpdate(_.projectId, _.userId)((t, e) => t -> e)
+        .returning(x => x)
     }
 
   private def findByProjectIdAction(key: UUID) = {

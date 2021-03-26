@@ -20,7 +20,7 @@ class UserDAO @Inject() (dbContext: DbContext) {
     run(insertAllAction(rows)).transact(transactor[F])
 
   def delete[F[_]: Async: ContextShift](key: UUID): F[User] = run(deleteAction(key)).transact(transactor[F])
-  def update[F[_]: Async: ContextShift](row: User): F[User] = run(updateAction(row)).transact(transactor[F])
+  def replace[F[_]: Async: ContextShift](row: User): F[User] = run(replaceAction(row)).transact(transactor[F])
 
   private def findAction(key: UUID) =
     quote {
@@ -42,9 +42,9 @@ class UserDAO @Inject() (dbContext: DbContext) {
       findAction(key).delete.returning(x => x)
     }
 
-  private def updateAction(row: User) =
+  private def replaceAction(row: User) =
     quote {
-      PublicSchema.UserDao.query.update(lift(row)).returning(x => x)
+      PublicSchema.UserDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
     }
 
   private def findByEmailAction(key: String) = {

@@ -20,7 +20,7 @@ class TaskKindDAO @Inject() (dbContext: DbContext) {
     run(insertAllAction(rows)).transact(transactor[F])
 
   def delete[F[_]: Async: ContextShift](key: UUID): F[TaskKind] = run(deleteAction(key)).transact(transactor[F])
-  def update[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] = run(updateAction(row)).transact(transactor[F])
+  def replace[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] = run(replaceAction(row)).transact(transactor[F])
 
   private def findAction(key: UUID) =
     quote {
@@ -42,9 +42,9 @@ class TaskKindDAO @Inject() (dbContext: DbContext) {
       findAction(key).delete.returning(x => x)
     }
 
-  private def updateAction(row: TaskKind) =
+  private def replaceAction(row: TaskKind) =
     quote {
-      PublicSchema.TaskKindDao.query.update(lift(row)).returning(x => x)
+      PublicSchema.TaskKindDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
     }
 
 }
