@@ -1,6 +1,7 @@
 package db.generators
 
 import scala.meta._
+import cats.syntax.arrow._
 
 object GeneratedDAO {
 
@@ -15,62 +16,90 @@ object GeneratedDAO {
     val daoName = Type.Name(s"${typeName}DAO")
     val keyType = keyDescription.keyType
 
-    def fromQuery(column: Column): List[Defn.Def] = {
+    def fromQuery(column: Column): (List[Defn.Def], List[Defn.Def]) = {
       val field = column.name.capitalize
-      val findByFunctionNameAction = Term.Name(s"findBy${field}Action")
-      val findByFunctionName = Term.Name(s"findBy$field")
-      val deleteByFunctionNameAction = Term.Name(s"deleteBy${field}Action")
-      val deleteByFunctionName = Term.Name(s"deleteBy$field")
-      List(
+      val functionNames = FunctionNames(s"By$field")
+      val publicFunctions = List(
         q"""
-        private def $findByFunctionNameAction(key: ${column.typeTerm}) = { 
+        def ${functionNames.findLayers.function}[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[List[$typeName]] = {
+          ${functionNames.findLayers.functionF}(key).transact(dbTransactorProvider.transactor[F])
+        }
+        """,
+        q"""
+        def ${functionNames.findLayers.functionF}(key: ${column.typeTerm}): ConnectionIO[List[$typeName]] = {
+          run(${functionNames.findLayers.functionAction}(key))
+        }
+        """,
+        q"""
+        def ${functionNames.deleteLayers.function}[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[Long] = {
+          ${functionNames.deleteLayers.functionF}(key).transact(dbTransactorProvider.transactor[F])
+        }
+        """,
+        q"""
+        def ${functionNames.deleteLayers.functionF}(key: ${column.typeTerm}): ConnectionIO[Long] = {
+          run(${functionNames.deleteLayers.functionAction}(key))
+        }
+        """
+      )
+
+      val privateFunctions = List(
+        q"""
+        private def ${functionNames.findLayers.functionAction}(key: ${column.typeTerm}) = {
           quote {
             $typeQuery.filter(a => ${TermUtils.equality("a", column.name, Term.Name("key"), column.mandatory)} )
           }
         }
         """,
-        q"""
-        def $findByFunctionName[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[List[$typeName]] = {
-          run($findByFunctionNameAction(key)).transact(transactor[F])
-        }
-        """,
-        q"""private def $deleteByFunctionNameAction(key: ${column.typeTerm}) = {
+        q"""private def ${functionNames.deleteLayers.functionAction}(key: ${column.typeTerm}) = {
           quote {
-            $findByFunctionNameAction(key).delete
+            ${functionNames.findLayers.functionAction}(key).delete
           }
         }
-        """,
-        q"""
-        def $deleteByFunctionName[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[Long] = {
-          run($deleteByFunctionNameAction(key)).transact(transactor[F])
-        }
-       """
+        """
       )
+      (publicFunctions, privateFunctions)
     }
 
-    val additional = columnSearches.flatMap(fromQuery)
+    val flatten: List[List[Defn.Def]] => List[Defn.Def] = _.flatten
+    val (publicAdditional, privateAdditional) = (flatten *** flatten)(columnSearches.map(fromQuery).unzip)
 
     val result = q"""
           package $daoPackageTerm {
-          import cats.effect.{ Async, ContextShift }
-          import db.DbContext
+          import cats.effect.{Async, ContextShift}
           import db.models._
+          import db.{DbContext, DbTransactorProvider}
+          import doobie.ConnectionIO
           import doobie.implicits._
           import io.getquill.ActionReturning
+
           import java.util.UUID
           import javax.inject.Inject
-          class $daoName @Inject()(dbContext: DbContext) { 
+          class $daoName @Inject()(
+            dbContext: DbContext,
+            dbTransactorProvider: DbTransactorProvider
+          ) { 
             import dbContext._
             def find[F[_]: Async: ContextShift](key: $keyType): F[Option[$typeName]] =
-              run(findAction(key)).map(_.headOption).transact(transactor[F])
+              findF(key).transact(dbTransactorProvider.transactor[F])
+            def findF(key: $keyType): ConnectionIO[Option[$typeName]] =
+              run(findAction(key)).map(_.headOption)
             def insert[F[_]: Async: ContextShift](row: $typeName): F[$typeName] =
-             run(insertAction(row)).transact(transactor[F])
+              insertF(row).transact(dbTransactorProvider.transactor[F])
+            def insertF(row: $typeName): ConnectionIO[$typeName] =
+              run(insertAction(row))
             def insertAll[F[_]: Async: ContextShift](rows: Seq[$typeName]): F[List[$typeName]] =
-              run(insertAllAction(rows)).transact(transactor[F])
+              insertAllF(rows).transact(dbTransactorProvider.transactor[F])
+            def insertAllF(rows: Seq[$typeName]): ConnectionIO[List[$typeName]] =
+              run(insertAllAction(rows))
             def delete[F[_]: Async: ContextShift](key: $keyType): F[$typeName] =
-              run(deleteAction(key)).transact(transactor[F])
+              deleteF(key).transact(dbTransactorProvider.transactor[F])
+            def deleteF(key: $keyType): ConnectionIO[$typeName] =
+              run(deleteAction(key))
             def replace[F[_]: Async: ContextShift](row: $typeName): F[$typeName] =
-              run(replaceAction(row)).transact(transactor[F])
+              run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
+            def replaceF(row: $typeName): ConnectionIO[$typeName] =
+              run(replaceAction(row))
+    
             private def findAction(key: $keyType) =
               quote {
                 $typeQuery.filter(a => ${keyDescription.compareKeys("a", "key")})
@@ -97,8 +126,9 @@ object GeneratedDAO {
                   .onConflictUpdate(..${keyDescription.keyColumns})((t, e) => t -> e)
                   .returning(x => x)
               }
-              
-            ..$additional
+
+            ..$publicAdditional
+            ..$privateAdditional
           }}"""
     result
   }
