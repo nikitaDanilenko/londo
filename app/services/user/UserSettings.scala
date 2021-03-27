@@ -16,4 +16,10 @@ object UserSettings {
       darkMode = userSettingsRow.darkMode
     )
 
+  def toRow(userId: UserId, userSettings: UserSettings): db.models.UserSettings =
+    db.models.UserSettings(
+      userId = userId.uuid,
+      darkMode = userSettings.darkMode
+    )
+
 }

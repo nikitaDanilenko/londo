@@ -24,4 +24,12 @@ object UserDetails {
       description = userDetailsRow.description
     )
 
+  def toRow(userId: UserId, userDetails: UserDetails): db.models.UserDetails =
+    db.models.UserDetails(
+      userId = userId.uuid,
+      firstName = userDetails.firstName,
+      lastName = userDetails.lastName,
+      description = userDetails.description
+    )
+
 }
