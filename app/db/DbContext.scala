@@ -1,26 +1,13 @@
 package db
 
-import cats.effect.{ Async, ContextShift }
 import doobie.quill.DoobieContext
-import doobie.util.transactor.Transactor
 import io.getquill.context.Context
 import io.getquill.{ CompositeNamingStrategy2, Escape, PostgresDialect, SnakeCase }
 
 import javax.inject.{ Inject, Singleton }
 
 @Singleton
-class DbContext @Inject() (dbConnection: DbConnection)
+class DbContext @Inject()
     extends DoobieContext.Postgres(CompositeNamingStrategy2[SnakeCase, Escape](SnakeCase, Escape))
     with PublicExtensions[PostgresDialect, CompositeNamingStrategy2[SnakeCase, Escape]]
-    with Context[PostgresDialect, CompositeNamingStrategy2[SnakeCase, Escape]] {
-
-  // TODO: Should the transactor be constructed here via injection?
-  def transactor[F[_]: Async: ContextShift]: Transactor[F] =
-    Transactor.fromDriverManager[F](
-      driver = dbConnection.driver,
-      url = dbConnection.url,
-      user = dbConnection.userName,
-      pass = dbConnection.password
-    )
-
-}
+    with Context[PostgresDialect, CompositeNamingStrategy2[SnakeCase, Escape]]
