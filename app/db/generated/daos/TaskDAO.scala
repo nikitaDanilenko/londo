@@ -1,26 +1,38 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
-import db.DbContext
 import db.models._
+import db.{ DbContext, DbTransactorProvider }
+import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class TaskDAO @Inject() (dbContext: DbContext) {
+class TaskDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
   def find[F[_]: Async: ContextShift](key: (UUID, UUID)): F[Option[Task]] =
-    run(findAction(key)).map(_.headOption).transact(transactor[F])
+    findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def insert[F[_]: Async: ContextShift](row: Task): F[Task] = run(insertAction(row)).transact(transactor[F])
+  def findF(key: (UUID, UUID)): ConnectionIO[Option[Task]] = run(findAction(key)).map(_.headOption)
+  def insert[F[_]: Async: ContextShift](row: Task): F[Task] = insertF(row).transact(dbTransactorProvider.transactor[F])
+  def insertF(row: Task): ConnectionIO[Task] = run(insertAction(row))
 
   def insertAll[F[_]: Async: ContextShift](rows: Seq[Task]): F[List[Task]] =
-    run(insertAllAction(rows)).transact(transactor[F])
+    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
 
-  def delete[F[_]: Async: ContextShift](key: (UUID, UUID)): F[Task] = run(deleteAction(key)).transact(transactor[F])
-  def replace[F[_]: Async: ContextShift](row: Task): F[Task] = run(replaceAction(row)).transact(transactor[F])
+  def insertAllF(rows: Seq[Task]): ConnectionIO[List[Task]] = run(insertAllAction(rows))
+
+  def delete[F[_]: Async: ContextShift](key: (UUID, UUID)): F[Task] =
+    deleteF(key).transact(dbTransactorProvider.transactor[F])
+
+  def deleteF(key: (UUID, UUID)): ConnectionIO[Task] = run(deleteAction(key))
+
+  def replace[F[_]: Async: ContextShift](row: Task): F[Task] =
+    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
+
+  def replaceF(row: Task): ConnectionIO[Task] = run(replaceAction(row))
 
   private def findAction(key: (UUID, UUID)) =
     quote {
@@ -50,14 +62,42 @@ class TaskDAO @Inject() (dbContext: DbContext) {
         .returning(x => x)
     }
 
+  def findById[F[_]: Async: ContextShift](key: UUID): F[List[Task]] = {
+    findByIdF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def findByIdF(key: UUID): ConnectionIO[List[Task]] = {
+    run(findByIdAction(key))
+  }
+
+  def deleteById[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+    deleteByIdF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def deleteByIdF(key: UUID): ConnectionIO[Long] = {
+    run(deleteByIdAction(key))
+  }
+
+  def findByProjectId[F[_]: Async: ContextShift](key: UUID): F[List[Task]] = {
+    findByProjectIdF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def findByProjectIdF(key: UUID): ConnectionIO[List[Task]] = {
+    run(findByProjectIdAction(key))
+  }
+
+  def deleteByProjectId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+    deleteByProjectIdF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def deleteByProjectIdF(key: UUID): ConnectionIO[Long] = {
+    run(deleteByProjectIdAction(key))
+  }
+
   private def findByIdAction(key: UUID) = {
     quote {
       PublicSchema.TaskDao.query.filter(a => a.id == lift(key))
     }
-  }
-
-  def findById[F[_]: Async: ContextShift](key: UUID): F[List[Task]] = {
-    run(findByIdAction(key)).transact(transactor[F])
   }
 
   private def deleteByIdAction(key: UUID) = {
@@ -66,28 +106,16 @@ class TaskDAO @Inject() (dbContext: DbContext) {
     }
   }
 
-  def deleteById[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    run(deleteByIdAction(key)).transact(transactor[F])
-  }
-
   private def findByProjectIdAction(key: UUID) = {
     quote {
       PublicSchema.TaskDao.query.filter(a => a.projectId == lift(key))
     }
   }
 
-  def findByProjectId[F[_]: Async: ContextShift](key: UUID): F[List[Task]] = {
-    run(findByProjectIdAction(key)).transact(transactor[F])
-  }
-
   private def deleteByProjectIdAction(key: UUID) = {
     quote {
       findByProjectIdAction(key).delete
     }
-  }
-
-  def deleteByProjectId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    run(deleteByProjectIdAction(key)).transact(transactor[F])
   }
 
 }

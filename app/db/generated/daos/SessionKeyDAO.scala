@@ -1,28 +1,41 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
-import db.DbContext
 import db.models._
+import db.{ DbContext, DbTransactorProvider }
+import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class SessionKeyDAO @Inject() (dbContext: DbContext) {
+class SessionKeyDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
   def find[F[_]: Async: ContextShift](key: UUID): F[Option[SessionKey]] =
-    run(findAction(key)).map(_.headOption).transact(transactor[F])
+    findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def insert[F[_]: Async: ContextShift](row: SessionKey): F[SessionKey] = run(insertAction(row)).transact(transactor[F])
+  def findF(key: UUID): ConnectionIO[Option[SessionKey]] = run(findAction(key)).map(_.headOption)
+
+  def insert[F[_]: Async: ContextShift](row: SessionKey): F[SessionKey] =
+    insertF(row).transact(dbTransactorProvider.transactor[F])
+
+  def insertF(row: SessionKey): ConnectionIO[SessionKey] = run(insertAction(row))
 
   def insertAll[F[_]: Async: ContextShift](rows: Seq[SessionKey]): F[List[SessionKey]] =
-    run(insertAllAction(rows)).transact(transactor[F])
+    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[SessionKey] = run(deleteAction(key)).transact(transactor[F])
+  def insertAllF(rows: Seq[SessionKey]): ConnectionIO[List[SessionKey]] = run(insertAllAction(rows))
+
+  def delete[F[_]: Async: ContextShift](key: UUID): F[SessionKey] =
+    deleteF(key).transact(dbTransactorProvider.transactor[F])
+
+  def deleteF(key: UUID): ConnectionIO[SessionKey] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: SessionKey): F[SessionKey] =
-    run(replaceAction(row)).transact(transactor[F])
+    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
+
+  def replaceF(row: SessionKey): ConnectionIO[SessionKey] = run(replaceAction(row))
 
   private def findAction(key: UUID) =
     quote {

@@ -1,26 +1,41 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
-import db.DbContext
 import db.models._
+import db.{ DbContext, DbTransactorProvider }
+import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class TaskKindDAO @Inject() (dbContext: DbContext) {
+class TaskKindDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
   def find[F[_]: Async: ContextShift](key: UUID): F[Option[TaskKind]] =
-    run(findAction(key)).map(_.headOption).transact(transactor[F])
+    findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def insert[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] = run(insertAction(row)).transact(transactor[F])
+  def findF(key: UUID): ConnectionIO[Option[TaskKind]] = run(findAction(key)).map(_.headOption)
+
+  def insert[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] =
+    insertF(row).transact(dbTransactorProvider.transactor[F])
+
+  def insertF(row: TaskKind): ConnectionIO[TaskKind] = run(insertAction(row))
 
   def insertAll[F[_]: Async: ContextShift](rows: Seq[TaskKind]): F[List[TaskKind]] =
-    run(insertAllAction(rows)).transact(transactor[F])
+    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[TaskKind] = run(deleteAction(key)).transact(transactor[F])
-  def replace[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] = run(replaceAction(row)).transact(transactor[F])
+  def insertAllF(rows: Seq[TaskKind]): ConnectionIO[List[TaskKind]] = run(insertAllAction(rows))
+
+  def delete[F[_]: Async: ContextShift](key: UUID): F[TaskKind] =
+    deleteF(key).transact(dbTransactorProvider.transactor[F])
+
+  def deleteF(key: UUID): ConnectionIO[TaskKind] = run(deleteAction(key))
+
+  def replace[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] =
+    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
+
+  def replaceF(row: TaskKind): ConnectionIO[TaskKind] = run(replaceAction(row))
 
   private def findAction(key: UUID) =
     quote {

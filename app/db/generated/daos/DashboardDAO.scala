@@ -1,26 +1,41 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
-import db.DbContext
 import db.models._
+import db.{ DbContext, DbTransactorProvider }
+import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class DashboardDAO @Inject() (dbContext: DbContext) {
+class DashboardDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
   def find[F[_]: Async: ContextShift](key: UUID): F[Option[Dashboard]] =
-    run(findAction(key)).map(_.headOption).transact(transactor[F])
+    findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def insert[F[_]: Async: ContextShift](row: Dashboard): F[Dashboard] = run(insertAction(row)).transact(transactor[F])
+  def findF(key: UUID): ConnectionIO[Option[Dashboard]] = run(findAction(key)).map(_.headOption)
+
+  def insert[F[_]: Async: ContextShift](row: Dashboard): F[Dashboard] =
+    insertF(row).transact(dbTransactorProvider.transactor[F])
+
+  def insertF(row: Dashboard): ConnectionIO[Dashboard] = run(insertAction(row))
 
   def insertAll[F[_]: Async: ContextShift](rows: Seq[Dashboard]): F[List[Dashboard]] =
-    run(insertAllAction(rows)).transact(transactor[F])
+    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[Dashboard] = run(deleteAction(key)).transact(transactor[F])
-  def replace[F[_]: Async: ContextShift](row: Dashboard): F[Dashboard] = run(replaceAction(row)).transact(transactor[F])
+  def insertAllF(rows: Seq[Dashboard]): ConnectionIO[List[Dashboard]] = run(insertAllAction(rows))
+
+  def delete[F[_]: Async: ContextShift](key: UUID): F[Dashboard] =
+    deleteF(key).transact(dbTransactorProvider.transactor[F])
+
+  def deleteF(key: UUID): ConnectionIO[Dashboard] = run(deleteAction(key))
+
+  def replace[F[_]: Async: ContextShift](row: Dashboard): F[Dashboard] =
+    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
+
+  def replaceF(row: Dashboard): ConnectionIO[Dashboard] = run(replaceAction(row))
 
   private def findAction(key: UUID) =
     quote {
@@ -47,24 +62,32 @@ class DashboardDAO @Inject() (dbContext: DbContext) {
       PublicSchema.DashboardDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
     }
 
+  def findByUserId[F[_]: Async: ContextShift](key: UUID): F[List[Dashboard]] = {
+    findByUserIdF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def findByUserIdF(key: UUID): ConnectionIO[List[Dashboard]] = {
+    run(findByUserIdAction(key))
+  }
+
+  def deleteByUserId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+    deleteByUserIdF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def deleteByUserIdF(key: UUID): ConnectionIO[Long] = {
+    run(deleteByUserIdAction(key))
+  }
+
   private def findByUserIdAction(key: UUID) = {
     quote {
       PublicSchema.DashboardDao.query.filter(a => a.userId == lift(key))
     }
   }
 
-  def findByUserId[F[_]: Async: ContextShift](key: UUID): F[List[Dashboard]] = {
-    run(findByUserIdAction(key)).transact(transactor[F])
-  }
-
   private def deleteByUserIdAction(key: UUID) = {
     quote {
       findByUserIdAction(key).delete
     }
-  }
-
-  def deleteByUserId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    run(deleteByUserIdAction(key)).transact(transactor[F])
   }
 
 }

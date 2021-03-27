@@ -1,29 +1,41 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
-import db.DbContext
 import db.models._
+import db.{ DbContext, DbTransactorProvider }
+import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class UserDetailsDAO @Inject() (dbContext: DbContext) {
+class UserDetailsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
   def find[F[_]: Async: ContextShift](key: UUID): F[Option[UserDetails]] =
-    run(findAction(key)).map(_.headOption).transact(transactor[F])
+    findF(key).transact(dbTransactorProvider.transactor[F])
+
+  def findF(key: UUID): ConnectionIO[Option[UserDetails]] = run(findAction(key)).map(_.headOption)
 
   def insert[F[_]: Async: ContextShift](row: UserDetails): F[UserDetails] =
-    run(insertAction(row)).transact(transactor[F])
+    insertF(row).transact(dbTransactorProvider.transactor[F])
+
+  def insertF(row: UserDetails): ConnectionIO[UserDetails] = run(insertAction(row))
 
   def insertAll[F[_]: Async: ContextShift](rows: Seq[UserDetails]): F[List[UserDetails]] =
-    run(insertAllAction(rows)).transact(transactor[F])
+    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[UserDetails] = run(deleteAction(key)).transact(transactor[F])
+  def insertAllF(rows: Seq[UserDetails]): ConnectionIO[List[UserDetails]] = run(insertAllAction(rows))
+
+  def delete[F[_]: Async: ContextShift](key: UUID): F[UserDetails] =
+    deleteF(key).transact(dbTransactorProvider.transactor[F])
+
+  def deleteF(key: UUID): ConnectionIO[UserDetails] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: UserDetails): F[UserDetails] =
-    run(replaceAction(row)).transact(transactor[F])
+    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
+
+  def replaceF(row: UserDetails): ConnectionIO[UserDetails] = run(replaceAction(row))
 
   private def findAction(key: UUID) =
     quote {

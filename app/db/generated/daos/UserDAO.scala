@@ -1,26 +1,35 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
-import db.DbContext
 import db.models._
+import db.{ DbContext, DbTransactorProvider }
+import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class UserDAO @Inject() (dbContext: DbContext) {
+class UserDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
   def find[F[_]: Async: ContextShift](key: UUID): F[Option[User]] =
-    run(findAction(key)).map(_.headOption).transact(transactor[F])
+    findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def insert[F[_]: Async: ContextShift](row: User): F[User] = run(insertAction(row)).transact(transactor[F])
+  def findF(key: UUID): ConnectionIO[Option[User]] = run(findAction(key)).map(_.headOption)
+  def insert[F[_]: Async: ContextShift](row: User): F[User] = insertF(row).transact(dbTransactorProvider.transactor[F])
+  def insertF(row: User): ConnectionIO[User] = run(insertAction(row))
 
   def insertAll[F[_]: Async: ContextShift](rows: Seq[User]): F[List[User]] =
-    run(insertAllAction(rows)).transact(transactor[F])
+    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[User] = run(deleteAction(key)).transact(transactor[F])
-  def replace[F[_]: Async: ContextShift](row: User): F[User] = run(replaceAction(row)).transact(transactor[F])
+  def insertAllF(rows: Seq[User]): ConnectionIO[List[User]] = run(insertAllAction(rows))
+  def delete[F[_]: Async: ContextShift](key: UUID): F[User] = deleteF(key).transact(dbTransactorProvider.transactor[F])
+  def deleteF(key: UUID): ConnectionIO[User] = run(deleteAction(key))
+
+  def replace[F[_]: Async: ContextShift](row: User): F[User] =
+    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
+
+  def replaceF(row: User): ConnectionIO[User] = run(replaceAction(row))
 
   private def findAction(key: UUID) =
     quote {
@@ -47,14 +56,42 @@ class UserDAO @Inject() (dbContext: DbContext) {
       PublicSchema.UserDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
     }
 
+  def findByEmail[F[_]: Async: ContextShift](key: String): F[List[User]] = {
+    findByEmailF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def findByEmailF(key: String): ConnectionIO[List[User]] = {
+    run(findByEmailAction(key))
+  }
+
+  def deleteByEmail[F[_]: Async: ContextShift](key: String): F[Long] = {
+    deleteByEmailF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def deleteByEmailF(key: String): ConnectionIO[Long] = {
+    run(deleteByEmailAction(key))
+  }
+
+  def findByNickname[F[_]: Async: ContextShift](key: String): F[List[User]] = {
+    findByNicknameF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def findByNicknameF(key: String): ConnectionIO[List[User]] = {
+    run(findByNicknameAction(key))
+  }
+
+  def deleteByNickname[F[_]: Async: ContextShift](key: String): F[Long] = {
+    deleteByNicknameF(key).transact(dbTransactorProvider.transactor[F])
+  }
+
+  def deleteByNicknameF(key: String): ConnectionIO[Long] = {
+    run(deleteByNicknameAction(key))
+  }
+
   private def findByEmailAction(key: String) = {
     quote {
       PublicSchema.UserDao.query.filter(a => a.email == lift(key))
     }
-  }
-
-  def findByEmail[F[_]: Async: ContextShift](key: String): F[List[User]] = {
-    run(findByEmailAction(key)).transact(transactor[F])
   }
 
   private def deleteByEmailAction(key: String) = {
@@ -63,28 +100,16 @@ class UserDAO @Inject() (dbContext: DbContext) {
     }
   }
 
-  def deleteByEmail[F[_]: Async: ContextShift](key: String): F[Long] = {
-    run(deleteByEmailAction(key)).transact(transactor[F])
-  }
-
   private def findByNicknameAction(key: String) = {
     quote {
       PublicSchema.UserDao.query.filter(a => a.nickname == lift(key))
     }
   }
 
-  def findByNickname[F[_]: Async: ContextShift](key: String): F[List[User]] = {
-    run(findByNicknameAction(key)).transact(transactor[F])
-  }
-
   private def deleteByNicknameAction(key: String) = {
     quote {
       findByNicknameAction(key).delete
     }
-  }
-
-  def deleteByNickname[F[_]: Async: ContextShift](key: String): F[Long] = {
-    run(deleteByNicknameAction(key)).transact(transactor[F])
   }
 
 }
