@@ -12,14 +12,12 @@ class GraphQLSchema {
   val QueryType: ObjectType[GraphQLContext, Unit] =
     deriveContextObjectType[GraphQLContext, Query, Unit](_.query)
 
-//  val MutationType: ObjectType[GraphQLContext, Unit] =
-//    deriveContextObjectType[GraphQLContext, Mutation, Unit](_.mutation)
+  val MutationType: ObjectType[GraphQLContext, Unit] =
+    deriveContextObjectType[GraphQLContext, Mutation, Unit](_.mutation)
 
   val schema: Schema[GraphQLContext, Unit] = Schema(
-    query = QueryType /*,
-    mutation = Some(MutationType)*/
-    /*,
-    additionalTypes = ???*/
+    query = QueryType,
+    mutation = Some(MutationType)
   )
 
 }
