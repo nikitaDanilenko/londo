@@ -13,6 +13,7 @@ trait UserMutation extends HasGraphQLServices {
   def login(nickname: String, password: String, publicSignatureKey: String): Future[User] = {
     graphQLServices.userService.login(nickname, password, publicSignatureKey).unsafeToFuture().flatMap {
       _.fold(
+        // TODO: Use proper error propagation
         error => Future.failed(new Throwable(error.message)),
         Future.successful
       )
