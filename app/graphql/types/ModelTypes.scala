@@ -4,14 +4,13 @@ import graphql.GraphQLContext
 import sangria.macros.derive._
 import sangria.schema.{ ObjectType, ScalarAlias, StringType }
 import sangria.validation.Violation
+import services.user.{ User, UserDetails, UserId, UserSettings }
 
 import java.util.UUID
 import scala.util.Try
 
 object ModelTypes {
 
-//  implicit val UserIdType: ObjectType[GraphQLContext, UserId] = deriveObjectType[GraphQLContext, UserId]()
-//  implicit val UserType: ObjectType[GraphQLContext, User] = deriveObjectType[GraphQLContext, User]()
   implicit val uuidType: ScalarAlias[UUID, String] = ScalarAlias[UUID, String](
     StringType,
     _.toString,
@@ -19,7 +18,16 @@ object ModelTypes {
       Try(UUID.fromString(s)).toEither.left.map(e => new Violation { override def errorMessage: String = e.getMessage })
   )
 
-  implicit val dbUserType: ObjectType[GraphQLContext, db.models.User] =
-    deriveObjectType[GraphQLContext, db.models.User]()
+  implicit val userIdType: ObjectType[GraphQLContext, UserId] =
+    deriveObjectType[GraphQLContext, UserId]()
+
+  implicit val userDetailsType: ObjectType[GraphQLContext, UserDetails] =
+    deriveObjectType[GraphQLContext, UserDetails]()
+
+  implicit val userSettingsType: ObjectType[GraphQLContext, UserSettings] =
+    deriveObjectType[GraphQLContext, UserSettings]()
+
+  implicit val userType: ObjectType[GraphQLContext, User] =
+    deriveObjectType[GraphQLContext, User]()
 
 }
