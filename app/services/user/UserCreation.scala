@@ -1,6 +1,7 @@
 package services.user
 
 import cats.effect.IO
+import security.Hash
 
 import java.util.UUID
 import scala.util.Random
@@ -15,22 +16,23 @@ case class UserCreation(
 
 object UserCreation {
 
-  def create(userCreation: UserCreation): IO[User] = {
+  val saltLength: Int = 40
+
+  def create(userCreation: UserCreation): IO[User] =
     for {
       id <- IO(UUID.randomUUID())
-      salt <- IO(Random.nextString(40))
-    } yield {
-      User(
-        id = UserId(id),
-        nickname = userCreation.nickname,
-        email = userCreation.email,
-        passwordSalt = salt,
-        passwordHash = "???",
-        settings = userCreation.settings,
-        details = userCreation.details
-      )
-    }
-
-  }
+      salt <- IO(Random.nextString(saltLength))
+    } yield User(
+      id = UserId(id),
+      nickname = userCreation.nickname,
+      email = userCreation.email,
+      passwordSalt = salt,
+      passwordHash = Hash.fromPassword(
+        password = userCreation.password,
+        salt = salt
+      ),
+      settings = userCreation.settings,
+      details = userCreation.details
+    )
 
 }
