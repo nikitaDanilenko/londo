@@ -7,6 +7,18 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
   object PublicSchema {
 
+    object RegistrationTokenDao {
+
+      def query =
+        quote {
+          querySchema[RegistrationToken](
+            "public.registration_token"
+          )
+
+        }
+
+    }
+
     object UserDao {
 
       def query =
@@ -49,6 +61,18 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
         quote {
           querySchema[DashboardRestriction](
             "public.dashboard_restriction"
+          )
+
+        }
+
+    }
+
+    object LoginAttemptDao {
+
+      def query =
+        quote {
+          querySchema[LoginAttempt](
+            "public.login_attempt"
           )
 
         }
