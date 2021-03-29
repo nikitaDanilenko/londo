@@ -3,9 +3,7 @@ package services.user
 import cats.effect.IO
 import io.circe.generic.JsonCodec
 import security.Hash
-
-import java.util.UUID
-import scala.util.Random
+import utils.random.RandomGenerator
 
 @JsonCodec
 case class UserCreation(
@@ -20,8 +18,8 @@ object UserCreation {
 
   def create(userCreation: UserCreation): IO[User] =
     for {
-      id <- IO(UUID.randomUUID())
-      salt <- IO(Random.nextString(saltLength))
+      id <- RandomGenerator.randomUUID
+      salt <- RandomGenerator.randomString(saltLength)
     } yield User(
       id = UserId(id),
       nickname = userCreation.nickname,
