@@ -1,17 +1,17 @@
 package services.user
 
 import cats.effect.IO
+import io.circe.generic.JsonCodec
 import security.Hash
 
 import java.util.UUID
 import scala.util.Random
 
+@JsonCodec
 case class UserCreation(
     nickname: String,
     email: String,
-    password: String,
-    settings: UserSettings,
-    details: UserDetails
+    password: String
 )
 
 object UserCreation {
@@ -31,8 +31,8 @@ object UserCreation {
         password = userCreation.password,
         salt = salt
       ),
-      settings = userCreation.settings,
-      details = userCreation.details
+      settings = UserSettings.default,
+      details = UserDetails.default
     )
 
 }
