@@ -9,12 +9,17 @@ object GeneratedDAO {
       typeName: Type.Name,
       daoPackage: String,
       keyDescription: KeyDescription,
-      columnSearches: List[Column]
+      columnSearches: List[Column],
+      fieldNames: List[String]
   ): Tree = {
     val daoPackageTerm = Pkg(ref = TermUtils.splitToTerm(daoPackage), stats = List.empty).ref
     val typeQuery = TermUtils.splitToTerm(s"PublicSchema.${typeName}Dao.query")
     val daoName = Type.Name(s"${typeName}DAO")
     val keyType = keyDescription.keyType
+    val allSelectors = fieldNames.map { fieldName =>
+      val fieldTerm = Term.Name(fieldName)
+      q"(t, e) => t.$fieldTerm -> e.$fieldTerm"
+    }
 
     def fromQuery(column: Column): (List[Defn.Def], List[Defn.Def]) = {
       val field = column.name.capitalize
@@ -119,14 +124,14 @@ object GeneratedDAO {
                 findAction(key).delete
                   .returning(x => x)
               }
-            private def replaceAction(row: $typeName) = 
+            private def replaceAction(row: $typeName) = {
               quote {
                 $typeQuery
                   .insert(lift(row))
-                  .onConflictUpdate(..${keyDescription.keyColumns})((t, e) => t -> e)
+                  .onConflictUpdate(..${keyDescription.keyColumns})(..$allSelectors)
                   .returning(x => x)
               }
-
+            }
             ..$publicAdditional
             ..$privateAdditional
           }}"""

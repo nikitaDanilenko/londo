@@ -1,16 +1,30 @@
 package db.generators
 
 import better.files.File
+import db.models.{
+  Dashboard,
+  DashboardRestriction,
+  LoginAttempt,
+  Project,
+  ProjectAccess,
+  RegistrationToken,
+  SessionKey,
+  Task,
+  TaskKind,
+  User,
+  UserDetails
+}
+import services.user.UserSettings
 
 import scala.meta.Type
+import scala.reflect.ClassTag
 
 object DaoGenerator {
 
   val daoPackage: String = "db.generated.daos"
 
   val daosToGenerate: Vector[DaoGeneratorParameters] = Vector(
-    daoGeneratorParameters(
-      typeName = "Dashboard",
+    daoGeneratorParameters[Dashboard](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "id",
@@ -24,8 +38,7 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters(
-      typeName = "DashboardRestriction",
+    daoGeneratorParameters[DashboardRestriction](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "dashboardId",
@@ -34,8 +47,7 @@ object DaoGenerator {
       ),
       columnSearches = List.empty
     ),
-    daoGeneratorParameters(
-      typeName = "Project",
+    daoGeneratorParameters[Project](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "id",
@@ -57,8 +69,7 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters(
-      typeName = "ProjectAccess",
+    daoGeneratorParameters[ProjectAccess](
       keyDescription = KeyDescription.column2(
         Column.uuid(
           name = "projectId",
@@ -80,8 +91,7 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters(
-      typeName = "Task",
+    daoGeneratorParameters[Task](
       keyDescription = KeyDescription.column2(
         Column.uuid(
           name = "id",
@@ -103,8 +113,7 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters(
-      typeName = "TaskKind",
+    daoGeneratorParameters[TaskKind](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "id",
@@ -113,8 +122,7 @@ object DaoGenerator {
       ),
       columnSearches = List.empty
     ),
-    daoGeneratorParameters(
-      typeName = "User",
+    daoGeneratorParameters[User](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "id",
@@ -132,8 +140,7 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters(
-      typeName = "UserDetails",
+    daoGeneratorParameters[UserDetails](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "userId",
@@ -142,8 +149,7 @@ object DaoGenerator {
       ),
       columnSearches = List.empty
     ),
-    daoGeneratorParameters(
-      typeName = "UserSettings",
+    daoGeneratorParameters[UserSettings](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "userId",
@@ -152,8 +158,7 @@ object DaoGenerator {
       ),
       columnSearches = List.empty
     ),
-    daoGeneratorParameters(
-      typeName = "SessionKey",
+    daoGeneratorParameters[SessionKey](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "userId",
@@ -162,8 +167,7 @@ object DaoGenerator {
       ),
       columnSearches = List.empty
     ),
-    daoGeneratorParameters(
-      typeName = "RegistrationToken",
+    daoGeneratorParameters[RegistrationToken](
       keyDescription = KeyDescription.column1(
         Column.string(
           name = "email",
@@ -172,8 +176,7 @@ object DaoGenerator {
       ),
       columnSearches = List.empty
     ),
-    daoGeneratorParameters(
-      typeName = "LoginAttempt",
+    daoGeneratorParameters[LoginAttempt](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "userId",
@@ -184,13 +187,11 @@ object DaoGenerator {
     )
   )
 
-  private def daoGeneratorParameters(
-      typeName: String,
+  private def daoGeneratorParameters[A: ClassTag](
       keyDescription: KeyDescription,
       columnSearches: List[Column]
   ): DaoGeneratorParameters =
     DaoGeneratorParameters(
-      typeName = typeName,
       daoPackage = daoPackage,
       keyDescription = keyDescription,
       columnSearches = columnSearches
@@ -202,7 +203,8 @@ object DaoGenerator {
         typeName = Type.Name(daoGeneratorParams.typeName),
         daoPackage = daoGeneratorParams.daoPackage,
         keyDescription = daoGeneratorParams.keyDescription,
-        columnSearches = daoGeneratorParams.columnSearches
+        columnSearches = daoGeneratorParams.columnSearches,
+        fieldNames = daoGeneratorParams.fieldNames
       )
       val filePath =
         ("app" +: daoGeneratorParams.daoPackage.split("\\.").toVector :+ s"${daoGeneratorParams.typeName}DAO.scala")
