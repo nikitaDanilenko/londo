@@ -7,7 +7,7 @@ import io.circe.syntax._
 
 import java.util.UUID
 
-object JWTUtil {
+object JwtUtil {
 
   val signatureAlgorithm: JwtAsymmetricAlgorithm = JwtAlgorithm.RS256
 
