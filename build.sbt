@@ -10,14 +10,16 @@ scalaVersion := "2.13.3"
 
 val doobieVersion = "0.10.0"
 val circeVersion = "0.13.0"
+val jwtVersion = "7.1.2"
+val quillVersion = "3.6.0-RC1"
 
 libraryDependencies ++= Seq(
   guice,
   "org.scalatestplus.play" %% "scalatestplus-play"   % "5.0.0" % Test,
   "org.postgresql"          % "postgresql"           % "42.2.8",
-  "io.getquill"            %% "quill-jdbc"           % "3.6.0-RC1",
-  "io.getquill"            %% "quill-codegen-jdbc"   % "3.6.0-RC1",
-  "io.getquill"            %% "quill-async-postgres" % "3.6.0-RC1",
+  "io.getquill"            %% "quill-jdbc"           % quillVersion,
+  "io.getquill"            %% "quill-codegen-jdbc"   % quillVersion,
+  "io.getquill"            %% "quill-async-postgres" % quillVersion,
   "org.flywaydb"           %% "flyway-play"          % "6.0.0",
   "org.typelevel"          %% "cats-core"            % "2.2.0",
   "org.scalameta"          %% "scalafmt-dynamic"     % "2.6.1",
@@ -32,7 +34,9 @@ libraryDependencies ++= Seq(
   "io.circe"               %% "circe-parser"         % circeVersion,
   "org.sangria-graphql"    %% "sangria"              % "2.1.0",
   "org.sangria-graphql"    %% "sangria-circe"        % "1.3.1",
-  "com.dripower"           %% "play-circe"           % "2812.0"
+  "com.dripower"           %% "play-circe"           % "2812.0",
+  "com.github.jwt-scala"   %% "jwt-core"             % jwtVersion,
+  "com.github.jwt-scala"   %% "jwt-circe"            % jwtVersion
 )
 
 scalacOptions ++= Seq(
