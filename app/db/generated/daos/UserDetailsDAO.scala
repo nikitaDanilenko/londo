@@ -57,9 +57,18 @@ class UserDetailsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTr
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: UserDetails) =
+  private def replaceAction(row: UserDetails) = {
     quote {
-      PublicSchema.UserDetailsDao.query.insert(lift(row)).onConflictUpdate(_.userId)((t, e) => t -> e).returning(x => x)
+      PublicSchema.UserDetailsDao.query
+        .insert(lift(row))
+        .onConflictUpdate(_.userId)(
+          (t, e) => t.userId -> e.userId,
+          (t, e) => t.firstName -> e.firstName,
+          (t, e) => t.lastName -> e.lastName,
+          (t, e) => t.description -> e.description
+        )
+        .returning(x => x)
     }
+  }
 
 }

@@ -57,9 +57,13 @@ class TaskKindDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTrans
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: TaskKind) =
+  private def replaceAction(row: TaskKind) = {
     quote {
-      PublicSchema.TaskKindDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
+      PublicSchema.TaskKindDao.query
+        .insert(lift(row))
+        .onConflictUpdate(_.id)((t, e) => t.id -> e.id, (t, e) => t.name -> e.name)
+        .returning(x => x)
     }
+  }
 
 }

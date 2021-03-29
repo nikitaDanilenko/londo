@@ -51,10 +51,21 @@ class UserDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransacto
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: User) =
+  private def replaceAction(row: User) = {
     quote {
-      PublicSchema.UserDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
+      PublicSchema.UserDao.query
+        .insert(lift(row))
+        .onConflictUpdate(_.id)(
+          (t, e) => t.id -> e.id,
+          (t, e) => t.nickname -> e.nickname,
+          (t, e) => t.email -> e.email,
+          (t, e) => t.passwordSalt -> e.passwordSalt,
+          (t, e) => t.passwordHash -> e.passwordHash,
+          (t, e) => t.iterations -> e.iterations
+        )
+        .returning(x => x)
     }
+  }
 
   def findByEmail[F[_]: Async: ContextShift](key: String): F[List[User]] = {
     findByEmailF(key).transact(dbTransactorProvider.transactor[F])

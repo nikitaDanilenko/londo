@@ -54,13 +54,23 @@ class TaskDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransacto
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: Task) =
+  private def replaceAction(row: Task) = {
     quote {
       PublicSchema.TaskDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.id, _.projectId)((t, e) => t -> e)
+        .onConflictUpdate(_.id, _.projectId)(
+          (t, e) => t.id -> e.id,
+          (t, e) => t.projectId -> e.projectId,
+          (t, e) => t.name -> e.name,
+          (t, e) => t.unit -> e.unit,
+          (t, e) => t.kindId -> e.kindId,
+          (t, e) => t.reached -> e.reached,
+          (t, e) => t.reachable -> e.reachable,
+          (t, e) => t.weight -> e.weight
+        )
         .returning(x => x)
     }
+  }
 
   def findById[F[_]: Async: ContextShift](key: UUID): F[List[Task]] = {
     findByIdF(key).transact(dbTransactorProvider.transactor[F])

@@ -57,12 +57,13 @@ class RegistrationTokenDAO @Inject() (dbContext: DbContext, dbTransactorProvider
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: RegistrationToken) =
+  private def replaceAction(row: RegistrationToken) = {
     quote {
       PublicSchema.RegistrationTokenDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.email)((t, e) => t -> e)
+        .onConflictUpdate(_.email)((t, e) => t.email -> e.email, (t, e) => t.token -> e.token)
         .returning(x => x)
     }
+  }
 
 }

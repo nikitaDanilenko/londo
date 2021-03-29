@@ -57,12 +57,13 @@ class UserSettingsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbT
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: UserSettings) =
+  private def replaceAction(row: UserSettings) = {
     quote {
       PublicSchema.UserSettingsDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.userId)((t, e) => t -> e)
+        .onConflictUpdate(_.userId)((t, e) => t.darkMode -> e.darkMode)
         .returning(x => x)
     }
+  }
 
 }

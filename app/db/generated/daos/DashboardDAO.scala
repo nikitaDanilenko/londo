@@ -57,10 +57,19 @@ class DashboardDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTran
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: Dashboard) =
+  private def replaceAction(row: Dashboard) = {
     quote {
-      PublicSchema.DashboardDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
+      PublicSchema.DashboardDao.query
+        .insert(lift(row))
+        .onConflictUpdate(_.id)(
+          (t, e) => t.id -> e.id,
+          (t, e) => t.userId -> e.userId,
+          (t, e) => t.header -> e.header,
+          (t, e) => t.description -> e.description
+        )
+        .returning(x => x)
     }
+  }
 
   def findByUserId[F[_]: Async: ContextShift](key: UUID): F[List[Dashboard]] = {
     findByUserIdF(key).transact(dbTransactorProvider.transactor[F])

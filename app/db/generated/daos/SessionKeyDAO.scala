@@ -57,9 +57,13 @@ class SessionKeyDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTra
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: SessionKey) =
+  private def replaceAction(row: SessionKey) = {
     quote {
-      PublicSchema.SessionKeyDao.query.insert(lift(row)).onConflictUpdate(_.userId)((t, e) => t -> e).returning(x => x)
+      PublicSchema.SessionKeyDao.query
+        .insert(lift(row))
+        .onConflictUpdate(_.userId)((t, e) => t.userId -> e.userId, (t, e) => t.publicKey -> e.publicKey)
+        .returning(x => x)
     }
+  }
 
 }

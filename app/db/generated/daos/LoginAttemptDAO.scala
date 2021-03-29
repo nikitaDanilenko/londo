@@ -57,12 +57,17 @@ class LoginAttemptDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbT
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: LoginAttempt) =
+  private def replaceAction(row: LoginAttempt) = {
     quote {
       PublicSchema.LoginAttemptDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.userId)((t, e) => t -> e)
+        .onConflictUpdate(_.userId)(
+          (t, e) => t.userId -> e.userId,
+          (t, e) => t.failedAttemptsSinceLastSuccessfulLogin -> e.failedAttemptsSinceLastSuccessfulLogin,
+          (t, e) => t.lastSuccessfulLogin -> e.lastSuccessfulLogin
+        )
         .returning(x => x)
     }
+  }
 
 }

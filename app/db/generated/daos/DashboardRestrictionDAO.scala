@@ -59,12 +59,13 @@ class DashboardRestrictionDAO @Inject() (dbContext: DbContext, dbTransactorProvi
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: DashboardRestriction) =
+  private def replaceAction(row: DashboardRestriction) = {
     quote {
       PublicSchema.DashboardRestrictionDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.dashboardId)((t, e) => t -> e)
+        .onConflictUpdate(_.dashboardId)((t, e) => t.dashboardId -> e.dashboardId)
         .returning(x => x)
     }
+  }
 
 }

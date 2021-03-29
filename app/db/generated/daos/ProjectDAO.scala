@@ -57,10 +57,20 @@ class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransa
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: Project) =
+  private def replaceAction(row: Project) = {
     quote {
-      PublicSchema.ProjectDao.query.insert(lift(row)).onConflictUpdate(_.id)((t, e) => t -> e).returning(x => x)
+      PublicSchema.ProjectDao.query
+        .insert(lift(row))
+        .onConflictUpdate(_.id)(
+          (t, e) => t.id -> e.id,
+          (t, e) => t.ownerId -> e.ownerId,
+          (t, e) => t.name -> e.name,
+          (t, e) => t.description -> e.description,
+          (t, e) => t.parentProjectId -> e.parentProjectId
+        )
+        .returning(x => x)
     }
+  }
 
   def findByOwnerId[F[_]: Async: ContextShift](key: UUID): F[List[Project]] = {
     findByOwnerIdF(key).transact(dbTransactorProvider.transactor[F])
