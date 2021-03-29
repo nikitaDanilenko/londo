@@ -1,6 +1,7 @@
 package graphql.mutations
 
 import graphql.HasGraphQLServices
+import graphql.HasGraphQLServices.syntax._
 import sangria.macros.derive.GraphQLField
 import services.user.User
 
@@ -11,13 +12,10 @@ trait UserMutation extends HasGraphQLServices {
 
   @GraphQLField
   def login(nickname: String, password: String, publicSignatureKey: String): Future[User] = {
-    graphQLServices.userService.login(nickname, password, publicSignatureKey).unsafeToFuture().flatMap {
-      _.fold(
-        // TODO: Use proper error propagation
-        error => Future.failed(new Throwable(error.message)),
-        Future.successful
-      )
-    }
+    graphQLServices.userService
+      .login(nickname, password, publicSignatureKey)
+      .unsafeToFuture()
+      .handleServerError
   }
 
 }
