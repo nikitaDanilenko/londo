@@ -8,11 +8,13 @@ import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import db.DbTransactorProvider
-import db.generated.daos.{ SessionKeyDAO, UserDAO, UserDetailsDAO, UserSettingsDAO }
-import db.models.SessionKey
+import db.generated.daos.{ RegistrationTokenDAO, SessionKeyDAO, UserDAO, UserDetailsDAO, UserSettingsDAO }
+import db.models.{ RegistrationToken, SessionKey }
 import doobie.syntax.connectionio._
 import errors.ServerError
 import security.Hash
+import services.email.{ EmailParameters, EmailService }
+import utils.random.RandomGenerator
 
 import javax.inject.Inject
 
@@ -21,6 +23,8 @@ class UserService @Inject() (
     userSettingsDAO: UserSettingsDAO,
     userDetailsDAO: UserDetailsDAO,
     sessionKeyDAO: SessionKeyDAO,
+    registrationTokenDAO: RegistrationTokenDAO,
+    emailService: EmailService,
     dbTransactorProvider: DbTransactorProvider
 ) {
 
@@ -72,6 +76,32 @@ class UserService @Inject() (
       .delete(userId.uuid)
       .void
 
+  def requestCreate[F[_]: Async: ContextShift](email: String): F[Unit] =
+    Async[F]
+      .liftIO(RandomGenerator.randomString(UserService.registrationTokenLength))
+      .flatMap(token =>
+        registrationTokenDAO
+          .replace(RegistrationToken(email, token))
+          .flatMap(registrationToken =>
+            Async[F].liftIO(
+              emailService.sendEmail(
+                EmailParameters(
+                  from = UserService.londoSenderAddress,
+                  to = registrationToken.email,
+                  // TODO: Add more explanation text to email
+                  content = registrationToken.token
+                )
+              )
+            )
+          )
+      )
+
   // TODO: Add update function
 
+}
+
+object UserService {
+  val registrationTokenLength: Int = 64
+  // TODO: Add proper sending address (via application conf)
+  val londoSenderAddress: String = "noreply@londo.io"
 }
