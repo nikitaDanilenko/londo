@@ -6,8 +6,8 @@ import io.circe.Json
 import io.circe.syntax._
 import play.api.Logging
 import play.api.libs.circe.Circe
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
-import sangria.execution.Executor
+import play.api.mvc._
+import sangria.execution.{ ErrorWithResolver, Executor, QueryAnalysisError }
 import sangria.marshalling.circe._
 import sangria.parser.QueryParser
 import utils.jwt.{ JwtConfiguration, JwtUtil }
@@ -55,7 +55,7 @@ class GraphQLController @Inject() (
                 variables = request.body.variables.getOrElse(Json.obj())
               ),
               graphQLContext = graphQLContext
-            ).map(Ok(_))
+            )
         )
     }
 
@@ -64,14 +64,21 @@ class GraphQLController @Inject() (
       Ok(graphQLSchema.schema.renderPretty)
     }
 
-  private def executeGraphQLQuery(graphQLQuery: GraphQLQuery, graphQLContext: GraphQLContext): Future[Json] =
-    Executor.execute[GraphQLContext, Unit, Json](
-      schema = graphQLSchema.schema,
-      queryAst = graphQLQuery.query,
-      userContext = graphQLContext,
-      operationName = graphQLQuery.operationName,
-      variables = graphQLQuery.variables
-    )
+  private def executeGraphQLQuery(graphQLQuery: GraphQLQuery, graphQLContext: GraphQLContext): Future[Result] =
+    Executor
+      .execute[GraphQLContext, Unit, Json](
+        schema = graphQLSchema.schema,
+        queryAst = graphQLQuery.query,
+        userContext = graphQLContext,
+        operationName = graphQLQuery.operationName,
+        variables = graphQLQuery.variables,
+        exceptionHandler = GraphQLExceptionHandler.exceptionHandler
+      )
+      .map(Ok(_))
+      .recover {
+        case error: QueryAnalysisError => BadRequest(error.resolveError)
+        case error: ErrorWithResolver  => InternalServerError(error.resolveError)
+      }
 
 }
 
