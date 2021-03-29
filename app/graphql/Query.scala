@@ -9,7 +9,7 @@ object Query {
   def apply(graphQLServices: GraphQLServices): Query = {
     val services = graphQLServices
     new Query {
-      override protected def graphQLServices: GraphQLServices = services
+      override protected val graphQLServices: GraphQLServices = services
     }
   }
 
