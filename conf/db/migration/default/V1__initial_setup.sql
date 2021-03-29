@@ -3,7 +3,8 @@ create table "user" (
     nickname text not null,
     email text not null,
     password_salt text not null,
-    password_hash text not null
+    password_hash text not null,
+    iterations int not null
 );
 
 alter table "user"
@@ -117,3 +118,21 @@ create table session_key(
 alter table session_key
     add constraint session_key_pk primary key (user_id),
     add constraint session_key_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
+
+create table registration_token(
+    email text not null,
+    token text not null
+);
+
+alter table registration_token
+    add constraint registration_token_ok primary key (email);
+
+create table login_attempt(
+    user_id uuid not null,
+    failed_attempts_since_last_successful_login int not null,
+    last_successful_login timestamp
+);
+
+alter table login_attempt
+    add constraint login_attempt_pk primary key (user_id),
+    add constraint login_attempt_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
