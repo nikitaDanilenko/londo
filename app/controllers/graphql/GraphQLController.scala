@@ -1,13 +1,16 @@
 package controllers.graphql
 
+import errors.ServerError
 import graphql._
 import io.circe.Json
 import io.circe.syntax._
+import play.api.Logging
 import play.api.libs.circe.Circe
 import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
 import sangria.execution.Executor
 import sangria.marshalling.circe._
 import sangria.parser.QueryParser
+import utils.jwt.{ JwtConfiguration, JwtUtil }
 
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -16,14 +19,30 @@ import scala.concurrent.{ ExecutionContext, Future }
 class GraphQLController @Inject() (
     override protected val controllerComponents: ControllerComponents,
     graphQLSchema: GraphQLSchema,
-    graphQLServices: GraphQLServices
+    graphQLServices: GraphQLServices,
+    jwtConfig: JwtConfiguration
 )(implicit
     executionContext: ExecutionContext
 ) extends BaseController
-    with Circe { self =>
+    with Circe
+    with Logging { self =>
+
+  private lazy val contextWithoutUser = GraphQLContext.withoutUser(graphQLServices)
 
   def graphQL: Action[GraphQLRequest] =
     Action.async(circe.tolerantJson[GraphQLRequest]) { request =>
+      val graphQLContext = request.headers
+        .get(GraphQLController.userTokenHeader)
+        .toRight(ServerError.Authentication.Token.Missing)
+        .flatMap(JwtUtil.validateJwt(_, jwtConfig.signaturePublicKey))
+        .fold(
+          error => {
+            logger.warn(error.message)
+            contextWithoutUser
+          },
+          jwtContent => GraphQLContext.withUser(graphQLServices, jwtContent.userId)
+        )
+
       QueryParser
         .parse(request.body.query)
         .fold(
@@ -34,7 +53,8 @@ class GraphQLController @Inject() (
                 queryAst,
                 operationName = request.body.operationName,
                 variables = request.body.variables.getOrElse(Json.obj())
-              )
+              ),
+              graphQLContext = graphQLContext
             ).map(Ok(_))
         )
     }
@@ -44,9 +64,7 @@ class GraphQLController @Inject() (
       Ok(graphQLSchema.schema.renderPretty)
     }
 
-  private val graphQLContext = GraphQLContext(graphQLServices)
-
-  private def executeGraphQLQuery(graphQLQuery: GraphQLQuery): Future[Json] =
+  private def executeGraphQLQuery(graphQLQuery: GraphQLQuery, graphQLContext: GraphQLContext): Future[Json] =
     Executor.execute[GraphQLContext, Unit, Json](
       schema = graphQLSchema.schema,
       queryAst = graphQLQuery.query,
@@ -55,4 +73,8 @@ class GraphQLController @Inject() (
       variables = graphQLQuery.variables
     )
 
+}
+
+object GraphQLController {
+  val userTokenHeader: String = "User-Token"
 }
