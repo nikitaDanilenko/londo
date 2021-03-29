@@ -161,6 +161,26 @@ object DaoGenerator {
         )
       ),
       columnSearches = List.empty
+    ),
+    daoGeneratorParameters(
+      typeName = "RegistrationToken",
+      keyDescription = KeyDescription.column1(
+        Column.string(
+          name = "email",
+          mandatory = true
+        )
+      ),
+      columnSearches = List.empty
+    ),
+    daoGeneratorParameters(
+      typeName = "LoginAttempt",
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List.empty
     )
   )
 
