@@ -11,11 +11,16 @@ trait UserMutation extends HasGraphQLServices {
   import ioImplicits._
 
   @GraphQLField
-  def login(nickname: String, password: String, publicSignatureKey: String): Future[User] = {
+  def login(nickname: String, password: String, publicSignatureKey: String): Future[User] =
     graphQLServices.userService
       .login(nickname, password, publicSignatureKey)
       .unsafeToFuture()
       .handleServerError
-  }
+
+  @GraphQLField
+  def requestCreate(email: String): Future[Unit] =
+    graphQLServices.userService
+      .requestCreate(email)
+      .unsafeToFuture()
 
 }
