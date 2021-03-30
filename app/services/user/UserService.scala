@@ -86,24 +86,20 @@ class UserService @Inject() (
       .void
 
   def requestCreate[F[_]: Async: ContextShift](email: String): F[Unit] =
-    Async[F]
-      .liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))
-      .flatMap(token =>
-        registrationTokenDAO
-          .replace(RegistrationToken(email, token))
-          .flatMap(registrationToken =>
-            Async[F].liftIO(
-              emailService.sendEmail(
-                EmailParameters(
-                  from = UserService.londoSenderAddress,
-                  to = registrationToken.email,
-                  // TODO: Add more explanation text to email
-                  content = registrationToken.token
-                )
-              )
-            )
+    for {
+      token <- Async[F].liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))
+      registrationToken <- registrationTokenDAO.replace(RegistrationToken(email, token))
+      response <- Async[F].liftIO(
+        emailService.sendEmail(
+          EmailParameters(
+            from = UserService.londoSenderAddress,
+            to = registrationToken.email,
+            // TODO: Add more explanation text to email
+            content = registrationToken.token
           )
+        )
       )
+    } yield response
 
   // TODO: Add update function
 
