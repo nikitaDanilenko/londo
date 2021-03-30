@@ -1,4 +1,4 @@
-package utils.jwt
+package security.jwt
 
 sealed trait JwtExpiration {
   def notBefore: Option[Long]

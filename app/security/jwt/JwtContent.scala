@@ -1,4 +1,4 @@
-package utils.jwt
+package security.jwt
 
 import io.circe.generic.JsonCodec
 

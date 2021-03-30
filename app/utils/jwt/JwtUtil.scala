@@ -1,9 +1,10 @@
 package utils.jwt
 
 import errors.ServerError
+import io.circe.syntax._
 import pdi.jwt.algorithms.JwtAsymmetricAlgorithm
 import pdi.jwt.{ JwtAlgorithm, JwtCirce, JwtClaim, JwtHeader }
-import io.circe.syntax._
+import security.jwt.{ JwtContent, JwtExpiration }
 
 import java.util.UUID
 
