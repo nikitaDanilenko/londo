@@ -10,7 +10,8 @@ import play.api.mvc._
 import sangria.execution.{ ErrorWithResolver, Executor, QueryAnalysisError }
 import sangria.marshalling.circe._
 import sangria.parser.QueryParser
-import utils.jwt.{ JwtConfiguration, JwtUtil }
+import security.jwt.JwtConfiguration
+import utils.jwt.JwtUtil
 
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }

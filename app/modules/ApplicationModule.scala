@@ -3,7 +3,7 @@ package modules
 import db.DbConnection
 import play.api.inject.Binding
 import play.api.{ Configuration, Environment }
-import utils.jwt.JwtConfiguration
+import security.jwt.JwtConfiguration
 
 class ApplicationModule extends play.api.inject.Module {
 
