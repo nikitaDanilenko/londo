@@ -11,7 +11,7 @@ import db.DbTransactorProvider
 import db.generated.daos.{ RegistrationTokenDAO, SessionKeyDAO, UserDAO, UserDetailsDAO, UserSettingsDAO }
 import db.models.{ RegistrationToken, SessionKey }
 import doobie.syntax.connectionio._
-import errors.ServerError
+import errors.{ ServerError, ServerException }
 import security.Hash
 import services.email.{ EmailParameters, EmailService }
 import spire.math.Natural
@@ -69,16 +69,22 @@ class UserService @Inject() (
       .delete(userId.uuid)
       .void
 
-  def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[User] =
-    Async[F].liftIO(UserCreation.create(userCreation)).flatMap { createdUser =>
-      val user = createdUser.user
-      val c = for {
-        u <- userDAO.insertF(User.toRow(user, createdUser.passwordParameters))
-        s <- userSettingsDAO.insertF(UserSettings.toRow(user.id, user.settings))
-        d <- userDetailsDAO.insertF(UserDetails.toRow(user.id, user.details))
+  def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[User] = {
+    for {
+      localToken <- registrationTokenDAO.find(userCreation.email)
+      _ <- Async[F].fromOption(
+        localToken.filter(_.token == userCreation.token),
+        ServerException(ServerError.Authentication.Token.Registration)
+      )
+      createdUser <- Async[F].liftIO(UserCreation.create(userCreation))
+      userCreation = for {
+        u <- userDAO.insertF(User.toRow(createdUser.user, createdUser.passwordParameters))
+        s <- userSettingsDAO.insertF(UserSettings.toRow(createdUser.user.id, createdUser.user.settings))
+        d <- userDetailsDAO.insertF(UserDetails.toRow(createdUser.user.id, createdUser.user.details))
       } yield User.fromRow(u, UserSettings.fromRow(s), UserDetails.fromRow(d))
-      c.transact(dbTransactorProvider.transactor[F])
-    }
+      user <- userCreation.transact(dbTransactorProvider.transactor[F])
+    } yield user
+  }
 
   def delete[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
     userDAO
