@@ -1,19 +1,25 @@
 package security
 
-import java.security.MessageDigest
+import services.user.PasswordParameters
+
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
 
 object Hash {
 
-  private val hashAlgorithm: String = "SHA3-512"
+  private val hashAlgorithm: String = "PBKDF2WithHmacSHA256"
+  private val keyLength: Int = 512
 
-  def fromPassword(password: String, salt: String): String =
-    MessageDigest
+  def fromPassword(password: String, salt: String, iterations: Int): String = {
+    SecretKeyFactory
       .getInstance(hashAlgorithm)
-      .digest(List(password, salt).mkString.getBytes)
+      .generateSecret(new PBEKeySpec(password.toCharArray, salt.getBytes(), iterations, keyLength))
+      .getEncoded
       .map("%02x".format(_))
       .mkString
+  }
 
-  def verify(password: String, salt: String, hash: String): Boolean =
-    fromPassword(password, salt) == hash
+  def verify(password: String, passwordParameters: PasswordParameters): Boolean =
+    fromPassword(password, passwordParameters.salt, passwordParameters.iterations) == passwordParameters.hash
 
 }
