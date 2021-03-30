@@ -10,7 +10,8 @@ import utils.random.RandomGenerator
 case class UserCreation(
     nickname: String,
     email: String,
-    password: String
+    password: String,
+    token: String
 )
 
 object UserCreation {
