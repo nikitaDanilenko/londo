@@ -20,6 +20,7 @@ object ServerError {
       case object Decoding extends ServerErrorInstance("Error decoding JWT: Format or signature is wrong")
       case object Content extends ServerErrorInstance("Error parsing JWT content: Unexpected format")
       case object Missing extends ServerErrorInstance("Missing JWT")
+      case object Registration extends ServerErrorInstance("Missing or wrong registration token")
     }
 
   }
