@@ -41,7 +41,14 @@ class UserService @Inject() (
             .toRight(ServerError.Login.Failure)
         )
     ).flatMapF { user =>
-      val isValid = Hash.verify(password, user.passwordSalt, user.passwordHash)
+      val isValid = Hash.verify(
+        password = password,
+        passwordParameters = PasswordParameters(
+          hash = user.passwordHash,
+          salt = user.passwordSalt,
+          iterations = user.iterations
+        )
+      )
       if (isValid)
         sessionKeyDAO
           .replace(SessionKey(user.id, publicSignatureKey))
@@ -62,9 +69,10 @@ class UserService @Inject() (
       .void
 
   def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[User] =
-    Async[F].liftIO(UserCreation.create(userCreation)).flatMap { user =>
+    Async[F].liftIO(UserCreation.create(userCreation)).flatMap { createdUser =>
+      val user = createdUser.user
       val c = for {
-        u <- userDAO.insertF(User.toRow(user))
+        u <- userDAO.insertF(User.toRow(user, createdUser.passwordParameters))
         s <- userSettingsDAO.insertF(UserSettings.toRow(user.id, user.settings))
         d <- userDetailsDAO.insertF(UserDetails.toRow(user.id, user.details))
       } yield User.fromRow(u, UserSettings.fromRow(s), UserDetails.fromRow(d))
