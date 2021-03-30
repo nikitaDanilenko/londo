@@ -9,7 +9,8 @@ create table "user" (
 
 alter table "user"
     add constraint user_pk primary key (id),
-    add constraint user_nickname_unique unique (nickname);
+    add constraint user_nickname_unique unique (nickname),
+    add constraint iterations_positive check (iterations > 0);
 
 create table user_details (
     user_id uuid not null,

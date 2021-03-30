@@ -29,7 +29,7 @@ object User {
       email = user.email,
       passwordSalt = passwordParameters.salt,
       passwordHash = passwordParameters.hash,
-      iterations = passwordParameters.iterations
+      iterations = passwordParameters.iterations.intValue
     )
 
 }

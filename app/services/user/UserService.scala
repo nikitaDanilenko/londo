@@ -14,6 +14,7 @@ import doobie.syntax.connectionio._
 import errors.ServerError
 import security.Hash
 import services.email.{ EmailParameters, EmailService }
+import spire.math.Natural
 import utils.random.RandomGenerator
 
 import javax.inject.Inject
@@ -46,7 +47,7 @@ class UserService @Inject() (
         passwordParameters = PasswordParameters(
           hash = user.passwordHash,
           salt = user.passwordSalt,
-          iterations = user.iterations
+          iterations = Natural(user.iterations)
         )
       )
       if (isValid)
@@ -86,7 +87,7 @@ class UserService @Inject() (
 
   def requestCreate[F[_]: Async: ContextShift](email: String): F[Unit] =
     Async[F]
-      .liftIO(RandomGenerator.randomString(UserService.registrationTokenLength))
+      .liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))
       .flatMap(token =>
         registrationTokenDAO
           .replace(RegistrationToken(email, token))
@@ -109,7 +110,7 @@ class UserService @Inject() (
 }
 
 object UserService {
-  val registrationTokenLength: Int = 64
+  val registrationTokenLength: Natural = Natural(64)
   // TODO: Add proper sending address (via application conf)
   val londoSenderAddress: String = "noreply@londo.io"
 }

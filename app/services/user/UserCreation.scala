@@ -3,6 +3,7 @@ package services.user
 import cats.effect.IO
 import io.circe.generic.JsonCodec
 import security.Hash
+import spire.math.Natural
 import utils.random.RandomGenerator
 
 @JsonCodec
@@ -14,8 +15,8 @@ case class UserCreation(
 
 object UserCreation {
 
-  val saltLength: Int = 40
-  val kdfIterations: Int = 120000
+  val saltLength: Natural = Natural(40)
+  val kdfIterations: Natural = Natural(120000)
 
   def create(userCreation: UserCreation): IO[CreatedUser] =
     for {
