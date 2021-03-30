@@ -77,12 +77,13 @@ class UserService @Inject() (
         ServerException(ServerError.Authentication.Token.Registration)
       )
       createdUser <- Async[F].liftIO(UserCreation.create(userCreation))
-      userCreation = for {
+      userCreationAction = for {
         u <- userDAO.insertF(User.toRow(createdUser.user, createdUser.passwordParameters))
         s <- userSettingsDAO.insertF(UserSettings.toRow(createdUser.user.id, createdUser.user.settings))
         d <- userDetailsDAO.insertF(UserDetails.toRow(createdUser.user.id, createdUser.user.details))
       } yield User.fromRow(u, UserSettings.fromRow(s), UserDetails.fromRow(d))
-      user <- userCreation.transact(dbTransactorProvider.transactor[F])
+      user <- userCreationAction.transact(dbTransactorProvider.transactor[F])
+      _ <- registrationTokenDAO.delete(userCreation.email)
     } yield user
   }
 
