@@ -36,7 +36,8 @@ libraryDependencies ++= Seq(
   "org.sangria-graphql"    %% "sangria-circe"        % "1.3.1",
   "com.dripower"           %% "play-circe"           % "2812.0",
   "com.github.jwt-scala"   %% "jwt-core"             % jwtVersion,
-  "com.github.jwt-scala"   %% "jwt-circe"            % jwtVersion
+  "com.github.jwt-scala"   %% "jwt-circe"            % jwtVersion,
+  "org.typelevel"          %% "spire"                % "0.17.0"
 )
 
 scalacOptions ++= Seq(
