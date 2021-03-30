@@ -15,22 +15,29 @@ case class UserCreation(
 object UserCreation {
 
   val saltLength: Int = 40
+  val kdfIterations: Int = 120000
 
-  def create(userCreation: UserCreation): IO[User] =
+  def create(userCreation: UserCreation): IO[CreatedUser] =
     for {
       id <- RandomGenerator.randomUUID
       salt <- RandomGenerator.randomString(saltLength)
-    } yield User(
-      id = UserId(id),
-      nickname = userCreation.nickname,
-      email = userCreation.email,
-      passwordSalt = salt,
-      passwordHash = Hash.fromPassword(
-        password = userCreation.password,
-        salt = salt
+    } yield CreatedUser(
+      User(
+        id = UserId(id),
+        nickname = userCreation.nickname,
+        email = userCreation.email,
+        settings = UserSettings.default,
+        details = UserDetails.default
       ),
-      settings = UserSettings.default,
-      details = UserDetails.default
+      passwordParameters = PasswordParameters(
+        salt = salt,
+        hash = Hash.fromPassword(
+          password = userCreation.password,
+          salt = salt,
+          iterations = kdfIterations
+        ),
+        iterations = kdfIterations
+      )
     )
 
 }
