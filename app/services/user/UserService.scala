@@ -84,11 +84,17 @@ class UserService @Inject() (
       }
   }
 
-  def fetch[F[_]: Async: ContextShift](user: db.models.User): F[User] =
-    (
-      userSettingsDAO.find(user.id).map(_.fold(UserSettings.default)(UserSettings.fromRow)),
-      userDetailsDAO.find(user.id).map(_.fold(UserDetails.default)(UserDetails.fromRow))
-    ).mapN(User.fromRow(user, _, _))
+  def fetch[F[_]: Async: ContextShift](userId: UserId): F[User] = {
+    for {
+      userRow <- userDAO.find(userId.uuid).flatMap(Async[F].fromOption(_, ServerException(ServerError.User.NotFound)))
+      userSettings <- userSettingsDAO.find(userId.uuid)
+      userDetails <- userDetailsDAO.find(userId.uuid)
+    } yield User.fromRow(
+      userRow = userRow,
+      settings = userSettings.fold(UserSettings.default)(UserSettings.fromRow),
+      details = userDetails.fold(UserDetails.default)(UserDetails.fromRow)
+    )
+  }
 
   def logout[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
     sessionKeyDAO
