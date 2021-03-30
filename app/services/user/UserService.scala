@@ -1,22 +1,26 @@
 package services.user
 
 import cats.data.EitherT
-import cats.effect.{ Async, ContextShift }
+import cats.effect.{ Async, ContextShift, IO }
 import cats.syntax.applicative._
 import cats.syntax.contravariantSemigroupal._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import db.DbTransactorProvider
-import db.generated.daos.{ RegistrationTokenDAO, SessionKeyDAO, UserDAO, UserDetailsDAO, UserSettingsDAO }
+import db.generated.daos._
 import db.models.{ RegistrationToken, SessionKey }
 import doobie.syntax.connectionio._
 import errors.{ ServerError, ServerException }
 import security.Hash
+import security.jwt.{ JwtConfiguration, JwtExpiration }
 import services.email.{ EmailParameters, EmailService }
 import spire.math.Natural
+import utils.jwt.JwtUtil
 import utils.random.RandomGenerator
+import utils.time.TimeUtil
 
+import java.util.UUID
 import javax.inject.Inject
 
 class UserService @Inject() (
@@ -26,14 +30,16 @@ class UserService @Inject() (
     sessionKeyDAO: SessionKeyDAO,
     registrationTokenDAO: RegistrationTokenDAO,
     emailService: EmailService,
+    jwtConfiguration: JwtConfiguration,
     dbTransactorProvider: DbTransactorProvider
 ) {
 
   def login[F[_]: Async: ContextShift](
       nickname: String,
       password: String,
-      publicSignatureKey: String
-  ): F[ServerError.Or[User]] = {
+      publicSignatureKey: String,
+      isValidityUnrestricted: Boolean
+  ): F[ServerError.Or[String]] = {
     EitherT(
       userDAO
         .findByNickname(nickname)
@@ -53,9 +59,29 @@ class UserService @Inject() (
       if (isValid)
         sessionKeyDAO
           .replace(SessionKey(user.id, publicSignatureKey))
-          .flatMap(_ => fetch(user).map(_.asRight[ServerError]))
-      else (ServerError.Login.Failure: ServerError).asLeft[User].pure
+          .flatMap(_ =>
+            Async[F].liftIO(generateUserAuthentication(user.id, isValidityUnrestricted).map(_.asRight[ServerError]))
+          )
+      else (ServerError.Login.Failure: ServerError).asLeft[String].pure
     }.value
+  }
+
+  def generateUserAuthentication(userId: UUID, isValidityUnrestricted: Boolean): IO[String] = {
+    TimeUtil.nowSeconds
+      .map { now =>
+        val jwtExpiration =
+          if (isValidityUnrestricted) JwtExpiration.Never
+          else
+            JwtExpiration.Expiring(
+              start = now,
+              duration = jwtConfiguration.restrictedDurationInSeconds
+            )
+        JwtUtil.createJwt(
+          userId = userId,
+          privateKey = jwtConfiguration.signaturePrivateKey,
+          expiration = jwtExpiration
+        )
+      }
   }
 
   def fetch[F[_]: Async: ContextShift](user: db.models.User): F[User] =
