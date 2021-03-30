@@ -25,4 +25,8 @@ object ServerError {
 
   }
 
+  object User {
+    case object NotFound extends ServerErrorInstance("No user with the given id found")
+  }
+
 }
