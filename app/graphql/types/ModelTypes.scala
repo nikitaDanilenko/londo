@@ -3,9 +3,11 @@ package graphql.types
 import graphql.GraphQLContext
 import sangria.ast.StringValue
 import sangria.macros.derive._
-import sangria.schema.{ ObjectType, ScalarType }
+import sangria.marshalling.FromInput
+import sangria.marshalling.circe._
+import sangria.schema.{ InputObjectType, ObjectType, ScalarType }
 import sangria.validation.{ ValueCoercionViolation, Violation }
-import services.user.{ User, UserDetails, UserId, UserSettings }
+import services.user.{ User, UserCreation, UserDetails, UserId, UserSettings }
 
 import java.util.UUID
 import scala.util.Try
@@ -51,6 +53,11 @@ object ModelTypes {
 
   implicit val userType: ObjectType[GraphQLContext, User] =
     deriveObjectType[GraphQLContext, User]()
+
+  implicit val userCreationInputType: InputObjectType[UserCreation] =
+    deriveInputObjectType[UserCreation]()
+
+  implicit val userCreationFromInput: FromInput[UserCreation] = circeDecoderFromInput[UserCreation]
 
   case object UUIDCoercionViolation extends ValueCoercionViolation("Not a valid UUID representation")
 
