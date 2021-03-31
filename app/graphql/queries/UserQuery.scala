@@ -1,9 +1,8 @@
 package graphql.queries
 
-import db.models.User
 import graphql.HasGraphQLServices
 import sangria.macros.derive.GraphQLField
-import services.user.UserId
+import services.user.{ User, UserId }
 
 import java.util.UUID
 import scala.concurrent.Future
@@ -11,9 +10,8 @@ import scala.concurrent.Future
 trait UserQuery extends HasGraphQLServices {
   import ioImplicits._
 
-  @GraphQLField
-  def userById(userId: UUID): Future[Option[User]] = {
-    graphQLServices.userDTO.find(UserId(userId)).unsafeToFuture()
-  }
+  @GraphQLField()
+  def fetch(userId: UUID): Future[User] =
+    graphQLServices.userService.fetch(UserId(userId)).unsafeToFuture()
 
 }
