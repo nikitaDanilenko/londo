@@ -1,5 +1,8 @@
 package errors
 
+import io.circe.{ Encoder, Json }
+import io.circe.syntax._
+
 sealed trait ServerError {
   def message: String
 }
@@ -7,6 +10,12 @@ sealed trait ServerError {
 object ServerError {
 
   type Or[A] = Either[ServerError, A]
+
+  implicit val serverErrorEncoder: Encoder[ServerError] = Encoder.instance[ServerError] { serverError =>
+    Json.obj(
+      "message" -> serverError.message.asJson
+    )
+  }
 
   sealed abstract class ServerErrorInstance(override val message: String) extends ServerError
 
@@ -21,7 +30,10 @@ object ServerError {
       case object Content extends ServerErrorInstance("Error parsing JWT content: Unexpected format")
       case object Missing extends ServerErrorInstance("Missing JWT")
       case object Registration extends ServerErrorInstance("Missing or wrong registration token")
+      case object MissingSessionKey extends ServerErrorInstance("Unknown session key reference")
     }
+
+    case object MissingAuthenticationInstant extends ServerErrorInstance("Missing instant of signature creation")
 
   }
 
