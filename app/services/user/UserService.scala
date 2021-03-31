@@ -3,7 +3,6 @@ package services.user
 import cats.data.EitherT
 import cats.effect.{ Async, ContextShift, IO }
 import cats.syntax.applicative._
-import cats.syntax.contravariantSemigroupal._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
