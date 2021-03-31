@@ -1,5 +1,6 @@
 package controllers.graphql
 
+import controllers.SignatureAction
 import errors.ServerError
 import graphql._
 import io.circe.Json
@@ -21,7 +22,8 @@ class GraphQLController @Inject() (
     override protected val controllerComponents: ControllerComponents,
     graphQLSchema: GraphQLSchema,
     graphQLServices: GraphQLServices,
-    jwtConfig: JwtConfiguration
+    jwtConfiguration: JwtConfiguration,
+    signatureAction: SignatureAction
 )(implicit
     executionContext: ExecutionContext
 ) extends BaseController
@@ -31,11 +33,11 @@ class GraphQLController @Inject() (
   private lazy val contextWithoutUser = GraphQLContext.withoutUser(graphQLServices)
 
   def graphQL: Action[GraphQLRequest] =
-    Action.async(circe.tolerantJson[GraphQLRequest]) { request =>
+    signatureAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
       val graphQLContext = request.headers
         .get(GraphQLController.userTokenHeader)
         .toRight(ServerError.Authentication.Token.Missing)
-        .flatMap(JwtUtil.validateJwt(_, jwtConfig.signaturePublicKey))
+        .flatMap(JwtUtil.validateJwt(_, jwtConfiguration.signaturePublicKey))
         .fold(
           error => {
             logger.warn(error.message)
@@ -50,7 +52,7 @@ class GraphQLController @Inject() (
           error => Future.successful(BadRequest(GraphQLError(error.getMessage.asJson).asJson)),
           queryAst =>
             executeGraphQLQuery(
-              GraphQLQuery(
+              graphQLQuery = GraphQLQuery(
                 queryAst,
                 operationName = request.body.operationName,
                 variables = request.body.variables.getOrElse(Json.obj())
