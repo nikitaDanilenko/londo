@@ -3,6 +3,7 @@ package utils.signature
 import utils.string.StringUtil.syntax._
 
 import java.security.Signature
+import scala.util.Try
 
 object SignatureHandler {
 
@@ -12,7 +13,7 @@ object SignatureHandler {
     val sig = Signature.getInstance(signatureAlgorithm)
     sig.initVerify(RSAUtil.publicKeyFromBase64String(publicKey))
     sig.update(message.getBytes)
-    sig.verify(signature.asBase64ByteArray)
+    Try(sig.verify(signature.asBase64ByteArray)).getOrElse(false)
   }
 
   def sign(message: String, privateKey: String): String = {
