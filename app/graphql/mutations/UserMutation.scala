@@ -1,13 +1,13 @@
 package graphql.mutations
 
-import graphql.HasGraphQLServices
+import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import graphql.HasGraphQLServices.syntax._
 import sangria.macros.derive.GraphQLField
 import services.user.{ User, UserCreation }
 
 import scala.concurrent.Future
 
-trait UserMutation extends HasGraphQLServices {
+trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
   import ioImplicits._
 
   @GraphQLField

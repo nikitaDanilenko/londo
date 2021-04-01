@@ -31,6 +31,7 @@ object ServerError {
       case object Missing extends ServerErrorInstance("Missing JWT")
       case object Registration extends ServerErrorInstance("Missing or wrong registration token")
       case object MissingSessionKey extends ServerErrorInstance("Unknown session key reference")
+      case object Restricted extends ServerErrorInstance("Invalid access rights")
     }
 
     case object MissingAuthenticationInstant extends ServerErrorInstance("Missing instant of signature creation")

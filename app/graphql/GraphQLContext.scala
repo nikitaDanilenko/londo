@@ -1,11 +1,10 @@
 package graphql
 
-import java.util.UUID
+import services.user.UserId
 
 sealed trait GraphQLContext {
   def mutation: Mutation
   def query: Query
-  def userId: Option[UUID]
 }
 
 object GraphQLContext {
@@ -16,17 +15,16 @@ object GraphQLContext {
       _userId = None
     )
 
-  def withUser(graphQLServices: GraphQLServices, userId: UUID): GraphQLContext =
+  def withUser(graphQLServices: GraphQLServices, userId: UserId): GraphQLContext =
     create(
       graphQLServices = graphQLServices,
       _userId = Some(userId)
     )
 
-  private def create(graphQLServices: GraphQLServices, _userId: Option[UUID]): GraphQLContext =
+  private def create(graphQLServices: GraphQLServices, _userId: Option[UserId]): GraphQLContext =
     new GraphQLContext {
-      override val mutation: Mutation = Mutation(graphQLServices)
-      override val query: Query = Query(graphQLServices)
-      override val userId: Option[UUID] = _userId
+      override val mutation: Mutation = Mutation(graphQLServices, _userId)
+      override val query: Query = Query(graphQLServices, _userId)
     }
 
 }
