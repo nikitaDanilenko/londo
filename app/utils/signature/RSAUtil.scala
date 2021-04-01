@@ -14,10 +14,8 @@ object RSAUtil {
   def generateRSAKeyPair: IO[RSAKeyPair] =
     IO {
       val keyPairGenerator = KeyPairGenerator.getInstance(algorithm)
-      keyPairGenerator.initialize(512)
+      keyPairGenerator.initialize(1024)
       val keyPair = keyPairGenerator.generateKeyPair()
-      pprint.log(keyPair.getPrivate)
-      pprint.log(keyPair.getPublic)
       RSAKeyPair(
         privateKey = StringUtil.toBase64String(keyPair.getPrivate.getEncoded),
         publicKey = StringUtil.toBase64String(keyPair.getPublic.getEncoded)
