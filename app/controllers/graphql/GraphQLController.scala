@@ -1,6 +1,6 @@
 package controllers.graphql
 
-import controllers.SignatureAction
+import controllers.{ RequestHeaders, SignatureAction }
 import errors.ServerError
 import graphql._
 import io.circe.Json
@@ -36,7 +36,7 @@ class GraphQLController @Inject() (
   def graphQL: Action[GraphQLRequest] =
     signatureAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
       val graphQLContext = request.headers
-        .get(GraphQLController.userTokenHeader)
+        .get(RequestHeaders.userTokenHeader)
         .toRight(ServerError.Authentication.Token.Missing)
         .flatMap(JwtUtil.validateJwt(_, jwtConfiguration.signaturePublicKey))
         .fold(
@@ -84,8 +84,4 @@ class GraphQLController @Inject() (
         case error: ErrorWithResolver  => InternalServerError(error.resolveError)
       }
 
-}
-
-object GraphQLController {
-  val userTokenHeader: String = "User-Token"
 }
