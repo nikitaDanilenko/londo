@@ -1,10 +1,11 @@
 package security
 
+import cats.effect.IO
 import controllers.RequestHeaders
 import errors.ServerError
 import io.circe.generic.JsonCodec
-import play.api.mvc.Request
 import io.circe.syntax._
+import play.api.mvc.{ Request, Result }
 
 import java.time.Instant
 
@@ -29,6 +30,15 @@ object SignatureRequest {
         )
       }
   }
+
+  def fromResult(method: String, result: Result): IO[SignatureRequest] =
+    IO {
+      SignatureRequest(
+        httpVerb = method,
+        authenticationInstant = Instant.now,
+        bodyHash = Hash.messageDigest(result.body.toString)
+      )
+    }
 
   def hashOf(signatureRequest: SignatureRequest): String =
     Hash.messageDigest(signatureRequest.asJson.noSpaces)
