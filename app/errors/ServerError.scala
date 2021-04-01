@@ -35,6 +35,7 @@ object ServerError {
     }
 
     case object MissingAuthenticationInstant extends ServerErrorInstance("Missing instant of signature creation")
+    case object MissingAuthentication extends ServerErrorInstance("Missing signature")
 
   }
 
