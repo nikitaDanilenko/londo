@@ -1,9 +1,10 @@
 package security
 
-import controllers.SignatureAction
+import controllers.RequestHeaders
 import errors.ServerError
 import io.circe.generic.JsonCodec
 import play.api.mvc.Request
+import io.circe.syntax._
 
 import java.time.Instant
 
@@ -18,8 +19,8 @@ object SignatureRequest {
 
   def fromRequest[A](request: Request[A]): ServerError.Or[SignatureRequest] = {
     request.headers
-      .get(SignatureAction.authenticationInstantHeader)
-      .toRight(ServerError.Authentication.MissingAuthenticationInstant)
+      .get(RequestHeaders.authenticationInstantHeader)
+      .toRight(ServerError.Authentication.Signature.MissingInstant)
       .map { time =>
         SignatureRequest(
           httpVerb = request.method,
@@ -28,5 +29,8 @@ object SignatureRequest {
         )
       }
   }
+
+  def hashOf(signatureRequest: SignatureRequest): String =
+    Hash.messageDigest(signatureRequest.asJson.noSpaces)
 
 }
