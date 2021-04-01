@@ -34,8 +34,11 @@ object ServerError {
       case object Restricted extends ServerErrorInstance("Invalid access rights")
     }
 
-    case object MissingAuthenticationInstant extends ServerErrorInstance("Missing instant of signature creation")
-    case object MissingAuthentication extends ServerErrorInstance("Missing signature")
+    object Signature {
+      case object MissingInstant extends ServerErrorInstance("Missing instant of signature creation")
+      case object Missing extends ServerErrorInstance("Missing signature")
+      case object Invalid extends ServerErrorInstance("Invalid signature")
+    }
 
   }
 
