@@ -2,15 +2,16 @@ package security
 
 import services.user.PasswordParameters
 import spire.math.Natural
+import utils.string.StringUtil.syntax._
 
-import java.security.{ MessageDigest, Signature }
+import java.security.MessageDigest
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
 object Hash {
 
   private val hashAlgorithm: String = "PBKDF2WithHmacSHA256"
-  private val signatureHashAlgorithm: String = "SHA3-512"
+  private val signatureHashAlgorithm: String = "SHA-384"
   private val keyLength: Int = 512
 
   def fromPassword(password: String, salt: String, iterations: Natural): String = {
@@ -18,8 +19,7 @@ object Hash {
       .getInstance(hashAlgorithm)
       .generateSecret(new PBEKeySpec(password.toCharArray, salt.getBytes(), iterations.intValue, keyLength))
       .getEncoded
-      .map("%02x".format(_))
-      .mkString
+      .asBase64String
   }
 
   def verify(password: String, passwordParameters: PasswordParameters): Boolean =
@@ -29,7 +29,6 @@ object Hash {
     MessageDigest
       .getInstance(signatureHashAlgorithm)
       .digest(string.getBytes)
-      .map("%02x".format(_))
-      .mkString
+      .asBase64String
 
 }
