@@ -13,7 +13,7 @@ import play.api.mvc.{ BodyParsers, _ }
 import security.SignatureRequest
 import security.jwt.JwtConfiguration
 import utils.jwt.JwtUtil
-import utils.signature.SignatureValidator
+import utils.signature.SignatureHandler
 
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
@@ -33,7 +33,7 @@ class SignatureAction @Inject() (
       request: Request[A],
       block: Request[A] => Future[Result]
   ): Future[Result] = {
-    request.headers.get(SignatureAction.authenticationHeader) match {
+    request.headers.get(RequestHeaders.userTokenHeader) match {
       case Some(token) =>
         val transformer = for {
           jwtContent <- EitherT.fromEither[Future](JwtUtil.validateJwt(token, jwtConfiguration.signaturePublicKey))
@@ -42,11 +42,15 @@ class SignatureAction @Inject() (
             ServerError.Authentication.Token.MissingSessionKey: ServerError
           )
           signatureRequest <- EitherT.fromEither[Future](SignatureRequest.fromRequest(request))
+          signature <- EitherT.fromOption[Future](
+            request.headers.get(RequestHeaders.authenticationHeader),
+            ServerError.Authentication.Signature.Missing
+          )
           result <- {
-            if (SignatureValidator.validate(signatureRequest.asJson.noSpaces, sessionKey.publicKey))
+            if (SignatureHandler.validate(signature, SignatureRequest.hashOf(signatureRequest), sessionKey.publicKey))
               EitherT.liftF[Future, ServerError, Result](block(request))
             else
-              EitherT.leftT[Future, Result].apply(ServerError.User.NotFound: ServerError)
+              EitherT.leftT[Future, Result].apply(ServerError.Authentication.Signature.Invalid: ServerError)
           }
         } yield result
         transformer.valueOr(error => BadRequest(error.asJson))
@@ -55,9 +59,4 @@ class SignatureAction @Inject() (
   }
 
   override val parser: BodyParser[AnyContent] = new BodyParsers.Default(parse)
-}
-
-object SignatureAction {
-  val authenticationHeader: String = "Authentication"
-  val authenticationInstantHeader: String = "Authentication-Instant"
 }
