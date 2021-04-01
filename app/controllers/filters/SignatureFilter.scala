@@ -1,5 +1,6 @@
-package controllers
+package controllers.filters
 
+import controllers.RequestHeaders
 import play.api.mvc.{ EssentialAction, EssentialFilter }
 import security.SignatureRequest
 import security.jwt.JwtConfiguration
