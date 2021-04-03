@@ -4,20 +4,17 @@ import algebra.ring.AdditiveMonoid
 import spire.algebra.Order
 import spire.math.{ Natural, Rational }
 
-import java.math.RoundingMode
-
 sealed trait Progress {
   def reached: Natural
   def reachable: Natural
 
   def set(reachedValue: Natural): Progress
 
-  final def decimalValue(precision: Natural): BigDecimal =
+  final def value: Rational =
     Rational(
       n = reached.toBigInt,
       d = reachable.toBigInt
     )
-      .toBigDecimal(precision.intValue, RoundingMode.HALF_UP)
 
 }
 
