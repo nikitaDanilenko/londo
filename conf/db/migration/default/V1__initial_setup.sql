@@ -76,7 +76,8 @@ alter table project
 
 create table project_access(
     project_id uuid not null,
-    user_id uuid not null
+    user_id uuid not null,
+    write_allowed boolean not null
 );
 
 alter table project_access

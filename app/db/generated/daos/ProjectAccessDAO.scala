@@ -61,7 +61,11 @@ class ProjectAccessDAO @Inject() (dbContext: DbContext, dbTransactorProvider: Db
     quote {
       PublicSchema.ProjectAccessDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.projectId, _.userId)((t, e) => t.projectId -> e.projectId, (t, e) => t.userId -> e.userId)
+        .onConflictUpdate(_.projectId, _.userId)(
+          (t, e) => t.projectId -> e.projectId,
+          (t, e) => t.userId -> e.userId,
+          (t, e) => t.writeAllowed -> e.writeAllowed
+        )
         .returning(x => x)
     }
   }
