@@ -99,8 +99,8 @@ create table task(
     name text not null,
     unit text,
     kind_id uuid not null,
-    reached int not null,
-    reachable int not null,
+    reached numeric not null,
+    reachable numeric not null,
     weight int not null
 );
 

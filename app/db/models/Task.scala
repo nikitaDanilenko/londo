@@ -6,7 +6,7 @@ case class Task(
     name: String,
     unit: Option[String],
     kindId: java.util.UUID,
-    reached: Int,
-    reachable: Int,
+    reached: scala.math.BigDecimal,
+    reachable: scala.math.BigDecimal,
     weight: Int
 )
