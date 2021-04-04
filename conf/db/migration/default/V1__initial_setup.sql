@@ -66,7 +66,8 @@ create table project(
     owner_id uuid not null,
     name text not null,
     description text,
-    parent_project_id uuid
+    parent_project_id uuid,
+    is_restricted boolean not null
 );
 
 alter table project
