@@ -67,7 +67,8 @@ create table project(
     name text not null,
     description text,
     parent_project_id uuid,
-    is_restricted boolean not null
+    is_read_restricted boolean not null,
+    is_write_restricted boolean not null
 );
 
 alter table project

@@ -6,5 +6,6 @@ case class Project(
     name: String,
     description: Option[String],
     parentProjectId: Option[java.util.UUID],
-    isRestricted: Boolean
+    isReadRestricted: Boolean,
+    isWriteRestricted: Boolean
 )
