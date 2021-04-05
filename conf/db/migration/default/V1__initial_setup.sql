@@ -97,6 +97,11 @@ create table task_kind(
 alter table task_kind
     add constraint task_kind_pk primary key (id);
 
+insert into task_kind values
+    ('005c8772-56b6-4ebb-afa6-e27d1d987f86', 'Discrete'),
+    ('7c1917d4-2743-4419-856e-c7a3b6ef540e', 'Percentual'),
+    ('1cb2c09f-cdbd-4318-9dad-fcee1b16c0d4', 'Fractional');
+
 create table task(
     id uuid not null,
     project_id uuid not null,

@@ -37,7 +37,8 @@ libraryDependencies ++= Seq(
   "com.dripower"           %% "play-circe"           % "2812.0",
   "com.github.jwt-scala"   %% "jwt-core"             % jwtVersion,
   "com.github.jwt-scala"   %% "jwt-circe"            % jwtVersion,
-  "org.typelevel"          %% "spire"                % "0.17.0"
+  "org.typelevel"          %% "spire"                % "0.17.0",
+  "com.beachape"           %% "enumeratum-circe"     % "1.6.1"
 )
 
 scalacOptions ++= Seq(
