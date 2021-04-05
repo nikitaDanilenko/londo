@@ -67,6 +67,7 @@ create table project(
     name text not null,
     description text,
     parent_project_id uuid,
+    weight int not null,
     is_read_restricted boolean not null,
     is_write_restricted boolean not null
 );
@@ -74,7 +75,8 @@ create table project(
 alter table project
     add constraint project_pk primary key (id),
     add constraint project_parent_project_id_fk foreign key (parent_project_id) references project(id) on delete cascade,
-    add constraint project_owner_id_fk foreign key (owner_id) references "user"(id) on delete cascade;
+    add constraint project_owner_id_fk foreign key (owner_id) references "user"(id) on delete cascade,
+    add constraint weight_non_negative check (weight >= 0);
 
 create table project_access(
     project_id uuid not null,
