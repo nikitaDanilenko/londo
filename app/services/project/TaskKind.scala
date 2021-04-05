@@ -22,8 +22,8 @@ object TaskKind extends Enum[TaskKind] {
 
   private val reverseMap: Map[TaskKind, UUID] = taskKindMap.map(_.swap)
 
-  def fromRow(taskKindRow: db.models.TaskKind): TaskKind =
-    taskKindMap.getOrElse(taskKindRow.id, Fractional)
+  def fromId(id: UUID): TaskKind =
+    taskKindMap.getOrElse(id, Fractional)
 
   def toRow(taskKind: TaskKind): db.models.TaskKind =
     db.models.TaskKind(
