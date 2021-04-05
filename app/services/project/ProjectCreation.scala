@@ -7,13 +7,18 @@ import utils.random.RandomGenerator
 
 @JsonCodec
 case class ProjectCreation(
+    ownerId: UserId,
     name: String,
-    description: Option[String]
+    description: Option[String],
+    parentProject: Option[ProjectId],
+    weight: Int,
+    readAccessors: Accessors,
+    writeAccessors: Accessors
 )
 
 object ProjectCreation {
 
-  def create(ownerId: UserId, projectCreation: ProjectCreation): IO[Project] =
+  def create(projectCreation: ProjectCreation): IO[Project] =
     RandomGenerator.randomUUID.map { uuid =>
       Project(
         id = ProjectId(uuid),
@@ -21,7 +26,11 @@ object ProjectCreation {
         subProjects = Vector.empty,
         name = projectCreation.name,
         description = projectCreation.description,
-        ownerId = ownerId
+        ownerId = projectCreation.ownerId,
+        parentProjectId = projectCreation.parentProject,
+        weight = projectCreation.weight,
+        readAccessors = projectCreation.readAccessors,
+        writeAccessors = projectCreation.writeAccessors
       )
     }
 
