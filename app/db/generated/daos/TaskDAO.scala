@@ -61,6 +61,7 @@ class TaskDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransacto
         .onConflictUpdate(_.id, _.projectId)(
           (t, e) => t.id -> e.id,
           (t, e) => t.projectId -> e.projectId,
+          (t, e) => t.projectReferenceId -> e.projectReferenceId,
           (t, e) => t.name -> e.name,
           (t, e) => t.unit -> e.unit,
           (t, e) => t.kindId -> e.kindId,

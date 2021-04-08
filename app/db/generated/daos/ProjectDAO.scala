@@ -67,9 +67,7 @@ class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransa
           (t, e) => t.name -> e.name,
           (t, e) => t.description -> e.description,
           (t, e) => t.parentProjectId -> e.parentProjectId,
-          (t, e) => t.weight -> e.weight,
-          (t, e) => t.isReadRestricted -> e.isReadRestricted,
-          (t, e) => t.isWriteRestricted -> e.isWriteRestricted
+          (t, e) => t.flatIfSingleTask -> e.flatIfSingleTask
         )
         .returning(x => x)
     }
