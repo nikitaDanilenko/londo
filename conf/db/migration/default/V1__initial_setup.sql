@@ -43,23 +43,41 @@ alter table dashboard
     add constraint dashboard_pk primary key (id),
     add constraint dashboard_user_id_fk foreign key (user_id) references "user"(id);
 
-create table dashboard_restriction(
-    dashboard_id uuid
+create table dashboard_read_access(
+    dashboard_id uuid not null
 );
 
-alter table dashboard_restriction
-    add constraint dashboard_restriction_pk primary key (dashboard_id),
-    add constraint dashboard_restriction_dashboard_id_fk foreign key (dashboard_id) references dashboard(id) on delete cascade;
+alter table dashboard_read_access
+    add constraint dashboard_read_access_pk primary key (dashboard_id),
+    add constraint dashboard_read_access_dashboard_id_fk foreign key (dashboard_id) references dashboard(id) on delete cascade;
 
-create table dashboard_restriction_access(
-    dashboard_restriction_id uuid not null,
+create table dashboard_read_access_entry(
+    dashboard_read_access_id uuid not null,
     user_id uuid not null
 );
 
-alter table dashboard_restriction_access
-    add constraint dashboard_restriction_access_pk primary key (dashboard_restriction_id, user_id),
-    add constraint dashboard_restriction_acess_dashboard_restriction_id_fk foreign key (dashboard_restriction_id) references dashboard_restriction(dashboard_id) on delete cascade,
-    add constraint dashboard_restriction_access_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
+alter table dashboard_read_access_entry
+    add constraint dashboard_read_access_entry_pk primary key (dashboard_read_access_id, user_id),
+    add constraint dashboard_read_access_entry_dashboard_read_access_id_fk foreign key (dashboard_read_access_id) references dashboard_read_access(dashboard_id) on delete cascade,
+    add constraint dashboard_read_access_entry_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
+
+create table dashboard_write_access(
+    dashboard_id uuid not null
+);
+
+alter table dashboard_write_access
+    add constraint dashboard_write_access_pk primary key (dashboard_id),
+    add constraint dashboard_write_access_dashboard_id_fk foreign key (dashboard_id) references dashboard(id) on delete cascade;
+
+create table dashboard_write_access_entry(
+    dashboard_write_access_id uuid not null,
+    user_id uuid not null
+);
+
+alter table dashboard_write_access_entry
+    add constraint dashboard_write_access_entry_pk primary key (dashboard_write_access_id, user_id),
+    add constraint dashboard_write_access_entry_dashboard_write_access_id_fk foreign key (dashboard_write_access_id) references dashboard_write_access(dashboard_id) on delete cascade,
+    add constraint dashboard_write_access_entry_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
 
 create table project(
     id uuid not null,
@@ -67,27 +85,60 @@ create table project(
     name text not null,
     description text,
     parent_project_id uuid,
-    weight int not null,
-    is_read_restricted boolean not null,
-    is_write_restricted boolean not null
+    flat_if_single_task boolean not null
 );
 
 alter table project
     add constraint project_pk primary key (id),
     add constraint project_parent_project_id_fk foreign key (parent_project_id) references project(id) on delete cascade,
-    add constraint project_owner_id_fk foreign key (owner_id) references "user"(id) on delete cascade,
-    add constraint weight_non_negative check (weight >= 0);
+    add constraint project_owner_id_fk foreign key (owner_id) references "user"(id) on delete cascade;
 
-create table project_access(
-    project_id uuid not null,
-    user_id uuid not null,
-    write_allowed boolean not null
+create table project_read_access(
+    project_id uuid not null
 );
 
-alter table project_access
-    add constraint project_access_pk primary key (project_id, user_id),
-    add constraint project_access_project_id foreign key (project_id) references project(id) on delete cascade,
-    add constraint project_access_user_id foreign key (user_id) references "user"(id) on delete cascade;
+alter table project_read_access
+    add constraint project_read_access_pk primary key (project_id),
+    add constraint project_read_access_project_id_fk foreign key (project_id) references project(id) on delete cascade;
+
+create table project_read_access_entry(
+    project_read_access_id uuid not null,
+    user_id uuid not null
+);
+
+alter table project_read_access_entry
+    add constraint project_read_access_entry_pk primary key (project_read_access_id, user_id),
+    add constraint project_read_access_entry_project_read_access_id_fk foreign key (project_read_access_id) references project_read_access(project_id) on delete cascade,
+    add constraint project_read_access_entry_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
+
+create table project_write_access(
+    project_id uuid not null
+);
+
+alter table project_write_access
+    add constraint project_write_access_pk primary key (project_id),
+    add constraint project_write_access_project_id_fk foreign key (project_id) references project(id) on delete cascade;
+
+create table project_write_access_entry(
+    project_write_access_id uuid not null,
+    user_id uuid not null
+);
+
+alter table project_write_access_entry
+    add constraint project_write_access_entry_pk primary key (project_write_access_id, user_id),
+    add constraint project_write_access_entry_project_write_access_id_fk foreign key (project_write_access_id) references project_write_access(project_id) on delete cascade,
+    add constraint project_write_access_entry_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
+
+create table dashboard_project_association(
+    dashboard_id uuid not null,
+    project_id uuid not null
+);
+
+alter table dashboard_project_association
+    add constraint dashboard_project_association_pk primary key (dashboard_id, project_id),
+    add constraint dashboard_project_association_dashboard_id_fk foreign key (dashboard_id) references dashboard(id) on delete cascade,
+    add constraint dashboard_project_association_project_id_fk foreign key (project_id) references project(id) on delete cascade;
+
 
 create table task_kind(
     id uuid not null,
@@ -105,21 +156,27 @@ insert into task_kind values
 create table task(
     id uuid not null,
     project_id uuid not null,
+    project_reference_id uuid,
     name text not null,
     unit text,
-    kind_id uuid not null,
-    reached numeric not null,
-    reachable numeric not null,
-    weight int not null
+    kind_id uuid,
+    reached numeric,
+    reachable numeric,
+    weight int
 );
 
 alter table task
     add constraint task_pk primary key (id, project_id),
     add constraint task_project_id foreign key (project_id) references project(id) on delete cascade,
+    add constraint task_project_reference_id foreign key (project_id) references project(id) on delete cascade,
     add constraint task_kind_id_fk foreign key (kind_id) references task_kind(id) on delete cascade,
-    add constraint reached_non_negative check (reached >= 0),
-    add constraint reachable_larger_than_reached check (reachable >= reached),
-    add constraint weight_non_negative check (weight >= 0);
+    add constraint reached_non_negative check (reached is null or reached >= 0),
+    add constraint reachable_larger_than_reached check (reachable is null or reachable >= reached),
+    add constraint weight_non_negative check (weight is null or weight >= 0),
+    add constraint task_is_reference_xor_plain check (
+        (project_reference_id is null and kind_id is not null and reached is not null and reachable is not null and weight is not null) or
+        (project_reference_id is not null and kind_id is null and reached is null and reachable is null and weight is null)
+    );
 
 create table session_key(
     user_id uuid not null,

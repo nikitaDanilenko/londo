@@ -3,10 +3,11 @@ package db.models
 case class Task(
     id: java.util.UUID,
     projectId: java.util.UUID,
+    projectReferenceId: Option[java.util.UUID],
     name: String,
     unit: Option[String],
-    kindId: java.util.UUID,
-    reached: scala.math.BigDecimal,
-    reachable: scala.math.BigDecimal,
-    weight: Int
+    kindId: Option[java.util.UUID],
+    reached: Option[scala.math.BigDecimal],
+    reachable: Option[scala.math.BigDecimal],
+    weight: Option[Int]
 )
