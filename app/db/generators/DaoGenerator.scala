@@ -3,10 +3,16 @@ package db.generators
 import better.files.File
 import db.models.{
   Dashboard,
-  DashboardRestriction,
+  DashboardReadAccess,
+  DashboardReadAccessEntry,
+  DashboardWriteAccess,
+  DashboardWriteAccessEntry,
   LoginAttempt,
   Project,
-  ProjectAccess,
+  ProjectReadAccess,
+  ProjectReadAccessEntry,
+  ProjectWriteAccess,
+  ProjectWriteAccessEntry,
   RegistrationToken,
   SessionKey,
   Task,
@@ -38,7 +44,7 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters[DashboardRestriction](
+    daoGeneratorParameters[DashboardReadAccess](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "dashboardId",
@@ -46,6 +52,59 @@ object DaoGenerator {
         )
       ),
       columnSearches = List.empty
+    ),
+    daoGeneratorParameters[DashboardReadAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "dashboardReadAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "dashboardReadAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      )
+    ),
+    daoGeneratorParameters[DashboardWriteAccess](
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "dashboardId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List.empty
+    ),
+    daoGeneratorParameters[DashboardWriteAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "dashboardWriteAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "dashboardWriteAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      )
     ),
     daoGeneratorParameters[Project](
       keyDescription = KeyDescription.column1(
@@ -69,10 +128,19 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters[ProjectAccess](
-      keyDescription = KeyDescription.column2(
+    daoGeneratorParameters[ProjectReadAccess](
+      keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "projectId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List.empty
+    ),
+    daoGeneratorParameters[ProjectReadAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "projectReadAccessId",
           mandatory = true
         ),
         Column.uuid(
@@ -82,7 +150,38 @@ object DaoGenerator {
       ),
       columnSearches = List(
         Column.uuid(
+          name = "projectReadAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      )
+    ),
+    daoGeneratorParameters[ProjectWriteAccess](
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
           name = "projectId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List.empty
+    ),
+    daoGeneratorParameters[ProjectWriteAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "projectWriteAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "projectWriteAccessId",
           mandatory = true
         ),
         Column.uuid(
