@@ -157,7 +157,7 @@ create table task(
     id uuid not null,
     project_id uuid not null,
     project_reference_id uuid,
-    name text not null,
+    name text,
     unit text,
     kind_id uuid,
     reached numeric,
@@ -174,8 +174,8 @@ alter table task
     add constraint reachable_larger_than_reached check (reachable is null or reachable >= reached),
     add constraint weight_non_negative check (weight is null or weight >= 0),
     add constraint task_is_reference_xor_plain check (
-        (project_reference_id is null and kind_id is not null and reached is not null and reachable is not null and weight is not null) or
-        (project_reference_id is not null and kind_id is null and reached is null and reachable is null and weight is null)
+        (project_reference_id is null and name is not null and kind_id is not null and reached is not null and reachable is not null and weight is not null) or
+        (project_reference_id is not null and name is null and unit is null and kind_id is null and reached is null and reachable is null and weight is null)
     );
 
 create table session_key(
