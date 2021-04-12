@@ -41,6 +41,9 @@ object Progress {
       reachable = reachable
     )
 
+  def fraction(reachable: Natural, reached: Natural): Progress =
+    zero(reachable).set(reached)
+
   private def clampMax[A: Order: AdditiveMonoid](value: A, max: A): A =
     Order[A].min(max, value)
 
