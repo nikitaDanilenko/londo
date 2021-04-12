@@ -4,7 +4,7 @@ case class Task(
     id: java.util.UUID,
     projectId: java.util.UUID,
     projectReferenceId: Option[java.util.UUID],
-    name: String,
+    name: Option[String],
     unit: Option[String],
     kindId: Option[java.util.UUID],
     reached: Option[scala.math.BigDecimal],
