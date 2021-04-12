@@ -69,17 +69,33 @@ object Task {
     plain.findValid(projectReference)
   }
 
-  def toRow(task: Task): db.models.Task = ???
-//    db.models.Task(
-//      id = task.id.uuid,
-//      projectId = task.projectId.uuid,
-//      name = task.name,
-//      unit = task.unit,
-//      kindId = TaskKind.toRow(task.kind).id,
-//      reached = asBigDecimal(task.progress.reached),
-//      reachable = asBigDecimal(task.progress.reachable),
-//      weight = task.weight
-//    )
+  def toRow(task: Task): db.models.Task =
+    task match {
+      case Plain(id, projectId, name, taskKind, unit, progress, weight) =>
+        db.models.Task(
+          id = id.uuid,
+          projectId = projectId.uuid,
+          projectReferenceId = None,
+          name = Some(name),
+          unit = unit,
+          kindId = Some(TaskKind.toRow(taskKind).id),
+          reached = Some(asBigDecimal(progress.reached)),
+          reachable = Some(asBigDecimal(progress.reachable)),
+          weight = Some(weight)
+        )
+      case ProjectReference(id, projectId, projectReference) =>
+        db.models.Task(
+          id = id.uuid,
+          projectId = projectId.uuid,
+          projectReferenceId = Some(projectReference.uuid),
+          name = None,
+          unit = None,
+          kindId = None,
+          reached = None,
+          reachable = None,
+          weight = None
+        )
+    }
 
   private def asNatural(bigDecimal: BigDecimal): Natural =
     Natural(bigDecimal.toBigInt)
