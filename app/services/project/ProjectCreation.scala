@@ -24,14 +24,13 @@ object ProjectCreation {
       Project(
         id = ProjectId(uuid),
         tasks = Vector.empty,
-        subProjects = Vector.empty,
         name = projectCreation.name,
         description = projectCreation.description,
         ownerId = projectCreation.ownerId,
         flatIfSingleTask = projectCreation.flatIfSingleTask,
         parentProjectId = projectCreation.parentProject,
-        readAccessors = projectCreation.readAccessors,
-        writeAccessors = projectCreation.writeAccessors
+        readAccessors = ProjectAccess[AccessKind.Read](projectCreation.readAccessors),
+        writeAccessors = ProjectAccess[AccessKind.Write](projectCreation.writeAccessors)
       )
     }
 
