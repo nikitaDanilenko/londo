@@ -1,14 +1,15 @@
 package services.project
 
-import io.circe.generic.JsonCodec
 import services.user.UserId
 
-@JsonCodec
 sealed trait Accessors
 
 object Accessors {
+
   case object Everyone extends Accessors
+
   case object Nobody extends Accessors
+
   case class Restricted(users: Set[UserId]) extends Accessors
 
   def isRestricted(accessors: Accessors): Boolean =
@@ -22,5 +23,8 @@ object Accessors {
       case Restricted(users) => users
       case _                 => Set.empty
     }
+
+  def restricted(users: Set[UserId]): Accessors =
+    if (users.isEmpty) Nobody else Restricted(users)
 
 }
