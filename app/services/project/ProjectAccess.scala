@@ -12,15 +12,8 @@ object ProjectAccess {
   def fromDb[AccessK, DBAccessK, DBAccessEntry](
       dbComponents: Option[DbComponents[DBAccessK, DBAccessEntry]]
   )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): ProjectAccess[AccessK] = {
-    val accessors = dbComponents match {
-      case Some(parameters) =>
-        if (parameters.accessEntries.isEmpty)
-          Accessors.Nobody
-        else Accessors.Restricted(parameters.accessEntries.map(accessFromDB.entryUserId).toSet)
-      case None => Accessors.Everyone
-    }
     new ProjectAccess[AccessK](
-      accessors = accessors
+      accessors = Accessors.fromRepresentation(dbComponents.map(_.accessEntries.map(accessFromDB.entryUserId)))
     ) {}
   }
 
