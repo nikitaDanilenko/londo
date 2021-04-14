@@ -38,35 +38,14 @@ object ProjectAccess {
     ) extends DbComponents[DBAccessK, DBAccessEntry]
 
     def apply[AccessK, DBAccessK, DBAccessEntry](projectId: ProjectId, projectAccess: ProjectAccess[AccessK])(implicit
-        accessConstructor: AccessToDB[AccessK, DBAccessK, DBAccessEntry]
-    ): Option[DbComponents[DBAccessK, DBAccessEntry]] = {
-      lazy val access = accessConstructor.mkAccess(projectId)
-      projectAccess.accessors match {
-        case Accessors.Everyone => None
-        case Accessors.Nobody =>
-          Some(
-            DbComponentsImpl(
-              access = access,
-              accessEntries = Seq.empty
-            )
-          )
-        case Accessors.Restricted(users) =>
-          Some(
-            DbComponentsImpl(
-              access = access,
-              accessEntries = users
-                .map(userId =>
-                  accessConstructor.mkAccessEntry(
-                    projectId = projectId,
-                    userId = userId
-                  )
-                )
-                .toVector
-            )
-          )
+        accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry]
+    ): Option[DbComponents[DBAccessK, DBAccessEntry]] =
+      Accessors.toRepresentation(projectAccess.accessors).map { userIds =>
+        DbComponentsImpl(
+          accessToDB.mkAccess(projectId),
+          accessEntries = userIds.map(accessToDB.mkAccessEntry(projectId, _))
+        )
       }
-
-    }
 
   }
 
