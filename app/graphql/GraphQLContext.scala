@@ -1,6 +1,6 @@
 package graphql
 
-import services.user.UserId
+import db.keys.UserId
 
 sealed trait GraphQLContext {
   def mutation: Mutation

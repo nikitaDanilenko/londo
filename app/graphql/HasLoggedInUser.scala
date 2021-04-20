@@ -1,8 +1,8 @@
 package graphql
 
 import cats.ApplicativeThrow
+import db.keys.UserId
 import errors.{ ServerError, ServerException }
-import services.user.UserId
 
 trait HasLoggedInUser {
   protected def loggedInUserId: Option[UserId]

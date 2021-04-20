@@ -1,19 +1,19 @@
 package services.project
 
 import cats.syntax.contravariantSemigroupal._
+import db.keys
+import db.keys.{ ProjectId, TaskId }
 import errors.ServerError
 import spire.math.Natural
 
 sealed trait Task {
   def id: TaskId
-  def projectId: ProjectId
 }
 
 object Task {
 
   case class Plain(
       override val id: TaskId,
-      override val projectId: ProjectId,
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
@@ -23,7 +23,6 @@ object Task {
 
   case class ProjectReference(
       override val id: TaskId,
-      override val projectId: ProjectId,
       projectReference: ProjectId
   ) extends Task
 
@@ -38,8 +37,7 @@ object Task {
       ServerError.fromEither(taskRow.weight.toRight(ServerError.Task.Plain.EmptyWeight))
     ).mapN { (_, name, taskKind, reachable, reached, weight) =>
       Plain(
-        id = TaskId(taskRow.id),
-        projectId = ProjectId(taskRow.projectId),
+        id = keys.TaskId(projectId = ProjectId(taskRow.projectId), uuid = taskRow.id),
         name = name,
         taskKind = taskKind,
         unit = taskRow.unit,
@@ -60,9 +58,11 @@ object Task {
       ServerError.fromEmpty(taskRow.unit, ServerError.Task.ProjectReference.NonEmptyUnit)
     ).mapN { (projectReferenceId, _, _, _, _, _, _) =>
       ProjectReference(
-        id = TaskId(taskRow.id),
-        projectId = ProjectId(taskRow.projectId),
-        ProjectId(projectReferenceId)
+        id = TaskId(
+          projectId = keys.ProjectId(taskRow.projectId),
+          uuid = taskRow.id
+        ),
+        keys.ProjectId(projectReferenceId)
       )
     }
 
@@ -71,10 +71,10 @@ object Task {
 
   def toRow(task: Task): db.models.Task =
     task match {
-      case Plain(id, projectId, name, taskKind, unit, progress, weight) =>
+      case Plain(id, name, taskKind, unit, progress, weight) =>
         db.models.Task(
           id = id.uuid,
-          projectId = projectId.uuid,
+          projectId = id.projectId.uuid,
           projectReferenceId = None,
           name = Some(name),
           unit = unit,
@@ -83,10 +83,10 @@ object Task {
           reachable = Some(asBigDecimal(progress.reachable)),
           weight = Some(weight)
         )
-      case ProjectReference(id, projectId, projectReference) =>
+      case ProjectReference(id, projectReference) =>
         db.models.Task(
           id = id.uuid,
-          projectId = projectId.uuid,
+          projectId = id.projectId.uuid,
           projectReferenceId = Some(projectReference.uuid),
           name = None,
           unit = None,

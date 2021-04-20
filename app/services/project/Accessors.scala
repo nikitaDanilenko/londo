@@ -1,7 +1,7 @@
 package services.project
 
+import db.keys.UserId
 import io.circe.{ Decoder, Encoder }
-import services.user.UserId
 
 sealed trait Accessors
 

@@ -1,9 +1,10 @@
 package graphql.queries
 
 import cats.effect.IO
+import db.keys.UserId
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
-import services.user.{ User, UserId }
+import services.user.User
 
 import java.util.UUID
 import scala.concurrent.Future

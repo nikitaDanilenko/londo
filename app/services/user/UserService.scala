@@ -8,6 +8,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import db.DbTransactorProvider
 import db.generated.daos._
+import db.keys.UserId
 import db.models.{ RegistrationToken, SessionKey }
 import doobie.syntax.connectionio._
 import errors.{ ServerError, ServerException }

@@ -1,7 +1,7 @@
 package services.project
 
+import db.keys.{ ProjectId, UserId }
 import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
-import services.user.UserId
 
 sealed trait AccessToDB[AccessK, DBAccessK, DBAccessEntry] {
 

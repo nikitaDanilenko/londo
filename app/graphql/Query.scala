@@ -1,7 +1,7 @@
 package graphql
 
+import db.keys.UserId
 import graphql.queries.UserQuery
-import services.user.UserId
 
 trait Query extends UserQuery
 

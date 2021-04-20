@@ -1,6 +1,7 @@
 package services.user
 
 import cats.effect.IO
+import db.keys.UserId
 import io.circe.generic.JsonCodec
 import security.Hash
 import spire.math.Natural

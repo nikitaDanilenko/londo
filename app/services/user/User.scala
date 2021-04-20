@@ -1,5 +1,7 @@
 package services.user
 
+import db.keys
+import db.keys.UserId
 import io.circe.generic.JsonCodec
 
 @JsonCodec
@@ -15,7 +17,7 @@ object User {
 
   def fromRow(userRow: db.models.User, settings: UserSettings, details: UserDetails): User =
     User(
-      id = UserId(userRow.id),
+      id = keys.UserId(userRow.id),
       nickname = userRow.nickname,
       email = userRow.nickname,
       settings = settings,

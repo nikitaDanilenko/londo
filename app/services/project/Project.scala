@@ -1,11 +1,12 @@
 package services.project
 
 import cats.syntax.traverse._
+import db.keys
+import db.keys.{ ProjectId, UserId }
 import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
 import errors.ServerError
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
-import services.user.UserId
 
 case class Project(
     id: ProjectId,
@@ -30,11 +31,11 @@ object Project {
 
     dbComponents.tasks.traverse(Task.fromRow).map { tasks =>
       Project(
-        id = ProjectId(dbComponents.project.id),
+        id = keys.ProjectId(dbComponents.project.id),
         tasks = tasks.toVector,
         name = dbComponents.project.name,
         description = dbComponents.project.description,
-        ownerId = UserId(dbComponents.project.ownerId),
+        ownerId = keys.UserId(dbComponents.project.ownerId),
         parentProjectId = dbComponents.project.parentProjectId.map(ProjectId.apply),
         flatIfSingleTask = dbComponents.project.flatIfSingleTask,
         readAccessors = ProjectAccess.fromDb(dbComponents.readAccess),

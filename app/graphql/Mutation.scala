@@ -1,7 +1,7 @@
 package graphql
 
+import db.keys.UserId
 import graphql.mutations.UserMutation
-import services.user.UserId
 
 trait Mutation extends UserMutation
 

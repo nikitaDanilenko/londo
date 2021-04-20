@@ -10,16 +10,18 @@ import db.generated.daos.{
 }
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import services.user.UserId
 import AccessToDB.instances._
 import db.models.{ ProjectReadAccess, ProjectReadAccessEntry }
 import AccessFromDB.instances._
+import db.DAOFunctions
+import db.DAOFunctions._
+import db.keys.{ ProjectId, UserId }
 
 import javax.inject.Inject
 
 class ProjectService @Inject() (
     projectDAO: ProjectDAO,
-    projectReadAccessDAO: ProjectReadAccessDAO,
+    implicit val projectReadAccessDAO: ProjectReadAccessDAO,
     projectReadAccessEntryDAO: ProjectReadAccessEntryDAO,
     projectWriteAccessDAO: ProjectWriteAccessDAO,
     projectWriteAccessEntryDAO: ProjectWriteAccessEntryDAO
@@ -39,22 +41,38 @@ class ProjectService @Inject() (
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Read]
   ): F[ProjectAccess[AccessKind.Read]] = {
-    val dbAction =
+//    setAccess(projectId, projectAccess)
+    ???
+  }
+
+  def setAccess[F[_], AccessK, DBAccessK, DBAccessEntry](
+      projectId: ProjectId,
+      projectAccess: ProjectAccess[AccessK]
+  )(implicit
+      asyncF: Async[F],
+      contextShiftF: ContextShift[F],
+      accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry],
+      accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry],
+      daoFunctionsDBAccessK: DAOFunctions[DBAccessK],
+      daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry]
+  ): F[ProjectAccess[AccessK]] = {
+    val dbAction: F[Option[ProjectAccess.DbComponents[DBAccessK, DBAccessEntry]]] =
       ProjectAccess.DbComponents(projectId, projectAccess) match {
-        case Some(readComponents) =>
+        case Some(components) =>
           for {
-            readAccess <- projectReadAccessDAO.insert(readComponents.access)
-            entries <- projectReadAccessEntryDAO.insertAll(readComponents.accessEntries)
+            access <- daoFunctionsDBAccessK.insert(components.access)
+            entries <- daoFunctionsDBAccessEntry.insertAll(components.accessEntries)
             // Todo: The type annotation should be unnecessary
-          } yield ProjectAccess.DbComponents[AccessKind.Read, ProjectReadAccess, ProjectReadAccessEntry](
-            projectId = ProjectId(readAccess.projectId),
-            // TODO: Use a more convenient user id extraction (via implicits?)?
-            projectAccess = ProjectAccess(Accessors.restricted(entries.map(e => UserId(e.userId)).toSet))
+          } yield ProjectAccess.DbComponents[AccessK, DBAccessK, DBAccessEntry](
+            projectId = accessFromDB.projectId(access),
+            projectAccess = ProjectAccess(Accessors.restricted(accessFromDB.entryUserIds(access, entries)))
           )
         case None =>
-          projectReadAccessDAO.delete(projectId.uuid).map(_ => None)
+          projectReadAccessDAO
+            .delete(projectId.uuid)
+            .map(_ => None: Option[ProjectAccess.DbComponents[DBAccessK, DBAccessEntry]])
       }
-    dbAction.map(ProjectAccess.fromDb)
+    dbAction.map(ProjectAccess.fromDb[AccessK, DBAccessK, DBAccessEntry])
   }
 
   def delete = ???

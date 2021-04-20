@@ -1,5 +1,7 @@
 package services.project
 
+import db.keys.ProjectId
+
 case class ProjectAccess[AK](accessors: Accessors)
 
 object ProjectAccess {

@@ -1,7 +1,8 @@
 package services.project
 
+import db.keys
+import db.keys.{ ProjectId, UserId }
 import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
-import services.user.UserId
 
 sealed trait AccessFromDB[AccessK, DBAccessK, DBAccessEntry] {
   type AccessId
@@ -25,26 +26,26 @@ object AccessFromDB {
       new AccessFromDB[AccessKind.Read, ProjectReadAccess, ProjectReadAccessEntry] {
         override type AccessId = ReadAccessId
 
-        override def projectId(dbAccess: ProjectReadAccess): ProjectId = ProjectId(dbAccess.projectId)
+        override def projectId(dbAccess: ProjectReadAccess): ProjectId = keys.ProjectId(dbAccess.projectId)
         override def accessId(dbAccess: ProjectReadAccess): AccessId = ReadAccessId(dbAccess.projectId)
 
         override def entryAccessId(dbAccessEntry: ProjectReadAccessEntry): AccessId =
           ReadAccessId(dbAccessEntry.projectReadAccessId)
 
-        override def entryUserId(dbAccessEntry: ProjectReadAccessEntry): UserId = UserId(dbAccessEntry.userId)
+        override def entryUserId(dbAccessEntry: ProjectReadAccessEntry): UserId = keys.UserId(dbAccessEntry.userId)
       }
 
     implicit val projectWriteAccessFromDB: AccessFromDB[AccessKind.Write, ProjectWriteAccess, ProjectWriteAccessEntry] =
       new AccessFromDB[AccessKind.Write, ProjectWriteAccess, ProjectWriteAccessEntry] {
 
         override type AccessId = WriteAccessId
-        override def projectId(dbAccess: ProjectWriteAccess): ProjectId = ProjectId(dbAccess.projectId)
+        override def projectId(dbAccess: ProjectWriteAccess): ProjectId = keys.ProjectId(dbAccess.projectId)
         override def accessId(dbAccess: ProjectWriteAccess): AccessId = WriteAccessId(dbAccess.projectId)
 
         override def entryAccessId(dbAccessEntry: ProjectWriteAccessEntry): AccessId =
           WriteAccessId(dbAccessEntry.projectWriteAccessId)
 
-        override def entryUserId(dbAccessEntry: ProjectWriteAccessEntry): UserId = UserId(dbAccessEntry.userId)
+        override def entryUserId(dbAccessEntry: ProjectWriteAccessEntry): UserId = keys.UserId(dbAccessEntry.userId)
       }
 
   }
