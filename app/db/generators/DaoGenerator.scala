@@ -1,25 +1,7 @@
 package db.generators
 
 import better.files.File
-import db.models.{
-  Dashboard,
-  DashboardReadAccess,
-  DashboardReadAccessEntry,
-  DashboardWriteAccess,
-  DashboardWriteAccessEntry,
-  LoginAttempt,
-  Project,
-  ProjectReadAccess,
-  ProjectReadAccessEntry,
-  ProjectWriteAccess,
-  ProjectWriteAccessEntry,
-  RegistrationToken,
-  SessionKey,
-  Task,
-  TaskKind,
-  User,
-  UserDetails
-}
+import db.models._
 import services.user.UserSettings
 
 import scala.meta.Type
@@ -35,6 +17,10 @@ object DaoGenerator {
         Column.uuid(
           name = "id",
           mandatory = true
+        ),
+        KeyCaseClass1.fromNames(
+          className = "DashboardId",
+          fieldName = "uuid"
         )
       ),
       columnSearches = List(
@@ -49,6 +35,10 @@ object DaoGenerator {
         Column.uuid(
           name = "dashboardId",
           mandatory = true
+        ),
+        KeyCaseClass1.fromNames(
+          className = "DashboardReadAccessId",
+          fieldName = "uuid"
         )
       ),
       columnSearches = List.empty
@@ -62,7 +52,9 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("DashboardReadAccessEntryId")("dashboardReadAccessId", "uuid")("userId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -80,7 +72,8 @@ object DaoGenerator {
         Column.uuid(
           name = "dashboardId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("DashboardWriteAccessId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -93,7 +86,9 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("DashboardWriteAccessEntryId")("dashboardWriteAccessId", "uuid")("userId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -111,7 +106,8 @@ object DaoGenerator {
         Column.uuid(
           name = "id",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("ProjectId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -133,7 +129,8 @@ object DaoGenerator {
         Column.uuid(
           name = "projectId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("ProjectReadAccessId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -146,7 +143,9 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("ProjectReadAccessEntry")("projectReadAccessId", "uuid")("userId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -164,7 +163,8 @@ object DaoGenerator {
         Column.uuid(
           name = "projectId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("ProjectWriteAccessId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -177,7 +177,9 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("ProjectWriteAccessEntry")("projectWriteAccessId", "uuid")("userId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -199,7 +201,8 @@ object DaoGenerator {
         Column.uuid(
           name = "projectId",
           mandatory = true
-        )
+        ),
+        keyCaseClass2 = KeyCaseClass2.fromNames("TaskId")("projectId", "uuid")("uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -217,7 +220,8 @@ object DaoGenerator {
         Column.uuid(
           name = "id",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("TaskKindId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -226,7 +230,8 @@ object DaoGenerator {
         Column.uuid(
           name = "id",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List(
         Column.string(
@@ -244,7 +249,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -253,7 +259,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -262,7 +269,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -271,7 +279,8 @@ object DaoGenerator {
         Column.string(
           name = "email",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("RegistrationTokenId", "email")
       ),
       columnSearches = List.empty
     ),
@@ -280,7 +289,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     )

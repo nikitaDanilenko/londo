@@ -10,22 +10,22 @@ sealed trait KeyDescription {
 
 object KeyDescription {
 
-  def column1(column: Column): KeyDescription =
+  def column1(column: Column, keyCaseClass1: KeyCaseClass1): KeyDescription =
     new KeyDescription {
 
       override def compareKeys(arg: String, key: String): Term =
         TermUtils.equality(
           arg = arg,
           columnName = column.name,
-          keyTerm = Term.Name(key),
+          keyTerm = TermUtils.fieldTerms(key, keyCaseClass1.field1),
           mandatory = column.mandatory
         )
 
-      override val keyType: Type = column.typeTerm
+      override val keyType: Type = keyCaseClass1.tpe
       override val keyColumns: List[Term] = List(q"_.${column.nameTerm}")
     }
 
-  def column2(column1: Column, column2: Column): KeyDescription =
+  def column2(column1: Column, column2: Column, keyCaseClass2: KeyCaseClass2): KeyDescription =
     new KeyDescription {
 
       override def compareKeys(arg: String, key: String): Term =
@@ -33,7 +33,7 @@ object KeyDescription {
           lhs = TermUtils.equality(
             arg = arg,
             columnName = column1.name,
-            keyTerm = TermUtils.field(key, "_1"),
+            keyTerm = TermUtils.fieldTerms(key, keyCaseClass2.field1),
             mandatory = column1.mandatory
           ),
           op = Term.Name("&&"),
@@ -42,13 +42,13 @@ object KeyDescription {
             TermUtils.equality(
               arg = arg,
               columnName = column2.name,
-              keyTerm = TermUtils.field(key, "_2"),
+              keyTerm = TermUtils.fieldTerms(key, keyCaseClass2.field2),
               mandatory = column2.mandatory
             )
           )
         )
 
-      override val keyType: Type = Type.Tuple(List(column1.typeTerm, column2.typeTerm))
+      override val keyType: Type = keyCaseClass2.tpe
       override val keyColumns: List[Term] = List(q"_.${column1.nameTerm}", q"_.${column2.nameTerm}")
     }
 
