@@ -2,6 +2,7 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
+import db.keys._
 import db.{ DbContext, DbTransactorProvider }
 import doobie.ConnectionIO
 import doobie.implicits._
@@ -12,10 +13,10 @@ import javax.inject.Inject
 class UserSettingsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: UUID): F[Option[UserSettings]] =
+  def find[F[_]: Async: ContextShift](key: UserId): F[Option[UserSettings]] =
     findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def findF(key: UUID): ConnectionIO[Option[UserSettings]] = run(findAction(key)).map(_.headOption)
+  def findF(key: UserId): ConnectionIO[Option[UserSettings]] = run(findAction(key)).map(_.headOption)
 
   def insert[F[_]: Async: ContextShift](row: UserSettings): F[UserSettings] =
     insertF(row).transact(dbTransactorProvider.transactor[F])
@@ -27,19 +28,19 @@ class UserSettingsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbT
 
   def insertAllF(rows: Seq[UserSettings]): ConnectionIO[List[UserSettings]] = run(insertAllAction(rows))
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[UserSettings] =
+  def delete[F[_]: Async: ContextShift](key: UserId): F[UserSettings] =
     deleteF(key).transact(dbTransactorProvider.transactor[F])
 
-  def deleteF(key: UUID): ConnectionIO[UserSettings] = run(deleteAction(key))
+  def deleteF(key: UserId): ConnectionIO[UserSettings] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: UserSettings): F[UserSettings] =
     run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
 
   def replaceF(row: UserSettings): ConnectionIO[UserSettings] = run(replaceAction(row))
 
-  private def findAction(key: UUID) =
+  private def findAction(key: UserId) =
     quote {
-      PublicSchema.UserSettingsDao.query.filter(a => a.userId == lift(key))
+      PublicSchema.UserSettingsDao.query.filter(a => a.userId == lift(key.uuid))
     }
 
   private def insertAction(row: UserSettings): Quoted[ActionReturning[UserSettings, UserSettings]] =
@@ -52,7 +53,7 @@ class UserSettingsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbT
       liftQuery(rows).foreach(e => PublicSchema.UserSettingsDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UUID) =
+  private def deleteAction(key: UserId) =
     quote {
       findAction(key).delete.returning(x => x)
     }

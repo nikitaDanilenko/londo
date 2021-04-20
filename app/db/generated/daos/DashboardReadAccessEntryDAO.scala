@@ -2,6 +2,7 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
+import db.keys._
 import db.{ DbContext, DbTransactorProvider }
 import doobie.ConnectionIO
 import doobie.implicits._
@@ -12,10 +13,11 @@ import javax.inject.Inject
 class DashboardReadAccessEntryDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: (UUID, UUID)): F[Option[DashboardReadAccessEntry]] =
+  def find[F[_]: Async: ContextShift](key: DashboardReadAccessEntryId): F[Option[DashboardReadAccessEntry]] =
     findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def findF(key: (UUID, UUID)): ConnectionIO[Option[DashboardReadAccessEntry]] = run(findAction(key)).map(_.headOption)
+  def findF(key: DashboardReadAccessEntryId): ConnectionIO[Option[DashboardReadAccessEntry]] =
+    run(findAction(key)).map(_.headOption)
 
   def insert[F[_]: Async: ContextShift](row: DashboardReadAccessEntry): F[DashboardReadAccessEntry] =
     insertF(row).transact(dbTransactorProvider.transactor[F])
@@ -28,20 +30,20 @@ class DashboardReadAccessEntryDAO @Inject() (dbContext: DbContext, dbTransactorP
   def insertAllF(rows: Seq[DashboardReadAccessEntry]): ConnectionIO[List[DashboardReadAccessEntry]] =
     run(insertAllAction(rows))
 
-  def delete[F[_]: Async: ContextShift](key: (UUID, UUID)): F[DashboardReadAccessEntry] =
+  def delete[F[_]: Async: ContextShift](key: DashboardReadAccessEntryId): F[DashboardReadAccessEntry] =
     deleteF(key).transact(dbTransactorProvider.transactor[F])
 
-  def deleteF(key: (UUID, UUID)): ConnectionIO[DashboardReadAccessEntry] = run(deleteAction(key))
+  def deleteF(key: DashboardReadAccessEntryId): ConnectionIO[DashboardReadAccessEntry] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: DashboardReadAccessEntry): F[DashboardReadAccessEntry] =
     run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
 
   def replaceF(row: DashboardReadAccessEntry): ConnectionIO[DashboardReadAccessEntry] = run(replaceAction(row))
 
-  private def findAction(key: (UUID, UUID)) =
+  private def findAction(key: DashboardReadAccessEntryId) =
     quote {
       PublicSchema.DashboardReadAccessEntryDao.query.filter(a =>
-        a.dashboardReadAccessId == lift(key._1) && a.userId == lift(key._2)
+        a.dashboardReadAccessId == lift(key.dashboardReadAccessId.uuid) && a.userId == lift(key.userId.uuid)
       )
     }
 
@@ -57,7 +59,7 @@ class DashboardReadAccessEntryDAO @Inject() (dbContext: DbContext, dbTransactorP
       liftQuery(rows).foreach(e => PublicSchema.DashboardReadAccessEntryDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: (UUID, UUID)) =
+  private def deleteAction(key: DashboardReadAccessEntryId) =
     quote {
       findAction(key).delete.returning(x => x)
     }

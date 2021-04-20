@@ -2,6 +2,7 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
+import db.keys._
 import db.{ DbContext, DbTransactorProvider }
 import doobie.ConnectionIO
 import doobie.implicits._
@@ -12,10 +13,10 @@ import javax.inject.Inject
 class DashboardDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: UUID): F[Option[Dashboard]] =
+  def find[F[_]: Async: ContextShift](key: DashboardId): F[Option[Dashboard]] =
     findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def findF(key: UUID): ConnectionIO[Option[Dashboard]] = run(findAction(key)).map(_.headOption)
+  def findF(key: DashboardId): ConnectionIO[Option[Dashboard]] = run(findAction(key)).map(_.headOption)
 
   def insert[F[_]: Async: ContextShift](row: Dashboard): F[Dashboard] =
     insertF(row).transact(dbTransactorProvider.transactor[F])
@@ -27,19 +28,19 @@ class DashboardDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTran
 
   def insertAllF(rows: Seq[Dashboard]): ConnectionIO[List[Dashboard]] = run(insertAllAction(rows))
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[Dashboard] =
+  def delete[F[_]: Async: ContextShift](key: DashboardId): F[Dashboard] =
     deleteF(key).transact(dbTransactorProvider.transactor[F])
 
-  def deleteF(key: UUID): ConnectionIO[Dashboard] = run(deleteAction(key))
+  def deleteF(key: DashboardId): ConnectionIO[Dashboard] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: Dashboard): F[Dashboard] =
     run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
 
   def replaceF(row: Dashboard): ConnectionIO[Dashboard] = run(replaceAction(row))
 
-  private def findAction(key: UUID) =
+  private def findAction(key: DashboardId) =
     quote {
-      PublicSchema.DashboardDao.query.filter(a => a.id == lift(key))
+      PublicSchema.DashboardDao.query.filter(a => a.id == lift(key.uuid))
     }
 
   private def insertAction(row: Dashboard): Quoted[ActionReturning[Dashboard, Dashboard]] =
@@ -52,7 +53,7 @@ class DashboardDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTran
       liftQuery(rows).foreach(e => PublicSchema.DashboardDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UUID) =
+  private def deleteAction(key: DashboardId) =
     quote {
       findAction(key).delete.returning(x => x)
     }

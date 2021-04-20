@@ -2,6 +2,7 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
+import db.keys._
 import db.{ DbContext, DbTransactorProvider }
 import doobie.ConnectionIO
 import doobie.implicits._
@@ -12,10 +13,11 @@ import javax.inject.Inject
 class ProjectWriteAccessDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: UUID): F[Option[ProjectWriteAccess]] =
+  def find[F[_]: Async: ContextShift](key: ProjectWriteAccessId): F[Option[ProjectWriteAccess]] =
     findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def findF(key: UUID): ConnectionIO[Option[ProjectWriteAccess]] = run(findAction(key)).map(_.headOption)
+  def findF(key: ProjectWriteAccessId): ConnectionIO[Option[ProjectWriteAccess]] =
+    run(findAction(key)).map(_.headOption)
 
   def insert[F[_]: Async: ContextShift](row: ProjectWriteAccess): F[ProjectWriteAccess] =
     insertF(row).transact(dbTransactorProvider.transactor[F])
@@ -27,19 +29,19 @@ class ProjectWriteAccessDAO @Inject() (dbContext: DbContext, dbTransactorProvide
 
   def insertAllF(rows: Seq[ProjectWriteAccess]): ConnectionIO[List[ProjectWriteAccess]] = run(insertAllAction(rows))
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[ProjectWriteAccess] =
+  def delete[F[_]: Async: ContextShift](key: ProjectWriteAccessId): F[ProjectWriteAccess] =
     deleteF(key).transact(dbTransactorProvider.transactor[F])
 
-  def deleteF(key: UUID): ConnectionIO[ProjectWriteAccess] = run(deleteAction(key))
+  def deleteF(key: ProjectWriteAccessId): ConnectionIO[ProjectWriteAccess] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: ProjectWriteAccess): F[ProjectWriteAccess] =
     run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
 
   def replaceF(row: ProjectWriteAccess): ConnectionIO[ProjectWriteAccess] = run(replaceAction(row))
 
-  private def findAction(key: UUID) =
+  private def findAction(key: ProjectWriteAccessId) =
     quote {
-      PublicSchema.ProjectWriteAccessDao.query.filter(a => a.projectId == lift(key))
+      PublicSchema.ProjectWriteAccessDao.query.filter(a => a.projectId == lift(key.uuid))
     }
 
   private def insertAction(row: ProjectWriteAccess): Quoted[ActionReturning[ProjectWriteAccess, ProjectWriteAccess]] =
@@ -52,7 +54,7 @@ class ProjectWriteAccessDAO @Inject() (dbContext: DbContext, dbTransactorProvide
       liftQuery(rows).foreach(e => PublicSchema.ProjectWriteAccessDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UUID) =
+  private def deleteAction(key: ProjectWriteAccessId) =
     quote {
       findAction(key).delete.returning(x => x)
     }

@@ -2,6 +2,7 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
+import db.keys._
 import db.{ DbContext, DbTransactorProvider }
 import doobie.ConnectionIO
 import doobie.implicits._
@@ -12,10 +13,10 @@ import javax.inject.Inject
 class SessionKeyDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: UUID): F[Option[SessionKey]] =
+  def find[F[_]: Async: ContextShift](key: UserId): F[Option[SessionKey]] =
     findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def findF(key: UUID): ConnectionIO[Option[SessionKey]] = run(findAction(key)).map(_.headOption)
+  def findF(key: UserId): ConnectionIO[Option[SessionKey]] = run(findAction(key)).map(_.headOption)
 
   def insert[F[_]: Async: ContextShift](row: SessionKey): F[SessionKey] =
     insertF(row).transact(dbTransactorProvider.transactor[F])
@@ -27,19 +28,19 @@ class SessionKeyDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTra
 
   def insertAllF(rows: Seq[SessionKey]): ConnectionIO[List[SessionKey]] = run(insertAllAction(rows))
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[SessionKey] =
+  def delete[F[_]: Async: ContextShift](key: UserId): F[SessionKey] =
     deleteF(key).transact(dbTransactorProvider.transactor[F])
 
-  def deleteF(key: UUID): ConnectionIO[SessionKey] = run(deleteAction(key))
+  def deleteF(key: UserId): ConnectionIO[SessionKey] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: SessionKey): F[SessionKey] =
     run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
 
   def replaceF(row: SessionKey): ConnectionIO[SessionKey] = run(replaceAction(row))
 
-  private def findAction(key: UUID) =
+  private def findAction(key: UserId) =
     quote {
-      PublicSchema.SessionKeyDao.query.filter(a => a.userId == lift(key))
+      PublicSchema.SessionKeyDao.query.filter(a => a.userId == lift(key.uuid))
     }
 
   private def insertAction(row: SessionKey): Quoted[ActionReturning[SessionKey, SessionKey]] =
@@ -52,7 +53,7 @@ class SessionKeyDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTra
       liftQuery(rows).foreach(e => PublicSchema.SessionKeyDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UUID) =
+  private def deleteAction(key: UserId) =
     quote {
       findAction(key).delete.returning(x => x)
     }

@@ -2,6 +2,7 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
+import db.keys._
 import db.{ DbContext, DbTransactorProvider }
 import doobie.ConnectionIO
 import doobie.implicits._
@@ -12,10 +13,10 @@ import javax.inject.Inject
 class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: UUID): F[Option[Project]] =
+  def find[F[_]: Async: ContextShift](key: ProjectId): F[Option[Project]] =
     findF(key).transact(dbTransactorProvider.transactor[F])
 
-  def findF(key: UUID): ConnectionIO[Option[Project]] = run(findAction(key)).map(_.headOption)
+  def findF(key: ProjectId): ConnectionIO[Option[Project]] = run(findAction(key)).map(_.headOption)
 
   def insert[F[_]: Async: ContextShift](row: Project): F[Project] =
     insertF(row).transact(dbTransactorProvider.transactor[F])
@@ -27,19 +28,19 @@ class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransa
 
   def insertAllF(rows: Seq[Project]): ConnectionIO[List[Project]] = run(insertAllAction(rows))
 
-  def delete[F[_]: Async: ContextShift](key: UUID): F[Project] =
+  def delete[F[_]: Async: ContextShift](key: ProjectId): F[Project] =
     deleteF(key).transact(dbTransactorProvider.transactor[F])
 
-  def deleteF(key: UUID): ConnectionIO[Project] = run(deleteAction(key))
+  def deleteF(key: ProjectId): ConnectionIO[Project] = run(deleteAction(key))
 
   def replace[F[_]: Async: ContextShift](row: Project): F[Project] =
     run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
 
   def replaceF(row: Project): ConnectionIO[Project] = run(replaceAction(row))
 
-  private def findAction(key: UUID) =
+  private def findAction(key: ProjectId) =
     quote {
-      PublicSchema.ProjectDao.query.filter(a => a.id == lift(key))
+      PublicSchema.ProjectDao.query.filter(a => a.id == lift(key.uuid))
     }
 
   private def insertAction(row: Project): Quoted[ActionReturning[Project, Project]] =
@@ -52,7 +53,7 @@ class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransa
       liftQuery(rows).foreach(e => PublicSchema.ProjectDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UUID) =
+  private def deleteAction(key: ProjectId) =
     quote {
       findAction(key).delete.returning(x => x)
     }
