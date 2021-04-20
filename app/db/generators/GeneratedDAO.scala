@@ -72,6 +72,7 @@ object GeneratedDAO {
           package $daoPackageTerm {
           import cats.effect.{Async, ContextShift}
           import db.models._
+          import db.keys._
           import db.{DbContext, DbTransactorProvider}
           import doobie.ConnectionIO
           import doobie.implicits._

@@ -145,7 +145,7 @@ object DaoGenerator {
           mandatory = true
         ),
         keyCaseClass2 =
-          KeyCaseClass2.fromNames("ProjectReadAccessEntry")("projectReadAccessId", "uuid")("userId", "uuid")
+          KeyCaseClass2.fromNames("ProjectReadAccessEntryId")("projectReadAccessId", "uuid")("userId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -179,7 +179,7 @@ object DaoGenerator {
           mandatory = true
         ),
         keyCaseClass2 =
-          KeyCaseClass2.fromNames("ProjectWriteAccessEntry")("projectWriteAccessId", "uuid")("userId", "uuid")
+          KeyCaseClass2.fromNames("ProjectWriteAccessEntryId")("projectWriteAccessId", "uuid")("userId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
