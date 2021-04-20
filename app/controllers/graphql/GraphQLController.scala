@@ -1,6 +1,7 @@
 package controllers.graphql
 
 import controllers.{ RequestHeaders, SignatureAction }
+import db.keys.UserId
 import errors.ServerError
 import graphql._
 import io.circe.Json
@@ -12,7 +13,6 @@ import sangria.execution.{ ErrorWithResolver, Executor, QueryAnalysisError }
 import sangria.marshalling.circe._
 import sangria.parser.QueryParser
 import security.jwt.JwtConfiguration
-import services.user.UserId
 import utils.jwt.JwtUtil
 
 import javax.inject.{ Inject, Singleton }
