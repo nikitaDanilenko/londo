@@ -1,12 +1,11 @@
 package utils.jwt
 
+import db.keys.UserId
 import errors.ServerError
 import io.circe.syntax._
 import pdi.jwt.algorithms.JwtAsymmetricAlgorithm
 import pdi.jwt.{ JwtAlgorithm, JwtCirce, JwtClaim, JwtHeader }
 import security.jwt.{ JwtContent, JwtExpiration }
-
-import java.util.UUID
 
 object JwtUtil {
 
@@ -26,7 +25,7 @@ object JwtUtil {
           .map(_ => ServerError.Authentication.Token.Content)
       }
 
-  def createJwt(userId: UUID, privateKey: String, expiration: JwtExpiration): String =
+  def createJwt(userId: UserId, privateKey: String, expiration: JwtExpiration): String =
     JwtCirce.encode(
       header = JwtHeader.apply(signatureAlgorithm),
       claim = JwtClaim(

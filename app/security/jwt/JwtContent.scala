@@ -1,10 +1,9 @@
 package security.jwt
 
+import db.keys.UserId
 import io.circe.generic.JsonCodec
-
-import java.util.UUID
 
 @JsonCodec
 case class JwtContent(
-    userId: UUID
+    userId: UserId
 )

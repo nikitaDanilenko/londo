@@ -8,7 +8,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import db.DbTransactorProvider
 import db.generated.daos._
-import db.keys.UserId
+import db.keys.{ RegistrationTokenId, UserId }
 import db.models.{ RegistrationToken, SessionKey }
 import doobie.syntax.connectionio._
 import errors.{ ServerError, ServerException }
@@ -60,13 +60,14 @@ class UserService @Inject() (
         sessionKeyDAO
           .replace(SessionKey(user.id, publicSignatureKey))
           .flatMap(_ =>
-            Async[F].liftIO(generateUserAuthentication(user.id, isValidityUnrestricted).map(_.asRight[ServerError]))
+            Async[F]
+              .liftIO(generateUserAuthentication(UserId(user.id), isValidityUnrestricted).map(_.asRight[ServerError]))
           )
       else (ServerError.Login.Failure: ServerError).asLeft[String].pure
     }.value
   }
 
-  def generateUserAuthentication(userId: UUID, isValidityUnrestricted: Boolean): IO[String] = {
+  def generateUserAuthentication(userId: UserId, isValidityUnrestricted: Boolean): IO[String] = {
     TimeUtil.nowSeconds
       .map { now =>
         val jwtExpiration =
@@ -86,9 +87,9 @@ class UserService @Inject() (
 
   def fetch[F[_]: Async: ContextShift](userId: UserId): F[User] = {
     for {
-      userRow <- userDAO.find(userId.uuid).flatMap(Async[F].fromOption(_, ServerException(ServerError.User.NotFound)))
-      userSettings <- userSettingsDAO.find(userId.uuid)
-      userDetails <- userDetailsDAO.find(userId.uuid)
+      userRow <- userDAO.find(userId).flatMap(Async[F].fromOption(_, ServerException(ServerError.User.NotFound)))
+      userSettings <- userSettingsDAO.find(userId)
+      userDetails <- userDetailsDAO.find(userId)
     } yield User.fromRow(
       userRow = userRow,
       settings = userSettings.fold(UserSettings.default)(UserSettings.fromRow),
@@ -98,30 +99,31 @@ class UserService @Inject() (
 
   def logout[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
     sessionKeyDAO
-      .delete(userId.uuid)
+      .delete(userId)
       .void
 
   def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[User] = {
+    val registrationTokenId = RegistrationTokenId(userCreation.email)
     for {
-      localToken <- registrationTokenDAO.find(userCreation.email)
+      localToken <- registrationTokenDAO.find(registrationTokenId)
       _ <- Async[F].fromOption(
         localToken.filter(_.token == userCreation.token),
         ServerException(ServerError.Authentication.Token.Registration)
       )
       createdUser <- Async[F].liftIO(UserCreation.create(userCreation))
       userCreationAction = for {
-        u <- userDAO.insertF(User.toRow(createdUser.user, createdUser.passwordParameters))
-        s <- userSettingsDAO.insertF(UserSettings.toRow(createdUser.user.id, createdUser.user.settings))
-        d <- userDetailsDAO.insertF(UserDetails.toRow(createdUser.user.id, createdUser.user.details))
+        u <- userDAO.insertC(User.toRow(createdUser.user, createdUser.passwordParameters))
+        s <- userSettingsDAO.insertC(UserSettings.toRow(createdUser.user.id, createdUser.user.settings))
+        d <- userDetailsDAO.insertC(UserDetails.toRow(createdUser.user.id, createdUser.user.details))
       } yield User.fromRow(u, UserSettings.fromRow(s), UserDetails.fromRow(d))
       user <- userCreationAction.transact(dbTransactorProvider.transactor[F])
-      _ <- registrationTokenDAO.delete(userCreation.email)
+      _ <- registrationTokenDAO.delete(registrationTokenId)
     } yield user
   }
 
   def delete[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
     userDAO
-      .delete(userId.uuid)
+      .delete(userId)
       .void
 
   def requestCreate[F[_]: Async: ContextShift](email: String): F[Unit] =
