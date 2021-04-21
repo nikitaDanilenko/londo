@@ -3,42 +3,26 @@ package db.generated.daos
 import cats.effect.{ Async, ContextShift }
 import db.models._
 import db.keys._
-import db.{ DbContext, DbTransactorProvider }
+import db.{ DbContext, DbTransactorProvider, DAOFunctions }
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class UserDetailsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
+class UserDetailsDAO @Inject() (dbContext: DbContext, override protected val dbTransactorProvider: DbTransactorProvider)
+    extends DAOFunctions[UserDetails, UserDetailsDAO.Key] {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: UserId): F[Option[UserDetails]] =
-    findF(key).transact(dbTransactorProvider.transactor[F])
+  override def findC(key: UserDetailsDAO.Key): ConnectionIO[Option[UserDetails]] =
+    run(findAction(key)).map(_.headOption)
 
-  def findF(key: UserId): ConnectionIO[Option[UserDetails]] = run(findAction(key)).map(_.headOption)
+  override def insertC(row: UserDetails): ConnectionIO[UserDetails] = run(insertAction(row))
+  override def insertAllC(rows: Seq[UserDetails]): ConnectionIO[List[UserDetails]] = run(insertAllAction(rows))
+  override def deleteC(key: UserDetailsDAO.Key): ConnectionIO[UserDetails] = run(deleteAction(key))
+  override def replaceC(row: UserDetails): ConnectionIO[UserDetails] = run(replaceAction(row))
 
-  def insert[F[_]: Async: ContextShift](row: UserDetails): F[UserDetails] =
-    insertF(row).transact(dbTransactorProvider.transactor[F])
-
-  def insertF(row: UserDetails): ConnectionIO[UserDetails] = run(insertAction(row))
-
-  def insertAll[F[_]: Async: ContextShift](rows: Seq[UserDetails]): F[List[UserDetails]] =
-    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
-
-  def insertAllF(rows: Seq[UserDetails]): ConnectionIO[List[UserDetails]] = run(insertAllAction(rows))
-
-  def delete[F[_]: Async: ContextShift](key: UserId): F[UserDetails] =
-    deleteF(key).transact(dbTransactorProvider.transactor[F])
-
-  def deleteF(key: UserId): ConnectionIO[UserDetails] = run(deleteAction(key))
-
-  def replace[F[_]: Async: ContextShift](row: UserDetails): F[UserDetails] =
-    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-
-  def replaceF(row: UserDetails): ConnectionIO[UserDetails] = run(replaceAction(row))
-
-  private def findAction(key: UserId) =
+  private def findAction(key: UserDetailsDAO.Key) =
     quote {
       PublicSchema.UserDetailsDao.query.filter(a => a.userId == lift(key.uuid))
     }
@@ -53,7 +37,7 @@ class UserDetailsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTr
       liftQuery(rows).foreach(e => PublicSchema.UserDetailsDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UserId) =
+  private def deleteAction(key: UserDetailsDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
@@ -73,3 +57,5 @@ class UserDetailsDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTr
   }
 
 }
+
+object UserDetailsDAO { type Key = UserId }

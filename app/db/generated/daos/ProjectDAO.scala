@@ -3,42 +3,23 @@ package db.generated.daos
 import cats.effect.{ Async, ContextShift }
 import db.models._
 import db.keys._
-import db.{ DbContext, DbTransactorProvider }
+import db.{ DbContext, DbTransactorProvider, DAOFunctions }
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
+class ProjectDAO @Inject() (dbContext: DbContext, override protected val dbTransactorProvider: DbTransactorProvider)
+    extends DAOFunctions[Project, ProjectDAO.Key] {
   import dbContext._
+  override def findC(key: ProjectDAO.Key): ConnectionIO[Option[Project]] = run(findAction(key)).map(_.headOption)
+  override def insertC(row: Project): ConnectionIO[Project] = run(insertAction(row))
+  override def insertAllC(rows: Seq[Project]): ConnectionIO[List[Project]] = run(insertAllAction(rows))
+  override def deleteC(key: ProjectDAO.Key): ConnectionIO[Project] = run(deleteAction(key))
+  override def replaceC(row: Project): ConnectionIO[Project] = run(replaceAction(row))
 
-  def find[F[_]: Async: ContextShift](key: ProjectId): F[Option[Project]] =
-    findF(key).transact(dbTransactorProvider.transactor[F])
-
-  def findF(key: ProjectId): ConnectionIO[Option[Project]] = run(findAction(key)).map(_.headOption)
-
-  def insert[F[_]: Async: ContextShift](row: Project): F[Project] =
-    insertF(row).transact(dbTransactorProvider.transactor[F])
-
-  def insertF(row: Project): ConnectionIO[Project] = run(insertAction(row))
-
-  def insertAll[F[_]: Async: ContextShift](rows: Seq[Project]): F[List[Project]] =
-    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
-
-  def insertAllF(rows: Seq[Project]): ConnectionIO[List[Project]] = run(insertAllAction(rows))
-
-  def delete[F[_]: Async: ContextShift](key: ProjectId): F[Project] =
-    deleteF(key).transact(dbTransactorProvider.transactor[F])
-
-  def deleteF(key: ProjectId): ConnectionIO[Project] = run(deleteAction(key))
-
-  def replace[F[_]: Async: ContextShift](row: Project): F[Project] =
-    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-
-  def replaceF(row: Project): ConnectionIO[Project] = run(replaceAction(row))
-
-  private def findAction(key: ProjectId) =
+  private def findAction(key: ProjectDAO.Key) =
     quote {
       PublicSchema.ProjectDao.query.filter(a => a.id == lift(key.uuid))
     }
@@ -53,7 +34,7 @@ class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransa
       liftQuery(rows).foreach(e => PublicSchema.ProjectDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: ProjectId) =
+  private def deleteAction(key: ProjectDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
@@ -75,50 +56,50 @@ class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransa
   }
 
   def findByOwnerId[F[_]: Async: ContextShift](key: UUID): F[List[Project]] = {
-    findByOwnerIdF(key).transact(dbTransactorProvider.transactor[F])
+    findByOwnerIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def findByOwnerIdF(key: UUID): ConnectionIO[List[Project]] = {
+  def findByOwnerIdC(key: UUID): ConnectionIO[List[Project]] = {
     run(findByOwnerIdAction(key))
   }
 
   def deleteByOwnerId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    deleteByOwnerIdF(key).transact(dbTransactorProvider.transactor[F])
+    deleteByOwnerIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByOwnerIdF(key: UUID): ConnectionIO[Long] = {
+  def deleteByOwnerIdC(key: UUID): ConnectionIO[Long] = {
     run(deleteByOwnerIdAction(key))
   }
 
   def findByName[F[_]: Async: ContextShift](key: String): F[List[Project]] = {
-    findByNameF(key).transact(dbTransactorProvider.transactor[F])
+    findByNameC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def findByNameF(key: String): ConnectionIO[List[Project]] = {
+  def findByNameC(key: String): ConnectionIO[List[Project]] = {
     run(findByNameAction(key))
   }
 
   def deleteByName[F[_]: Async: ContextShift](key: String): F[Long] = {
-    deleteByNameF(key).transact(dbTransactorProvider.transactor[F])
+    deleteByNameC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByNameF(key: String): ConnectionIO[Long] = {
+  def deleteByNameC(key: String): ConnectionIO[Long] = {
     run(deleteByNameAction(key))
   }
 
   def findByParentProjectId[F[_]: Async: ContextShift](key: UUID): F[List[Project]] = {
-    findByParentProjectIdF(key).transact(dbTransactorProvider.transactor[F])
+    findByParentProjectIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def findByParentProjectIdF(key: UUID): ConnectionIO[List[Project]] = {
+  def findByParentProjectIdC(key: UUID): ConnectionIO[List[Project]] = {
     run(findByParentProjectIdAction(key))
   }
 
   def deleteByParentProjectId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    deleteByParentProjectIdF(key).transact(dbTransactorProvider.transactor[F])
+    deleteByParentProjectIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByParentProjectIdF(key: UUID): ConnectionIO[Long] = {
+  def deleteByParentProjectIdC(key: UUID): ConnectionIO[Long] = {
     run(deleteByParentProjectIdAction(key))
   }
 
@@ -159,3 +140,5 @@ class ProjectDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransa
   }
 
 }
+
+object ProjectDAO { type Key = ProjectId }

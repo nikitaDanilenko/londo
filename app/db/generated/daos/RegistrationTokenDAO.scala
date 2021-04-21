@@ -3,42 +3,31 @@ package db.generated.daos
 import cats.effect.{ Async, ContextShift }
 import db.models._
 import db.keys._
-import db.{ DbContext, DbTransactorProvider }
+import db.{ DbContext, DbTransactorProvider, DAOFunctions }
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class RegistrationTokenDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
+class RegistrationTokenDAO @Inject() (
+    dbContext: DbContext,
+    override protected val dbTransactorProvider: DbTransactorProvider
+) extends DAOFunctions[RegistrationToken, RegistrationTokenDAO.Key] {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: RegistrationTokenId): F[Option[RegistrationToken]] =
-    findF(key).transact(dbTransactorProvider.transactor[F])
+  override def findC(key: RegistrationTokenDAO.Key): ConnectionIO[Option[RegistrationToken]] =
+    run(findAction(key)).map(_.headOption)
 
-  def findF(key: RegistrationTokenId): ConnectionIO[Option[RegistrationToken]] = run(findAction(key)).map(_.headOption)
+  override def insertC(row: RegistrationToken): ConnectionIO[RegistrationToken] = run(insertAction(row))
 
-  def insert[F[_]: Async: ContextShift](row: RegistrationToken): F[RegistrationToken] =
-    insertF(row).transact(dbTransactorProvider.transactor[F])
+  override def insertAllC(rows: Seq[RegistrationToken]): ConnectionIO[List[RegistrationToken]] =
+    run(insertAllAction(rows))
 
-  def insertF(row: RegistrationToken): ConnectionIO[RegistrationToken] = run(insertAction(row))
+  override def deleteC(key: RegistrationTokenDAO.Key): ConnectionIO[RegistrationToken] = run(deleteAction(key))
+  override def replaceC(row: RegistrationToken): ConnectionIO[RegistrationToken] = run(replaceAction(row))
 
-  def insertAll[F[_]: Async: ContextShift](rows: Seq[RegistrationToken]): F[List[RegistrationToken]] =
-    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
-
-  def insertAllF(rows: Seq[RegistrationToken]): ConnectionIO[List[RegistrationToken]] = run(insertAllAction(rows))
-
-  def delete[F[_]: Async: ContextShift](key: RegistrationTokenId): F[RegistrationToken] =
-    deleteF(key).transact(dbTransactorProvider.transactor[F])
-
-  def deleteF(key: RegistrationTokenId): ConnectionIO[RegistrationToken] = run(deleteAction(key))
-
-  def replace[F[_]: Async: ContextShift](row: RegistrationToken): F[RegistrationToken] =
-    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-
-  def replaceF(row: RegistrationToken): ConnectionIO[RegistrationToken] = run(replaceAction(row))
-
-  private def findAction(key: RegistrationTokenId) =
+  private def findAction(key: RegistrationTokenDAO.Key) =
     quote {
       PublicSchema.RegistrationTokenDao.query.filter(a => a.email == lift(key.email))
     }
@@ -53,7 +42,7 @@ class RegistrationTokenDAO @Inject() (dbContext: DbContext, dbTransactorProvider
       liftQuery(rows).foreach(e => PublicSchema.RegistrationTokenDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: RegistrationTokenId) =
+  private def deleteAction(key: RegistrationTokenDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
@@ -68,3 +57,5 @@ class RegistrationTokenDAO @Inject() (dbContext: DbContext, dbTransactorProvider
   }
 
 }
+
+object RegistrationTokenDAO { type Key = RegistrationTokenId }

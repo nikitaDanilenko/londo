@@ -3,43 +3,31 @@ package db.generated.daos
 import cats.effect.{ Async, ContextShift }
 import db.models._
 import db.keys._
-import db.{ DbContext, DbTransactorProvider }
+import db.{ DbContext, DbTransactorProvider, DAOFunctions }
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class DashboardReadAccessDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
+class DashboardReadAccessDAO @Inject() (
+    dbContext: DbContext,
+    override protected val dbTransactorProvider: DbTransactorProvider
+) extends DAOFunctions[DashboardReadAccess, DashboardReadAccessDAO.Key] {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: DashboardReadAccessId): F[Option[DashboardReadAccess]] =
-    findF(key).transact(dbTransactorProvider.transactor[F])
-
-  def findF(key: DashboardReadAccessId): ConnectionIO[Option[DashboardReadAccess]] =
+  override def findC(key: DashboardReadAccessDAO.Key): ConnectionIO[Option[DashboardReadAccess]] =
     run(findAction(key)).map(_.headOption)
 
-  def insert[F[_]: Async: ContextShift](row: DashboardReadAccess): F[DashboardReadAccess] =
-    insertF(row).transact(dbTransactorProvider.transactor[F])
+  override def insertC(row: DashboardReadAccess): ConnectionIO[DashboardReadAccess] = run(insertAction(row))
 
-  def insertF(row: DashboardReadAccess): ConnectionIO[DashboardReadAccess] = run(insertAction(row))
+  override def insertAllC(rows: Seq[DashboardReadAccess]): ConnectionIO[List[DashboardReadAccess]] =
+    run(insertAllAction(rows))
 
-  def insertAll[F[_]: Async: ContextShift](rows: Seq[DashboardReadAccess]): F[List[DashboardReadAccess]] =
-    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
+  override def deleteC(key: DashboardReadAccessDAO.Key): ConnectionIO[DashboardReadAccess] = run(deleteAction(key))
+  override def replaceC(row: DashboardReadAccess): ConnectionIO[DashboardReadAccess] = run(replaceAction(row))
 
-  def insertAllF(rows: Seq[DashboardReadAccess]): ConnectionIO[List[DashboardReadAccess]] = run(insertAllAction(rows))
-
-  def delete[F[_]: Async: ContextShift](key: DashboardReadAccessId): F[DashboardReadAccess] =
-    deleteF(key).transact(dbTransactorProvider.transactor[F])
-
-  def deleteF(key: DashboardReadAccessId): ConnectionIO[DashboardReadAccess] = run(deleteAction(key))
-
-  def replace[F[_]: Async: ContextShift](row: DashboardReadAccess): F[DashboardReadAccess] =
-    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-
-  def replaceF(row: DashboardReadAccess): ConnectionIO[DashboardReadAccess] = run(replaceAction(row))
-
-  private def findAction(key: DashboardReadAccessId) =
+  private def findAction(key: DashboardReadAccessDAO.Key) =
     quote {
       PublicSchema.DashboardReadAccessDao.query.filter(a => a.dashboardId == lift(key.uuid))
     }
@@ -56,7 +44,7 @@ class DashboardReadAccessDAO @Inject() (dbContext: DbContext, dbTransactorProvid
       liftQuery(rows).foreach(e => PublicSchema.DashboardReadAccessDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: DashboardReadAccessId) =
+  private def deleteAction(key: DashboardReadAccessDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
@@ -71,3 +59,5 @@ class DashboardReadAccessDAO @Inject() (dbContext: DbContext, dbTransactorProvid
   }
 
 }
+
+object DashboardReadAccessDAO { type Key = DashboardReadAccessId }

@@ -3,44 +3,33 @@ package db.generated.daos
 import cats.effect.{ Async, ContextShift }
 import db.models._
 import db.keys._
-import db.{ DbContext, DbTransactorProvider }
+import db.{ DbContext, DbTransactorProvider, DAOFunctions }
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class ProjectWriteAccessEntryDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
+class ProjectWriteAccessEntryDAO @Inject() (
+    dbContext: DbContext,
+    override protected val dbTransactorProvider: DbTransactorProvider
+) extends DAOFunctions[ProjectWriteAccessEntry, ProjectWriteAccessEntryDAO.Key] {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: ProjectWriteAccessEntryId): F[Option[ProjectWriteAccessEntry]] =
-    findF(key).transact(dbTransactorProvider.transactor[F])
-
-  def findF(key: ProjectWriteAccessEntryId): ConnectionIO[Option[ProjectWriteAccessEntry]] =
+  override def findC(key: ProjectWriteAccessEntryDAO.Key): ConnectionIO[Option[ProjectWriteAccessEntry]] =
     run(findAction(key)).map(_.headOption)
 
-  def insert[F[_]: Async: ContextShift](row: ProjectWriteAccessEntry): F[ProjectWriteAccessEntry] =
-    insertF(row).transact(dbTransactorProvider.transactor[F])
+  override def insertC(row: ProjectWriteAccessEntry): ConnectionIO[ProjectWriteAccessEntry] = run(insertAction(row))
 
-  def insertF(row: ProjectWriteAccessEntry): ConnectionIO[ProjectWriteAccessEntry] = run(insertAction(row))
-
-  def insertAll[F[_]: Async: ContextShift](rows: Seq[ProjectWriteAccessEntry]): F[List[ProjectWriteAccessEntry]] =
-    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
-
-  def insertAllF(rows: Seq[ProjectWriteAccessEntry]): ConnectionIO[List[ProjectWriteAccessEntry]] =
+  override def insertAllC(rows: Seq[ProjectWriteAccessEntry]): ConnectionIO[List[ProjectWriteAccessEntry]] =
     run(insertAllAction(rows))
 
-  def delete[F[_]: Async: ContextShift](key: ProjectWriteAccessEntryId): F[ProjectWriteAccessEntry] =
-    deleteF(key).transact(dbTransactorProvider.transactor[F])
+  override def deleteC(key: ProjectWriteAccessEntryDAO.Key): ConnectionIO[ProjectWriteAccessEntry] =
+    run(deleteAction(key))
 
-  def deleteF(key: ProjectWriteAccessEntryId): ConnectionIO[ProjectWriteAccessEntry] = run(deleteAction(key))
+  override def replaceC(row: ProjectWriteAccessEntry): ConnectionIO[ProjectWriteAccessEntry] = run(replaceAction(row))
 
-  def replace[F[_]: Async: ContextShift](row: ProjectWriteAccessEntry): F[ProjectWriteAccessEntry] =
-    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-
-  def replaceF(row: ProjectWriteAccessEntry): ConnectionIO[ProjectWriteAccessEntry] = run(replaceAction(row))
-
-  private def findAction(key: ProjectWriteAccessEntryId) =
+  private def findAction(key: ProjectWriteAccessEntryDAO.Key) =
     quote {
       PublicSchema.ProjectWriteAccessEntryDao.query.filter(a =>
         a.projectWriteAccessId == lift(key.projectWriteAccessId.uuid) && a.userId == lift(key.userId.uuid)
@@ -59,7 +48,7 @@ class ProjectWriteAccessEntryDAO @Inject() (dbContext: DbContext, dbTransactorPr
       liftQuery(rows).foreach(e => PublicSchema.ProjectWriteAccessEntryDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: ProjectWriteAccessEntryId) =
+  private def deleteAction(key: ProjectWriteAccessEntryDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
@@ -77,34 +66,34 @@ class ProjectWriteAccessEntryDAO @Inject() (dbContext: DbContext, dbTransactorPr
   }
 
   def findByProjectWriteAccessId[F[_]: Async: ContextShift](key: UUID): F[List[ProjectWriteAccessEntry]] = {
-    findByProjectWriteAccessIdF(key).transact(dbTransactorProvider.transactor[F])
+    findByProjectWriteAccessIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def findByProjectWriteAccessIdF(key: UUID): ConnectionIO[List[ProjectWriteAccessEntry]] = {
+  def findByProjectWriteAccessIdC(key: UUID): ConnectionIO[List[ProjectWriteAccessEntry]] = {
     run(findByProjectWriteAccessIdAction(key))
   }
 
   def deleteByProjectWriteAccessId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    deleteByProjectWriteAccessIdF(key).transact(dbTransactorProvider.transactor[F])
+    deleteByProjectWriteAccessIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByProjectWriteAccessIdF(key: UUID): ConnectionIO[Long] = {
+  def deleteByProjectWriteAccessIdC(key: UUID): ConnectionIO[Long] = {
     run(deleteByProjectWriteAccessIdAction(key))
   }
 
   def findByUserId[F[_]: Async: ContextShift](key: UUID): F[List[ProjectWriteAccessEntry]] = {
-    findByUserIdF(key).transact(dbTransactorProvider.transactor[F])
+    findByUserIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def findByUserIdF(key: UUID): ConnectionIO[List[ProjectWriteAccessEntry]] = {
+  def findByUserIdC(key: UUID): ConnectionIO[List[ProjectWriteAccessEntry]] = {
     run(findByUserIdAction(key))
   }
 
   def deleteByUserId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    deleteByUserIdF(key).transact(dbTransactorProvider.transactor[F])
+    deleteByUserIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByUserIdF(key: UUID): ConnectionIO[Long] = {
+  def deleteByUserIdC(key: UUID): ConnectionIO[Long] = {
     run(deleteByUserIdAction(key))
   }
 
@@ -133,3 +122,5 @@ class ProjectWriteAccessEntryDAO @Inject() (dbContext: DbContext, dbTransactorPr
   }
 
 }
+
+object ProjectWriteAccessEntryDAO { type Key = ProjectWriteAccessEntryId }
