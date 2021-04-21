@@ -14,8 +14,10 @@ object GeneratedDAO {
   ): Tree = {
     val daoPackageTerm = Pkg(ref = TermUtils.splitToTerm(daoPackage), stats = List.empty).ref
     val typeQuery = TermUtils.splitToTerm(s"PublicSchema.${typeName}Dao.query")
-    val daoName = Type.Name(s"${typeName}DAO")
-    val keyType = keyDescription.keyType
+    val daoNameString = s"${typeName}DAO"
+    val daoName = Type.Name(daoNameString)
+    val daoNameCompanion = Term.Name(daoNameString)
+    val keyType = Type.Select(Term.Name(daoNameString): Term.Ref, Type.Name("Key"))
     val allSelectors = fieldNames.map { fieldName =>
       val fieldTerm = Term.Name(fieldName)
       q"(t, e) => t.$fieldTerm -> e.$fieldTerm"
@@ -27,21 +29,21 @@ object GeneratedDAO {
       val publicFunctions = List(
         q"""
         def ${functionNames.findLayers.function}[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[List[$typeName]] = {
-          ${functionNames.findLayers.functionF}(key).transact(dbTransactorProvider.transactor[F])
+          ${functionNames.findLayers.functionC}(key).transact(dbTransactorProvider.transactor[F])
         }
         """,
         q"""
-        def ${functionNames.findLayers.functionF}(key: ${column.typeTerm}): ConnectionIO[List[$typeName]] = {
+        def ${functionNames.findLayers.functionC}(key: ${column.typeTerm}): ConnectionIO[List[$typeName]] = {
           run(${functionNames.findLayers.functionAction}(key))
         }
         """,
         q"""
         def ${functionNames.deleteLayers.function}[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[Long] = {
-          ${functionNames.deleteLayers.functionF}(key).transact(dbTransactorProvider.transactor[F])
+          ${functionNames.deleteLayers.functionC}(key).transact(dbTransactorProvider.transactor[F])
         }
         """,
         q"""
-        def ${functionNames.deleteLayers.functionF}(key: ${column.typeTerm}): ConnectionIO[Long] = {
+        def ${functionNames.deleteLayers.functionC}(key: ${column.typeTerm}): ConnectionIO[Long] = {
           run(${functionNames.deleteLayers.functionAction}(key))
         }
         """
@@ -73,7 +75,7 @@ object GeneratedDAO {
           import cats.effect.{Async, ContextShift}
           import db.models._
           import db.keys._
-          import db.{DbContext, DbTransactorProvider}
+          import db.{DbContext, DbTransactorProvider, DAOFunctions}
           import doobie.ConnectionIO
           import doobie.implicits._
           import io.getquill.ActionReturning
@@ -82,28 +84,23 @@ object GeneratedDAO {
           import javax.inject.Inject
           class $daoName @Inject()(
             dbContext: DbContext,
-            dbTransactorProvider: DbTransactorProvider
-          ) { 
+            override protected val dbTransactorProvider: DbTransactorProvider
+          ) extends DAOFunctions[$typeName, $keyType] {
             import dbContext._
-            def find[F[_]: Async: ContextShift](key: $keyType): F[Option[$typeName]] =
-              findF(key).transact(dbTransactorProvider.transactor[F])
-            def findF(key: $keyType): ConnectionIO[Option[$typeName]] =
+            
+            override def findC(key: $keyType): ConnectionIO[Option[$typeName]] =
               run(findAction(key)).map(_.headOption)
-            def insert[F[_]: Async: ContextShift](row: $typeName): F[$typeName] =
-              insertF(row).transact(dbTransactorProvider.transactor[F])
-            def insertF(row: $typeName): ConnectionIO[$typeName] =
+  
+            override def insertC(row: $typeName): ConnectionIO[$typeName] =
               run(insertAction(row))
-            def insertAll[F[_]: Async: ContextShift](rows: Seq[$typeName]): F[List[$typeName]] =
-              insertAllF(rows).transact(dbTransactorProvider.transactor[F])
-            def insertAllF(rows: Seq[$typeName]): ConnectionIO[List[$typeName]] =
+  
+            override def insertAllC(rows: Seq[$typeName]): ConnectionIO[List[$typeName]] =
               run(insertAllAction(rows))
-            def delete[F[_]: Async: ContextShift](key: $keyType): F[$typeName] =
-              deleteF(key).transact(dbTransactorProvider.transactor[F])
-            def deleteF(key: $keyType): ConnectionIO[$typeName] =
+  
+            override def deleteC(key: $keyType): ConnectionIO[$typeName] =
               run(deleteAction(key))
-            def replace[F[_]: Async: ContextShift](row: $typeName): F[$typeName] =
-              run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-            def replaceF(row: $typeName): ConnectionIO[$typeName] =
+  
+            override def replaceC(row: $typeName): ConnectionIO[$typeName] =
               run(replaceAction(row))
     
             private def findAction(key: $keyType) =
@@ -135,7 +132,11 @@ object GeneratedDAO {
             }
             ..$publicAdditional
             ..$privateAdditional
-          }}"""
+          }
+          object $daoNameCompanion {
+            type Key = ${keyDescription.keyType}
+          }}
+          """
     result
   }
 
