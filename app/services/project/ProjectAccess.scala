@@ -7,16 +7,16 @@ case class ProjectAccess[AK](accessors: Accessors)
 object ProjectAccess {
 
   def ownerOnly[AccessK]: ProjectAccess[AccessK] =
-    new ProjectAccess[AccessK](
+    ProjectAccess[AccessK](
       Accessors.Nobody
-    ) {}
+    )
 
   def fromDb[AccessK, DBAccessK, DBAccessEntry](
       dbComponents: Option[DbComponents[DBAccessK, DBAccessEntry]]
   )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): ProjectAccess[AccessK] = {
-    new ProjectAccess[AccessK](
+    ProjectAccess[AccessK](
       accessors = Accessors.fromRepresentation(dbComponents.map(_.accessEntries.map(accessFromDB.entryUserId)))
-    ) {}
+    )
   }
 
   def toDb[AccessK, DBAccessK, DBAccessEntry](projectId: ProjectId, readAccess: ProjectAccess[AccessK])(implicit
@@ -48,6 +48,14 @@ object ProjectAccess {
           accessEntries = userIds.map(accessToDB.mkAccessEntry(projectId, _))
         )
       }
+
+    def fromComponents[DBAccessK, DBAccessEntry](access: DBAccessK, accessEntries: Seq[DBAccessEntry])(implicit
+        accessFromDB: AccessFromDB[_, DBAccessK, DBAccessEntry]
+    ): DbComponents[DBAccessK, DBAccessEntry] =
+      DbComponentsImpl(
+        access = access,
+        accessEntries = accessFromDB.onMatchingEntries(identity)(access, accessEntries)
+      )
 
   }
 
