@@ -27,22 +27,22 @@ object Project {
 
   def fromRow(
       dbComponents: DbComponents
-  ): ServerError.Valid[Project] = {
-
-    dbComponents.tasks.traverse(Task.fromRow).map { tasks =>
-      Project(
-        id = keys.ProjectId(dbComponents.project.id),
-        tasks = tasks.toVector,
-        name = dbComponents.project.name,
-        description = dbComponents.project.description,
-        ownerId = keys.UserId(dbComponents.project.ownerId),
-        parentProjectId = dbComponents.project.parentProjectId.map(ProjectId.apply),
-        flatIfSingleTask = dbComponents.project.flatIfSingleTask,
-        readAccessors = ProjectAccess.fromDb(dbComponents.readAccess),
-        writeAccessors = ProjectAccess.fromDb(dbComponents.writeAccess)
-      )
-    }
-  }
+  ): ServerError.Valid[Project] =
+    dbComponents.tasks
+      .traverse(Task.fromRow)
+      .map { tasks =>
+        Project(
+          id = keys.ProjectId(dbComponents.project.id),
+          tasks = tasks.toVector,
+          name = dbComponents.project.name,
+          description = dbComponents.project.description,
+          ownerId = keys.UserId(dbComponents.project.ownerId),
+          parentProjectId = dbComponents.project.parentProjectId.map(ProjectId.apply),
+          flatIfSingleTask = dbComponents.project.flatIfSingleTask,
+          readAccessors = ProjectAccess.fromDb(dbComponents.readAccess),
+          writeAccessors = ProjectAccess.fromDb(dbComponents.writeAccess)
+        )
+      }
 
   sealed trait DbComponents {
     def project: db.models.Project
@@ -74,6 +74,21 @@ object Project {
         readAccess = ProjectAccess.toDb(project.id, project.readAccessors),
         writeAccess = ProjectAccess.toDb(project.id, project.writeAccessors)
       )
+
+    def fromComponents(
+        project: db.models.Project,
+        tasks: Seq[Task],
+        readAccessors: ProjectAccess[AccessKind.Read],
+        writeAccessors: ProjectAccess[AccessKind.Write]
+    ): DbComponents = {
+      val projectId = ProjectId(project.id)
+      DbComponentsImpl(
+        project = project,
+        tasks = tasks.map(Task.toRow),
+        readAccess = ProjectAccess.DbComponents(projectId, readAccessors),
+        writeAccess = ProjectAccess.DbComponents(projectId, writeAccessors)
+      )
+    }
 
   }
 
