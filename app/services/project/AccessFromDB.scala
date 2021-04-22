@@ -12,9 +12,12 @@ sealed trait AccessFromDB[AccessK, DBAccessK, DBAccessEntry] {
   def entryUserId(dbAccessEntry: DBAccessEntry): UserId
 
   def entryUserIds(dbAccess: DBAccessK, dbAccessEntries: Seq[DBAccessEntry]): Set[UserId] =
+    onMatchingEntries(entryUserId)(dbAccess, dbAccessEntries).toSet
+
+  def onMatchingEntries[A](f: DBAccessEntry => A)(dbAccess: DBAccessK, dbAccessEntries: Seq[DBAccessEntry]): Seq[A] =
     dbAccessEntries.collect {
-      case dbAccessEntry if entryAccessId(dbAccessEntry) == accessId(dbAccess) => entryUserId(dbAccessEntry)
-    }.toSet
+      case dbAccessEntry if entryAccessId(dbAccessEntry) == accessId(dbAccess) => f(dbAccessEntry)
+    }
 
 }
 
