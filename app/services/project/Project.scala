@@ -77,14 +77,14 @@ object Project {
 
     def fromComponents(
         project: db.models.Project,
-        tasks: Seq[Task],
+        tasks: Seq[db.models.Task],
         readAccessors: ProjectAccess[AccessKind.Read],
         writeAccessors: ProjectAccess[AccessKind.Write]
     ): DbComponents = {
       val projectId = ProjectId(project.id)
       DbComponentsImpl(
         project = project,
-        tasks = tasks.map(Task.toRow),
+        tasks = tasks,
         readAccess = ProjectAccess.DbComponents(projectId, readAccessors),
         writeAccess = ProjectAccess.DbComponents(projectId, writeAccessors)
       )
