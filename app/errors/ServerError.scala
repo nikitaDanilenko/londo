@@ -82,4 +82,8 @@ object ServerError {
 
   }
 
+  object Project {
+    case object NotFound extends ServerErrorInstance("No project with the given id found")
+  }
+
 }
