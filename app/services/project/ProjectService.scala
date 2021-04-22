@@ -2,10 +2,12 @@ package services.project
 
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
-import db.DAOFunctions
 import db.generated.daos._
 import db.keys.ProjectId
+import db.{ DAOFunctions, DbTransactorProvider }
 import doobie.ConnectionIO
+import doobie.implicits._
+import errors.ServerError
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
 
@@ -16,33 +18,40 @@ class ProjectService @Inject() (
     projectReadAccessDAO: ProjectReadAccessDAO,
     projectReadAccessEntryDAO: ProjectReadAccessEntryDAO,
     projectWriteAccessDAO: ProjectWriteAccessDAO,
-    projectWriteAccessEntryDAO: ProjectWriteAccessEntryDAO
+    projectWriteAccessEntryDAO: ProjectWriteAccessEntryDAO,
+    dbTransactorProvider: DbTransactorProvider
 ) {
 
-  def create[F[_]: Async: ContextShift](projectCreation: ProjectCreation): F[Project] = {
+  def create[F[_]: Async: ContextShift](projectCreation: ProjectCreation): F[ServerError.Valid[Project]] = {
     val action = for {
       createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
-      dbComponents = Project.toRow(createdProject)
-      project <- projectDAO.insertC(dbComponents.project)
-      readAccess <- setReadAccess(createdProject.id, createdProject.readAccessors)
-      writeAccess <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
-    } yield project
-    ???
+      project <- projectDAO.insertC(Project.toRow(createdProject).project)
+      readAccessors <- setReadAccess(createdProject.id, createdProject.readAccessors)
+      writeAccessors <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
+    } yield Project.fromRow(
+      Project.DbComponents.fromComponents(
+        project = project,
+        tasks = createdProject.tasks,
+        readAccessors = readAccessors,
+        writeAccessors = writeAccessors
+      )
+    )
+    action.transact(dbTransactorProvider.transactor[F])
   }
 
-  def setReadAccess[F[_]: Async: ContextShift](
+  def setReadAccess(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Read]
   ): ConnectionIO[ProjectAccess[AccessKind.Read]] =
     setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, _.asProjectReadAccessId, projectAccess)
 
-  def setWriteAccess[F[_]: Async: ContextShift](
+  def setWriteAccess(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Write]
   ): ConnectionIO[ProjectAccess[AccessKind.Write]] =
     setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, _.asProjectWriteAccessId, projectAccess)
 
-  private def setAccess[F[_], AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
+  private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
       daoFunctionsDBAccessK: DAOFunctions[DBAccessK, DBAccessKey],
       daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
   )(
