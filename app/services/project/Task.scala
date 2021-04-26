@@ -2,12 +2,13 @@ package services.project
 
 import cats.syntax.contravariantSemigroupal._
 import db.keys
-import db.keys.{ ProjectId, TaskId }
+import db.keys.ProjectId
 import errors.ServerError
 import spire.math.Natural
 
 sealed trait Task {
   def id: TaskId
+  def weight: Natural
 }
 
 object Task {
@@ -18,26 +19,32 @@ object Task {
       taskKind: TaskKind,
       unit: Option[String],
       progress: Progress,
-      weight: Int
+      override val weight: Natural
   ) extends Task
 
   case class ProjectReference(
       override val id: TaskId,
-      projectReference: ProjectId
+      projectReference: ProjectId,
+      override val weight: Natural
   ) extends Task
 
   def fromRow(taskRow: db.models.Task): ServerError.Valid[Task] = {
-
+    val nonNegativeWeight =
+      ServerError.fromCondition(
+        taskRow.weight >= 0,
+        ServerError.Task.NegativeWeight,
+        Natural(taskRow.weight)
+      )
     val plain = (
       ServerError.fromEmpty(taskRow.projectReferenceId, ServerError.Task.Plain.NonEmptyProjectReference),
       ServerError.fromEither(taskRow.name.toRight(ServerError.Task.Plain.EmptyName)),
       ServerError.fromEither(taskRow.kindId.map(TaskKind.fromId).toRight(ServerError.Task.Plain.EmptyKind)),
       ServerError.fromEither(taskRow.reachable.toRight(ServerError.Task.Plain.EmptyReachable)),
       ServerError.fromEither(taskRow.reached.toRight(ServerError.Task.Plain.EmptyReached)),
-      ServerError.fromEither(taskRow.weight.toRight(ServerError.Task.Plain.EmptyWeight))
+      nonNegativeWeight
     ).mapN { (_, name, taskKind, reachable, reached, weight) =>
       Plain(
-        id = keys.TaskId(projectId = ProjectId(taskRow.projectId), uuid = taskRow.id),
+        id = TaskId(uuid = taskRow.id),
         name = name,
         taskKind = taskKind,
         unit = taskRow.unit,
@@ -54,46 +61,46 @@ object Task {
       ServerError.fromEmpty(taskRow.kindId, ServerError.Task.ProjectReference.NonEmptyKind),
       ServerError.fromEmpty(taskRow.reachable, ServerError.Task.ProjectReference.NonEmptyReachable),
       ServerError.fromEmpty(taskRow.reached, ServerError.Task.ProjectReference.NonEmptyReached),
-      ServerError.fromEmpty(taskRow.weight, ServerError.Task.ProjectReference.NonEmptyWeight),
-      ServerError.fromEmpty(taskRow.unit, ServerError.Task.ProjectReference.NonEmptyUnit)
-    ).mapN { (projectReferenceId, _, _, _, _, _, _) =>
+      ServerError.fromEmpty(taskRow.unit, ServerError.Task.ProjectReference.NonEmptyUnit),
+      nonNegativeWeight
+    ).mapN { (projectReferenceId, _, _, _, _, _, weight) =>
       ProjectReference(
         id = TaskId(
-          projectId = keys.ProjectId(taskRow.projectId),
           uuid = taskRow.id
         ),
-        keys.ProjectId(projectReferenceId)
+        keys.ProjectId(projectReferenceId),
+        weight = weight
       )
     }
 
     plain.findValid(projectReference)
   }
 
-  def toRow(task: Task): db.models.Task =
+  def toRow(projectId: ProjectId, task: Task): db.models.Task =
     task match {
       case Plain(id, name, taskKind, unit, progress, weight) =>
         db.models.Task(
           id = id.uuid,
-          projectId = id.projectId.uuid,
+          projectId = projectId.uuid,
           projectReferenceId = None,
           name = Some(name),
           unit = unit,
           kindId = Some(TaskKind.toRow(taskKind).id),
           reached = Some(asBigDecimal(progress.reached)),
           reachable = Some(asBigDecimal(progress.reachable)),
-          weight = Some(weight)
+          weight = weight.intValue
         )
-      case ProjectReference(id, projectReference) =>
+      case ProjectReference(id, projectReference, weight) =>
         db.models.Task(
           id = id.uuid,
-          projectId = id.projectId.uuid,
+          projectId = projectId.uuid,
           projectReferenceId = Some(projectReference.uuid),
           name = None,
           unit = None,
           kindId = None,
           reached = None,
           reachable = None,
-          weight = None
+          weight = weight.intValue
         )
     }
 
