@@ -24,6 +24,9 @@ object ServerError {
   def fromEither[A](either: Or[A]): Valid[A] =
     Validated.fromEither[NonEmptyList[ServerError], A](either.left.map(NonEmptyList.of(_)))
 
+  def fromCondition[A](condition: Boolean, errorCase: => ServerError, successCase: => A): Valid[A] =
+    Validated.condNel(condition, successCase, errorCase)
+
   implicit val serverErrorEncoder: Encoder[ServerError] = Encoder.instance[ServerError] { serverError =>
     Json.obj(
       "message" -> serverError.message.asJson
@@ -66,7 +69,6 @@ object ServerError {
       case object EmptyKind extends ServerErrorInstance("Empty kind in plain task")
       case object EmptyReached extends ServerErrorInstance("Empty reached value in plain task")
       case object EmptyReachable extends ServerErrorInstance("Empty reachable value in plain task")
-      case object EmptyWeight extends ServerErrorInstance("Empty weight in plain task")
       case object NonEmptyProjectReference extends ServerErrorInstance("Non-empty project reference in plain task")
     }
 
@@ -75,10 +77,11 @@ object ServerError {
       case object NonEmptyKind extends ServerErrorInstance("Non-empty kind in project reference task")
       case object NonEmptyReached extends ServerErrorInstance("Non-empty reached value in project reference task")
       case object NonEmptyReachable extends ServerErrorInstance("Non-empty reachable value in project reference task")
-      case object NonEmptyWeight extends ServerErrorInstance("Non-empty weight in project reference task")
       case object NonEmptyUnit extends ServerErrorInstance("Non-empty unit in project reference task")
       case object EmptyProjectReference extends ServerErrorInstance("Empty project reference in project reference task")
     }
+
+    case object NegativeWeight extends ServerErrorInstance("Negative weight")
 
   }
 
