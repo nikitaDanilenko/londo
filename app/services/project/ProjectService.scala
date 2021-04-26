@@ -33,7 +33,7 @@ class ProjectService @Inject() (
     } yield Project.fromRow(
       Project.DbComponents.fromComponents(
         project = project,
-        tasks = createdProject.tasks.map(Task.toRow),
+        tasks = createdProject.tasks.map(Task.toRow(createdProject.id, _)),
         readAccessors = readAccessors,
         writeAccessors = writeAccessors
       )

@@ -70,7 +70,7 @@ object Project {
           parentProjectId = project.parentProjectId.map(_.uuid),
           flatIfSingleTask = project.flatIfSingleTask
         ),
-        tasks = project.tasks.map(Task.toRow),
+        tasks = project.tasks.map(Task.toRow(project.id, _)),
         readAccess = ProjectAccess.toDb(project.id, project.readAccessors),
         writeAccess = ProjectAccess.toDb(project.id, project.writeAccessors)
       )
