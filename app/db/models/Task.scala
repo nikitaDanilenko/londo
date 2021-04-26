@@ -9,5 +9,5 @@ case class Task(
     kindId: Option[java.util.UUID],
     reached: Option[scala.math.BigDecimal],
     reachable: Option[scala.math.BigDecimal],
-    weight: Option[Int]
+    weight: Int
 )

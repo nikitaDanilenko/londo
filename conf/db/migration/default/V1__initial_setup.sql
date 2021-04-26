@@ -162,7 +162,7 @@ create table task(
     kind_id uuid,
     reached numeric,
     reachable numeric,
-    weight int
+    weight int not null
 );
 
 alter table task
@@ -172,10 +172,10 @@ alter table task
     add constraint task_kind_id_fk foreign key (kind_id) references task_kind(id) on delete cascade,
     add constraint reached_non_negative check (reached is null or reached >= 0),
     add constraint reachable_larger_than_reached check (reachable is null or reachable >= reached),
-    add constraint weight_non_negative check (weight is null or weight >= 0),
+    add constraint weight_non_negative check (weight >= 0),
     add constraint task_is_reference_xor_plain check (
-        (project_reference_id is null and name is not null and kind_id is not null and reached is not null and reachable is not null and weight is not null) or
-        (project_reference_id is not null and name is null and unit is null and kind_id is null and reached is null and reachable is null and weight is null)
+        (project_reference_id is null and name is not null and kind_id is not null and reached is not null and reachable is not null) or
+        (project_reference_id is not null and name is null and unit is null and kind_id is null and reached is null and reachable is null)
     );
 
 create table session_key(
