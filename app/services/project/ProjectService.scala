@@ -1,6 +1,6 @@
 package services.project
 
-import cats.data.EitherT
+import cats.data.{ EitherT, NonEmptyList, Validated }
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import db.generated.daos._
@@ -84,11 +84,24 @@ class ProjectService @Inject() (
     dbAction.map(ProjectAccess.fromDb[AccessK, DBAccessK, DBAccessEntry])
   }
 
-  // TODO: This function should return the complete old project
-  def delete[F[_]: Async: ContextShift](projectId: ProjectId): F[db.models.Project] = projectDAO.delete[F](projectId)
+  def delete[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
+    deleteC(projectId).transact(dbTransactorProvider.transactor[F])
+
+  def deleteC(projectId: ProjectId): ConnectionIO[ServerError.Valid[Project]] = {
+    val transformer = for {
+      project <- EitherT(fetchC(projectId).map(_.toEither))
+      _ <- EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], db.models.Project](projectDAO.deleteC(projectId))
+    } yield project
+
+    transformer.value.map(Validated.fromEither)
+  }
+
   def update = ???
 
-  def fetch[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] = {
+  def fetch[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
+    fetchC(projectId).transact(dbTransactorProvider.transactor[F])
+
+  def fetchC(projectId: ProjectId): ConnectionIO[ServerError.Valid[Project]] = {
     val projectReadAccessId = projectId.asProjectReadAccessId
     val projectWriteAccessId = projectId.asProjectWriteAccessId
 
@@ -131,7 +144,6 @@ class ProjectService @Inject() (
         error => ServerError.fromEither[Project](Left(error)),
         identity
       )
-      .transact(dbTransactorProvider.transactor[F])
   }
 
   def createTask = ???
