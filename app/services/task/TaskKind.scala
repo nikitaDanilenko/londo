@@ -1,6 +1,6 @@
-package services.project
+package services.task
 
-import enumeratum.{ EnumEntry, Enum }
+import enumeratum.{ Enum, EnumEntry }
 
 import java.util.UUID
 

@@ -7,6 +7,7 @@ import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess
 import errors.ServerError
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
+import services.task.Task
 
 case class Project(
     id: ProjectId,

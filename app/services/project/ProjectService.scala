@@ -5,12 +5,13 @@ import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import db.generated.daos._
 import db.keys.ProjectId
-import db.{ DAOFunctions, DbTransactorProvider }
+import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import doobie.implicits._
 import errors.ServerError
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
+import services.task.Task
 
 import javax.inject.Inject
 
@@ -21,25 +22,25 @@ class ProjectService @Inject() (
     projectWriteAccessDAO: ProjectWriteAccessDAO,
     projectWriteAccessEntryDAO: ProjectWriteAccessEntryDAO,
     taskDAO: TaskDAO,
-    dbTransactorProvider: DbTransactorProvider
+    transactionally: Transactionally
 ) {
 
-  def create[F[_]: Async: ContextShift](projectCreation: ProjectCreation): F[ServerError.Valid[Project]] = {
-    val action = for {
-      createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
-      project <- projectDAO.insertC(Project.toRow(createdProject).project)
-      readAccessors <- setReadAccess(createdProject.id, createdProject.readAccessors)
-      writeAccessors <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
-    } yield Project.fromRow(
-      Project.DbComponents.fromComponents(
-        project = project,
-        tasks = createdProject.tasks.map(Task.toRow(createdProject.id, _)),
-        readAccessors = readAccessors,
-        writeAccessors = writeAccessors
+  def create[F[_]: Async: ContextShift](projectCreation: ProjectCreation): F[ServerError.Valid[Project]] =
+    transactionally {
+      for {
+        createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
+        project <- projectDAO.insertC(Project.toRow(createdProject).project)
+        readAccessors <- setReadAccess(createdProject.id, createdProject.readAccessors)
+        writeAccessors <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
+      } yield Project.fromRow(
+        Project.DbComponents.fromComponents(
+          project = project,
+          tasks = createdProject.tasks.map(Task.toRow(createdProject.id, _)),
+          readAccessors = readAccessors,
+          writeAccessors = writeAccessors
+        )
       )
-    )
-    action.transact(dbTransactorProvider.transactor[F])
-  }
+    }
 
   def setReadAccess(
       projectId: ProjectId,
@@ -85,7 +86,7 @@ class ProjectService @Inject() (
   }
 
   def delete[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
-    deleteC(projectId).transact(dbTransactorProvider.transactor[F])
+    transactionally(deleteC(projectId))
 
   def deleteC(projectId: ProjectId): ConnectionIO[ServerError.Valid[Project]] = {
     val transformer = for {
@@ -99,7 +100,7 @@ class ProjectService @Inject() (
   def update = ???
 
   def fetch[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
-    fetchC(projectId).transact(dbTransactorProvider.transactor[F])
+    transactionally(fetchC(projectId))
 
   def fetchC(projectId: ProjectId): ConnectionIO[ServerError.Valid[Project]] = {
     val projectReadAccessId = projectId.asProjectReadAccessId
@@ -145,9 +146,5 @@ class ProjectService @Inject() (
         identity
       )
   }
-
-  def createTask = ???
-  def removeTask = ???
-  def updateTask = ???
 
 }

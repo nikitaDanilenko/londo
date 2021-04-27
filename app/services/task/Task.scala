@@ -1,9 +1,11 @@
-package services.project
+package services.task
 
 import cats.syntax.contravariantSemigroupal._
 import db.keys
 import db.keys.ProjectId
 import errors.ServerError
+import services.project.Progress
+import services.task
 import spire.math.Natural
 
 sealed trait Task {
@@ -44,7 +46,7 @@ object Task {
       nonNegativeWeight
     ).mapN { (_, name, taskKind, reachable, reached, weight) =>
       Plain(
-        id = TaskId(uuid = taskRow.id),
+        id = task.TaskId(uuid = taskRow.id),
         name = name,
         taskKind = taskKind,
         unit = taskRow.unit,
@@ -65,7 +67,7 @@ object Task {
       nonNegativeWeight
     ).mapN { (projectReferenceId, _, _, _, _, _, weight) =>
       ProjectReference(
-        id = TaskId(
+        id = task.TaskId(
           uuid = taskRow.id
         ),
         keys.ProjectId(projectReferenceId),
