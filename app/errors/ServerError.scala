@@ -27,6 +27,9 @@ object ServerError {
   def fromCondition[A](condition: Boolean, errorCase: => ServerError, successCase: => A): Valid[A] =
     Validated.condNel(condition, successCase, errorCase)
 
+  def fromOption[A](option: Option[A], errorCase: => ServerError): Valid[A] =
+    fromEither(option.toRight(errorCase))
+
   implicit val serverErrorEncoder: Encoder[ServerError] = Encoder.instance[ServerError] { serverError =>
     Json.obj(
       "message" -> serverError.message.asJson
@@ -82,6 +85,7 @@ object ServerError {
     }
 
     case object NegativeWeight extends ServerErrorInstance("Negative weight")
+    case object NotFound extends ServerErrorInstance("No task with the given id found")
 
   }
 
