@@ -7,7 +7,6 @@ import db.generated.daos._
 import db.keys.ProjectId
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
-import doobie.implicits._
 import errors.ServerError
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
