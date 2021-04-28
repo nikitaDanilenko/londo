@@ -32,19 +32,22 @@ class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally)
 
   def fetchC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task]] =
     taskDAO
-      .findC(
-        db.keys.TaskId(
-          projectId = taskKey.projectId,
-          uuid = taskKey.taskId.uuid
-        )
-      )
+      .findC(TaskKey.toTaskId(taskKey))
       .map(
         ServerError
           .fromOption(_, ServerError.Task.NotFound)
           .andThen(Task.fromRow)
       )
 
-  def removeTask = ???
+  def removeTask[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task]] =
+    transactionally(removeTaskC(taskKey))
+
+  def removeTaskC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task]] =
+    for {
+      task <- fetchC(taskKey)
+      _ <- taskDAO.deleteC(TaskKey.toTaskId(taskKey))
+    } yield task
+
   def updateTask = ???
 
 }
