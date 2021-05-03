@@ -60,7 +60,8 @@ class DashboardWriteAccessEntryDAO @Inject() (
         .insert(lift(row))
         .onConflictUpdate(_.dashboardWriteAccessId, _.userId)(
           (t, e) => t.dashboardWriteAccessId -> e.dashboardWriteAccessId,
-          (t, e) => t.userId -> e.userId
+          (t, e) => t.userId -> e.userId,
+          (t, e) => t.hasAccess -> e.hasAccess
         )
         .returning(x => x)
     }

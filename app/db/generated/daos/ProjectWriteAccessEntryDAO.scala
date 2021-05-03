@@ -59,7 +59,8 @@ class ProjectWriteAccessEntryDAO @Inject() (
         .insert(lift(row))
         .onConflictUpdate(_.projectWriteAccessId, _.userId)(
           (t, e) => t.projectWriteAccessId -> e.projectWriteAccessId,
-          (t, e) => t.userId -> e.userId
+          (t, e) => t.userId -> e.userId,
+          (t, e) => t.hasAccess -> e.hasAccess
         )
         .returning(x => x)
     }

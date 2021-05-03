@@ -53,7 +53,8 @@ alter table dashboard_read_access
 
 create table dashboard_read_access_entry(
     dashboard_read_access_id uuid not null,
-    user_id uuid not null
+    user_id uuid not null,
+    has_access bool not null
 );
 
 alter table dashboard_read_access_entry
@@ -71,7 +72,8 @@ alter table dashboard_write_access
 
 create table dashboard_write_access_entry(
     dashboard_write_access_id uuid not null,
-    user_id uuid not null
+    user_id uuid not null,
+    has_access bool not null
 );
 
 alter table dashboard_write_access_entry
@@ -103,7 +105,8 @@ alter table project_read_access
 
 create table project_read_access_entry(
     project_read_access_id uuid not null,
-    user_id uuid not null
+    user_id uuid not null,
+    has_access bool not null
 );
 
 alter table project_read_access_entry
@@ -121,7 +124,8 @@ alter table project_write_access
 
 create table project_write_access_entry(
     project_write_access_id uuid not null,
-    user_id uuid not null
+    user_id uuid not null,
+    has_access bool not null
 );
 
 alter table project_write_access_entry
