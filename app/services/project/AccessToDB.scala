@@ -6,7 +6,7 @@ import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess
 sealed trait AccessToDB[AccessK, DBAccessK, DBAccessEntry] {
 
   def mkAccess(projectId: ProjectId): DBAccessK
-  def mkAccessEntry(projectId: ProjectId, userId: UserId): DBAccessEntry
+  def mkAccessEntry(projectId: ProjectId, userId: UserId, hasAccess: Boolean): DBAccessEntry
 
 }
 
@@ -22,10 +22,11 @@ object AccessToDB {
             projectId = projectId.uuid
           )
 
-        override def mkAccessEntry(projectId: ProjectId, userId: UserId): ProjectReadAccessEntry =
+        override def mkAccessEntry(projectId: ProjectId, userId: UserId, hasAccess: Boolean): ProjectReadAccessEntry =
           ProjectReadAccessEntry(
             projectReadAccessId = projectId.uuid,
-            userId = userId.uuid
+            userId = userId.uuid,
+            hasAccess = hasAccess
           )
 
       }
@@ -38,10 +39,11 @@ object AccessToDB {
             projectId = projectId.uuid
           )
 
-        override def mkAccessEntry(projectId: ProjectId, userId: UserId): ProjectWriteAccessEntry =
+        override def mkAccessEntry(projectId: ProjectId, userId: UserId, hasAccess: Boolean): ProjectWriteAccessEntry =
           ProjectWriteAccessEntry(
             projectWriteAccessId = projectId.uuid,
-            userId = userId.uuid
+            userId = userId.uuid,
+            hasAccess = hasAccess
           )
 
       }

@@ -15,7 +15,13 @@ object ProjectAccess {
       dbComponents: Option[DbComponents[DBAccessK, DBAccessEntry]]
   )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): ProjectAccess[AccessK] = {
     ProjectAccess[AccessK](
-      accessors = Accessors.fromRepresentation(dbComponents.map(_.accessEntries.map(accessFromDB.entryUserId)))
+      accessors = Accessors.fromRepresentation(dbComponents.map { db =>
+        val (allowed, forbidden) = db.accessEntries.partition(accessFromDB.hasAccess)
+        UserRestriction(
+          allowed = allowed.map(accessFromDB.entryUserId),
+          forbidden = forbidden.map(accessFromDB.entryUserId)
+        )
+      })
     )
   }
 
@@ -42,10 +48,12 @@ object ProjectAccess {
     def apply[AccessK, DBAccessK, DBAccessEntry](projectId: ProjectId, projectAccess: ProjectAccess[AccessK])(implicit
         accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry]
     ): Option[DbComponents[DBAccessK, DBAccessEntry]] =
-      Accessors.toRepresentation(projectAccess.accessors).map { userIds =>
+      Accessors.toRepresentation(projectAccess.accessors).map { userRestriction =>
         DbComponentsImpl(
           accessToDB.mkAccess(projectId),
-          accessEntries = userIds.map(accessToDB.mkAccessEntry(projectId, _))
+          accessEntries =
+            userRestriction.allowed.map(accessToDB.mkAccessEntry(projectId, _, hasAccess = true)) ++
+              userRestriction.forbidden.map(accessToDB.mkAccessEntry(projectId, _, hasAccess = false))
         )
       }
 
