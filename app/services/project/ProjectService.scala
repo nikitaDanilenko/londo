@@ -89,14 +89,29 @@ class ProjectService @Inject() (
 
   def deleteC(projectId: ProjectId): ConnectionIO[ServerError.Valid[Project]] = {
     val transformer = for {
-      project <- EitherT(fetchC(projectId).map(_.toEither))
+      project <- fetchT(projectId)
       _ <- EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], db.models.Project](projectDAO.deleteC(projectId))
     } yield project
 
     transformer.value.map(Validated.fromEither)
   }
 
-  def update = ???
+  def update[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      projectUpdate: ProjectUpdate
+  ): F[ServerError.Valid[Project]] =
+    transactionally(updateC(projectId, projectUpdate))
+
+  def updateC(projectId: ProjectId, projectUpdate: ProjectUpdate): ConnectionIO[ServerError.Valid[Project]] = {
+    val transformer = for {
+      project <- fetchT(projectId)
+      updatedProject = ProjectUpdate.applyToProject(project, projectUpdate)
+      updatedRow = Project.toRow(updatedProject).project
+      _ <- ServerError.liftC(projectDAO.replaceC(updatedRow))
+      updatedWrittenProject <- fetchT(projectId)
+    } yield updatedWrittenProject
+    transformer.value.map(Validated.fromEither)
+  }
 
   def fetch[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
     transactionally(fetchC(projectId))
@@ -145,5 +160,8 @@ class ProjectService @Inject() (
         identity
       )
   }
+
+  private def fetchT(projectId: ProjectId): EitherT[ConnectionIO, NonEmptyList[ServerError], Project] =
+    EitherT(fetchC(projectId).map(_.toEither))
 
 }
