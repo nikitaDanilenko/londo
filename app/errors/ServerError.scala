@@ -1,6 +1,7 @@
 package errors
 
-import cats.data.{ NonEmptyList, Validated, ValidatedNel }
+import cats.data.{ EitherT, NonEmptyList, Validated, ValidatedNel }
+import doobie.ConnectionIO
 import io.circe.{ Encoder, Json }
 import io.circe.syntax._
 
@@ -29,6 +30,9 @@ object ServerError {
 
   def fromOption[A](option: Option[A], errorCase: => ServerError): Valid[A] =
     fromEither(option.toRight(errorCase))
+
+  def liftC[A](ca: ConnectionIO[A]): EitherT[ConnectionIO, NonEmptyList[ServerError], A] =
+    EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], A](ca)
 
   implicit val serverErrorEncoder: Encoder[ServerError] = Encoder.instance[ServerError] { serverError =>
     Json.obj(
