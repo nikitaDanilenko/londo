@@ -1,3 +1,3 @@
 package db.models
 
-case class DashboardReadAccess(dashboardId: java.util.UUID)
+case class DashboardReadAccess(dashboardId: java.util.UUID, isAllowList: Boolean)

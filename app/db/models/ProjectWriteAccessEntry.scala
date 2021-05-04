@@ -1,3 +1,3 @@
 package db.models
 
-case class ProjectWriteAccessEntry(projectWriteAccessId: java.util.UUID, userId: java.util.UUID, hasAccess: Boolean)
+case class ProjectWriteAccessEntry(projectWriteAccessId: java.util.UUID, userId: java.util.UUID)

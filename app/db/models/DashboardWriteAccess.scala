@@ -1,3 +1,3 @@
 package db.models
 
-case class DashboardWriteAccess(dashboardId: java.util.UUID)
+case class DashboardWriteAccess(dashboardId: java.util.UUID, isAllowList: Boolean)

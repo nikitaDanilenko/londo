@@ -44,7 +44,8 @@ alter table dashboard
     add constraint dashboard_user_id_fk foreign key (user_id) references "user"(id);
 
 create table dashboard_read_access(
-    dashboard_id uuid not null
+    dashboard_id uuid not null,
+    is_allow_list bool not null
 );
 
 alter table dashboard_read_access
@@ -53,8 +54,7 @@ alter table dashboard_read_access
 
 create table dashboard_read_access_entry(
     dashboard_read_access_id uuid not null,
-    user_id uuid not null,
-    has_access bool not null
+    user_id uuid not null
 );
 
 alter table dashboard_read_access_entry
@@ -63,7 +63,8 @@ alter table dashboard_read_access_entry
     add constraint dashboard_read_access_entry_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
 
 create table dashboard_write_access(
-    dashboard_id uuid not null
+    dashboard_id uuid not null,
+    is_allow_list bool not null
 );
 
 alter table dashboard_write_access
@@ -72,8 +73,7 @@ alter table dashboard_write_access
 
 create table dashboard_write_access_entry(
     dashboard_write_access_id uuid not null,
-    user_id uuid not null,
-    has_access bool not null
+    user_id uuid not null
 );
 
 alter table dashboard_write_access_entry
@@ -96,7 +96,8 @@ alter table project
     add constraint project_owner_id_fk foreign key (owner_id) references "user"(id) on delete cascade;
 
 create table project_read_access(
-    project_id uuid not null
+    project_id uuid not null,
+    is_allow_list bool not null
 );
 
 alter table project_read_access
@@ -105,8 +106,7 @@ alter table project_read_access
 
 create table project_read_access_entry(
     project_read_access_id uuid not null,
-    user_id uuid not null,
-    has_access bool not null
+    user_id uuid not null
 );
 
 alter table project_read_access_entry
@@ -115,7 +115,8 @@ alter table project_read_access_entry
     add constraint project_read_access_entry_user_id_fk foreign key (user_id) references "user"(id) on delete cascade;
 
 create table project_write_access(
-    project_id uuid not null
+    project_id uuid not null,
+    is_allow_list bool not null
 );
 
 alter table project_write_access
@@ -124,8 +125,7 @@ alter table project_write_access
 
 create table project_write_access_entry(
     project_write_access_id uuid not null,
-    user_id uuid not null,
-    has_access bool not null
+    user_id uuid not null
 );
 
 alter table project_write_access_entry

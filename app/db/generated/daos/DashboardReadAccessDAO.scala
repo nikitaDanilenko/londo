@@ -53,7 +53,10 @@ class DashboardReadAccessDAO @Inject() (
     quote {
       PublicSchema.DashboardReadAccessDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.dashboardId)((t, e) => t.dashboardId -> e.dashboardId)
+        .onConflictUpdate(_.dashboardId)(
+          (t, e) => t.dashboardId -> e.dashboardId,
+          (t, e) => t.isAllowList -> e.isAllowList
+        )
         .returning(x => x)
     }
   }

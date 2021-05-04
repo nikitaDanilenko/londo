@@ -51,7 +51,7 @@ class ProjectWriteAccessDAO @Inject() (
     quote {
       PublicSchema.ProjectWriteAccessDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.projectId)((t, e) => t.projectId -> e.projectId)
+        .onConflictUpdate(_.projectId)((t, e) => t.projectId -> e.projectId, (t, e) => t.isAllowList -> e.isAllowList)
         .returning(x => x)
     }
   }
