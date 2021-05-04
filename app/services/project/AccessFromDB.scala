@@ -12,8 +12,8 @@ sealed trait AccessFromDB[AccessK, DBAccessK, DBAccessEntry] {
   def entryUserId(dbAccessEntry: DBAccessEntry): UserId
   def isAllowList(dbAccess: DBAccessK): Boolean
 
-  def entryUserIds(dbAccess: DBAccessK, dbAccessEntries: Seq[DBAccessEntry]): Set[UserId] =
-    onMatchingEntries(entryUserId)(dbAccess, dbAccessEntries).toSet
+  def entryUserIds(dbAccess: DBAccessK, dbAccessEntries: Seq[DBAccessEntry]): Seq[UserId] =
+    onMatchingEntries(entryUserId)(dbAccess, dbAccessEntries)
 
   def onMatchingEntries[A](f: DBAccessEntry => A)(dbAccess: DBAccessK, dbAccessEntries: Seq[DBAccessEntry]): Seq[A] =
     dbAccessEntries.collect {

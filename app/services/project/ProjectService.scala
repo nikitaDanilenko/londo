@@ -45,42 +45,41 @@ class ProjectService @Inject() (
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Read]
   ): ConnectionIO[ProjectAccess[AccessKind.Read]] =
-    setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, _.asProjectReadAccessId, projectAccess)
+    setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
 
   def setWriteAccess(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Write]
   ): ConnectionIO[ProjectAccess[AccessKind.Write]] =
-    setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, _.asProjectWriteAccessId, projectAccess)
+    setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, projectAccess)
 
   private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
       daoFunctionsDBAccessK: DAOFunctions[DBAccessK, DBAccessKey],
       daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
   )(
       projectId: ProjectId,
-      accessIdOf: ProjectId => DBAccessKey,
       projectAccess: ProjectAccess[AccessK]
   )(implicit
       accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry],
       accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]
   ): ConnectionIO[ProjectAccess[AccessK]] = {
-    val dbAction: ConnectionIO[Option[ProjectAccess.DbComponents[DBAccessK, DBAccessEntry]]] =
-      ProjectAccess.DbComponents(projectId, projectAccess) match {
-        case Some(components) =>
-          (
-            daoFunctionsDBAccessK.insertC(components.access),
-            daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
-          ).mapN { (access, entries) =>
-            ProjectAccess.DbComponents[AccessK, DBAccessK, DBAccessEntry](
-              projectId = accessFromDB.projectId(access),
-              projectAccess = ProjectAccess(Accessors.restricted(accessFromDB.entryUserIds(access, entries)))
+    val dbAction: ConnectionIO[ProjectAccess.DbComponents[DBAccessK, DBAccessEntry]] = {
+      val components = ProjectAccess.DbComponents(projectId, projectAccess)
+      (
+        daoFunctionsDBAccessK.insertC(components.access),
+        daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
+      ).mapN { (access, entries) =>
+        ProjectAccess.DbComponents[AccessK, DBAccessK, DBAccessEntry](
+          projectId = accessFromDB.projectId(access),
+          projectAccess = ProjectAccess.fromDb(
+            ProjectAccess.DbComponents.fromComponents(
+              access = access,
+              accessEntries = entries
             )
-          }
-        case None =>
-          daoFunctionsDBAccessK
-            .deleteC(accessIdOf(projectId))
-            .map(_ => None: Option[ProjectAccess.DbComponents[DBAccessK, DBAccessEntry]])
+          )
+        )
       }
+    }
     dbAction.map(ProjectAccess.fromDb[AccessK, DBAccessK, DBAccessEntry])
   }
 
@@ -136,19 +135,15 @@ class ProjectService @Inject() (
           project = projectRow,
           tasks = tasks,
           readAccessors = ProjectAccess.fromDb(
-            readAccess.map(
-              ProjectAccess.DbComponents.fromComponents(
-                _,
-                readAccessEntries
-              )
+            ProjectAccess.DbComponents.fromComponents(
+              readAccess.getOrElse(db.models.ProjectReadAccess(projectId.uuid, isAllowList = false)),
+              readAccessEntries
             )
           ),
           writeAccessors = ProjectAccess.fromDb(
-            writeAccess.map(
-              ProjectAccess.DbComponents.fromComponents(
-                _,
-                writeAccessEntries
-              )
+            ProjectAccess.DbComponents.fromComponents(
+              writeAccess.getOrElse(db.models.ProjectWriteAccess(projectId.uuid, isAllowList = false)),
+              writeAccessEntries
             )
           )
         )

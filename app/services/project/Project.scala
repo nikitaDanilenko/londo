@@ -48,8 +48,8 @@ object Project {
   sealed trait DbComponents {
     def project: db.models.Project
     def tasks: Seq[db.models.Task]
-    def readAccess: Option[ProjectAccess.DbComponents[ProjectReadAccess, ProjectReadAccessEntry]]
-    def writeAccess: Option[ProjectAccess.DbComponents[ProjectWriteAccess, ProjectWriteAccessEntry]]
+    def readAccess: ProjectAccess.DbComponents[ProjectReadAccess, ProjectReadAccessEntry]
+    def writeAccess: ProjectAccess.DbComponents[ProjectWriteAccess, ProjectWriteAccessEntry]
   }
 
   object DbComponents {
@@ -57,8 +57,8 @@ object Project {
     private case class DbComponentsImpl(
         override val project: db.models.Project,
         override val tasks: Seq[db.models.Task],
-        override val readAccess: Option[ProjectAccess.DbComponents[ProjectReadAccess, ProjectReadAccessEntry]],
-        override val writeAccess: Option[ProjectAccess.DbComponents[ProjectWriteAccess, ProjectWriteAccessEntry]]
+        override val readAccess: ProjectAccess.DbComponents[ProjectReadAccess, ProjectReadAccessEntry],
+        override val writeAccess: ProjectAccess.DbComponents[ProjectWriteAccess, ProjectWriteAccessEntry]
     ) extends DbComponents
 
     def apply(project: Project): DbComponents =

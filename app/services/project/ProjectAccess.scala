@@ -12,22 +12,20 @@ object ProjectAccess {
     )
 
   def fromDb[AccessK, DBAccessK, DBAccessEntry](
-      dbComponents: Option[DbComponents[DBAccessK, DBAccessEntry]]
-  )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): ProjectAccess[AccessK] = {
+      dbComponents: DbComponents[DBAccessK, DBAccessEntry]
+  )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): ProjectAccess[AccessK] =
     ProjectAccess[AccessK](
-      accessors = Accessors.fromRepresentation(dbComponents.map { db =>
-        val (allowed, forbidden) = db.accessEntries.partition(accessFromDB.hasAccess)
-        UserRestriction(
-          allowed = allowed.map(accessFromDB.entryUserId),
-          forbidden = forbidden.map(accessFromDB.entryUserId)
+      accessors = Accessors.fromRepresentation(
+        Accessors.Representation(
+          isAllowList = accessFromDB.isAllowList(dbComponents.access),
+          userIds = accessFromDB.entryUserIds(dbComponents.access, dbComponents.accessEntries)
         )
-      })
+      )
     )
-  }
 
   def toDb[AccessK, DBAccessK, DBAccessEntry](projectId: ProjectId, readAccess: ProjectAccess[AccessK])(implicit
       accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry]
-  ): Option[DbComponents[DBAccessK, DBAccessEntry]] =
+  ): DbComponents[DBAccessK, DBAccessEntry] =
     DbComponents(
       projectId = projectId,
       projectAccess = readAccess
@@ -47,15 +45,13 @@ object ProjectAccess {
 
     def apply[AccessK, DBAccessK, DBAccessEntry](projectId: ProjectId, projectAccess: ProjectAccess[AccessK])(implicit
         accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry]
-    ): Option[DbComponents[DBAccessK, DBAccessEntry]] =
-      Accessors.toRepresentation(projectAccess.accessors).map { userRestriction =>
-        DbComponentsImpl(
-          accessToDB.mkAccess(projectId),
-          accessEntries =
-            userRestriction.allowed.map(accessToDB.mkAccessEntry(projectId, _, hasAccess = true)) ++
-              userRestriction.forbidden.map(accessToDB.mkAccessEntry(projectId, _, hasAccess = false))
-        )
-      }
+    ): DbComponents[DBAccessK, DBAccessEntry] = {
+      val userRestriction = Accessors.toRepresentation(projectAccess.accessors)
+      DbComponentsImpl(
+        accessToDB.mkAccess(projectId, userRestriction.isAllowList),
+        accessEntries = userRestriction.userIds.map(accessToDB.mkAccessEntry(projectId, _))
+      )
+    }
 
     def fromComponents[DBAccessK, DBAccessEntry](access: DBAccessK, accessEntries: Seq[DBAccessEntry])(implicit
         accessFromDB: AccessFromDB[_, DBAccessK, DBAccessEntry]
