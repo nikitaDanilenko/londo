@@ -10,7 +10,7 @@ sealed trait AccessFromDB[AccessK, DBAccessK, DBAccessEntry] {
   def accessId(dbAccess: DBAccessK): AccessId
   def entryAccessId(dbAccessEntry: DBAccessEntry): AccessId
   def entryUserId(dbAccessEntry: DBAccessEntry): UserId
-  def hasAccess(dbAccessEntry: DBAccessEntry): Boolean
+  def isAllowList(dbAccess: DBAccessK): Boolean
 
   def entryUserIds(dbAccess: DBAccessK, dbAccessEntries: Seq[DBAccessEntry]): Set[UserId] =
     onMatchingEntries(entryUserId)(dbAccess, dbAccessEntries).toSet
@@ -37,7 +37,7 @@ object AccessFromDB {
           ReadAccessId(dbAccessEntry.projectReadAccessId)
 
         override def entryUserId(dbAccessEntry: ProjectReadAccessEntry): UserId = keys.UserId(dbAccessEntry.userId)
-        override def hasAccess(dbAccessEntry: ProjectReadAccessEntry): Boolean = dbAccessEntry.hasAccess
+        override def isAllowList(dbAccess: ProjectReadAccess): Boolean = dbAccess.isAllowList
       }
 
     implicit val projectWriteAccessFromDB: AccessFromDB[AccessKind.Write, ProjectWriteAccess, ProjectWriteAccessEntry] =
@@ -51,7 +51,7 @@ object AccessFromDB {
           WriteAccessId(dbAccessEntry.projectWriteAccessId)
 
         override def entryUserId(dbAccessEntry: ProjectWriteAccessEntry): UserId = keys.UserId(dbAccessEntry.userId)
-        override def hasAccess(dbAccessEntry: ProjectWriteAccessEntry): Boolean = dbAccessEntry.hasAccess
+        override def isAllowList(dbAccess: ProjectWriteAccess): Boolean = dbAccess.isAllowList
       }
 
   }
