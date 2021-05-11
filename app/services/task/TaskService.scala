@@ -1,5 +1,6 @@
 package services.task
 
+import cats.data.{ EitherT, Validated }
 import cats.effect.{ Async, ContextShift }
 import db.Transactionally
 import db.generated.daos.TaskDAO
@@ -7,6 +8,7 @@ import db.keys.ProjectId
 import doobie.ConnectionIO
 import errors.ServerError
 import services.project.TaskUpdate
+import spire.math.Natural
 
 import javax.inject.Inject
 
@@ -52,10 +54,20 @@ class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally)
   def updateTask[F[_]: Async: ContextShift](
       taskKey: TaskKey,
       taskUpdate: TaskUpdate
-  ): ConnectionIO[ServerError.Valid[Task]] =
+  ): F[ServerError.Valid[Task]] =
     transactionally(updateTaskC(taskKey, taskUpdate))
 
-  def updateTaskC(taskKey: TaskKey, taskUpdate: TaskUpdate): ConnectionIO[ServerError.Valid[Task]] =
-    fetchC(taskKey).map(_.map(TaskUpdate.applyToTask(_, taskUpdate)))
+  def updateTaskC(taskKey: TaskKey, taskUpdate: TaskUpdate): ConnectionIO[ServerError.Valid[Task]] = {
+    val transformer = for {
+      task <- EitherT(fetchC(taskKey).map(_.toEither))
+      updatedTask = TaskUpdate.applyToTask(task, taskUpdate)
+      updatedTaskRow <- EitherT.liftF(taskDAO.replaceC(Task.toRow(taskKey.projectId, updatedTask)))
+      writtenUpdatedTask <- EitherT.fromEither[ConnectionIO](Task.fromRow(updatedTaskRow).toEither)
+    } yield writtenUpdatedTask
+
+    transformer.value.map(Validated.fromEither)
+  }
+
+  def updateTaskProgressC(taskKey: TaskKey, reachedValue: Natural): ConnectionIO[ServerError.Valid[Task]] = ???
 
 }
