@@ -40,7 +40,8 @@ libraryDependencies ++= Seq(
   "org.typelevel"              %% "spire"                % "0.17.0",
   "com.beachape"               %% "enumeratum-circe"     % "1.6.1",
   "com.github.julien-truffaut" %% "monocle-core"         % "3.0.0-M5",
-  "com.github.julien-truffaut" %% "monocle-macro"        % "3.0.0-M5"
+  "com.github.julien-truffaut" %% "monocle-macro"        % "3.0.0-M5",
+  "io.circe"                   %% "circe-generic-extras" % circeVersion
 )
 
 scalacOptions ++= Seq(
