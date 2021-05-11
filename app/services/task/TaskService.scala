@@ -6,6 +6,7 @@ import db.generated.daos.TaskDAO
 import db.keys.ProjectId
 import doobie.ConnectionIO
 import errors.ServerError
+import services.project.TaskUpdate
 
 import javax.inject.Inject
 
@@ -48,6 +49,13 @@ class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally)
       _ <- taskDAO.deleteC(TaskKey.toTaskId(taskKey))
     } yield task
 
-  def updateTask = ???
+  def updateTask[F[_]: Async: ContextShift](
+      taskKey: TaskKey,
+      taskUpdate: TaskUpdate
+  ): ConnectionIO[ServerError.Valid[Task]] =
+    transactionally(updateTaskC(taskKey, taskUpdate))
+
+  def updateTaskC(taskKey: TaskKey, taskUpdate: TaskUpdate): ConnectionIO[ServerError.Valid[Task]] =
+    fetchC(taskKey).map(_.map(TaskUpdate.applyToTask(_, taskUpdate)))
 
 }
