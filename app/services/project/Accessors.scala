@@ -47,25 +47,25 @@ object Accessors {
       case _        => true
     }
 
-  def allowUser(accessors: Accessors, userId: UserId): Accessors =
+  def allowUsers(accessors: Accessors, userIds: NonEmptySet[UserId]): Accessors =
     accessors match {
       case Everyone => Everyone
-      case Nobody   => NobodyExcept(NonEmptySet.one(userId))
+      case Nobody   => NobodyExcept(userIds)
       case EveryoneExcept(excluded) =>
         NonEmptySet
-          .fromSet(excluded - userId)
+          .fromSet(excluded -- userIds)
           .fold(Everyone: Accessors)(EveryoneExcept.apply)
-      case NobodyExcept(included) => NobodyExcept(included.add(userId))
+      case NobodyExcept(included) => NobodyExcept(included ++ userIds)
     }
 
-  def blockUser(accessors: Accessors, userId: UserId): Accessors =
+  def blockUsers(accessors: Accessors, userIds: NonEmptySet[UserId]): Accessors =
     accessors match {
-      case Everyone                 => EveryoneExcept(NonEmptySet.one(userId))
+      case Everyone                 => EveryoneExcept(userIds)
       case Nobody                   => Nobody
-      case EveryoneExcept(excluded) => EveryoneExcept(excluded.add(userId))
+      case EveryoneExcept(excluded) => EveryoneExcept(excluded ++ userIds)
       case NobodyExcept(included) =>
         NonEmptySet
-          .fromSet(included - userId)
+          .fromSet(included -- userIds)
           .fold(Nobody: Accessors)(NobodyExcept.apply)
     }
 
