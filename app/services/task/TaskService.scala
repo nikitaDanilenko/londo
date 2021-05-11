@@ -1,14 +1,13 @@
 package services.task
 
-import cats.data.{ EitherT, Validated }
+import cats.data.{ EitherT, NonEmptyList, Validated }
 import cats.effect.{ Async, ContextShift }
 import db.Transactionally
 import db.generated.daos.TaskDAO
 import db.keys.ProjectId
 import doobie.ConnectionIO
 import errors.ServerError
-import services.project.TaskUpdate
-import spire.math.Natural
+import services.project.{ ProgressUpdate, TaskUpdate }
 
 import javax.inject.Inject
 
@@ -60,14 +59,33 @@ class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally)
   def updateTaskC(taskKey: TaskKey, taskUpdate: TaskUpdate): ConnectionIO[ServerError.Valid[Task]] = {
     val transformer = for {
       task <- EitherT(fetchC(taskKey).map(_.toEither))
-      updatedTask = TaskUpdate.applyToTask(task, taskUpdate)
-      updatedTaskRow <- EitherT.liftF(taskDAO.replaceC(Task.toRow(taskKey.projectId, updatedTask)))
-      writtenUpdatedTask <- EitherT.fromEither[ConnectionIO](Task.fromRow(updatedTaskRow).toEither)
-    } yield writtenUpdatedTask
+      updatedTask <- replaceTaskT(taskKey.projectId, TaskUpdate.applyToTask(task, taskUpdate))
+    } yield updatedTask
 
     transformer.value.map(Validated.fromEither)
   }
 
-  def updateTaskProgressC(taskKey: TaskKey, reachedValue: Natural): ConnectionIO[ServerError.Valid[Task]] = ???
+  def updateTaskProgress[F[_]: Async: ContextShift](
+      taskKey: TaskKey,
+      progressUpdate: ProgressUpdate
+  ): F[ServerError.Valid[Task]] =
+    transactionally(updateTaskProgressC(taskKey, progressUpdate))
+
+  def updateTaskProgressC(taskKey: TaskKey, progressUpdate: ProgressUpdate): ConnectionIO[ServerError.Valid[Task]] = {
+    val transformer = for {
+      task <- EitherT(fetchC(taskKey).map(_.toEither))
+      updatedTask <- replaceTaskT(taskKey.projectId, ProgressUpdate.applyToTask(task, progressUpdate))
+    } yield updatedTask
+
+    transformer.value.map(Validated.fromEither)
+  }
+
+  private def replaceTaskT(projectId: ProjectId, task: Task): EitherT[ConnectionIO, NonEmptyList[ServerError], Task] = {
+    val taskRow = Task.toRow(projectId, task)
+    for {
+      writtenRow <- EitherT.liftF(taskDAO.replaceC(taskRow))
+      writtenTask <- EitherT.fromEither[ConnectionIO](Task.fromRow(writtenRow).toEither)
+    } yield writtenTask
+  }
 
 }
