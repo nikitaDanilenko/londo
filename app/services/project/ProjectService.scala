@@ -1,16 +1,17 @@
 package services.project
 
-import cats.data.{ EitherT, NonEmptyList, Validated }
+import cats.data.{ EitherT, NonEmptyList, NonEmptySet, Validated }
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import db.generated.daos._
-import db.keys.ProjectId
+import db.keys.{ ProjectId, UserId }
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.ServerError
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
 import services.task.Task
+import monocle.syntax.all._
 
 import javax.inject.Inject
 
@@ -154,6 +155,53 @@ class ProjectService @Inject() (
         error => ServerError.fromEither[Project](Left(error)),
         identity
       )
+  }
+
+  def allowReadUsersC(
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Read]]] =
+    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccess)
+
+  def allowWriteUsersC(
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Write]]] =
+    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccess)
+
+  def blockReadUsersC(
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Read]]] =
+    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccess)
+
+  def blockWriteUsersC(
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Write]]] =
+    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccess)
+
+  private def modifyUsersWithRights[AK](
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId],
+      accessors: Project => ProjectAccess[AK],
+      modifier: (Accessors, NonEmptySet[UserId]) => Accessors,
+      setAccess: (ProjectId, ProjectAccess[AK]) => ConnectionIO[ProjectAccess[AK]]
+  ): ConnectionIO[ServerError.Valid[ProjectAccess[AK]]] = {
+    val transformer =
+      for {
+        project <- fetchT(projectId)
+        updatedAccess <- ServerError.liftC(
+          setAccess(
+            projectId,
+            accessors(project)
+              .focus(_.accessors)
+              .modify(modifier(_, userIds))
+          )
+        )
+      } yield updatedAccess
+
+    transformer.value.map(Validated.fromEither)
   }
 
   private def fetchT(projectId: ProjectId): EitherT[ConnectionIO, NonEmptyList[ServerError], Project] =
