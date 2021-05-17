@@ -1,8 +1,14 @@
 package graphql
 
+import services.project.ProjectService
 import services.user.UserService
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class GraphQLServices @Inject() (val userService: UserService)(implicit val executionContext: ExecutionContext)
+case class GraphQLServices @Inject() (
+    userService: UserService,
+    projectService: ProjectService
+)(implicit
+    val executionContext: ExecutionContext
+)
