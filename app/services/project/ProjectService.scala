@@ -8,10 +8,9 @@ import db.keys.{ ProjectId, UserId }
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.ServerError
+import monocle.syntax.all._
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
-import services.task.Task
-import monocle.syntax.all._
 
 import javax.inject.Inject
 
@@ -21,7 +20,8 @@ class ProjectService @Inject() (
     projectReadAccessEntryDAO: ProjectReadAccessEntryDAO,
     projectWriteAccessDAO: ProjectWriteAccessDAO,
     projectWriteAccessEntryDAO: ProjectWriteAccessEntryDAO,
-    taskDAO: TaskDAO,
+    plainTaskDAO: PlainTaskDAO,
+    projectReferenceTaskDAO: ProjectReferenceTaskDAO,
     transactionally: Transactionally
 ) {
 
@@ -32,14 +32,18 @@ class ProjectService @Inject() (
         project <- projectDAO.insertC(Project.toRow(createdProject).project)
         readAccessors <- setReadAccess(createdProject.id, createdProject.readAccessors)
         writeAccessors <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
-      } yield Project.fromRow(
-        Project.DbComponents.fromComponents(
-          project = project,
-          tasks = createdProject.tasks.map(Task.toRow(createdProject.id, _)),
-          readAccessors = readAccessors,
-          writeAccessors = writeAccessors
+      } yield {
+        val createdProjectComponents = Project.toRow(createdProject)
+        Project.fromRow(
+          Project.DbComponents.fromComponents(
+            project = project,
+            plainTasks = createdProjectComponents.plainTasks,
+            projectReferenceTasks = createdProjectComponents.projectReferenceTasks,
+            readAccessors = readAccessors,
+            writeAccessors = writeAccessors
+          )
         )
-      )
+      }
     }
 
   def setReadAccess(
@@ -125,7 +129,8 @@ class ProjectService @Inject() (
 
     val action = for {
       projectRow <- EitherT.fromOptionF(projectDAO.findC(projectId), ServerError.Project.NotFound)
-      tasks <- liftF(taskDAO.findByProjectIdC(projectId.uuid))
+      plainTasks <- liftF(plainTaskDAO.findByProjectIdC(projectId.uuid))
+      projectReferenceTasks <- liftF(projectReferenceTaskDAO.findByProjectIdC(projectId.uuid))
       readAccess <- liftF(projectReadAccessDAO.findC(projectReadAccessId))
       readAccessEntries <- liftF(projectReadAccessEntryDAO.findByProjectReadAccessIdC(projectReadAccessId.uuid))
       writeAccess <- liftF(projectWriteAccessDAO.findC(projectWriteAccessId))
@@ -134,7 +139,8 @@ class ProjectService @Inject() (
       Project.fromRow(
         Project.DbComponents.fromComponents(
           project = projectRow,
-          tasks = tasks,
+          plainTasks = plainTasks,
+          projectReferenceTasks = projectReferenceTasks,
           readAccessors = ProjectAccess.fromDb(
             ProjectAccess.DbComponents.fromComponents(
               readAccess.getOrElse(db.models.ProjectReadAccess(projectId.uuid, isAllowList = false)),
