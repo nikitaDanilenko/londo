@@ -1,6 +1,5 @@
 package services.task
 
-import cats.syntax.contravariantSemigroupal._
 import db.keys
 import db.keys.ProjectId
 import errors.ServerError
@@ -30,79 +29,55 @@ object Task {
       override val weight: Natural
   ) extends Task
 
-  def fromRow(taskRow: db.models.Task): ServerError.Valid[Task] = {
-    val nonNegativeWeight =
-      ServerError.fromCondition(
-        taskRow.weight >= 0,
-        ServerError.Task.NegativeWeight,
-        Natural(taskRow.weight)
-      )
-    val plain = (
-      ServerError.fromEmpty(taskRow.projectReferenceId, ServerError.Task.Plain.NonEmptyProjectReference),
-      ServerError.fromEither(taskRow.name.toRight(ServerError.Task.Plain.EmptyName)),
-      ServerError.fromEither(taskRow.kindId.map(TaskKind.fromId).toRight(ServerError.Task.Plain.EmptyKind)),
-      ServerError.fromEither(taskRow.reachable.toRight(ServerError.Task.Plain.EmptyReachable)),
-      ServerError.fromEither(taskRow.reached.toRight(ServerError.Task.Plain.EmptyReached)),
-      nonNegativeWeight
-    ).mapN { (_, name, taskKind, reachable, reached, weight) =>
-      Plain(
-        id = task.TaskId(uuid = taskRow.id),
-        name = name,
-        taskKind = taskKind,
-        unit = taskRow.unit,
-        progress = Progress.fraction(asNatural(reachable), asNatural(reached)),
-        weight = weight
-      )
-    }
+  def fromPlainTaskRow(taskRow: db.models.PlainTask): ServerError.Valid[Plain] =
+    nonNegativeWeight(taskRow.weight)
+      .map { weight =>
+        Plain(
+          id = task.TaskId(uuid = taskRow.id),
+          name = taskRow.name,
+          taskKind = TaskKind.fromId(taskRow.kindId),
+          unit = taskRow.unit,
+          progress = Progress.fraction(asNatural(taskRow.reachable), asNatural(taskRow.reached)),
+          weight = weight
+        )
+      }
 
-    val projectReference = (
-      ServerError.fromEither(
-        taskRow.projectReferenceId.toRight(ServerError.Task.ProjectReference.EmptyProjectReference)
-      ),
-      ServerError.fromEmpty(taskRow.name, ServerError.Task.ProjectReference.NonEmptyName),
-      ServerError.fromEmpty(taskRow.kindId, ServerError.Task.ProjectReference.NonEmptyKind),
-      ServerError.fromEmpty(taskRow.reachable, ServerError.Task.ProjectReference.NonEmptyReachable),
-      ServerError.fromEmpty(taskRow.reached, ServerError.Task.ProjectReference.NonEmptyReached),
-      ServerError.fromEmpty(taskRow.unit, ServerError.Task.ProjectReference.NonEmptyUnit),
-      nonNegativeWeight
-    ).mapN { (projectReferenceId, _, _, _, _, _, weight) =>
+  def fromProjectReferenceRow(taskRow: db.models.ProjectReferenceTask): ServerError.Valid[ProjectReference] =
+    nonNegativeWeight(taskRow.weight).map { weight =>
       ProjectReference(
         id = task.TaskId(
           uuid = taskRow.id
         ),
-        keys.ProjectId(projectReferenceId),
+        keys.ProjectId(
+          uuid = taskRow.projectReferenceId
+        ),
         weight = weight
       )
     }
 
-    plain.findValid(projectReference)
-  }
-
-  def toRow(projectId: ProjectId, task: Task): db.models.Task =
+  def toRow(projectId: ProjectId, task: Task): Either[db.models.PlainTask, db.models.ProjectReferenceTask] =
     task match {
       case Plain(id, name, taskKind, unit, progress, weight) =>
-        db.models.Task(
-          id = id.uuid,
-          projectId = projectId.uuid,
-          projectReferenceId = None,
-          name = Some(name),
-          unit = unit,
-          kindId = Some(TaskKind.toRow(taskKind).id),
-          reached = Some(asBigDecimal(progress.reached)),
-          reachable = Some(asBigDecimal(progress.reachable)),
-          weight = weight.intValue
+        Left(
+          db.models.PlainTask(
+            id = id.uuid,
+            projectId = projectId.uuid,
+            name = name,
+            unit = unit,
+            kindId = TaskKind.toRow(taskKind).id,
+            reached = asBigDecimal(progress.reached),
+            reachable = asBigDecimal(progress.reachable),
+            weight = weight.intValue
+          )
         )
       case ProjectReference(id, projectReference, weight) =>
-        db.models.Task(
-          id = id.uuid,
-          projectId = projectId.uuid,
-          projectReferenceId = Some(projectReference.uuid),
-          name = None,
-          unit = None,
-          kindId = None,
-          reached = None,
-          reachable = None,
-          weight = weight.intValue
+        Right(
+          db.models.ProjectReferenceTask(
+            id = id.uuid,
+            projectId = projectId.uuid,
+            projectReferenceId = projectReference.uuid,
+            weight = weight.intValue
+          )
         )
     }
 
@@ -111,5 +86,12 @@ object Task {
 
   private def asBigDecimal(natural: Natural): BigDecimal =
     BigDecimal(natural.toBigInt)
+
+  private def nonNegativeWeight(weight: Int): ServerError.Valid[Natural] =
+    ServerError.fromCondition(
+      weight >= 0,
+      ServerError.Task.NegativeWeight,
+      Natural(weight)
+    )
 
 }

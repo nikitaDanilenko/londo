@@ -1,9 +1,10 @@
 package services.task
 
+import cats.Applicative
 import cats.data.{ EitherT, NonEmptyList, Validated }
 import cats.effect.{ Async, ContextShift }
 import db.Transactionally
-import db.generated.daos.TaskDAO
+import db.generated.daos.{ PlainTaskDAO, ProjectReferenceTaskDAO }
 import db.keys.ProjectId
 import doobie.ConnectionIO
 import errors.ServerError
@@ -11,7 +12,11 @@ import services.project.{ ProgressUpdate, TaskUpdate }
 
 import javax.inject.Inject
 
-class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally) {
+class TaskService @Inject() (
+    plainTaskDAO: PlainTaskDAO,
+    projectReferenceTaskDAO: ProjectReferenceTaskDAO,
+    transactionally: Transactionally
+) {
 
   def createTask[F[_]: Async: ContextShift](
       projectId: ProjectId,
@@ -25,21 +30,37 @@ class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally)
   ): ConnectionIO[ServerError.Valid[Task]] =
     for {
       createdTask <- Async[ConnectionIO].liftIO(TaskCreation.create(taskCreation))
-      taskRow = Task.toRow(projectId, createdTask)
-      writtenTask <- taskDAO.insertC(taskRow)
-    } yield Task.fromRow(writtenTask)
+      writtenTask <- Task.toRow(projectId, createdTask) match {
+        case Left(plainTaskRow) =>
+          plainTaskDAO
+            .insertC(plainTaskRow)
+            .map(Task.fromPlainTaskRow)
+        case Right(projectReferenceRow) =>
+          projectReferenceTaskDAO
+            .insertC(projectReferenceRow)
+            .map(Task.fromProjectReferenceRow)
+      }
+    } yield writtenTask
 
   def fetch[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task]] =
     transactionally(fetchC(taskKey))
 
-  def fetchC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task]] =
-    taskDAO
-      .findC(TaskKey.toTaskId(taskKey))
-      .map(
-        ServerError
-          .fromOption(_, ServerError.Task.NotFound)
-          .andThen(Task.fromRow)
-      )
+  def fetchC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task]] = {
+    val taskId = TaskKey.toTaskId(taskKey)
+    plainTaskDAO
+      .findC(taskId)
+      .flatMap {
+        case Some(plainTask) => Applicative[ConnectionIO].pure(Task.fromPlainTaskRow(plainTask))
+        case None =>
+          projectReferenceTaskDAO
+            .findC(taskId)
+            .map(
+              ServerError
+                .fromOption(_, ServerError.Task.NotFound)
+                .andThen(Task.fromProjectReferenceRow)
+            )
+      }
+  }
 
   def removeTask[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task]] =
     transactionally(removeTaskC(taskKey))
@@ -47,7 +68,7 @@ class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally)
   def removeTaskC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task]] =
     for {
       task <- fetchC(taskKey)
-      _ <- taskDAO.deleteC(TaskKey.toTaskId(taskKey))
+      _ <- plainTaskDAO.deleteC(TaskKey.toTaskId(taskKey))
     } yield task
 
   def updateTask[F[_]: Async: ContextShift](
@@ -81,11 +102,21 @@ class TaskService @Inject() (taskDAO: TaskDAO, transactionally: Transactionally)
   }
 
   private def replaceTaskT(projectId: ProjectId, task: Task): EitherT[ConnectionIO, NonEmptyList[ServerError], Task] = {
-    val taskRow = Task.toRow(projectId, task)
-    for {
-      writtenRow <- EitherT.liftF(taskDAO.replaceC(taskRow))
-      writtenTask <- EitherT.fromEither[ConnectionIO](Task.fromRow(writtenRow).toEither)
-    } yield writtenTask
+    def writeAction[Row](
+        row: Row,
+        replaceFunction: Row => ConnectionIO[Row],
+        conversionFunction: Row => ServerError.Valid[Task]
+    ): EitherT[ConnectionIO, NonEmptyList[ServerError], Task] =
+      for {
+        writtenRow <- EitherT.liftF(replaceFunction(row))
+        writtenTask <- EitherT.fromEither[ConnectionIO](conversionFunction(writtenRow).toEither)
+      } yield writtenTask
+    Task
+      .toRow(projectId, task)
+      .fold(
+        writeAction(_, plainTaskDAO.replaceC, Task.fromPlainTaskRow),
+        writeAction(_, projectReferenceTaskDAO.replaceC, Task.fromProjectReferenceRow)
+      )
   }
 
 }
