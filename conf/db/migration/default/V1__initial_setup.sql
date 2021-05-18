@@ -157,30 +157,36 @@ insert into task_kind values
     ('7c1917d4-2743-4419-856e-c7a3b6ef540e', 'Percentual'),
     ('1cb2c09f-cdbd-4318-9dad-fcee1b16c0d4', 'Fractional');
 
-create table task(
+create table plain_task(
     id uuid not null,
     project_id uuid not null,
-    project_reference_id uuid,
-    name text,
+    name text not null,
     unit text,
-    kind_id uuid,
-    reached numeric,
-    reachable numeric,
+    kind_id uuid not null,
+    reached numeric not null,
+    reachable numeric not null,
     weight int not null
 );
 
-alter table task
-    add constraint task_pk primary key (id, project_id),
-    add constraint task_project_id foreign key (project_id) references project(id) on delete cascade,
-    add constraint task_project_reference_id foreign key (project_id) references project(id) on delete cascade,
-    add constraint task_kind_id_fk foreign key (kind_id) references task_kind(id) on delete cascade,
+alter table plain_task
+    add constraint plain_task_pk primary key (id, project_id),
+    add constraint plain_task_project_id foreign key (project_id) references project(id) on delete cascade,
+    add constraint plain_task_kind_id_fk foreign key (kind_id) references task_kind(id) on delete cascade,
     add constraint reached_non_negative check (reached is null or reached >= 0),
     add constraint reachable_larger_than_reached check (reachable is null or reachable >= reached),
-    add constraint weight_non_negative check (weight >= 0),
-    add constraint task_is_reference_xor_plain check (
-        (project_reference_id is null and name is not null and kind_id is not null and reached is not null and reachable is not null) or
-        (project_reference_id is not null and name is null and unit is null and kind_id is null and reached is null and reachable is null)
-    );
+    add constraint weight_non_negative check (weight >= 0);
+
+create table project_reference_task(
+    id uuid not null,
+    project_id uuid not null,
+    project_reference_id uuid not null,
+    weight int not null
+);
+
+alter table project_reference_task
+    add constraint project_reference_task_pk primary key (id, project_id),
+    add constraint project_reference_task_project_reference_id foreign key (project_id) references project(id) on delete cascade,
+    add constraint weight_non_negative check (weight >= 0);;
 
 create table session_key(
     user_id uuid not null,
