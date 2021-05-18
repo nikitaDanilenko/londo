@@ -1,5 +1,6 @@
 package services.project
 
+import cats.data.NonEmptyList
 import db.keys.ProjectId
 
 case class ProjectAccess[AK](accessors: Accessors)
@@ -18,7 +19,8 @@ object ProjectAccess {
       accessors = Accessors.fromRepresentation(
         Accessors.Representation(
           isAllowList = accessFromDB.isAllowList(dbComponents.access),
-          userIds = accessFromDB.entryUserIds(dbComponents.access, dbComponents.accessEntries)
+          userIds =
+            NonEmptyList.fromList(accessFromDB.entryUserIds(dbComponents.access, dbComponents.accessEntries).toList)
         )
       )
     )
@@ -49,7 +51,8 @@ object ProjectAccess {
       val userRestriction = Accessors.toRepresentation(projectAccess.accessors)
       DbComponentsImpl(
         accessToDB.mkAccess(projectId, userRestriction.isAllowList),
-        accessEntries = userRestriction.userIds.map(accessToDB.mkAccessEntry(projectId, _))
+        accessEntries =
+          userRestriction.userIds.fold(Seq.empty[DBAccessEntry])(_.toList.map(accessToDB.mkAccessEntry(projectId, _)))
       )
     }
 

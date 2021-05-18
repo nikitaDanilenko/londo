@@ -1,12 +1,8 @@
 package services.project
 
-import cats.data.NonEmptySet
+import cats.data.{ NonEmptyList, NonEmptySet }
 import db.keys.UserId
 import io.circe.generic.JsonCodec
-import io.circe.{ Decoder, Encoder }
-
-import scala.collection.immutable.SortedSet
-import spire.compat._
 
 sealed trait Accessors
 
@@ -20,25 +16,21 @@ object Accessors {
 
   case class NobodyExcept(included: NonEmptySet[UserId]) extends Accessors
 
-  implicit val accessorsEncoder: Encoder[Accessors] = Encoder[Representation].contramap(toRepresentation)
+  def fromRepresentation(representation: Representation): Accessors = {
+    val userIdSet = representation.userIds.map(nel => NonEmptySet.of(nel.head, nel.tail: _*))
 
-  implicit val accessorsDecoder: Decoder[Accessors] = Decoder[Representation].map(fromRepresentation)
-
-  def fromRepresentation(toRepresentation: Representation): Accessors = {
-    val userIdsNonEmptySet = NonEmptySet.fromSet(SortedSet.from(toRepresentation.userIds))
-
-    if (toRepresentation.isAllowList)
-      userIdsNonEmptySet.fold(Everyone: Accessors)(NobodyExcept.apply)
+    if (representation.isAllowList)
+      userIdSet.fold(Everyone: Accessors)(NobodyExcept.apply)
     else
-      userIdsNonEmptySet.fold(Nobody: Accessors)(EveryoneExcept.apply)
+      userIdSet.fold(Nobody: Accessors)(EveryoneExcept.apply)
   }
 
   def toRepresentation(accessors: Accessors): Representation =
     accessors match {
       case Everyone                 => Representation.everyone
       case Nobody                   => Representation.nobody
-      case EveryoneExcept(excluded) => Representation.everyoneExcept(excluded.toNonEmptyList.toList)
-      case NobodyExcept(included)   => Representation.nobodyExcept(included.toNonEmptyList.toList)
+      case EveryoneExcept(excluded) => Representation.everyoneExcept(excluded.toNonEmptyList)
+      case NobodyExcept(included)   => Representation.nobodyExcept(included.toNonEmptyList)
     }
 
   def isRestricted(accessors: Accessors): Boolean =
@@ -72,32 +64,32 @@ object Accessors {
   @JsonCodec
   case class Representation(
       isAllowList: Boolean,
-      //An empty sequence is taken to mean "everyone".
-      userIds: Seq[UserId]
+      //An empty option is taken to mean "everyone".
+      userIds: Option[NonEmptyList[UserId]]
   )
 
   object Representation {
 
     val nobody: Representation = Representation(
       isAllowList = false,
-      userIds = Seq.empty
+      userIds = None
     )
 
     val everyone: Representation = Representation(
       isAllowList = true,
-      userIds = Seq.empty
+      userIds = None
     )
 
-    def everyoneExcept(excluded: Seq[UserId]): Representation =
+    def everyoneExcept(excluded: NonEmptyList[UserId]): Representation =
       Representation(
         isAllowList = false,
-        userIds = excluded
+        userIds = Some(excluded)
       )
 
-    def nobodyExcept(included: Seq[UserId]): Representation =
+    def nobodyExcept(included: NonEmptyList[UserId]): Representation =
       Representation(
         isAllowList = true,
-        userIds = included
+        userIds = Some(included)
       )
 
   }
