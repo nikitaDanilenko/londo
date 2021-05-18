@@ -192,7 +192,30 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters[Task](
+    daoGeneratorParameters[PlainTask](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        ),
+        keyCaseClass2 = KeyCaseClass2.fromNames("TaskId")("projectId", "uuid")("uuid")
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        )
+      )
+    ),
+    daoGeneratorParameters[ProjectReferenceTask](
       keyDescription = KeyDescription.column2(
         Column.uuid(
           name = "id",
