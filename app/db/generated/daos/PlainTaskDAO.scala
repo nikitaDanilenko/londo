@@ -10,43 +10,42 @@ import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class TaskDAO @Inject() (dbContext: DbContext, override protected val dbTransactorProvider: DbTransactorProvider)
-    extends DAOFunctions[Task, TaskDAO.Key] {
+class PlainTaskDAO @Inject() (dbContext: DbContext, override protected val dbTransactorProvider: DbTransactorProvider)
+    extends DAOFunctions[PlainTask, PlainTaskDAO.Key] {
   import dbContext._
-  override def findC(key: TaskDAO.Key): ConnectionIO[Option[Task]] = run(findAction(key)).map(_.headOption)
-  override def insertC(row: Task): ConnectionIO[Task] = run(insertAction(row))
-  override def insertAllC(rows: Seq[Task]): ConnectionIO[List[Task]] = run(insertAllAction(rows))
-  override def deleteC(key: TaskDAO.Key): ConnectionIO[Task] = run(deleteAction(key))
-  override def replaceC(row: Task): ConnectionIO[Task] = run(replaceAction(row))
+  override def findC(key: PlainTaskDAO.Key): ConnectionIO[Option[PlainTask]] = run(findAction(key)).map(_.headOption)
+  override def insertC(row: PlainTask): ConnectionIO[PlainTask] = run(insertAction(row))
+  override def insertAllC(rows: Seq[PlainTask]): ConnectionIO[List[PlainTask]] = run(insertAllAction(rows))
+  override def deleteC(key: PlainTaskDAO.Key): ConnectionIO[PlainTask] = run(deleteAction(key))
+  override def replaceC(row: PlainTask): ConnectionIO[PlainTask] = run(replaceAction(row))
 
-  private def findAction(key: TaskDAO.Key) =
+  private def findAction(key: PlainTaskDAO.Key) =
     quote {
-      PublicSchema.TaskDao.query.filter(a => a.id == lift(key.projectId.uuid) && a.projectId == lift(key.uuid))
+      PublicSchema.PlainTaskDao.query.filter(a => a.id == lift(key.projectId.uuid) && a.projectId == lift(key.uuid))
     }
 
-  private def insertAction(row: Task): Quoted[ActionReturning[Task, Task]] =
+  private def insertAction(row: PlainTask): Quoted[ActionReturning[PlainTask, PlainTask]] =
     quote {
-      PublicSchema.TaskDao.query.insert(lift(row)).returning(x => x)
+      PublicSchema.PlainTaskDao.query.insert(lift(row)).returning(x => x)
     }
 
-  private def insertAllAction(rows: Seq[Task]) =
+  private def insertAllAction(rows: Seq[PlainTask]) =
     quote {
-      liftQuery(rows).foreach(e => PublicSchema.TaskDao.query.insert(e).returning(x => x))
+      liftQuery(rows).foreach(e => PublicSchema.PlainTaskDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: TaskDAO.Key) =
+  private def deleteAction(key: PlainTaskDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
 
-  private def replaceAction(row: Task) = {
+  private def replaceAction(row: PlainTask) = {
     quote {
-      PublicSchema.TaskDao.query
+      PublicSchema.PlainTaskDao.query
         .insert(lift(row))
         .onConflictUpdate(_.id, _.projectId)(
           (t, e) => t.id -> e.id,
           (t, e) => t.projectId -> e.projectId,
-          (t, e) => t.projectReferenceId -> e.projectReferenceId,
           (t, e) => t.name -> e.name,
           (t, e) => t.unit -> e.unit,
           (t, e) => t.kindId -> e.kindId,
@@ -58,11 +57,11 @@ class TaskDAO @Inject() (dbContext: DbContext, override protected val dbTransact
     }
   }
 
-  def findById[F[_]: Async: ContextShift](key: UUID): F[List[Task]] = {
+  def findById[F[_]: Async: ContextShift](key: UUID): F[List[PlainTask]] = {
     findByIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def findByIdC(key: UUID): ConnectionIO[List[Task]] = {
+  def findByIdC(key: UUID): ConnectionIO[List[PlainTask]] = {
     run(findByIdAction(key))
   }
 
@@ -74,11 +73,11 @@ class TaskDAO @Inject() (dbContext: DbContext, override protected val dbTransact
     run(deleteByIdAction(key))
   }
 
-  def findByProjectId[F[_]: Async: ContextShift](key: UUID): F[List[Task]] = {
+  def findByProjectId[F[_]: Async: ContextShift](key: UUID): F[List[PlainTask]] = {
     findByProjectIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def findByProjectIdC(key: UUID): ConnectionIO[List[Task]] = {
+  def findByProjectIdC(key: UUID): ConnectionIO[List[PlainTask]] = {
     run(findByProjectIdAction(key))
   }
 
@@ -92,7 +91,7 @@ class TaskDAO @Inject() (dbContext: DbContext, override protected val dbTransact
 
   private def findByIdAction(key: UUID) = {
     quote {
-      PublicSchema.TaskDao.query.filter(a => a.id == lift(key))
+      PublicSchema.PlainTaskDao.query.filter(a => a.id == lift(key))
     }
   }
 
@@ -104,7 +103,7 @@ class TaskDAO @Inject() (dbContext: DbContext, override protected val dbTransact
 
   private def findByProjectIdAction(key: UUID) = {
     quote {
-      PublicSchema.TaskDao.query.filter(a => a.projectId == lift(key))
+      PublicSchema.PlainTaskDao.query.filter(a => a.projectId == lift(key))
     }
   }
 
@@ -116,4 +115,4 @@ class TaskDAO @Inject() (dbContext: DbContext, override protected val dbTransact
 
 }
 
-object TaskDAO { type Key = TaskId }
+object PlainTaskDAO { type Key = TaskId }

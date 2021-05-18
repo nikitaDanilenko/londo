@@ -91,6 +91,18 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
     }
 
+    object ProjectReferenceTaskDao {
+
+      def query =
+        quote {
+          querySchema[ProjectReferenceTask](
+            "public.project_reference_task"
+          )
+
+        }
+
+    }
+
     object DashboardWriteAccessDao {
 
       def query =
@@ -109,6 +121,18 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
         quote {
           querySchema[LoginAttempt](
             "public.login_attempt"
+          )
+
+        }
+
+    }
+
+    object PlainTaskDao {
+
+      def query =
+        quote {
+          querySchema[PlainTask](
+            "public.plain_task"
           )
 
         }
@@ -145,6 +169,18 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
         quote {
           querySchema[ProjectReadAccess](
             "public.project_read_access"
+          )
+
+        }
+
+    }
+
+    object DashboardProjectAssociationDao {
+
+      def query =
+        quote {
+          querySchema[DashboardProjectAssociation](
+            "public.dashboard_project_association"
           )
 
         }
@@ -205,30 +241,6 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
         quote {
           querySchema[Dashboard](
             "public.dashboard"
-          )
-
-        }
-
-    }
-
-    object TaskDao {
-
-      def query =
-        quote {
-          querySchema[Task](
-            "public.task"
-          )
-
-        }
-
-    }
-
-    object DashboardProjectAssociationDao {
-
-      def query =
-        quote {
-          querySchema[DashboardProjectAssociation](
-            "public.dashboard_project_association"
           )
 
         }
