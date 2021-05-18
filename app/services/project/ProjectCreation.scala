@@ -14,8 +14,8 @@ case class ProjectCreation(
     parentProject: Option[ProjectId],
     weight: Int,
     flatIfSingleTask: Boolean,
-    readAccessors: Accessors,
-    writeAccessors: Accessors
+    readAccessors: Accessors.Representation,
+    writeAccessors: Accessors.Representation
 )
 
 object ProjectCreation {
@@ -30,8 +30,8 @@ object ProjectCreation {
         ownerId = projectCreation.ownerId,
         flatIfSingleTask = projectCreation.flatIfSingleTask,
         parentProjectId = projectCreation.parentProject,
-        readAccessors = ProjectAccess[AccessKind.Read](projectCreation.readAccessors),
-        writeAccessors = ProjectAccess[AccessKind.Write](projectCreation.writeAccessors)
+        readAccessors = ProjectAccess[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),
+        writeAccessors = ProjectAccess[AccessKind.Write](Accessors.fromRepresentation(projectCreation.writeAccessors))
       )
     }
 
