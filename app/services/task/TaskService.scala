@@ -1,14 +1,13 @@
 package services.task
 
-import cats.Applicative
 import cats.data.{ EitherT, NonEmptyList, Validated }
-import cats.effect.{ Async, ContextShift }
+import cats.effect.{ Async, ContextShift, IO }
 import db.Transactionally
 import db.generated.daos.{ PlainTaskDAO, ProjectReferenceTaskDAO }
 import db.keys.ProjectId
 import doobie.ConnectionIO
 import errors.ServerError
-import services.project.{ ProgressUpdate, TaskUpdate }
+import services.project.ProgressUpdate
 
 import javax.inject.Inject
 
@@ -18,105 +17,206 @@ class TaskService @Inject() (
     transactionally: Transactionally
 ) {
 
-  def createTask[F[_]: Async: ContextShift](
+  def createPlainTask[F[_]: Async: ContextShift](
       projectId: ProjectId,
-      taskCreation: TaskCreation
-  ): F[ServerError.Valid[Task]] =
-    transactionally(createTaskC(projectId, taskCreation))
+      plainCreation: TaskCreation.Plain
+  ): F[ServerError.Valid[Task.Plain]] =
+    transactionally(createPlainTaskC(projectId, plainCreation))
 
-  def createTaskC(
+  def createPlainTaskC(
       projectId: ProjectId,
-      taskCreation: TaskCreation
-  ): ConnectionIO[ServerError.Valid[Task]] =
-    for {
-      createdTask <- Async[ConnectionIO].liftIO(TaskCreation.create(taskCreation))
-      writtenTask <- Task.toRow(projectId, createdTask) match {
-        case Left(plainTaskRow) =>
-          plainTaskDAO
-            .insertC(plainTaskRow)
-            .map(Task.fromPlainTaskRow)
-        case Right(projectReferenceRow) =>
-          projectReferenceTaskDAO
-            .insertC(projectReferenceRow)
-            .map(Task.fromProjectReferenceRow)
-      }
-    } yield writtenTask
+      plainCreation: TaskCreation.Plain
+  ): ConnectionIO[ServerError.Valid[Task.Plain]] =
+    createTaskC(
+      projectId = projectId,
+      creation = plainCreation,
+      toTask = TaskCreation.Plain.create,
+      fromRow = Task.Plain.fromRow,
+      toRow = Task.Plain.toRow,
+      insert = plainTaskDAO.insertC
+    )
 
-  def fetch[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task]] =
-    transactionally(fetchC(taskKey))
+  def createProjectReferenceTask[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      projectReferenceCreation: TaskCreation.ProjectReference
+  ): F[ServerError.Valid[Task.ProjectReference]] =
+    transactionally(createProjectReferenceTaskC(projectId, projectReferenceCreation))
 
-  def fetchC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task]] = {
-    val taskId = TaskKey.toTaskId(taskKey)
-    plainTaskDAO
-      .findC(taskId)
-      .flatMap {
-        case Some(plainTask) => Applicative[ConnectionIO].pure(Task.fromPlainTaskRow(plainTask))
-        case None =>
-          projectReferenceTaskDAO
-            .findC(taskId)
-            .map(
-              ServerError
-                .fromOption(_, ServerError.Task.NotFound)
-                .andThen(Task.fromProjectReferenceRow)
-            )
-      }
-  }
+  def createProjectReferenceTaskC(
+      projectId: ProjectId,
+      projectReferenceCreation: TaskCreation.ProjectReference
+  ): ConnectionIO[ServerError.Valid[Task.ProjectReference]] =
+    createTaskC(
+      projectId = projectId,
+      creation = projectReferenceCreation,
+      toTask = TaskCreation.ProjectReference.create,
+      fromRow = Task.ProjectReference.fromRow,
+      toRow = Task.ProjectReference.toRow,
+      insert = projectReferenceTaskDAO.insertC
+    )
 
-  def removeTask[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task]] =
-    transactionally(removeTaskC(taskKey))
+  def fetchPlain[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task.Plain]] =
+    transactionally(fetchPlainC(taskKey))
 
-  def removeTaskC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task]] =
-    for {
-      task <- fetchC(taskKey)
-      _ <- plainTaskDAO.deleteC(TaskKey.toTaskId(taskKey))
-    } yield task
+  def fetchPlainC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task.Plain]] =
+    fetchTaskC(taskKey, plainTaskDAO.findC, Task.Plain.fromRow)
 
-  def updateTask[F[_]: Async: ContextShift](
+  def fetchProjectReference[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task.ProjectReference]] =
+    transactionally(fetchProjectReferenceC(taskKey))
+
+  def fetchProjectReferenceC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task.ProjectReference]] =
+    fetchTaskC(taskKey, projectReferenceTaskDAO.findC, Task.ProjectReference.fromRow)
+
+  def removePlainTask[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Valid[Task.Plain]] =
+    transactionally(removePlainTaskC(taskKey))
+
+  def removePlainTaskC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task.Plain]] =
+    removeTaskC(taskKey, plainTaskDAO.deleteC, Task.Plain.fromRow)
+
+  def removeProjectReferenceTask[F[_]: Async: ContextShift](
+      taskKey: TaskKey
+  ): F[ServerError.Valid[Task.ProjectReference]] =
+    transactionally(removeProjectReferenceTaskC(taskKey))
+
+  def removeProjectReferenceTaskC(taskKey: TaskKey): ConnectionIO[ServerError.Valid[Task.ProjectReference]] =
+    removeTaskC(taskKey, projectReferenceTaskDAO.deleteC, Task.ProjectReference.fromRow)
+
+  def updatePlainTask[F[_]: Async: ContextShift](
       taskKey: TaskKey,
-      taskUpdate: TaskUpdate
-  ): F[ServerError.Valid[Task]] =
-    transactionally(updateTaskC(taskKey, taskUpdate))
+      plainUpdate: TaskUpdate.Plain
+  ): F[ServerError.Valid[Task.Plain]] =
+    transactionally(updatePlainTaskC(taskKey, plainUpdate))
 
-  def updateTaskC(taskKey: TaskKey, taskUpdate: TaskUpdate): ConnectionIO[ServerError.Valid[Task]] = {
-    val transformer = for {
-      task <- EitherT(fetchC(taskKey).map(_.toEither))
-      updatedTask <- replaceTaskT(taskKey.projectId, TaskUpdate.applyToTask(task, taskUpdate))
-    } yield updatedTask
+  def updatePlainTaskC(taskKey: TaskKey, plainUpdate: TaskUpdate.Plain): ConnectionIO[ServerError.Valid[Task.Plain]] =
+    updateTaskC(
+      taskKey = taskKey,
+      taskUpdate = plainUpdate,
+      fetchC = fetchPlainC,
+      applyUpdate = TaskUpdate.Plain.applyToTask,
+      replaceTask = replacePlainT
+    )
 
-    transformer.value.map(Validated.fromEither)
-  }
+  def updateProjectReferenceTask[F[_]: Async: ContextShift](
+      taskKey: TaskKey,
+      plainUpdate: TaskUpdate.ProjectReference
+  ): F[ServerError.Valid[Task.ProjectReference]] =
+    transactionally(updateProjectReferenceTaskC(taskKey, plainUpdate))
+
+  def updateProjectReferenceTaskC(
+      taskKey: TaskKey,
+      plainUpdate: TaskUpdate.ProjectReference
+  ): ConnectionIO[ServerError.Valid[Task.ProjectReference]] =
+    updateTaskC(
+      taskKey = taskKey,
+      taskUpdate = plainUpdate,
+      fetchC = fetchProjectReferenceC,
+      applyUpdate = TaskUpdate.ProjectReference.applyToTask,
+      replaceTask = replaceProjectReferenceT
+    )
 
   def updateTaskProgress[F[_]: Async: ContextShift](
       taskKey: TaskKey,
       progressUpdate: ProgressUpdate
-  ): F[ServerError.Valid[Task]] =
+  ): F[ServerError.Valid[Task.Plain]] =
     transactionally(updateTaskProgressC(taskKey, progressUpdate))
 
-  def updateTaskProgressC(taskKey: TaskKey, progressUpdate: ProgressUpdate): ConnectionIO[ServerError.Valid[Task]] = {
+  def updateTaskProgressC(
+      taskKey: TaskKey,
+      progressUpdate: ProgressUpdate
+  ): ConnectionIO[ServerError.Valid[Task.Plain]] = {
     val transformer = for {
-      task <- EitherT(fetchC(taskKey).map(_.toEither))
-      updatedTask <- replaceTaskT(taskKey.projectId, ProgressUpdate.applyToTask(task, progressUpdate))
+      task <- EitherT(fetchTaskC(taskKey, plainTaskDAO.findC, Task.Plain.fromRow).map(_.toEither))
+      updatedTask <- replacePlainT(
+        projectId = taskKey.projectId,
+        plainTask = ProgressUpdate.applyToTask(task, progressUpdate)
+      )
     } yield updatedTask
 
     transformer.value.map(Validated.fromEither)
   }
 
-  private def replaceTaskT(projectId: ProjectId, task: Task): EitherT[ConnectionIO, NonEmptyList[ServerError], Task] = {
-    def writeAction[Row](
-        row: Row,
-        replaceFunction: Row => ConnectionIO[Row],
-        conversionFunction: Row => ServerError.Valid[Task]
-    ): EitherT[ConnectionIO, NonEmptyList[ServerError], Task] =
-      for {
-        writtenRow <- EitherT.liftF(replaceFunction(row))
-        writtenTask <- EitherT.fromEither[ConnectionIO](conversionFunction(writtenRow).toEither)
-      } yield writtenTask
-    Task
-      .toRow(projectId, task)
-      .fold(
-        writeAction(_, plainTaskDAO.replaceC, Task.fromPlainTaskRow),
-        writeAction(_, projectReferenceTaskDAO.replaceC, Task.fromProjectReferenceRow)
+  private def replacePlainT(
+      projectId: ProjectId,
+      plainTask: Task.Plain
+  ): EitherT[ConnectionIO, NonEmptyList[ServerError], Task.Plain] =
+    replaceTaskT(
+      projectId = projectId,
+      task = plainTask,
+      replace = plainTaskDAO.replaceC,
+      fromRow = Task.Plain.fromRow,
+      toRow = Task.Plain.toRow
+    )
+
+  private def replaceProjectReferenceT(
+      projectId: ProjectId,
+      projectReferenceTask: Task.ProjectReference
+  ): EitherT[ConnectionIO, NonEmptyList[ServerError], Task.ProjectReference] =
+    replaceTaskT(
+      projectId = projectId,
+      task = projectReferenceTask,
+      replace = projectReferenceTaskDAO.replaceC,
+      fromRow = Task.ProjectReference.fromRow,
+      toRow = Task.ProjectReference.toRow
+    )
+
+  private def replaceTaskT[Task, Row](
+      projectId: ProjectId,
+      task: Task,
+      replace: Row => ConnectionIO[Row],
+      fromRow: Row => ServerError.Valid[Task],
+      toRow: (ProjectId, Task) => Row
+  ): EitherT[ConnectionIO, NonEmptyList[ServerError], Task] =
+    for {
+      writtenRow <- EitherT.liftF(replace(toRow(projectId, task)))
+      writtenTask <- EitherT.fromEither[ConnectionIO](fromRow(writtenRow).toEither)
+    } yield writtenTask
+
+  private def createTaskC[Creation, Task, Row](
+      projectId: ProjectId,
+      creation: Creation,
+      toTask: Creation => IO[Task],
+      fromRow: Row => ServerError.Valid[Task],
+      toRow: (ProjectId, Task) => Row,
+      insert: Row => ConnectionIO[Row]
+  ): ConnectionIO[ServerError.Valid[Task]] =
+    for {
+      createdTask <- Async[ConnectionIO].liftIO(toTask(creation))
+      writtenTask <- insert(toRow(projectId, createdTask))
+    } yield fromRow(writtenTask)
+
+  private def fetchTaskC[Task, Row](
+      taskKey: TaskKey,
+      find: db.keys.TaskId => ConnectionIO[Option[Row]],
+      fromRow: Row => ServerError.Valid[Task]
+  ): ConnectionIO[ServerError.Valid[Task]] =
+    find(TaskKey.toTaskId(taskKey))
+      .map(
+        ServerError
+          .fromOption(_, ServerError.Task.NotFound)
+          .andThen(fromRow)
       )
+
+  private def updateTaskC[Task, Update, Row](
+      taskKey: TaskKey,
+      taskUpdate: Update,
+      fetchC: TaskKey => ConnectionIO[ServerError.Valid[Task]],
+      applyUpdate: (Task, Update) => Task,
+      replaceTask: (ProjectId, Task) => EitherT[ConnectionIO, NonEmptyList[ServerError], Task]
+  ): ConnectionIO[ServerError.Valid[Task]] = {
+    val transformer = for {
+      task <- EitherT(fetchC(taskKey).map(_.toEither))
+      updatedTask <- replaceTask(taskKey.projectId, applyUpdate(task, taskUpdate))
+    } yield updatedTask
+
+    transformer.value.map(Validated.fromEither)
   }
+
+  private def removeTaskC[Row, Task](
+      taskKey: TaskKey,
+      deleteC: db.keys.TaskId => ConnectionIO[Row],
+      fromRow: Row => ServerError.Valid[Task]
+  ): ConnectionIO[ServerError.Valid[Task]] =
+    deleteC(TaskKey.toTaskId(taskKey))
+      .map(fromRow)
 
 }
