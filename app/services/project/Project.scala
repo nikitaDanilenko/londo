@@ -1,6 +1,7 @@
 package services.project
 
 import db.keys.{ ProjectId, UserId }
+import io.circe.generic.JsonCodec
 import services.task.Task
 
 case class Project(
@@ -18,6 +19,7 @@ case class Project(
 
 object Project {
 
+  @JsonCodec
   case class Representation(
       id: ProjectId,
       plainTasks: Vector[Task.Plain],
