@@ -7,7 +7,6 @@ import db.generated.daos.{ PlainTaskDAO, ProjectReferenceTaskDAO }
 import db.keys.ProjectId
 import doobie.ConnectionIO
 import errors.ServerError
-import services.project.ProgressUpdate
 
 import javax.inject.Inject
 
