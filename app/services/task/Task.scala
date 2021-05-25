@@ -3,6 +3,7 @@ package services.task
 import db.keys
 import db.keys.ProjectId
 import errors.ServerError
+import io.circe.generic.JsonCodec
 import services.project.Progress
 import services.task
 import spire.math.Natural
@@ -14,6 +15,7 @@ sealed trait Task {
 
 object Task {
 
+  @JsonCodec
   case class Plain(
       override val id: TaskId,
       name: String,
@@ -52,6 +54,7 @@ object Task {
 
   }
 
+  @JsonCodec
   case class ProjectReference(
       override val id: TaskId,
       projectReference: ProjectId,
