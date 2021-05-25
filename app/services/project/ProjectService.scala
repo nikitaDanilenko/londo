@@ -5,12 +5,16 @@ import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import db.generated.daos._
 import db.keys.{ ProjectId, UserId }
-import db.{ DAOFunctions, Transactionally }
+import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
+import db.{ DAOFunctions, Transactionally, keys }
 import doobie.ConnectionIO
 import errors.ServerError
 import monocle.syntax.all._
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
+import services.task.Task
+import cats.syntax.traverse._
+import errors.ServerError.Valid
 
 import javax.inject.Inject
 
@@ -29,33 +33,42 @@ class ProjectService @Inject() (
     transactionally {
       for {
         createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
-        project <- projectDAO.insertC(Project.toRow(createdProject).project)
-        readAccessors <- setReadAccess(createdProject.id, createdProject.readAccessors)
-        writeAccessors <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
+        project <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
+        readAccess <- setReadAccess(createdProject.id, createdProject.readAccessors)
+        writeAccess <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
       } yield {
-        val createdProjectComponents = Project.toRow(createdProject)
-        Project.fromRow(
-          Project.DbComponents.fromComponents(
+        val createdProjectComponents = ProjectService.toDbRepresentation(createdProject)
+        ProjectService.fromDbRepresentation(
+          ProjectService.DbRepresentation.Impl(
             project = project,
             plainTasks = createdProjectComponents.plainTasks,
             projectReferenceTasks = createdProjectComponents.projectReferenceTasks,
-            readAccessors = readAccessors,
-            writeAccessors = writeAccessors
+            readAccess = readAccess,
+            writeAccess = writeAccess
           )
         )
       }
     }
 
+  def createC(projectCreation: ProjectCreation): ConnectionIO[ServerError.Valid[Project]] =
+    for {
+      createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
+      _ <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
+      _ <- setReadAccess(createdProject.id, createdProject.readAccessors)
+      _ <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
+      project <- fetchC(createdProject.id)
+    } yield project
+
   def setReadAccess(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Read]
-  ): ConnectionIO[ProjectAccess[AccessKind.Read]] =
+  ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
     setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
 
   def setWriteAccess(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Write]
-  ): ConnectionIO[ProjectAccess[AccessKind.Write]] =
+  ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
     setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, projectAccess)
 
   private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
@@ -67,25 +80,22 @@ class ProjectService @Inject() (
   )(implicit
       accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry],
       accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ProjectAccess[AccessK]] = {
-    val dbAction: ConnectionIO[ProjectAccess.DbComponents[DBAccessK, DBAccessEntry]] = {
-      val components = ProjectAccess.DbComponents(projectId, projectAccess)
-      (
-        daoFunctionsDBAccessK.insertC(components.access),
-        daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
-      ).mapN { (access, entries) =>
-        ProjectAccess.DbComponents[AccessK, DBAccessK, DBAccessEntry](
-          projectId = accessFromDB.projectId(access),
-          projectAccess = ProjectAccess.fromDb(
-            ProjectAccess.DbComponents.fromComponents(
-              access = access,
-              accessEntries = entries
-            )
+  ): ConnectionIO[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]] = {
+    val components = ProjectAccess.DbRepresentation(projectId, projectAccess)
+    (
+      daoFunctionsDBAccessK.insertC(components.access),
+      daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
+    ).mapN { (access, entries) =>
+      ProjectAccess.DbRepresentation[AccessK, DBAccessK, DBAccessEntry](
+        projectId = accessFromDB.projectId(access),
+        projectAccess = ProjectAccess.fromDb(
+          ProjectAccess.DbRepresentation.fromComponents(
+            access = access,
+            accessEntries = entries
           )
         )
-      }
+      )
     }
-    dbAction.map(ProjectAccess.fromDb[AccessK, DBAccessK, DBAccessEntry])
   }
 
   def delete[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
@@ -110,7 +120,7 @@ class ProjectService @Inject() (
     val transformer = for {
       project <- fetchT(projectId)
       updatedProject = ProjectUpdate.applyToProject(project, projectUpdate)
-      updatedRow = Project.toRow(updatedProject).project
+      updatedRow = ProjectService.toDbRepresentation(updatedProject).project
       _ <- ServerError.liftC(projectDAO.replaceC(updatedRow))
       updatedWrittenProject <- fetchT(projectId)
     } yield updatedWrittenProject
@@ -136,22 +146,18 @@ class ProjectService @Inject() (
       writeAccess <- liftF(projectWriteAccessDAO.findC(projectWriteAccessId))
       writeAccessEntries <- liftF(projectWriteAccessEntryDAO.findByProjectWriteAccessIdC(projectWriteAccessId.uuid))
     } yield {
-      Project.fromRow(
-        Project.DbComponents.fromComponents(
+      ProjectService.fromDbRepresentation(
+        ProjectService.DbRepresentation.Impl(
           project = projectRow,
           plainTasks = plainTasks,
           projectReferenceTasks = projectReferenceTasks,
-          readAccessors = ProjectAccess.fromDb(
-            ProjectAccess.DbComponents.fromComponents(
-              readAccess.getOrElse(db.models.ProjectReadAccess(projectId.uuid, isAllowList = false)),
-              readAccessEntries
-            )
+          readAccess = ProjectAccess.DbRepresentation.fromComponents(
+            readAccess.getOrElse(db.models.ProjectReadAccess(projectId.uuid, isAllowList = false)),
+            readAccessEntries
           ),
-          writeAccessors = ProjectAccess.fromDb(
-            ProjectAccess.DbComponents.fromComponents(
-              writeAccess.getOrElse(db.models.ProjectWriteAccess(projectId.uuid, isAllowList = false)),
-              writeAccessEntries
-            )
+          writeAccess = ProjectAccess.DbRepresentation.fromComponents(
+            writeAccess.getOrElse(db.models.ProjectWriteAccess(projectId.uuid, isAllowList = false)),
+            writeAccessEntries
           )
         )
       )
@@ -166,34 +172,37 @@ class ProjectService @Inject() (
   def allowReadUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Read]]] =
+  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccess)
 
   def allowWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Write]]] =
+  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccess)
 
   def blockReadUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Read]]] =
+  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccess)
 
   def blockWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess[AccessKind.Write]]] =
+  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccess)
 
-  private def modifyUsersWithRights[AK](
+  private def modifyUsersWithRights[AK, DBAccessK, DBAccessEntry](
       projectId: ProjectId,
       userIds: NonEmptySet[UserId],
       accessors: Project => ProjectAccess[AK],
       modifier: (Accessors, NonEmptySet[UserId]) => Accessors,
-      setAccess: (ProjectId, ProjectAccess[AK]) => ConnectionIO[ProjectAccess[AK]]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess[AK]]] = {
+      setAccess: (
+          ProjectId,
+          ProjectAccess[AK]
+      ) => ConnectionIO[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]]
+  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
     val transformer =
       for {
         project <- fetchT(projectId)
@@ -212,5 +221,73 @@ class ProjectService @Inject() (
 
   private def fetchT(projectId: ProjectId): EitherT[ConnectionIO, NonEmptyList[ServerError], Project] =
     EitherT(fetchC(projectId).map(_.toEither))
+
+}
+
+object ProjectService {
+
+  def toDbRepresentation(project: Project): DbRepresentation =
+    DbRepresentation(project)
+
+  def fromDbRepresentation(
+      dbComponents: DbRepresentation
+  ): ServerError.Valid[Project] =
+    (
+      dbComponents.plainTasks.traverse(Task.Plain.fromRow),
+      dbComponents.projectReferenceTasks.traverse(Task.ProjectReference.fromRow)
+    )
+      .mapN { (plainTasks, projectReferenceTasks) =>
+        Project(
+          id = keys.ProjectId(dbComponents.project.id),
+          plainTasks = plainTasks.toVector,
+          projectReferenceTasks = projectReferenceTasks.toVector,
+          name = dbComponents.project.name,
+          description = dbComponents.project.description,
+          ownerId = keys.UserId(dbComponents.project.ownerId),
+          parentProjectId = dbComponents.project.parentProjectId.map(ProjectId.apply),
+          flatIfSingleTask = dbComponents.project.flatIfSingleTask,
+          readAccessors = ProjectAccess.fromDb(dbComponents.readAccess),
+          writeAccessors = ProjectAccess.fromDb(dbComponents.writeAccess)
+        )
+      }
+
+  sealed trait DbRepresentation {
+    def project: db.models.Project
+    def plainTasks: Seq[db.models.PlainTask]
+    def projectReferenceTasks: Seq[db.models.ProjectReferenceTask]
+    def readAccess: ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]
+    def writeAccess: ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
+  }
+
+  object DbRepresentation {
+
+    private[ProjectService] case class Impl(
+        override val project: db.models.Project,
+        override val plainTasks: Seq[db.models.PlainTask],
+        override val projectReferenceTasks: Seq[db.models.ProjectReferenceTask],
+        override val readAccess: ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry],
+        override val writeAccess: ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
+    ) extends DbRepresentation
+
+    def apply(project: Project): DbRepresentation = {
+      val plainTasks = project.plainTasks.map(Task.Plain.toRow(project.id, _))
+      val projectReferenceTasks = project.projectReferenceTasks.map(Task.ProjectReference.toRow(project.id, _))
+      Impl(
+        project = db.models.Project(
+          id = project.id.uuid,
+          ownerId = project.ownerId.uuid,
+          name = project.name,
+          description = project.description,
+          parentProjectId = project.parentProjectId.map(_.uuid),
+          flatIfSingleTask = project.flatIfSingleTask
+        ),
+        plainTasks = plainTasks,
+        projectReferenceTasks = projectReferenceTasks,
+        readAccess = ProjectAccess.toDb(project.id, project.readAccessors),
+        writeAccess = ProjectAccess.toDb(project.id, project.writeAccessors)
+      )
+    }
+
+  }
 
 }
