@@ -3,6 +3,7 @@ package services.task
 import io.circe.generic.JsonCodec
 import services.project.Progress
 import spire.math.Natural
+import utils.json.CirceUtil.instances._
 
 @JsonCodec
 case class ProgressUpdate(

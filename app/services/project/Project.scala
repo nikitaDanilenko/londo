@@ -1,7 +1,8 @@
 package services.project
 
 import db.keys.{ ProjectId, UserId }
-import io.circe.generic.JsonCodec
+import io.circe.Encoder
+import io.circe.generic.semiauto.deriveEncoder
 import services.task.Task
 
 case class Project(
@@ -19,7 +20,6 @@ case class Project(
 
 object Project {
 
-  @JsonCodec
   case class Representation(
       id: ProjectId,
       plainTasks: Vector[Task.Plain],
@@ -32,6 +32,12 @@ object Project {
       readAccessors: Accessors.Representation,
       writeAccessors: Accessors.Representation
   )
+
+  object Representation {
+
+    implicit val representationEncoder: Encoder[Representation] = deriveEncoder[Representation]
+
+  }
 
   def toRepresentation(project: Project): Representation =
     Representation(

@@ -3,10 +3,12 @@ package services.task
 import db.keys
 import db.keys.ProjectId
 import errors.ServerError
-import io.circe.generic.JsonCodec
+import io.circe.Encoder
 import services.project.Progress
 import services.task
 import spire.math.Natural
+import utils.json.CirceUtil.instances._
+import io.circe.generic.semiauto.deriveEncoder
 
 sealed trait Task {
   def id: TaskId
@@ -15,7 +17,6 @@ sealed trait Task {
 
 object Task {
 
-  @JsonCodec
   case class Plain(
       override val id: TaskId,
       name: String,
@@ -26,6 +27,8 @@ object Task {
   ) extends Task
 
   object Plain {
+
+    implicit val plainEncoder: Encoder[Plain] = deriveEncoder[Plain]
 
     def fromRow(taskRow: db.models.PlainTask): ServerError.Valid[Plain] =
       nonNegativeWeight(taskRow.weight)
@@ -54,7 +57,6 @@ object Task {
 
   }
 
-  @JsonCodec
   case class ProjectReference(
       override val id: TaskId,
       projectReference: ProjectId,
@@ -62,6 +64,8 @@ object Task {
   ) extends Task
 
   object ProjectReference {
+
+    implicit val projectReferenceEncoder: Encoder[ProjectReference] = deriveEncoder[ProjectReference]
 
     def fromRow(taskRow: db.models.ProjectReferenceTask): ServerError.Valid[ProjectReference] =
       nonNegativeWeight(taskRow.weight).map { weight =>
