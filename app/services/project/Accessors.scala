@@ -61,6 +61,14 @@ object Accessors {
           .fold(Nobody: Accessors)(NobodyExcept.apply)
     }
 
+  def hasAccess(userId: UserId, accessors: Accessors): Boolean =
+    accessors match {
+      case Everyone                 => true
+      case Nobody                   => false
+      case EveryoneExcept(excluded) => !excluded.contains(userId)
+      case NobodyExcept(included)   => included.contains(userId)
+    }
+
   @JsonCodec
   case class Representation(
       isAllowList: Boolean,
