@@ -24,7 +24,8 @@ object ProjectCreation {
     RandomGenerator.randomUUID.map { uuid =>
       Project(
         id = keys.ProjectId(uuid),
-        tasks = Vector.empty,
+        plainTasks = Vector.empty,
+        projectReferenceTasks = Vector.empty,
         name = projectCreation.name,
         description = projectCreation.description,
         ownerId = projectCreation.ownerId,
