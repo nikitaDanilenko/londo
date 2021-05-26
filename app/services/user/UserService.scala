@@ -8,7 +8,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import db.DbTransactorProvider
 import db.generated.daos._
-import db.keys.{ RegistrationTokenId, UserId }
+import db.keys.RegistrationTokenId
 import db.models.{ RegistrationToken, SessionKey }
 import doobie.syntax.connectionio._
 import errors.{ ServerError, ServerException }
@@ -20,7 +20,6 @@ import utils.jwt.JwtUtil
 import utils.random.RandomGenerator
 import utils.time.TimeUtil
 
-import java.util.UUID
 import javax.inject.Inject
 
 class UserService @Inject() (
@@ -86,10 +85,11 @@ class UserService @Inject() (
   }
 
   def fetch[F[_]: Async: ContextShift](userId: UserId): F[User] = {
+    val dbUserId = UserId.toDb(userId)
     for {
-      userRow <- userDAO.find(userId).flatMap(Async[F].fromOption(_, ServerException(ServerError.User.NotFound)))
-      userSettings <- userSettingsDAO.find(userId)
-      userDetails <- userDetailsDAO.find(userId)
+      userRow <- userDAO.find(dbUserId).flatMap(Async[F].fromOption(_, ServerException(ServerError.User.NotFound)))
+      userSettings <- userSettingsDAO.find(dbUserId)
+      userDetails <- userDetailsDAO.find(dbUserId)
     } yield User.fromRow(
       userRow = userRow,
       settings = userSettings.fold(UserSettings.default)(UserSettings.fromRow),
@@ -99,7 +99,7 @@ class UserService @Inject() (
 
   def logout[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
     sessionKeyDAO
-      .delete(userId)
+      .delete(UserId.toDb(userId))
       .void
 
   def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[User] = {
@@ -123,7 +123,7 @@ class UserService @Inject() (
 
   def delete[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
     userDAO
-      .delete(userId)
+      .delete(UserId.toDb(userId))
       .void
 
   def requestCreate[F[_]: Async: ContextShift](email: String): F[Unit] =
