@@ -1,8 +1,6 @@
 package services.task
 
 import enumeratum.{ Enum, EnumEntry }
-import io.circe.Codec
-import io.circe.generic.extras.semiauto.deriveEnumerationCodec
 
 import java.util.UUID
 
@@ -14,8 +12,6 @@ object TaskKind extends Enum[TaskKind] {
   case object Fractional extends TaskKind
 
   override lazy val values: IndexedSeq[TaskKind] = findValues
-
-  implicit val taskKindCodec: Codec[TaskKind] = deriveEnumerationCodec[TaskKind]
 
   // TODO: Add a validation step so that the map is always in sync with the database values
   private val taskKindMap: Map[UUID, TaskKind] = Map(

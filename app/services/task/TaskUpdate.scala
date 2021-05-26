@@ -1,11 +1,7 @@
 package services.task
 
-import db.keys.ProjectId
+import services.project.ProjectId
 import spire.math.Natural
-
-sealed trait TaskUpdate {
-  def weight: Natural
-}
 
 object TaskUpdate {
 
@@ -13,8 +9,8 @@ object TaskUpdate {
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
-      override val weight: Natural
-  ) extends TaskUpdate
+      weight: Natural
+  )
 
   object Plain {
 
@@ -30,8 +26,8 @@ object TaskUpdate {
 
   case class ProjectReference(
       projectReferenceId: ProjectId,
-      override val weight: Natural
-  ) extends TaskUpdate
+      weight: Natural
+  )
 
   object ProjectReference {
 

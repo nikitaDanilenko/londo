@@ -2,13 +2,8 @@ package services.task
 
 import cats.effect.IO
 import db.keys.ProjectId
-import services.project.Progress
 import spire.math.Natural
 import utils.random.RandomGenerator
-
-sealed trait TaskCreation {
-  def weight: Natural
-}
 
 object TaskCreation {
 
@@ -17,8 +12,8 @@ object TaskCreation {
       taskKind: TaskKind,
       unit: Option[String],
       progress: Progress,
-      override val weight: Natural
-  ) extends TaskCreation
+      weight: Natural
+  )
 
   object Plain {
 
@@ -37,9 +32,9 @@ object TaskCreation {
   }
 
   case class ProjectReference(
-      override val weight: Natural,
+      weight: Natural,
       projectReferenceId: ProjectId
-  ) extends TaskCreation
+  )
 
   object ProjectReference {
 

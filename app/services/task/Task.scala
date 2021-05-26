@@ -1,34 +1,22 @@
 package services.task
 
-import db.keys
-import db.keys.ProjectId
 import errors.ServerError
-import io.circe.Encoder
-import services.project.Progress
+import services.project.ProjectId
 import services.task
 import spire.math.Natural
-import utils.json.CirceUtil.instances._
-import io.circe.generic.semiauto.deriveEncoder
-
-sealed trait Task {
-  def id: TaskId
-  def weight: Natural
-}
 
 object Task {
 
   case class Plain(
-      override val id: TaskId,
+      id: TaskId,
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
       progress: Progress,
-      override val weight: Natural
-  ) extends Task
+      weight: Natural
+  )
 
   object Plain {
-
-    implicit val plainEncoder: Encoder[Plain] = deriveEncoder[Plain]
 
     def fromRow(taskRow: db.models.PlainTask): ServerError.Valid[Plain] =
       nonNegativeWeight(taskRow.weight)
@@ -58,14 +46,12 @@ object Task {
   }
 
   case class ProjectReference(
-      override val id: TaskId,
+      id: TaskId,
       projectReference: ProjectId,
-      override val weight: Natural
-  ) extends Task
+      weight: Natural
+  )
 
   object ProjectReference {
-
-    implicit val projectReferenceEncoder: Encoder[ProjectReference] = deriveEncoder[ProjectReference]
 
     def fromRow(taskRow: db.models.ProjectReferenceTask): ServerError.Valid[ProjectReference] =
       nonNegativeWeight(taskRow.weight).map { weight =>
@@ -73,7 +59,7 @@ object Task {
           id = task.TaskId(
             uuid = taskRow.id
           ),
-          keys.ProjectId(
+          ProjectId(
             uuid = taskRow.projectReferenceId
           ),
           weight = weight
