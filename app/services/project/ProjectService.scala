@@ -3,18 +3,18 @@ package services.project
 import cats.data.{ EitherT, NonEmptyList, NonEmptySet, Validated }
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
+import cats.syntax.traverse._
 import db.generated.daos._
-import db.keys.{ ProjectId, UserId }
 import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
-import db.{ DAOFunctions, Transactionally, keys }
+import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.ServerError
+import errors.ServerError.Valid
 import monocle.syntax.all._
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
 import services.task.Task
-import cats.syntax.traverse._
-import errors.ServerError.Valid
+import services.user.UserId
 
 import javax.inject.Inject
 
@@ -104,7 +104,9 @@ class ProjectService @Inject() (
   def deleteC(projectId: ProjectId): ConnectionIO[ServerError.Valid[Project]] = {
     val transformer = for {
       project <- fetchT(projectId)
-      _ <- EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], db.models.Project](projectDAO.deleteC(projectId))
+      _ <- EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], db.models.Project](
+        projectDAO.deleteC(ProjectId.toDb(projectId))
+      )
     } yield project
 
     transformer.value.map(Validated.fromEither)
@@ -138,7 +140,7 @@ class ProjectService @Inject() (
       EitherT.liftF[ConnectionIO, ServerError, A](a)
 
     val action = for {
-      projectRow <- EitherT.fromOptionF(projectDAO.findC(projectId), ServerError.Project.NotFound)
+      projectRow <- EitherT.fromOptionF(projectDAO.findC(ProjectId.toDb(projectId)), ServerError.Project.NotFound)
       plainTasks <- liftF(plainTaskDAO.findByProjectIdC(projectId.uuid))
       projectReferenceTasks <- liftF(projectReferenceTaskDAO.findByProjectIdC(projectId.uuid))
       readAccess <- liftF(projectReadAccessDAO.findC(projectReadAccessId))
@@ -238,12 +240,12 @@ object ProjectService {
     )
       .mapN { (plainTasks, projectReferenceTasks) =>
         Project(
-          id = keys.ProjectId(dbComponents.project.id),
+          id = ProjectId(dbComponents.project.id),
           plainTasks = plainTasks.toVector,
           projectReferenceTasks = projectReferenceTasks.toVector,
           name = dbComponents.project.name,
           description = dbComponents.project.description,
-          ownerId = keys.UserId(dbComponents.project.ownerId),
+          ownerId = UserId(dbComponents.project.ownerId),
           parentProjectId = dbComponents.project.parentProjectId.map(ProjectId.apply),
           flatIfSingleTask = dbComponents.project.flatIfSingleTask,
           readAccessors = ProjectAccess.fromDb(dbComponents.readAccess),

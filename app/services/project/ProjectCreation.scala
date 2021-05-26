@@ -1,12 +1,9 @@
 package services.project
 
 import cats.effect.IO
-import db.keys
-import db.keys.{ ProjectId, UserId }
-import io.circe.generic.JsonCodec
+import services.user.UserId
 import utils.random.RandomGenerator
 
-@JsonCodec
 case class ProjectCreation(
     ownerId: UserId,
     name: String,
@@ -23,7 +20,7 @@ object ProjectCreation {
   def create(projectCreation: ProjectCreation): IO[Project] =
     RandomGenerator.randomUUID.map { uuid =>
       Project(
-        id = keys.ProjectId(uuid),
+        id = ProjectId(uuid),
         plainTasks = Vector.empty,
         projectReferenceTasks = Vector.empty,
         name = projectCreation.name,

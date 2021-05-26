@@ -1,5 +1,7 @@
 package services.user
 
+import cats.Order
+
 import java.util.UUID
 
 case class UserId(uuid: UUID) extends AnyVal
@@ -15,5 +17,7 @@ object UserId {
     db.keys.UserId(
       uuid = userId.uuid
     )
+
+  implicit val orderUserId: Order[UserId] = Order.by(_.uuid)
 
 }

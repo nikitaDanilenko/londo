@@ -1,6 +1,6 @@
 package services.task
 
-import db.keys.ProjectId
+import services.project.ProjectId
 
 case class TaskKey(
     projectId: ProjectId,
@@ -11,7 +11,7 @@ object TaskKey {
 
   def toTaskId(taskKey: TaskKey): db.keys.TaskId =
     db.keys.TaskId(
-      projectId = taskKey.projectId,
+      projectId = ProjectId.toDb(taskKey.projectId),
       uuid = taskKey.taskId.uuid
     )
 

@@ -1,7 +1,6 @@
 package services.project
 
 import cats.data.NonEmptyList
-import db.keys.ProjectId
 
 case class ProjectAccess[AK](accessors: Accessors)
 

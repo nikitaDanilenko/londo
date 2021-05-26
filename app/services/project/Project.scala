@@ -1,9 +1,12 @@
 package services.project
 
-import db.keys.{ ProjectId, UserId }
+import graphql.GraphQLContext
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
+import sangria.macros.derive.deriveObjectType
+import sangria.schema.ObjectType
 import services.task.Task
+import services.user.UserId
 
 case class Project(
     id: ProjectId,
@@ -36,6 +39,9 @@ object Project {
   object Representation {
 
     implicit val representationEncoder: Encoder[Representation] = deriveEncoder[Representation]
+
+    implicit val outputType: ObjectType[GraphQLContext, Representation] =
+      deriveObjectType[GraphQLContext, Representation]()
 
   }
 

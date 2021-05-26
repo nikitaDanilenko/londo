@@ -1,8 +1,8 @@
 package services.project
 
 import cats.data.{ NonEmptyList, NonEmptySet }
-import db.keys.UserId
 import io.circe.generic.JsonCodec
+import services.user.UserId
 
 sealed trait Accessors
 
