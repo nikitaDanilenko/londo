@@ -1,11 +1,11 @@
 package utils.jwt
 
-import db.keys.UserId
 import errors.ServerError
 import io.circe.syntax._
 import pdi.jwt.algorithms.JwtAsymmetricAlgorithm
 import pdi.jwt.{ JwtAlgorithm, JwtCirce, JwtClaim, JwtHeader }
 import security.jwt.{ JwtContent, JwtExpiration }
+import services.user.UserId
 
 object JwtUtil {
 
