@@ -1,7 +1,7 @@
 package security.jwt
 
-import db.keys.UserId
 import io.circe.generic.JsonCodec
+import services.user.UserId
 
 @JsonCodec
 case class JwtContent(
