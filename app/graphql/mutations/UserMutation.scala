@@ -1,9 +1,9 @@
 package graphql.mutations
 
-import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import graphql.HasGraphQLServices.syntax._
+import graphql.types.user.{ User, UserCreation }
+import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
-import services.user.{ User, UserCreation }
 
 import scala.concurrent.Future
 
@@ -31,7 +31,8 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
   @GraphQLField
   def createUser(userCreation: UserCreation): Future[User] =
     graphQLServices.userService
-      .create(userCreation)
+      .create(UserCreation.toInternal(userCreation))
+      .map(User.fromInternal)
       .unsafeToFuture()
 
 }

@@ -2,9 +2,7 @@ package services.user
 
 import db.keys
 import db.keys.UserId
-import io.circe.generic.JsonCodec
 
-@JsonCodec
 case class User(
     id: UserId,
     nickname: String,
