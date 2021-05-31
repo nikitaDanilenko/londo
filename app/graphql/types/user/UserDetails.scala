@@ -1,6 +1,5 @@
 package graphql.types.user
 
-import graphql.GraphQLContext
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
@@ -14,8 +13,7 @@ case class UserDetails(
 
 object UserDetails {
 
-  implicit val userDetailsType: ObjectType[GraphQLContext, UserDetails] =
-    deriveObjectType[GraphQLContext, UserDetails]()
+  implicit val userDetailsObjectType: ObjectType[Unit, UserDetails] = deriveObjectType[Unit, UserDetails]()
 
   def fromInternal(userDetails: services.user.UserDetails): UserDetails =
     UserDetails(

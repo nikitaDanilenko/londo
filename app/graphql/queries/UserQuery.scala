@@ -1,8 +1,7 @@
 package graphql.queries
 
 import cats.effect.IO
-import db.keys.UserId
-import graphql.types.user.User
+import graphql.types.user.{ User, UserId }
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
 
