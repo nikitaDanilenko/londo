@@ -1,7 +1,7 @@
 package security.jwt
 
 import io.circe.generic.JsonCodec
-import services.user.UserId
+import graphql.types.user.UserId
 
 @JsonCodec
 case class JwtContent(

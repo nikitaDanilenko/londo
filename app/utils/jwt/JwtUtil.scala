@@ -30,7 +30,7 @@ object JwtUtil {
       header = JwtHeader.apply(signatureAlgorithm),
       claim = JwtClaim(
         content = JwtContent(
-          userId = userId
+          userId = graphql.types.user.UserId.fromInternal(userId)
         ).asJson.noSpaces,
         expiration = expiration.expirationAt,
         notBefore = expiration.notBefore
