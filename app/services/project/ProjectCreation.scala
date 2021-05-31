@@ -2,6 +2,7 @@ package services.project
 
 import cats.effect.IO
 import services.user.UserId
+import spire.math.Natural
 import utils.random.RandomGenerator
 
 case class ProjectCreation(
@@ -9,7 +10,7 @@ case class ProjectCreation(
     name: String,
     description: Option[String],
     parentProject: Option[ProjectId],
-    weight: Int,
+    weight: Natural,
     flatIfSingleTask: Boolean,
     readAccessors: Accessors.Representation,
     writeAccessors: Accessors.Representation

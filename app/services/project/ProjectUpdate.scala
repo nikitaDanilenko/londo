@@ -1,9 +1,7 @@
 package services.project
 
-import db.keys.{ ProjectId, UserId }
-import io.circe.generic.JsonCodec
+import services.user.UserId
 
-@JsonCodec
 case class ProjectUpdate(
     name: String,
     description: Option[String],

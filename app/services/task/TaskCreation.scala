@@ -1,7 +1,7 @@
 package services.task
 
 import cats.effect.IO
-import db.keys.ProjectId
+import services.project.ProjectId
 import spire.math.Natural
 import utils.random.RandomGenerator
 

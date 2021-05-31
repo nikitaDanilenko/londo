@@ -1,7 +1,6 @@
 package services.user
 
 import cats.effect.IO
-import db.keys.UserId
 import security.Hash
 import spire.math.Natural
 import utils.random.RandomGenerator

@@ -1,7 +1,6 @@
 package services.project
 
 import cats.data.{ NonEmptyList, NonEmptySet }
-import io.circe.generic.JsonCodec
 import services.user.UserId
 
 sealed trait Accessors
@@ -69,7 +68,6 @@ object Accessors {
       case NobodyExcept(included)   => included.contains(userId)
     }
 
-  @JsonCodec
   case class Representation(
       isAllowList: Boolean,
       //An empty option is taken to mean "everyone".

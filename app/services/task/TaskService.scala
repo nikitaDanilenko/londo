@@ -4,9 +4,9 @@ import cats.data.{ EitherT, NonEmptyList, Validated }
 import cats.effect.{ Async, ContextShift, IO }
 import db.Transactionally
 import db.generated.daos.{ PlainTaskDAO, ProjectReferenceTaskDAO }
-import db.keys.ProjectId
 import doobie.ConnectionIO
 import errors.ServerError
+import services.project.ProjectId
 
 import javax.inject.Inject
 

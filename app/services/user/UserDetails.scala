@@ -1,7 +1,5 @@
 package services.user
 
-import db.keys.UserId
-
 case class UserDetails(
     firstName: Option[String],
     lastName: Option[String],
