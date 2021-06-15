@@ -27,5 +27,5 @@ object UserCreation {
   implicit val userCreationInputType: InputObjectType[UserCreation] =
     deriveInputObjectType[UserCreation]()
 
-  implicit val userCreationFromInput: FromInput[UserCreation] = circeDecoderFromInput[UserCreation]
+  implicit lazy val userCreationFromInput: FromInput[UserCreation] = circeDecoderFromInput[UserCreation]
 }
