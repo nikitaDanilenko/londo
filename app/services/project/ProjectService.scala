@@ -9,7 +9,6 @@ import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.ServerError
-import errors.ServerError.Valid
 import monocle.syntax.all._
 import services.project.AccessFromDB.instances._
 import services.project.AccessToDB.instances._
@@ -59,25 +58,13 @@ class ProjectService @Inject() (
       project <- fetchC(createdProject.id)
     } yield project
 
-  def setReadAccess[F[_]: Async: ContextShift](
-      projectId: ProjectId,
-      projectAccess: ProjectAccess[AccessKind.Read]
-  ): F[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
-    transactionally(setReadAccessC(projectId = projectId, projectAccess = projectAccess))
-
-  def setReadAccessC(
+  private def setReadAccessC(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Read]
   ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
     setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
 
-  def setWriteAccess[F[_]: Async: ContextShift](
-      projectId: ProjectId,
-      projectAccess: ProjectAccess[AccessKind.Write]
-  ): F[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
-    transactionally(setWriteAccessC(projectId = projectId, projectAccess = projectAccess))
-
-  def setWriteAccessC(
+  private def setWriteAccessC(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Write]
   ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
@@ -183,28 +170,58 @@ class ProjectService @Inject() (
       )
   }
 
+  private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
+      dbComponentsC: ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]]]
+  )(implicit
+      accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]
+  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(ProjectAccess.fromDb(_).accessors))
+
+  def allowReadUsers[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): F[ServerError.Valid[Accessors]] =
+    transactionally(toAccessors(allowReadUsersC(projectId, userIds)))
+
   def allowReadUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccessC)
+
+  def allowWriteUsers[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): F[ServerError.Valid[Accessors]] =
+    transactionally(toAccessors(allowWriteUsersC(projectId, userIds)))
 
   def allowWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccessC)
+
+  def blockReadUsers[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): F[ServerError.Valid[Accessors]] =
+    transactionally(toAccessors(blockReadUsersC(projectId, userIds)))
 
   def blockReadUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccessC)
+
+  def blockWriteUsers[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      userIds: NonEmptySet[UserId]
+  ): F[ServerError.Valid[Accessors]] =
+    transactionally(toAccessors(blockWriteUsersC(projectId, userIds)))
 
   def blockWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccessC)
 
   private def modifyUsersWithRights[AK, DBAccessK, DBAccessEntry](

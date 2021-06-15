@@ -1,12 +1,13 @@
 package graphql.mutations
 
+import cats.data.NonEmptySet
+import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
 import graphql.types.project.{ Accessors, Project, ProjectCreation, ProjectId }
+import graphql.types.user.UserId
+import graphql.types.util.NonEmptyList
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
-import services.project.{ AccessFromDB, AccessKind, ProjectAccess }
-import services.project.AccessFromDB.instances._
-import services.project.ProjectAccess.DbRepresentation
 
 import scala.concurrent.Future
 
@@ -24,39 +25,46 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       .map(Project.fromInternal)
 
   @GraphQLField
-  def setReadAccess(
+  def allowReadUsers(
       projectId: ProjectId,
-      accessors: Accessors
+      userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
-    graphQLServices.projectService
-      .setReadAccess(
-        ProjectId.toInternal(projectId),
-        toServiceAccess[AccessKind.Read](accessors)
-      )
-      .unsafeToFuture()
-      .map(fromServiceAccess(_))
+    modifyAccessUsers(graphQLServices.projectService.allowReadUsers(_, _).unsafeToFuture())(projectId, userIds)
 
   @GraphQLField
-  def setWriteAccess(
+  def allowWriteUsers(
       projectId: ProjectId,
-      accessors: Accessors
+      userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
-    graphQLServices.projectService
-      .setWriteAccess(
-        ProjectId.toInternal(projectId),
-        toServiceAccess[AccessKind.Write](accessors)
-      )
-      .unsafeToFuture()
-      .map(fromServiceAccess(_))
+    modifyAccessUsers(graphQLServices.projectService.allowWriteUsers(_, _).unsafeToFuture())(projectId, userIds)
 
-  private def toServiceAccess[AK](accessors: Accessors): ProjectAccess[AK] =
-    ProjectAccess[AK](services.project.Accessors.fromRepresentation(Accessors.toInternal(accessors)))
+  @GraphQLField
+  def blockReadUsers(
+      projectId: ProjectId,
+      userIds: NonEmptyList[UserId]
+  ): Future[Accessors] =
+    modifyAccessUsers(graphQLServices.projectService.blockReadUsers(_, _).unsafeToFuture())(projectId, userIds)
 
-  private def fromServiceAccess[AccessK, DBAccessK, DBAccessEntry](
-      dbRepresentation: DbRepresentation[DBAccessK, DBAccessEntry]
-  )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): Accessors =
-    Accessors.fromInternal(
-      services.project.Accessors.toRepresentation(ProjectAccess.fromDb(dbRepresentation).accessors)
-    )
+  @GraphQLField
+  def blockWriteUsers(
+      projectId: ProjectId,
+      userIds: NonEmptyList[UserId]
+  ): Future[Accessors] =
+    modifyAccessUsers(graphQLServices.projectService.blockWriteUsers(_, _).unsafeToFuture())(projectId, userIds)
+
+  private def modifyAccessUsers(
+      serviceFunction: (
+          services.project.ProjectId,
+          NonEmptySet[services.user.UserId]
+      ) => Future[ServerError.Valid[services.project.Accessors]]
+  )(
+      projectId: ProjectId,
+      userIds: NonEmptyList[UserId]
+  ): Future[Accessors] =
+    serviceFunction(
+      ProjectId.toInternal(projectId),
+      NonEmptyList.toInternal(userIds).map(UserId.toInternal).toNes
+    ).handleServerError
+      .map(accessors => Accessors.fromInternal(services.project.Accessors.toRepresentation(accessors)))
 
 }
