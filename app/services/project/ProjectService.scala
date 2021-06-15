@@ -34,8 +34,8 @@ class ProjectService @Inject() (
       for {
         createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
         project <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
-        readAccess <- setReadAccess(createdProject.id, createdProject.readAccessors)
-        writeAccess <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
+        readAccess <- setReadAccessC(createdProject.id, createdProject.readAccessors)
+        writeAccess <- setWriteAccessC(createdProject.id, createdProject.writeAccessors)
       } yield {
         val createdProjectComponents = ProjectService.toDbRepresentation(createdProject)
         ProjectService.fromDbRepresentation(
@@ -54,18 +54,30 @@ class ProjectService @Inject() (
     for {
       createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
       _ <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
-      _ <- setReadAccess(createdProject.id, createdProject.readAccessors)
-      _ <- setWriteAccess(createdProject.id, createdProject.writeAccessors)
+      _ <- setReadAccessC(createdProject.id, createdProject.readAccessors)
+      _ <- setWriteAccessC(createdProject.id, createdProject.writeAccessors)
       project <- fetchC(createdProject.id)
     } yield project
 
-  def setReadAccess(
+  def setReadAccess[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      projectAccess: ProjectAccess[AccessKind.Read]
+  ): F[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
+    transactionally(setReadAccessC(projectId = projectId, projectAccess = projectAccess))
+
+  def setReadAccessC(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Read]
   ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
     setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
 
-  def setWriteAccess(
+  def setWriteAccess[F[_]: Async: ContextShift](
+      projectId: ProjectId,
+      projectAccess: ProjectAccess[AccessKind.Write]
+  ): F[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
+    transactionally(setWriteAccessC(projectId = projectId, projectAccess = projectAccess))
+
+  def setWriteAccessC(
       projectId: ProjectId,
       projectAccess: ProjectAccess[AccessKind.Write]
   ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
@@ -175,25 +187,25 @@ class ProjectService @Inject() (
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
   ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccess)
+    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccessC)
 
   def allowWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
   ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccess)
+    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccessC)
 
   def blockReadUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
   ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccess)
+    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccessC)
 
   def blockWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
   ): ConnectionIO[Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccess)
+    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccessC)
 
   private def modifyUsersWithRights[AK, DBAccessK, DBAccessEntry](
       projectId: ProjectId,
