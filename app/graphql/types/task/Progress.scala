@@ -1,5 +1,6 @@
 package graphql.types.task
 
+import graphql.types.FromInternal
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.OutputType
@@ -15,7 +16,7 @@ case class Progress(
 
 object Progress {
 
-  def fromInternal(progress: services.task.Progress): Progress =
+  implicit lazy val progressFromInternal: FromInternal[Progress, services.task.Progress] = progress =>
     Progress(
       reached = progress.reached,
       reachable = progress.reachable

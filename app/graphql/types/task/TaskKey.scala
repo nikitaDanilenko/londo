@@ -1,5 +1,7 @@
 package graphql.types.task
 
+import graphql.types.ToInternal
+import graphql.types.ToInternal.syntax._
 import graphql.types.project.ProjectId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.{ deriveInputObjectType, deriveObjectType }
@@ -15,10 +17,10 @@ case class TaskKey(
 
 object TaskKey {
 
-  def toInternal(taskKey: TaskKey): services.task.TaskKey =
+  implicit val taskKeyToInternal: ToInternal[TaskKey, services.task.TaskKey] = taskKey =>
     services.task.TaskKey(
-      projectId = ProjectId.toInternal(taskKey.projectId),
-      taskId = TaskId.toInternal(taskKey.taskId)
+      projectId = taskKey.projectId.toInternal,
+      taskId = taskKey.taskId.toInternal
     )
 
   implicit val taskKeyInputType: InputObjectType[TaskKey] =

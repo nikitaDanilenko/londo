@@ -1,5 +1,6 @@
 package graphql.types.user
 
+import graphql.types.ToInternal
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType
 import sangria.marshalling.FromInput
@@ -16,7 +17,7 @@ case class UserCreation(
 
 object UserCreation {
 
-  def toInternal(userCreation: UserCreation): services.user.UserCreation =
+  implicit val userCreationToInternal: ToInternal[UserCreation, services.user.UserCreation] = userCreation =>
     services.user.UserCreation(
       nickname = userCreation.nickname,
       email = userCreation.email,

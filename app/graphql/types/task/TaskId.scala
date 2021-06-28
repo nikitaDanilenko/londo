@@ -1,5 +1,6 @@
 package graphql.types.task
 
+import graphql.types.FromAndToInternal
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.{ deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
@@ -14,15 +15,16 @@ case class TaskId(uuid: UUID)
 
 object TaskId {
 
-  def fromInternal(taskId: services.task.TaskId): TaskId =
-    TaskId(
-      uuid = taskId.uuid
-    )
-
-  def toInternal(taskId: TaskId): services.task.TaskId =
-    services.task.TaskId(
-      uuid = taskId.uuid
-    )
+  implicit val taskIdFromAndToInternal: FromAndToInternal[TaskId, services.task.TaskId] = FromAndToInternal.create(
+    fromInternal = taskId =>
+      TaskId(
+        uuid = taskId.uuid
+      ),
+    toInternal = taskId =>
+      services.task.TaskId(
+        uuid = taskId.uuid
+      )
+  )
 
   implicit val taskIdObjectType: ObjectType[Unit, TaskId] = deriveObjectType[Unit, TaskId]()
   implicit val taskIdInputObjectType: InputObjectType[TaskId] = deriveInputObjectType[TaskId]()

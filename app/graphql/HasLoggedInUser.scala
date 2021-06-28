@@ -2,6 +2,7 @@ package graphql
 
 import cats.ApplicativeThrow
 import errors.{ ServerError, ServerException }
+import graphql.types.ToInternal.syntax._
 import graphql.types.user.UserId
 
 trait HasLoggedInUser {
@@ -12,7 +13,7 @@ trait HasLoggedInUser {
       loggedInUserId
         .filter(_ == accessedUserId)
         .toRight(ServerException(ServerError.Authentication.Token.Restricted))
-        .map(UserId.toInternal)
+        .map(_.toInternal)
     )
 
 }

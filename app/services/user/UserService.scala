@@ -87,7 +87,8 @@ class UserService @Inject() (
   def fetch[F[_]: Async: ContextShift](userId: UserId): F[User] = {
     val dbUserId = UserId.toDb(userId)
     for {
-      userRow <- userDAO.find(dbUserId).flatMap(Async[F].fromOption(_, ServerException(ServerError.User.NotFound)))
+      userRowCandidate <- userDAO.find(dbUserId)
+      userRow <- Async[F].fromOption(userRowCandidate, ServerException(ServerError.User.NotFound))
       userSettings <- userSettingsDAO.find(dbUserId)
       userDetails <- userDetailsDAO.find(dbUserId)
     } yield User.fromRow(

@@ -1,7 +1,8 @@
 package graphql.types.project
 
+import graphql.types.ToInternal
+import graphql.types.ToInternal.syntax._
 import graphql.types.user.UserId
-
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.macros.derive.deriveInputObjectType
@@ -25,21 +26,22 @@ case class ProjectCreation(
 
 object ProjectCreation {
 
+  implicit val projectCreationToInternal: ToInternal[ProjectCreation, services.project.ProjectCreation] =
+    projectCreation =>
+      services.project.ProjectCreation(
+        ownerId = projectCreation.ownerId.toInternal,
+        name = projectCreation.name,
+        description = projectCreation.description,
+        parentProject = projectCreation.parentProject.map(_.toInternal),
+        weight = projectCreation.weight,
+        flatIfSingleTask = projectCreation.flatIfSingleTask,
+        readAccessors = projectCreation.readAccessors.toInternal,
+        writeAccessors = projectCreation.writeAccessors.toInternal
+      )
+
   implicit val projectCreationInputObjectType: InputObjectType[ProjectCreation] =
     deriveInputObjectType[ProjectCreation]()
 
   implicit lazy val projectCreationFromInput: FromInput[ProjectCreation] = circeDecoderFromInput[ProjectCreation]
-
-  def toInternal(projectCreation: ProjectCreation): services.project.ProjectCreation =
-    services.project.ProjectCreation(
-      ownerId = UserId.toInternal(projectCreation.ownerId),
-      name = projectCreation.name,
-      description = projectCreation.description,
-      parentProject = projectCreation.parentProject.map(ProjectId.toInternal),
-      weight = projectCreation.weight,
-      flatIfSingleTask = projectCreation.flatIfSingleTask,
-      readAccessors = Accessors.toInternal(projectCreation.readAccessors),
-      writeAccessors = Accessors.toInternal(projectCreation.writeAccessors)
-    )
 
 }

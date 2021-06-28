@@ -1,5 +1,6 @@
 package graphql.types.user
 
+import graphql.types.FromAndToInternal
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
@@ -13,20 +14,22 @@ case class UserDetails(
 
 object UserDetails {
 
+  implicit val userDetailsFromAndToInternal: FromAndToInternal[UserDetails, services.user.UserDetails] =
+    FromAndToInternal.create(
+      fromInternal = userDetails =>
+        UserDetails(
+          firstName = userDetails.firstName,
+          lastName = userDetails.lastName,
+          description = userDetails.description
+        ),
+      toInternal = userDetails =>
+        services.user.UserDetails(
+          firstName = userDetails.firstName,
+          lastName = userDetails.lastName,
+          description = userDetails.description
+        )
+    )
+
   implicit val userDetailsObjectType: ObjectType[Unit, UserDetails] = deriveObjectType[Unit, UserDetails]()
-
-  def fromInternal(userDetails: services.user.UserDetails): UserDetails =
-    UserDetails(
-      firstName = userDetails.firstName,
-      lastName = userDetails.lastName,
-      description = userDetails.description
-    )
-
-  def toInternal(userDetails: UserDetails): services.user.UserDetails =
-    services.user.UserDetails(
-      firstName = userDetails.firstName,
-      lastName = userDetails.lastName,
-      description = userDetails.description
-    )
 
 }

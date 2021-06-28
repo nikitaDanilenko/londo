@@ -1,6 +1,7 @@
 package utils.jwt
 
 import errors.ServerError
+import graphql.types.FromInternal.syntax._
 import io.circe.syntax._
 import pdi.jwt.algorithms.JwtAsymmetricAlgorithm
 import pdi.jwt.{ JwtAlgorithm, JwtCirce, JwtClaim, JwtHeader }
@@ -27,10 +28,10 @@ object JwtUtil {
 
   def createJwt(userId: UserId, privateKey: String, expiration: JwtExpiration): String =
     JwtCirce.encode(
-      header = JwtHeader.apply(signatureAlgorithm),
+      header = JwtHeader(algorithm = signatureAlgorithm),
       claim = JwtClaim(
         content = JwtContent(
-          userId = graphql.types.user.UserId.fromInternal(userId)
+          userId = userId.fromInternal
         ).asJson.noSpaces,
         expiration = expiration.expirationAt,
         notBefore = expiration.notBefore

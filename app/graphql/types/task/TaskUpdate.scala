@@ -1,5 +1,7 @@
 package graphql.types.task
 
+import graphql.types.ToInternal
+import graphql.types.ToInternal.syntax._
 import graphql.types.project.ProjectId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType
@@ -22,10 +24,10 @@ object TaskUpdate {
 
   object Plain {
 
-    def toInternal(plain: Plain): services.task.TaskUpdate.Plain =
+    implicit val plainToInternal: ToInternal[Plain, services.task.TaskUpdate.Plain] = plain =>
       services.task.TaskUpdate.Plain(
         name = plain.name,
-        taskKind = TaskKind.toInternal(plain.taskKind),
+        taskKind = plain.taskKind.toInternal,
         unit = plain.unit,
         weight = plain.weight
       )
@@ -44,11 +46,12 @@ object TaskUpdate {
 
   object ProjectReference {
 
-    def toInternal(projectReference: ProjectReference): services.task.TaskUpdate.ProjectReference =
-      services.task.TaskUpdate.ProjectReference(
-        projectReferenceId = ProjectId.toInternal(projectReference.projectReferenceId),
-        weight = projectReference.weight
-      )
+    implicit val projectReferenceToInternal: ToInternal[ProjectReference, services.task.TaskUpdate.ProjectReference] =
+      projectReference =>
+        services.task.TaskUpdate.ProjectReference(
+          projectReferenceId = projectReference.projectReferenceId.toInternal,
+          weight = projectReference.weight
+        )
 
     implicit val projectReferenceInputObjectType: InputObjectType[ProjectReference] =
       deriveInputObjectType[ProjectReference]()

@@ -1,11 +1,13 @@
 package graphql.types.project
 
+import graphql.types.FromInternal
 import graphql.types.task.Task
 import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 import services.project.ProjectAccess
+import FromInternal.syntax._
 
 @JsonCodec
 case class Project(
@@ -23,23 +25,25 @@ case class Project(
 
 object Project {
 
+  implicit val projectFromInternal: FromInternal[Project, services.project.Project] = {
+    def accessorsFromInternal[AK](projectAccess: ProjectAccess[AK]): Accessors =
+      services.project.Accessors.toRepresentation(projectAccess.accessors).fromInternal
+    project =>
+      Project(
+        id = project.id.fromInternal,
+        plainTasks = project.plainTasks.map(_.fromInternal),
+        projectReferenceTasks = project.projectReferenceTasks.map(_.fromInternal),
+        name = project.name,
+        description = project.description,
+        ownerId = project.ownerId.fromInternal,
+        parentProjectId = project.parentProjectId.map(_.fromInternal),
+        flatIfSingleTask = project.flatIfSingleTask,
+        readAccessors = accessorsFromInternal(project.readAccessors),
+        writeAccessors = accessorsFromInternal(project.writeAccessors)
+      )
+
+  }
+
   implicit val projectObjectType: ObjectType[Unit, Project] = deriveObjectType[Unit, Project]()
-
-  def fromInternal(project: services.project.Project): Project =
-    Project(
-      id = ProjectId.fromInternal(project.id),
-      plainTasks = project.plainTasks.map(Task.Plain.fromInternal),
-      projectReferenceTasks = project.projectReferenceTasks.map(Task.ProjectReference.fromInternal),
-      name = project.name,
-      description = project.description,
-      ownerId = UserId.fromInternal(project.ownerId),
-      parentProjectId = project.parentProjectId.map(ProjectId.fromInternal),
-      flatIfSingleTask = project.flatIfSingleTask,
-      readAccessors = accessorsFromInternal(project.readAccessors),
-      writeAccessors = accessorsFromInternal(project.writeAccessors)
-    )
-
-  private def accessorsFromInternal[AK](projectAccess: ProjectAccess[AK]): Accessors =
-    Accessors.fromInternal(services.project.Accessors.toRepresentation(projectAccess.accessors))
 
 }

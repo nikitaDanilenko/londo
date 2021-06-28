@@ -1,5 +1,6 @@
 package graphql.types.task
 
+import graphql.types.FromInternal
 import graphql.types.project.ProjectId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive
@@ -8,6 +9,7 @@ import sangria.schema.{ ObjectType, OutputType }
 import spire.math.Natural
 import utils.json.CirceUtil.instances._
 import utils.graphql.SangriaUtil.instances._
+import graphql.types.FromInternal.syntax._
 
 object Task {
 
@@ -23,17 +25,19 @@ object Task {
 
   object Plain {
 
-    def fromInternal(plain: services.task.Task.Plain): Plain =
-      Plain(
-        id = TaskId.fromInternal(plain.id),
-        name = plain.name,
-        taskKind = TaskKind.fromInternal(plain.taskKind),
-        unit = plain.unit,
-        progress = Progress.fromInternal(plain.progress),
-        weight = plain.weight
-      )
+    implicit val plainFromInternal: FromInternal[Plain, services.task.Task.Plain] =
+      plain =>
+        Plain(
+          id = plain.id.fromInternal,
+          name = plain.name,
+          taskKind = plain.taskKind.fromInternal,
+          unit = plain.unit,
+          progress = plain.progress.fromInternal,
+          weight = plain.weight
+        )
 
     implicit val plainObjectType: ObjectType[Unit, Plain] = deriveObjectType[Unit, Plain]()
+
   }
 
   @JsonCodec
@@ -45,10 +49,11 @@ object Task {
 
   object ProjectReference {
 
-    def fromInternal(projectReference: services.task.Task.ProjectReference): ProjectReference =
+    implicit lazy val projectReferenceFromInternal
+        : FromInternal[ProjectReference, services.task.Task.ProjectReference] = projectReference =>
       ProjectReference(
-        id = TaskId.fromInternal(projectReference.id),
-        projectReference = ProjectId.fromInternal(projectReference.projectReference),
+        id = projectReference.id.fromInternal,
+        projectReference = projectReference.projectReference.fromInternal,
         weight = projectReference.weight
       )
 
