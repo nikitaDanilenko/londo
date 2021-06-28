@@ -84,18 +84,18 @@ class UserService @Inject() (
       }
   }
 
-  def fetch[F[_]: Async: ContextShift](userId: UserId): F[User] = {
+  def fetch[F[_]: Async: ContextShift](userId: UserId): F[ServerError.Or[User]] = {
     val dbUserId = UserId.toDb(userId)
-    for {
-      userRowCandidate <- userDAO.find(dbUserId)
-      userRow <- Async[F].fromOption(userRowCandidate, ServerException(ServerError.User.NotFound))
-      userSettings <- userSettingsDAO.find(dbUserId)
-      userDetails <- userDetailsDAO.find(dbUserId)
+    val transformer = for {
+      userRow <- EitherT.fromOptionF(userDAO.find(dbUserId), ServerError.User.NotFound)
+      userSettings <- EitherT.fromOptionF(userSettingsDAO.find(dbUserId), ServerError.User.SettingsNotFound)
+      userDetails <- EitherT.fromOptionF(userDetailsDAO.find(dbUserId), ServerError.User.DetailsNotFound: ServerError)
     } yield User.fromRow(
       userRow = userRow,
-      settings = userSettings.fold(UserSettings.default)(UserSettings.fromRow),
-      details = userDetails.fold(UserDetails.default)(UserDetails.fromRow)
+      settings = UserSettings.fromRow(userSettings),
+      details = UserDetails.fromRow(userDetails)
     )
+    transformer.value
   }
 
   def logout[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
@@ -103,6 +103,7 @@ class UserService @Inject() (
       .delete(UserId.toDb(userId))
       .void
 
+  // TODO: Add failure possibility if email address already exists
   def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[User] = {
     val registrationTokenId = RegistrationTokenId(userCreation.email)
     for {
@@ -127,6 +128,7 @@ class UserService @Inject() (
       .delete(UserId.toDb(userId))
       .void
 
+  // TODO: Add failure possibility if email address already exists
   def requestCreate[F[_]: Async: ContextShift](email: String): F[Unit] =
     for {
       token <- Async[F].liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))

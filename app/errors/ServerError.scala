@@ -67,6 +67,8 @@ object ServerError {
 
   object User {
     case object NotFound extends ServerErrorInstance("No user with the given id found")
+    case object SettingsNotFound extends ServerErrorInstance("No user settings for the given user found")
+    case object DetailsNotFound extends ServerErrorInstance("No user details for the given user found")
   }
 
   object Task {

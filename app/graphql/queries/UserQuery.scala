@@ -20,5 +20,6 @@ trait UserQuery extends HasGraphQLServices with HasLoggedInUser {
       .flatMap(graphQLServices.userService.fetch[IO])
       .map(_.fromInternal[User])
       .unsafeToFuture()
+      .handleServerError
 
 }
