@@ -1,6 +1,7 @@
 package graphql.mutations
 
 import cats.data.NonEmptySet
+import cats.effect.IO
 import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
 import graphql.types.ToInternal.syntax._
@@ -22,37 +23,37 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
   ): Future[Project] =
     graphQLServices.projectService
       .create(projectCreation.toInternal)
+      .map(_.fromInternal[Project])
       .unsafeToFuture()
       .handleServerError
-      .map(_.fromInternal)
 
   @GraphQLField
   def allowReadUsersProject(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
-    modifyAccessUsers(graphQLServices.projectService.allowReadUsers(_, _).unsafeToFuture())(projectId, userIds)
+    modifyAccessUsers(graphQLServices.projectService.allowReadUsers(_, _))(projectId, userIds)
 
   @GraphQLField
   def allowWriteUsersProject(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
-    modifyAccessUsers(graphQLServices.projectService.allowWriteUsers(_, _).unsafeToFuture())(projectId, userIds)
+    modifyAccessUsers(graphQLServices.projectService.allowWriteUsers(_, _))(projectId, userIds)
 
   @GraphQLField
   def blockReadUsersProject(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
-    modifyAccessUsers(graphQLServices.projectService.blockReadUsers(_, _).unsafeToFuture())(projectId, userIds)
+    modifyAccessUsers(graphQLServices.projectService.blockReadUsers(_, _))(projectId, userIds)
 
   @GraphQLField
   def blockWriteUsersProject(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
-    modifyAccessUsers(graphQLServices.projectService.blockWriteUsers(_, _).unsafeToFuture())(projectId, userIds)
+    modifyAccessUsers(graphQLServices.projectService.blockWriteUsers(_, _))(projectId, userIds)
 
   @GraphQLField
   def deleteProject(
@@ -60,9 +61,9 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
   ): Future[Project] =
     graphQLServices.projectService
       .delete(projectId = projectId.toInternal)
+      .map(_.fromInternal[Project])
       .unsafeToFuture()
       .handleServerError
-      .map(_.fromInternal)
 
   def updateProject(
       projectId: ProjectId,
@@ -81,7 +82,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       serviceFunction: (
           services.project.ProjectId,
           NonEmptySet[services.user.UserId]
-      ) => Future[ServerError.Valid[services.project.Accessors]]
+      ) => IO[ServerError.Valid[services.project.Accessors]]
   )(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
@@ -89,7 +90,10 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
     serviceFunction(
       projectId.toInternal,
       userIds.toInternal.toNes
-    ).handleServerError
-      .map(accessors => services.project.Accessors.toRepresentation(accessors).fromInternal)
+    )
+    // TODO: Flatten the two maps into one, if possible
+      .map(_.map(a => services.project.Accessors.toRepresentation(a).fromInternal[Accessors]))
+      .unsafeToFuture()
+      .handleServerError
 
 }
