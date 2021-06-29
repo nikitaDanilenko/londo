@@ -1,9 +1,9 @@
 package graphql
 
-import graphql.queries.UserQuery
+import graphql.queries.{ ProjectQuery, UserQuery }
 import graphql.types.user.UserId
 
-trait Query extends UserQuery
+trait Query extends UserQuery with ProjectQuery
 
 object Query {
 
