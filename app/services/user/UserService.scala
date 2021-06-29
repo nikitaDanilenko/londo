@@ -103,7 +103,7 @@ class UserService @Inject() (
       .delete(UserId.toDb(userId))
       .void
 
-  def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[ServerError.Valid[User]] = {
+  def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[ServerError.Or[User]] = {
     val registrationTokenId = RegistrationTokenId(userCreation.email)
 
     def lift[A](c: ConnectionIO[A]): EitherT[ConnectionIO, ServerError, A] =
@@ -125,7 +125,8 @@ class UserService @Inject() (
       detailsRow <- lift(userDetailsDAO.insertC(UserDetails.toRow(createdUser.user.id, createdUser.user.details)))
       _ <- lift(registrationTokenDAO.deleteC(registrationTokenId))
     } yield User.fromRow(userRow, UserSettings.fromRow(settingsRow), UserDetails.fromRow(detailsRow))
-    transactionally(transformer.value.map(ServerError.fromEither))
+
+    transactionally(transformer.value)
   }
 
   def delete[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
