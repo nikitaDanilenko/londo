@@ -74,9 +74,9 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
         projectId = projectId.toInternal,
         projectUpdate = projectUpdate.toInternal
       )
+      .map(_.fromInternal[Project])
       .unsafeToFuture()
       .handleServerError
-      .map(_.fromInternal)
 
   private def modifyAccessUsers(
       serviceFunction: (

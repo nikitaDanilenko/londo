@@ -29,6 +29,7 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
     graphQLServices.userService
       .requestCreate(email)
       .unsafeToFuture()
+      .handleServerError
 
   @GraphQLField
   def createUser(userCreation: UserCreation): Future[User] =
@@ -36,5 +37,6 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
       .create(userCreation.toInternal)
       .map(_.fromInternal[User])
       .unsafeToFuture()
+      .handleServerError
 
 }

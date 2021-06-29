@@ -13,7 +13,6 @@ import scala.concurrent.Future
 trait UserQuery extends HasGraphQLServices with HasLoggedInUser {
   import ioImplicits._
 
-  // TODO: There should be an error and an error handling here
   @GraphQLField()
   def fetch(userId: UUID): Future[User] =
     validateAccess[IO](UserId(userId))
