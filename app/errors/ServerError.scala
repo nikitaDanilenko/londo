@@ -71,6 +71,14 @@ object ServerError {
     case object DetailsNotFound extends ServerErrorInstance("No user details for the given user found")
   }
 
+  object Registration {
+    case object EmailAlreadyRegistered extends ServerErrorInstance("The given email is already in use")
+
+    case object NoRegistrationTokenForEmail
+        extends ServerErrorInstance("No registration token for given email address found")
+
+  }
+
   object Task {
 
     object Plain {
