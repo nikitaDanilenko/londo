@@ -6,12 +6,12 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import db.DbTransactorProvider
+import db.Transactionally
 import db.generated.daos._
 import db.keys.RegistrationTokenId
 import db.models.{ RegistrationToken, SessionKey }
-import doobie.syntax.connectionio._
-import errors.{ ServerError, ServerException }
+import doobie.ConnectionIO
+import errors.ServerError
 import security.Hash
 import security.jwt.{ JwtConfiguration, JwtExpiration }
 import services.email.{ EmailParameters, EmailService }
@@ -30,7 +30,7 @@ class UserService @Inject() (
     registrationTokenDAO: RegistrationTokenDAO,
     emailService: EmailService,
     jwtConfiguration: JwtConfiguration,
-    dbTransactorProvider: DbTransactorProvider
+    transactionally: Transactionally
 ) {
 
   def login[F[_]: Async: ContextShift](
@@ -103,24 +103,29 @@ class UserService @Inject() (
       .delete(UserId.toDb(userId))
       .void
 
-  // TODO: Add failure possibility if email address already exists
-  def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[User] = {
+  def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[ServerError.Valid[User]] = {
     val registrationTokenId = RegistrationTokenId(userCreation.email)
-    for {
-      localToken <- registrationTokenDAO.find(registrationTokenId)
-      _ <- Async[F].fromOption(
-        localToken.filter(_.token == userCreation.token),
-        ServerException(ServerError.Authentication.Token.Registration)
+
+    def lift[A](c: ConnectionIO[A]): EitherT[ConnectionIO, ServerError, A] =
+      EitherT.liftF[ConnectionIO, ServerError, A](c)
+
+    val transformer = for {
+      localToken <- EitherT.fromOptionF[ConnectionIO, ServerError, RegistrationToken](
+        registrationTokenDAO.findC(registrationTokenId),
+        ServerError.Registration.NoRegistrationTokenForEmail: ServerError
       )
-      createdUser <- Async[F].liftIO(UserCreation.create(userCreation))
-      userCreationAction = for {
-        u <- userDAO.insertC(User.toRow(createdUser.user, createdUser.passwordParameters))
-        s <- userSettingsDAO.insertC(UserSettings.toRow(createdUser.user.id, createdUser.user.settings))
-        d <- userDetailsDAO.insertC(UserDetails.toRow(createdUser.user.id, createdUser.user.details))
-      } yield User.fromRow(u, UserSettings.fromRow(s), UserDetails.fromRow(d))
-      user <- userCreationAction.transact(dbTransactorProvider.transactor[F])
-      _ <- registrationTokenDAO.delete(registrationTokenId)
-    } yield user
+      _ <- EitherT.cond[ConnectionIO](
+        localToken.token == userCreation.token,
+        (),
+        ServerError.Authentication.Token.Registration: ServerError
+      )
+      createdUser <- EitherT.liftF(Async[ConnectionIO].liftIO(UserCreation.create(userCreation)))
+      userRow <- lift(userDAO.insertC(User.toRow(createdUser.user, createdUser.passwordParameters)))
+      settingsRow <- lift(userSettingsDAO.insertC(UserSettings.toRow(createdUser.user.id, createdUser.user.settings)))
+      detailsRow <- lift(userDetailsDAO.insertC(UserDetails.toRow(createdUser.user.id, createdUser.user.details)))
+      _ <- lift(registrationTokenDAO.deleteC(registrationTokenId))
+    } yield User.fromRow(userRow, UserSettings.fromRow(settingsRow), UserDetails.fromRow(detailsRow))
+    transactionally(transformer.value.map(ServerError.fromEither))
   }
 
   def delete[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
@@ -128,21 +133,29 @@ class UserService @Inject() (
       .delete(UserId.toDb(userId))
       .void
 
-  // TODO: Add failure possibility if email address already exists
-  def requestCreate[F[_]: Async: ContextShift](email: String): F[Unit] =
+  def requestCreate[F[_]: Async: ContextShift](email: String): F[ServerError.Or[Unit]] =
     for {
-      token <- Async[F].liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))
-      registrationToken <- registrationTokenDAO.replace(RegistrationToken(email, token))
-      response <- Async[F].liftIO(
-        emailService.sendEmail(
-          EmailParameters(
-            from = UserService.londoSenderAddress,
-            to = registrationToken.email,
-            // TODO: Add more explanation text to email
-            content = registrationToken.token
-          )
-        )
-      )
+      users <- userDAO.findByEmail(email)
+      // TODO: Improve structure, the current one seems a little awkward.
+      response <- {
+        if (users.nonEmpty)
+          Async[F].pure(Left(ServerError.Registration.EmailAlreadyRegistered: ServerError))
+        else
+          for {
+            token <- Async[F].liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))
+            registrationToken <- registrationTokenDAO.replace(RegistrationToken(email, token))
+            response <- Async[F].liftIO(
+              emailService.sendEmail(
+                EmailParameters(
+                  from = UserService.londoSenderAddress,
+                  to = registrationToken.email,
+                  // TODO: Add more explanation text to email
+                  content = registrationToken.token
+                )
+              )
+            )
+          } yield Right(response)
+      }
     } yield response
 
   // TODO: Add update function
