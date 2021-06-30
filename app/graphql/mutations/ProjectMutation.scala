@@ -7,6 +7,7 @@ import graphql.HasGraphQLServices.syntax._
 import graphql.types.ToInternal.syntax._
 import graphql.types.FromInternal.syntax._
 import graphql.types.project.{ Accessors, Project, ProjectCreation, ProjectId, ProjectUpdate }
+import graphql.types.task.{ Task, TaskCreation }
 import graphql.types.user.UserId
 import graphql.types.util.NonEmptyList
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
@@ -32,6 +33,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
+    // TODO: Check write access
     modifyAccessUsers(graphQLServices.projectService.allowReadUsers(_, _))(projectId, userIds)
 
   @GraphQLField
@@ -39,6 +41,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
+    // TODO: Check write access
     modifyAccessUsers(graphQLServices.projectService.allowWriteUsers(_, _))(projectId, userIds)
 
   @GraphQLField
@@ -46,6 +49,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
+    // TODO: Check write access
     modifyAccessUsers(graphQLServices.projectService.blockReadUsers(_, _))(projectId, userIds)
 
   @GraphQLField
@@ -53,22 +57,56 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
+    // TODO: Check write access
     modifyAccessUsers(graphQLServices.projectService.blockWriteUsers(_, _))(projectId, userIds)
 
   @GraphQLField
   def deleteProject(
       projectId: ProjectId
   ): Future[Project] =
+    // TODO: Check write access
     graphQLServices.projectService
       .delete(projectId = projectId.toInternal)
       .map(_.fromInternal[Project])
       .unsafeToFuture()
       .handleServerError
 
+  @GraphQLField
+  def addPlainTask(
+      projectId: ProjectId,
+      plainCreation: TaskCreation.PlainCreation
+  ): Future[Task.Plain] =
+    // TODO: Check write access
+    graphQLServices.taskService
+      .createPlainTask(
+        projectId.toInternal,
+        plainCreation = plainCreation.toInternal
+      )
+      .map(_.fromInternal[Task.Plain])
+      .unsafeToFuture()
+      .handleServerError
+
+  @GraphQLField
+  def addProjectReferenceTask(
+      projectId: ProjectId,
+      projectReferenceCreation: TaskCreation.ProjectReferenceCreation
+  ): Future[Task.ProjectReference] =
+    // TODO: Check write access
+    graphQLServices.taskService
+      .createProjectReferenceTask(
+        projectId.toInternal,
+        projectReferenceCreation = projectReferenceCreation.toInternal
+      )
+      .map(_.fromInternal[Task.ProjectReference])
+      .unsafeToFuture()
+      .handleServerError
+
+  @GraphQLField
   def updateProject(
       projectId: ProjectId,
       projectUpdate: ProjectUpdate
   ): Future[Project] =
+    // TODO: Check write access
     graphQLServices.projectService
       .update(
         projectId = projectId.toInternal,
