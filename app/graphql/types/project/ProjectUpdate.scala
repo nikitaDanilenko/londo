@@ -4,6 +4,10 @@ import graphql.types.ToInternal
 import graphql.types.ToInternal.syntax._
 import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
+import sangria.macros.derive.deriveInputObjectType
+import sangria.marshalling.FromInput
+import sangria.marshalling.circe.circeDecoderFromInput
+import sangria.schema.InputObjectType
 
 @JsonCodec
 case class ProjectUpdate(
@@ -25,5 +29,9 @@ object ProjectUpdate {
         parentProjectId = graphQL.parentProjectId.map(_.toInternal),
         flatIfSingleTask = graphQL.flatIfSingleTask
       )
+
+  implicit val projectUpdateInputObjectType: InputObjectType[ProjectUpdate] = deriveInputObjectType[ProjectUpdate]()
+
+  implicit lazy val projectUpdateFromInput: FromInput[ProjectUpdate] = circeDecoderFromInput[ProjectUpdate]
 
 }
