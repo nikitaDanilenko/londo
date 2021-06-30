@@ -7,7 +7,7 @@ import graphql.HasGraphQLServices.syntax._
 import graphql.types.ToInternal.syntax._
 import graphql.types.FromInternal.syntax._
 import graphql.types.project.{ Accessors, Project, ProjectCreation, ProjectId, ProjectUpdate }
-import graphql.types.task.{ Task, TaskCreation }
+import graphql.types.task.{ Task, TaskCreation, TaskKey }
 import graphql.types.user.UserId
 import graphql.types.util.NonEmptyList
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
@@ -97,6 +97,28 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
         projectId.toInternal,
         projectReferenceCreation = projectReferenceCreation.toInternal
       )
+      .map(_.fromInternal[Task.ProjectReference])
+      .unsafeToFuture()
+      .handleServerError
+
+  @GraphQLField
+  def removePlainTask(
+      taskKey: TaskKey
+  ): Future[Task.Plain] =
+    // TODO: Check write access
+    graphQLServices.taskService
+      .removePlainTask(taskKey.toInternal)
+      .map(_.fromInternal[Task.Plain])
+      .unsafeToFuture()
+      .handleServerError
+
+  @GraphQLField
+  def removeProjectReferenceTask(
+      taskKey: TaskKey
+  ): Future[Task.ProjectReference] =
+    // TODO: Check write access
+    graphQLServices.taskService
+      .removeProjectReferenceTask(taskKey.toInternal)
       .map(_.fromInternal[Task.ProjectReference])
       .unsafeToFuture()
       .handleServerError
