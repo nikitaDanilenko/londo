@@ -15,16 +15,16 @@ import utils.graphql.SangriaUtil.instances._
 object TaskUpdate {
 
   @JsonCodec
-  case class Plain(
+  case class PlainUpdate(
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
       weight: Natural
   )
 
-  object Plain {
+  object PlainUpdate {
 
-    implicit val plainToInternal: ToInternal[Plain, services.task.TaskUpdate.Plain] = plain =>
+    implicit val taskUpdatePlainUpdateToInternal: ToInternal[PlainUpdate, services.task.TaskUpdate.Plain] = plain =>
       services.task.TaskUpdate.Plain(
         name = plain.name,
         taskKind = plain.taskKind.toInternal,
@@ -32,31 +32,34 @@ object TaskUpdate {
         weight = plain.weight
       )
 
-    implicit val plainInputObjectType: InputObjectType[Plain] = deriveInputObjectType[Plain]()
+    implicit val taskUpdatePlainUpdateInputObjectType: InputObjectType[PlainUpdate] =
+      deriveInputObjectType[PlainUpdate]()
 
-    implicit lazy val plainFromInput: FromInput[Plain] = circeDecoderFromInput[Plain]
+    implicit lazy val taskUpdatePlainUpdateFromInput: FromInput[PlainUpdate] = circeDecoderFromInput[PlainUpdate]
 
   }
 
   @JsonCodec
-  case class ProjectReference(
+  case class ProjectReferenceUpdate(
       projectReferenceId: ProjectId,
       weight: Natural
   )
 
-  object ProjectReference {
+  object ProjectReferenceUpdate {
 
-    implicit val projectReferenceToInternal: ToInternal[ProjectReference, services.task.TaskUpdate.ProjectReference] =
+    implicit val taskUpdateProjectReferenceUpdateToInternal
+        : ToInternal[ProjectReferenceUpdate, services.task.TaskUpdate.ProjectReference] =
       projectReference =>
         services.task.TaskUpdate.ProjectReference(
           projectReferenceId = projectReference.projectReferenceId.toInternal,
           weight = projectReference.weight
         )
 
-    implicit val projectReferenceInputObjectType: InputObjectType[ProjectReference] =
-      deriveInputObjectType[ProjectReference]()
+    implicit val taskUpdateProjectReferenceUpdateInputObjectType: InputObjectType[ProjectReferenceUpdate] =
+      deriveInputObjectType[ProjectReferenceUpdate]()
 
-    implicit lazy val projectReferenceFromInput: FromInput[ProjectReference] = circeDecoderFromInput[ProjectReference]
+    implicit lazy val taskUpdateProjectReferenceUpdateFromInput: FromInput[ProjectReferenceUpdate] =
+      circeDecoderFromInput[ProjectReferenceUpdate]
 
   }
 

@@ -1,9 +1,12 @@
 package graphql.types.task
 
 import graphql.types.FromAndToInternal
+import graphql.types.task.TaskCreation.PlainCreation
 import io.circe.generic.JsonCodec
-import sangria.macros.derive.deriveObjectType
-import sangria.schema.OutputType
+import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
+import sangria.marshalling.FromInput
+import sangria.marshalling.circe.circeDecoderFromInput
+import sangria.schema.{ InputObjectType, OutputType }
 import spire.math.Natural
 import utils.json.CirceUtil.instances._
 import utils.graphql.SangriaUtil.instances._
@@ -31,4 +34,10 @@ object Progress {
     )
 
   implicit lazy val progressOutputType: OutputType[Progress] = deriveObjectType[Unit, Progress]()
+
+  implicit val progressInputObjectType: InputObjectType[Progress] = deriveInputObjectType[Progress](
+    InputObjectTypeName("ProgressInput")
+  )
+
+  implicit lazy val progressFromInput: FromInput[Progress] = circeDecoderFromInput[Progress]
 }
