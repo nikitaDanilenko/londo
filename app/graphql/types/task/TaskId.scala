@@ -2,7 +2,7 @@ package graphql.types.task
 
 import graphql.types.FromAndToInternal
 import io.circe.generic.JsonCodec
-import sangria.macros.derive.{ deriveInputObjectType, deriveObjectType }
+import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
@@ -27,7 +27,11 @@ object TaskId {
   )
 
   implicit val taskIdObjectType: ObjectType[Unit, TaskId] = deriveObjectType[Unit, TaskId]()
-  implicit val taskIdInputObjectType: InputObjectType[TaskId] = deriveInputObjectType[TaskId]()
+
+  implicit val taskIdInputObjectType: InputObjectType[TaskId] = deriveInputObjectType[TaskId](
+    InputObjectTypeName("TaskIdInput")
+  )
+
   implicit lazy val taskIdFromInput: FromInput[TaskId] = circeDecoderFromInput[TaskId]
 
 }
