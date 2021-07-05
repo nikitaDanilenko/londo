@@ -10,7 +10,6 @@ case class ProjectCreation(
     name: String,
     description: Option[String],
     parentProject: Option[ProjectId],
-    weight: Natural,
     flatIfSingleTask: Boolean,
     readAccessors: Accessors.Representation,
     writeAccessors: Accessors.Representation
