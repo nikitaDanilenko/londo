@@ -24,6 +24,14 @@ trait HasLoggedInUser {
         .map(_.toInternal)
     )
 
+  final protected def withUser[F[_]: MonadThrow, A](create: UserId => F[A]): F[A] =
+    ApplicativeThrow[F]
+      .fromOption(
+        loggedInUserId,
+        ServerException(ServerError.Authentication.Token.Restricted)
+      )
+      .flatMap(create)
+
   final protected def allowedAccessVia[F[_]: MonadThrow, A, B](
       fa: F[A]
   )(accessorsOf: A => Accessors, conversion: A => B): F[B] =
