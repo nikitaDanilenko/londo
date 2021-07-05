@@ -25,6 +25,9 @@ object ServerError {
   def fromEither[A](either: Or[A]): Valid[A] =
     Validated.fromEither[NonEmptyList[ServerError], A](either.left.map(NonEmptyList.of(_)))
 
+  def fromEitherNel[A](either: Either[NonEmptyList[ServerError], A]): Valid[A] =
+    Validated.fromEither(either)
+
   def fromCondition[A](condition: Boolean, errorCase: => ServerError, successCase: => A): Valid[A] =
     Validated.condNel(condition, successCase, errorCase)
 
