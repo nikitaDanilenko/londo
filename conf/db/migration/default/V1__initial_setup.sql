@@ -135,13 +135,15 @@ alter table project_write_access_entry
 
 create table dashboard_project_association(
     dashboard_id uuid not null,
-    project_id uuid not null
+    project_id uuid not null,
+    weight int not null
 );
 
 alter table dashboard_project_association
     add constraint dashboard_project_association_pk primary key (dashboard_id, project_id),
     add constraint dashboard_project_association_dashboard_id_fk foreign key (dashboard_id) references dashboard(id) on delete cascade,
-    add constraint dashboard_project_association_project_id_fk foreign key (project_id) references project(id) on delete cascade;
+    add constraint dashboard_project_association_project_id_fk foreign key (project_id) references project(id) on delete cascade,
+    add constraint dashboard_project_association_weight_non_negative check (weight >= 0);
 
 
 create table task_kind(
@@ -174,7 +176,7 @@ alter table plain_task
     add constraint plain_task_kind_id_fk foreign key (kind_id) references task_kind(id) on delete cascade,
     add constraint reached_non_negative check (reached is null or reached >= 0),
     add constraint reachable_larger_than_reached check (reachable is null or reachable >= reached),
-    add constraint weight_non_negative check (weight >= 0);
+    add constraint plain_task_weight_non_negative check (weight >= 0);
 
 create table project_reference_task(
     id uuid not null,
@@ -186,7 +188,7 @@ create table project_reference_task(
 alter table project_reference_task
     add constraint project_reference_task_pk primary key (id, project_id),
     add constraint project_reference_task_project_reference_id foreign key (project_id) references project(id) on delete cascade,
-    add constraint weight_non_negative check (weight >= 0);;
+    add constraint project_reference_task_weight_non_negative check (weight >= 0);;
 
 create table session_key(
     user_id uuid not null,
