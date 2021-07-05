@@ -2,11 +2,9 @@ package services.project
 
 import cats.effect.IO
 import services.user.UserId
-import spire.math.Natural
 import utils.random.RandomGenerator
 
 case class ProjectCreation(
-    ownerId: UserId,
     name: String,
     description: Option[String],
     parentProject: Option[ProjectId],
@@ -17,7 +15,7 @@ case class ProjectCreation(
 
 object ProjectCreation {
 
-  def create(projectCreation: ProjectCreation): IO[Project] =
+  def create(ownerId: UserId, projectCreation: ProjectCreation): IO[Project] =
     RandomGenerator.randomUUID.map { uuid =>
       Project(
         id = ProjectId(uuid),
@@ -25,7 +23,7 @@ object ProjectCreation {
         projectReferenceTasks = Vector.empty,
         name = projectCreation.name,
         description = projectCreation.description,
-        ownerId = projectCreation.ownerId,
+        ownerId = ownerId,
         flatIfSingleTask = projectCreation.flatIfSingleTask,
         parentProjectId = projectCreation.parentProject,
         readAccessors = ProjectAccess[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),

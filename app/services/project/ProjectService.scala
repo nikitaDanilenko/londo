@@ -28,10 +28,13 @@ class ProjectService @Inject() (
     transactionally: Transactionally
 ) {
 
-  def create[F[_]: Async: ContextShift](projectCreation: ProjectCreation): F[ServerError.Valid[Project]] =
+  def create[F[_]: Async: ContextShift](
+      ownerId: UserId,
+      projectCreation: ProjectCreation
+  ): F[ServerError.Valid[Project]] =
     transactionally {
       for {
-        createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
+        createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(ownerId, projectCreation))
         project <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
         readAccess <- setReadAccessC(createdProject.id, createdProject.readAccessors)
         writeAccess <- setWriteAccessC(createdProject.id, createdProject.writeAccessors)
@@ -49,9 +52,9 @@ class ProjectService @Inject() (
       }
     }
 
-  def createC(projectCreation: ProjectCreation): ConnectionIO[ServerError.Valid[Project]] =
+  def createC(ownerId: UserId, projectCreation: ProjectCreation): ConnectionIO[ServerError.Valid[Project]] =
     for {
-      createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(projectCreation))
+      createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(ownerId, projectCreation))
       _ <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
       _ <- setReadAccessC(createdProject.id, createdProject.readAccessors)
       _ <- setWriteAccessC(createdProject.id, createdProject.writeAccessors)
