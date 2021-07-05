@@ -18,7 +18,6 @@ case class ProjectCreation(
     name: String,
     description: Option[String],
     parentProject: Option[ProjectId],
-    weight: Natural,
     flatIfSingleTask: Boolean,
     readAccessors: Accessors,
     writeAccessors: Accessors
@@ -33,7 +32,6 @@ object ProjectCreation {
         name = projectCreation.name,
         description = projectCreation.description,
         parentProject = projectCreation.parentProject.map(_.toInternal),
-        weight = projectCreation.weight,
         flatIfSingleTask = projectCreation.flatIfSingleTask,
         readAccessors = projectCreation.readAccessors.toInternal,
         writeAccessors = projectCreation.writeAccessors.toInternal
