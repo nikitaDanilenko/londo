@@ -7,7 +7,7 @@ import graphql.HasGraphQLServices.syntax._
 import graphql.types.ToInternal.syntax._
 import graphql.types.FromInternal.syntax._
 import graphql.types.project.{ Accessors, Project, ProjectCreation, ProjectId, ProjectUpdate }
-import graphql.types.task.{ Task, TaskCreation, TaskKey }
+import graphql.types.task.{ ProgressUpdate, Task, TaskCreation, TaskKey, TaskUpdate }
 import graphql.types.user.UserId
 import graphql.types.util.NonEmptyList
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
@@ -135,6 +135,35 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
         projectUpdate = projectUpdate.toInternal
       )
       .map(_.fromInternal[Project])
+      .unsafeToFuture()
+      .handleServerError
+
+  @GraphQLField
+  def updatePlainTask(taskKey: TaskKey, plainUpdate: TaskUpdate.PlainUpdate): Future[Task.Plain] =
+    // TODO: Check write access
+    graphQLServices.taskService
+      .updatePlainTask(taskKey.toInternal, plainUpdate.toInternal)
+      .map(_.fromInternal[Task.Plain])
+      .unsafeToFuture()
+      .handleServerError
+
+  @GraphQLField
+  def updateProjectReferenceTask(
+      taskKey: TaskKey,
+      projectReferenceUpdate: TaskUpdate.ProjectReferenceUpdate
+  ): Future[Task.ProjectReference] =
+    // TODO: Check write access
+    graphQLServices.taskService
+      .updateProjectReferenceTask(taskKey.toInternal, projectReferenceUpdate.toInternal)
+      .map(_.fromInternal[Task.ProjectReference])
+      .unsafeToFuture()
+      .handleServerError
+
+  def updateTaskProgress(taskKey: TaskKey, progressUpdate: ProgressUpdate): Future[Task.Plain] =
+    // TODO: Check write access
+    graphQLServices.taskService
+      .updateTaskProgress(taskKey.toInternal, progressUpdate.toInternal)
+      .map(_.fromInternal[Task.Plain])
       .unsafeToFuture()
       .handleServerError
 
