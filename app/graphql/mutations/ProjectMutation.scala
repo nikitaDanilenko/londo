@@ -189,19 +189,11 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
   )(
       f: services.user.UserId => IO[ServerError.Valid[A]]
   ): Future[A] = {
-    EitherT(
-      graphQLServices.projectService
-        .fetch(projectId.toInternal)
-        .map(_.toEither)
-    ).flatMap(project =>
-      EitherT.liftF[IO, cats.data.NonEmptyList[ServerError], services.user.UserId](
-        allowedAccess(project.writeAccessors.accessors)
-      )
-    ).flatMap(userId => EitherT(f(userId).map(_.toEither)))
-      .value
-      .map(ServerError.fromEitherNel)
-      .unsafeToFuture()
-      .handleServerError
+    validateProjectProjectAccess(
+      projectService = graphQLServices.projectService,
+      projectId = projectId,
+      accessorsOf = _.writeAccessors.accessors
+    )(f)
   }
 
 }

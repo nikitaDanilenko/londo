@@ -1,14 +1,18 @@
 package graphql
 
 import cats.ApplicativeThrow
-import cats.data.NonEmptySet
-import cats.effect.MonadThrow
-import errors.{ ServerError, ServerException }
-import graphql.types.ToInternal.syntax._
-import graphql.types.user.UserId
-import services.project.Accessors
+import cats.data.{ EitherT, NonEmptySet }
+import cats.effect.{ ContextShift, IO, MonadThrow }
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import errors.{ ServerError, ServerException }
+import graphql.HasGraphQLServices.syntax._
+import graphql.types.ToInternal.syntax._
+import graphql.types.project.ProjectId
+import graphql.types.user.UserId
+import services.project.{ Accessors, ProjectService }
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait HasLoggedInUser {
   protected def loggedInUserId: Option[UserId]
@@ -41,5 +45,27 @@ trait HasLoggedInUser {
       fa: F[ServerError.Valid[A]]
   )(accessorsOf: A => Accessors, conversion: A => B): F[ServerError.Valid[B]] =
     fa.flatMap(_.traverse(a => allowedAccess(accessorsOf(a)).map(_ => conversion(a))))
+
+  def validateProjectProjectAccess[A](
+      projectService: ProjectService,
+      projectId: ProjectId,
+      accessorsOf: services.project.Project => Accessors
+  )(
+      f: services.user.UserId => IO[ServerError.Valid[A]]
+  )(implicit contextShift: ContextShift[IO], executionContext: ExecutionContext): Future[A] = {
+    EitherT(
+      projectService
+        .fetch[IO](projectId.toInternal)
+        .map(_.toEither)
+    ).flatMap(project =>
+      EitherT.liftF[IO, cats.data.NonEmptyList[ServerError], services.user.UserId](
+        allowedAccess(accessorsOf(project))
+      )
+    ).flatMap(userId => EitherT(f(userId).map(_.toEither)))
+      .value
+      .map(ServerError.fromEitherNel)
+      .unsafeToFuture()
+      .handleServerError
+  }
 
 }
