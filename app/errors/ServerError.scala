@@ -34,6 +34,9 @@ object ServerError {
   def fromOption[A](option: Option[A], errorCase: => ServerError): Valid[A] =
     fromEither(option.toRight(errorCase))
 
+  def valid[A](a: A): Valid[A] =
+    Validated.valid(a)
+
   def liftC[A](ca: ConnectionIO[A]): EitherT[ConnectionIO, NonEmptyList[ServerError], A] =
     EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], A](ca)
 
