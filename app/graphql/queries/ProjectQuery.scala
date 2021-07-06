@@ -1,9 +1,8 @@
 package graphql.queries
 
 import cats.effect.IO
-import graphql.HasGraphQLServices.syntax._
+import errors.ServerError
 import graphql.types.FromInternal.syntax._
-import graphql.types.ToInternal.syntax._
 import graphql.types.project.{ Project, ProjectId }
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
@@ -15,12 +14,19 @@ trait ProjectQuery extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField()
   def fetchProject(projectId: ProjectId): Future[Project] = {
-    allowedAccessViaError(
-      graphQLServices.projectService
-        .fetch[IO](projectId.toInternal)
-    )(_.readAccessors.accessors, _.fromInternal[Project])
-      .unsafeToFuture()
-      .handleServerError
+    validateProjectReadAccess(projectId)((_, project) => IO.pure(ServerError.valid(project.fromInternal[Project])))
+  }
+
+  private def validateProjectReadAccess[A](
+      projectId: ProjectId
+  )(
+      f: (services.user.UserId, services.project.Project) => IO[ServerError.Valid[A]]
+  ): Future[A] = {
+    validateProjectProjectAccess(
+      projectService = graphQLServices.projectService,
+      projectId = projectId,
+      accessorsOf = _.readAccessors.accessors
+    )(f)
   }
 
 }

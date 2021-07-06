@@ -193,7 +193,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       projectService = graphQLServices.projectService,
       projectId = projectId,
       accessorsOf = _.writeAccessors.accessors
-    )(f)
+    )((user, _) => f(user))
   }
 
 }

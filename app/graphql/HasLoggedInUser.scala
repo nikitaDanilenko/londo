@@ -51,18 +51,19 @@ trait HasLoggedInUser {
       projectId: ProjectId,
       accessorsOf: services.project.Project => Accessors
   )(
-      f: services.user.UserId => IO[ServerError.Valid[A]]
+      f: (services.user.UserId, services.project.Project) => IO[ServerError.Valid[A]]
   )(implicit contextShift: ContextShift[IO], executionContext: ExecutionContext): Future[A] = {
     EitherT(
       projectService
         .fetch[IO](projectId.toInternal)
         .map(_.toEither)
     ).flatMap(project =>
-      EitherT.liftF[IO, cats.data.NonEmptyList[ServerError], services.user.UserId](
-        allowedAccess(accessorsOf(project))
-      )
-    ).flatMap(userId => EitherT(f(userId).map(_.toEither)))
-      .value
+      EitherT
+        .liftF[IO, cats.data.NonEmptyList[ServerError], services.user.UserId](
+          allowedAccess[IO](accessorsOf(project))
+        )
+        .flatMap(userId => EitherT(f(userId, project).map(_.toEither)))
+    ).value
       .map(ServerError.fromEitherNel)
       .unsafeToFuture()
       .handleServerError
