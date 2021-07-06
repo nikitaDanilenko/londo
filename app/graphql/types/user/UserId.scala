@@ -1,6 +1,7 @@
 package graphql.types.user
 
 import graphql.types.FromAndToInternal
+import graphql.types.util.NonEmptyList
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
@@ -33,5 +34,16 @@ object UserId {
   )
 
   implicit lazy val userIdFromInput: FromInput[UserId] = circeDecoderFromInput[UserId]
+
+  implicit lazy val nonEmptyListOfUserIdInputType: InputObjectType[NonEmptyList[UserId]] =
+    deriveInputObjectType[NonEmptyList[UserId]](
+      InputObjectTypeName("NonEmptyListOfUserIdInput")
+    )
+
+  implicit lazy val nonEmptyListOfUserIdFromInput: FromInput[NonEmptyList[UserId]] =
+    circeDecoderFromInput[NonEmptyList[UserId]]
+
+  implicit lazy val nonEmptyListOfUserIdOutputType: ObjectType[Unit, NonEmptyList[UserId]] =
+    deriveObjectType[Unit, NonEmptyList[UserId]]()
 
 }
