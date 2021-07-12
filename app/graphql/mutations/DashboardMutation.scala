@@ -6,16 +6,16 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
 
   import ioImplicits._
 
-  def createDashboard
+  def createDashboard = ???
 
-  def updateDashboard
+  def updateDashboard = ???
 
-  def deleteDashboard
+  def deleteDashboard = ???
 
-  def addProjectToDashboard
+  def addProjectToDashboard = ???
 
-  def adjustWeightsOnDashboard
+  def adjustWeightsOnDashboard = ???
 
-  def removeProjectFromDashboard
+  def removeProjectFromDashboard = ???
 
 }

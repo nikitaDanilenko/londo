@@ -6,8 +6,8 @@ trait DashboardQuery extends HasGraphQLServices with HasLoggedInUser {
 
   import ioImplicits._
 
-  def findDashboard
+  def findDashboard = ???
 
-  def dashboardProgressOf
+  def dashboardProgressOf = ???
 
 }
