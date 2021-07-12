@@ -32,14 +32,8 @@ object DaoGeneratorParameters {
       daoPackage = daoPackage,
       keyDescription = keyDescription,
       columnSearches = columnSearches,
-      fieldNames = fieldList[A]
+      fieldNames = TermUtils.fieldList[A]
     )
-  }
-
-  private def fieldList[A](implicit classTag: ClassTag[A]): List[String] = {
-    classTag.runtimeClass.getDeclaredFields
-      .map(_.getName)
-      .toList
   }
 
 }

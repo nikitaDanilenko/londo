@@ -1,19 +1,7 @@
 package db.generators
 
 import better.files.File
-import db.models.{
-  Dashboard,
-  DashboardRestriction,
-  LoginAttempt,
-  Project,
-  ProjectAccess,
-  RegistrationToken,
-  SessionKey,
-  Task,
-  TaskKind,
-  User,
-  UserDetails
-}
+import db.models._
 import services.user.UserSettings
 
 import scala.meta.Type
@@ -29,6 +17,10 @@ object DaoGenerator {
         Column.uuid(
           name = "id",
           mandatory = true
+        ),
+        KeyCaseClass1.fromNames(
+          className = "DashboardId",
+          fieldName = "uuid"
         )
       ),
       columnSearches = List(
@@ -38,21 +30,84 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters[DashboardRestriction](
+    daoGeneratorParameters[DashboardReadAccess](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "dashboardId",
           mandatory = true
+        ),
+        KeyCaseClass1.fromNames(
+          className = "DashboardReadAccessId",
+          fieldName = "uuid"
         )
       ),
       columnSearches = List.empty
+    ),
+    daoGeneratorParameters[DashboardReadAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "dashboardReadAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("DashboardReadAccessEntryId")("dashboardReadAccessId", "uuid")("userId", "uuid")
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "dashboardReadAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      )
+    ),
+    daoGeneratorParameters[DashboardWriteAccess](
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "dashboardId",
+          mandatory = true
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("DashboardWriteAccessId", "uuid")
+      ),
+      columnSearches = List.empty
+    ),
+    daoGeneratorParameters[DashboardWriteAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "dashboardWriteAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("DashboardWriteAccessEntryId")("dashboardWriteAccessId", "uuid")("userId", "uuid")
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "dashboardWriteAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      )
     ),
     daoGeneratorParameters[Project](
       keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "id",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("ProjectId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -69,20 +124,32 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters[ProjectAccess](
-      keyDescription = KeyDescription.column2(
+    daoGeneratorParameters[ProjectReadAccess](
+      keyDescription = KeyDescription.column1(
         Column.uuid(
           name = "projectId",
+          mandatory = true
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("ProjectReadAccessId", "uuid")
+      ),
+      columnSearches = List.empty
+    ),
+    daoGeneratorParameters[ProjectReadAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "projectReadAccessId",
           mandatory = true
         ),
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("ProjectReadAccessEntryId")("projectReadAccessId", "uuid")("userId", "uuid")
       ),
       columnSearches = List(
         Column.uuid(
-          name = "projectId",
+          name = "projectReadAccessId",
           mandatory = true
         ),
         Column.uuid(
@@ -91,7 +158,41 @@ object DaoGenerator {
         )
       )
     ),
-    daoGeneratorParameters[Task](
+    daoGeneratorParameters[ProjectWriteAccess](
+      keyDescription = KeyDescription.column1(
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("ProjectWriteAccessId", "uuid")
+      ),
+      columnSearches = List.empty
+    ),
+    daoGeneratorParameters[ProjectWriteAccessEntry](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "projectWriteAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("ProjectWriteAccessEntryId")("projectWriteAccessId", "uuid")("userId", "uuid")
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "projectWriteAccessId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "userId",
+          mandatory = true
+        )
+      )
+    ),
+    daoGeneratorParameters[PlainTask](
       keyDescription = KeyDescription.column2(
         Column.uuid(
           name = "id",
@@ -100,7 +201,31 @@ object DaoGenerator {
         Column.uuid(
           name = "projectId",
           mandatory = true
+        ),
+        keyCaseClass2 = KeyCaseClass2.fromNames("TaskId")("projectId", "uuid")("uuid")
+      ),
+      columnSearches = List(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
         )
+      )
+    ),
+    daoGeneratorParameters[ProjectReferenceTask](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "id",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        ),
+        keyCaseClass2 = KeyCaseClass2.fromNames("TaskId")("projectId", "uuid")("uuid")
       ),
       columnSearches = List(
         Column.uuid(
@@ -118,7 +243,8 @@ object DaoGenerator {
         Column.uuid(
           name = "id",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("TaskKindId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -127,7 +253,8 @@ object DaoGenerator {
         Column.uuid(
           name = "id",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List(
         Column.string(
@@ -145,7 +272,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -154,7 +282,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -163,7 +292,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     ),
@@ -172,7 +302,8 @@ object DaoGenerator {
         Column.string(
           name = "email",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("RegistrationTokenId", "email")
       ),
       columnSearches = List.empty
     ),
@@ -181,7 +312,8 @@ object DaoGenerator {
         Column.uuid(
           name = "userId",
           mandatory = true
-        )
+        ),
+        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
     )

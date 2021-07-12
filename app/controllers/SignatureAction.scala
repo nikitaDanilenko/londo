@@ -4,6 +4,7 @@ import cats.data.EitherT
 import cats.effect.{ ContextShift, IO }
 import db.ContextShiftProvider
 import db.generated.daos.SessionKeyDAO
+import db.keys.UserId
 import db.models.SessionKey
 import errors.ServerError
 import io.circe.syntax._
@@ -38,7 +39,7 @@ class SignatureAction @Inject() (
         val transformer = for {
           jwtContent <- EitherT.fromEither[Future](JwtUtil.validateJwt(token, jwtConfiguration.signaturePublicKey))
           sessionKey <- EitherT.fromOptionF[Future, ServerError, SessionKey](
-            sessionKeyDAO.find[IO](jwtContent.userId).unsafeToFuture(),
+            sessionKeyDAO.find[IO](UserId(jwtContent.userId.uuid)).unsafeToFuture(),
             ServerError.Authentication.Token.MissingSessionKey: ServerError
           )
           signatureRequest <- EitherT.fromEither[Future](SignatureRequest.fromRequest(request))

@@ -1,9 +1,9 @@
 package graphql
 
-import graphql.mutations.UserMutation
-import services.user.UserId
+import graphql.mutations.{ ProjectMutation, UserMutation }
+import graphql.types.user.UserId
 
-trait Mutation extends UserMutation
+trait Mutation extends UserMutation with ProjectMutation
 
 object Mutation {
 

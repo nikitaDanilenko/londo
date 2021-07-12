@@ -7,6 +7,42 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
   object PublicSchema {
 
+    object DashboardReadAccessEntryDao {
+
+      def query =
+        quote {
+          querySchema[DashboardReadAccessEntry](
+            "public.dashboard_read_access_entry"
+          )
+
+        }
+
+    }
+
+    object DashboardReadAccessDao {
+
+      def query =
+        quote {
+          querySchema[DashboardReadAccess](
+            "public.dashboard_read_access"
+          )
+
+        }
+
+    }
+
+    object ProjectWriteAccessDao {
+
+      def query =
+        quote {
+          querySchema[ProjectWriteAccess](
+            "public.project_write_access"
+          )
+
+        }
+
+    }
+
     object RegistrationTokenDao {
 
       def query =
@@ -31,6 +67,18 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
     }
 
+    object ProjectReadAccessEntryDao {
+
+      def query =
+        quote {
+          querySchema[ProjectReadAccessEntry](
+            "public.project_read_access_entry"
+          )
+
+        }
+
+    }
+
     object TaskKindDao {
 
       def query =
@@ -43,24 +91,24 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
     }
 
-    object ProjectAccessDao {
+    object ProjectReferenceTaskDao {
 
       def query =
         quote {
-          querySchema[ProjectAccess](
-            "public.project_access"
+          querySchema[ProjectReferenceTask](
+            "public.project_reference_task"
           )
 
         }
 
     }
 
-    object DashboardRestrictionDao {
+    object DashboardWriteAccessDao {
 
       def query =
         quote {
-          querySchema[DashboardRestriction](
-            "public.dashboard_restriction"
+          querySchema[DashboardWriteAccess](
+            "public.dashboard_write_access"
           )
 
         }
@@ -79,12 +127,12 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
     }
 
-    object DashboardRestrictionAccessDao {
+    object PlainTaskDao {
 
       def query =
         quote {
-          querySchema[DashboardRestrictionAccess](
-            "public.dashboard_restriction_access"
+          querySchema[PlainTask](
+            "public.plain_task"
           )
 
         }
@@ -103,12 +151,48 @@ trait PublicExtensions[Idiom <: io.getquill.idiom.Idiom, Naming <: io.getquill.N
 
     }
 
-    object TaskDao {
+    object ProjectWriteAccessEntryDao {
 
       def query =
         quote {
-          querySchema[Task](
-            "public.task"
+          querySchema[ProjectWriteAccessEntry](
+            "public.project_write_access_entry"
+          )
+
+        }
+
+    }
+
+    object ProjectReadAccessDao {
+
+      def query =
+        quote {
+          querySchema[ProjectReadAccess](
+            "public.project_read_access"
+          )
+
+        }
+
+    }
+
+    object DashboardProjectAssociationDao {
+
+      def query =
+        quote {
+          querySchema[DashboardProjectAssociation](
+            "public.dashboard_project_association"
+          )
+
+        }
+
+    }
+
+    object DashboardWriteAccessEntryDao {
+
+      def query =
+        quote {
+          querySchema[DashboardWriteAccessEntry](
+            "public.dashboard_write_access_entry"
           )
 
         }

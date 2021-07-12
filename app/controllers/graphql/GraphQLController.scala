@@ -12,7 +12,6 @@ import sangria.execution.{ ErrorWithResolver, Executor, QueryAnalysisError }
 import sangria.marshalling.circe._
 import sangria.parser.QueryParser
 import security.jwt.JwtConfiguration
-import services.user.UserId
 import utils.jwt.JwtUtil
 
 import javax.inject.{ Inject, Singleton }
@@ -44,7 +43,7 @@ class GraphQLController @Inject() (
             logger.warn(error.message)
             contextWithoutUser
           },
-          jwtContent => GraphQLContext.withUser(graphQLServices, UserId(jwtContent.userId))
+          jwtContent => GraphQLContext.withUser(graphQLServices, jwtContent.userId)
         )
 
       QueryParser

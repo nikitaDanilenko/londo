@@ -5,5 +5,6 @@ case class Project(
     ownerId: java.util.UUID,
     name: String,
     description: Option[String],
-    parentProjectId: Option[java.util.UUID]
+    parentProjectId: Option[java.util.UUID],
+    flatIfSingleTask: Boolean
 )

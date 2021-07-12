@@ -2,44 +2,31 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
-import db.{ DbContext, DbTransactorProvider }
+import db.keys._
+import db.{ DbContext, DbTransactorProvider, DAOFunctions }
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class LoginAttemptDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
+class LoginAttemptDAO @Inject() (
+    dbContext: DbContext,
+    override protected val dbTransactorProvider: DbTransactorProvider
+) extends DAOFunctions[LoginAttempt, LoginAttemptDAO.Key] {
   import dbContext._
 
-  def find[F[_]: Async: ContextShift](key: UUID): F[Option[LoginAttempt]] =
-    findF(key).transact(dbTransactorProvider.transactor[F])
+  override def findC(key: LoginAttemptDAO.Key): ConnectionIO[Option[LoginAttempt]] =
+    run(findAction(key)).map(_.headOption)
 
-  def findF(key: UUID): ConnectionIO[Option[LoginAttempt]] = run(findAction(key)).map(_.headOption)
+  override def insertC(row: LoginAttempt): ConnectionIO[LoginAttempt] = run(insertAction(row))
+  override def insertAllC(rows: Seq[LoginAttempt]): ConnectionIO[List[LoginAttempt]] = run(insertAllAction(rows))
+  override def deleteC(key: LoginAttemptDAO.Key): ConnectionIO[LoginAttempt] = run(deleteAction(key))
+  override def replaceC(row: LoginAttempt): ConnectionIO[LoginAttempt] = run(replaceAction(row))
 
-  def insert[F[_]: Async: ContextShift](row: LoginAttempt): F[LoginAttempt] =
-    insertF(row).transact(dbTransactorProvider.transactor[F])
-
-  def insertF(row: LoginAttempt): ConnectionIO[LoginAttempt] = run(insertAction(row))
-
-  def insertAll[F[_]: Async: ContextShift](rows: Seq[LoginAttempt]): F[List[LoginAttempt]] =
-    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
-
-  def insertAllF(rows: Seq[LoginAttempt]): ConnectionIO[List[LoginAttempt]] = run(insertAllAction(rows))
-
-  def delete[F[_]: Async: ContextShift](key: UUID): F[LoginAttempt] =
-    deleteF(key).transact(dbTransactorProvider.transactor[F])
-
-  def deleteF(key: UUID): ConnectionIO[LoginAttempt] = run(deleteAction(key))
-
-  def replace[F[_]: Async: ContextShift](row: LoginAttempt): F[LoginAttempt] =
-    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-
-  def replaceF(row: LoginAttempt): ConnectionIO[LoginAttempt] = run(replaceAction(row))
-
-  private def findAction(key: UUID) =
+  private def findAction(key: LoginAttemptDAO.Key) =
     quote {
-      PublicSchema.LoginAttemptDao.query.filter(a => a.userId == lift(key))
+      PublicSchema.LoginAttemptDao.query.filter(a => a.userId == lift(key.uuid))
     }
 
   private def insertAction(row: LoginAttempt): Quoted[ActionReturning[LoginAttempt, LoginAttempt]] =
@@ -52,7 +39,7 @@ class LoginAttemptDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbT
       liftQuery(rows).foreach(e => PublicSchema.LoginAttemptDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UUID) =
+  private def deleteAction(key: LoginAttemptDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
@@ -71,3 +58,5 @@ class LoginAttemptDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbT
   }
 
 }
+
+object LoginAttemptDAO { type Key = UserId }

@@ -2,9 +2,8 @@ package graphql
 
 import sangria.macros.derive.deriveContextObjectType
 import sangria.schema.{ ObjectType, Schema }
-import graphql.types.ModelTypes._
-
 import javax.inject.Singleton
+import utils.graphql.SangriaUtil.instances._
 
 @Singleton
 class GraphQLSchema {

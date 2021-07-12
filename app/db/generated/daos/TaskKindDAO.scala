@@ -2,44 +2,26 @@ package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
 import db.models._
-import db.{ DbContext, DbTransactorProvider }
+import db.keys._
+import db.{ DbContext, DbTransactorProvider, DAOFunctions }
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.getquill.ActionReturning
 import java.util.UUID
 import javax.inject.Inject
 
-class TaskKindDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTransactorProvider) {
+class TaskKindDAO @Inject() (dbContext: DbContext, override protected val dbTransactorProvider: DbTransactorProvider)
+    extends DAOFunctions[TaskKind, TaskKindDAO.Key] {
   import dbContext._
+  override def findC(key: TaskKindDAO.Key): ConnectionIO[Option[TaskKind]] = run(findAction(key)).map(_.headOption)
+  override def insertC(row: TaskKind): ConnectionIO[TaskKind] = run(insertAction(row))
+  override def insertAllC(rows: Seq[TaskKind]): ConnectionIO[List[TaskKind]] = run(insertAllAction(rows))
+  override def deleteC(key: TaskKindDAO.Key): ConnectionIO[TaskKind] = run(deleteAction(key))
+  override def replaceC(row: TaskKind): ConnectionIO[TaskKind] = run(replaceAction(row))
 
-  def find[F[_]: Async: ContextShift](key: UUID): F[Option[TaskKind]] =
-    findF(key).transact(dbTransactorProvider.transactor[F])
-
-  def findF(key: UUID): ConnectionIO[Option[TaskKind]] = run(findAction(key)).map(_.headOption)
-
-  def insert[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] =
-    insertF(row).transact(dbTransactorProvider.transactor[F])
-
-  def insertF(row: TaskKind): ConnectionIO[TaskKind] = run(insertAction(row))
-
-  def insertAll[F[_]: Async: ContextShift](rows: Seq[TaskKind]): F[List[TaskKind]] =
-    insertAllF(rows).transact(dbTransactorProvider.transactor[F])
-
-  def insertAllF(rows: Seq[TaskKind]): ConnectionIO[List[TaskKind]] = run(insertAllAction(rows))
-
-  def delete[F[_]: Async: ContextShift](key: UUID): F[TaskKind] =
-    deleteF(key).transact(dbTransactorProvider.transactor[F])
-
-  def deleteF(key: UUID): ConnectionIO[TaskKind] = run(deleteAction(key))
-
-  def replace[F[_]: Async: ContextShift](row: TaskKind): F[TaskKind] =
-    run(replaceAction(row)).transact(dbTransactorProvider.transactor[F])
-
-  def replaceF(row: TaskKind): ConnectionIO[TaskKind] = run(replaceAction(row))
-
-  private def findAction(key: UUID) =
+  private def findAction(key: TaskKindDAO.Key) =
     quote {
-      PublicSchema.TaskKindDao.query.filter(a => a.id == lift(key))
+      PublicSchema.TaskKindDao.query.filter(a => a.id == lift(key.uuid))
     }
 
   private def insertAction(row: TaskKind): Quoted[ActionReturning[TaskKind, TaskKind]] =
@@ -52,7 +34,7 @@ class TaskKindDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTrans
       liftQuery(rows).foreach(e => PublicSchema.TaskKindDao.query.insert(e).returning(x => x))
     }
 
-  private def deleteAction(key: UUID) =
+  private def deleteAction(key: TaskKindDAO.Key) =
     quote {
       findAction(key).delete.returning(x => x)
     }
@@ -67,3 +49,5 @@ class TaskKindDAO @Inject() (dbContext: DbContext, dbTransactorProvider: DbTrans
   }
 
 }
+
+object TaskKindDAO { type Key = TaskKindId }
