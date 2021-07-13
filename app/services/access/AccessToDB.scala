@@ -4,10 +4,10 @@ import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess
 import services.project.ProjectId
 import services.user.UserId
 
-sealed trait AccessToDB[AccessK, DBAccessK, DBAccessEntry] {
+sealed trait AccessToDB[Id, AccessK, DBAccessK, DBAccessEntry] {
 
-  def mkAccess(projectId: ProjectId, isAllowList: Boolean): DBAccessK
-  def mkAccessEntry(projectId: ProjectId, userId: UserId): DBAccessEntry
+  def mkAccess(id: Id, isAllowList: Boolean): DBAccessK
+  def mkAccessEntry(id: Id, userId: UserId): DBAccessEntry
 
 }
 
@@ -15,35 +15,37 @@ object AccessToDB {
 
   trait Instances {
 
-    implicit val projectReadAccessToDB: AccessToDB[AccessKind.Read, ProjectReadAccess, ProjectReadAccessEntry] =
-      new AccessToDB[AccessKind.Read, ProjectReadAccess, ProjectReadAccessEntry] {
+    implicit val projectReadAccessToDB
+        : AccessToDB[ProjectId, AccessKind.Read, ProjectReadAccess, ProjectReadAccessEntry] =
+      new AccessToDB[ProjectId, AccessKind.Read, ProjectReadAccess, ProjectReadAccessEntry] {
 
-        override def mkAccess(projectId: ProjectId, isAllowList: Boolean): ProjectReadAccess =
+        override def mkAccess(id: ProjectId, isAllowList: Boolean): ProjectReadAccess =
           ProjectReadAccess(
-            projectId = projectId.uuid,
+            projectId = id.uuid,
             isAllowList = isAllowList
           )
 
-        override def mkAccessEntry(projectId: ProjectId, userId: UserId): ProjectReadAccessEntry =
+        override def mkAccessEntry(id: ProjectId, userId: UserId): ProjectReadAccessEntry =
           ProjectReadAccessEntry(
-            projectReadAccessId = projectId.uuid,
+            projectReadAccessId = id.uuid,
             userId = userId.uuid
           )
 
       }
 
-    implicit val projectWriteAccessToDB: AccessToDB[AccessKind.Write, ProjectWriteAccess, ProjectWriteAccessEntry] =
-      new AccessToDB[AccessKind.Write, ProjectWriteAccess, ProjectWriteAccessEntry] {
+    implicit val projectWriteAccessToDB
+        : AccessToDB[ProjectId, AccessKind.Write, ProjectWriteAccess, ProjectWriteAccessEntry] =
+      new AccessToDB[ProjectId, AccessKind.Write, ProjectWriteAccess, ProjectWriteAccessEntry] {
 
-        override def mkAccess(projectId: ProjectId, isAllowList: Boolean): ProjectWriteAccess =
+        override def mkAccess(id: ProjectId, isAllowList: Boolean): ProjectWriteAccess =
           ProjectWriteAccess(
-            projectId = projectId.uuid,
+            projectId = id.uuid,
             isAllowList = isAllowList
           )
 
-        override def mkAccessEntry(projectId: ProjectId, userId: UserId): ProjectWriteAccessEntry =
+        override def mkAccessEntry(id: ProjectId, userId: UserId): ProjectWriteAccessEntry =
           ProjectWriteAccessEntry(
-            projectWriteAccessId = projectId.uuid,
+            projectWriteAccessId = id.uuid,
             userId = userId.uuid
           )
 

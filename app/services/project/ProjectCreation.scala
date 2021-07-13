@@ -27,8 +27,8 @@ object ProjectCreation {
         ownerId = ownerId,
         flatIfSingleTask = projectCreation.flatIfSingleTask,
         parentProjectId = projectCreation.parentProject,
-        readAccessors = ProjectAccess[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),
-        writeAccessors = ProjectAccess[AccessKind.Write](Accessors.fromRepresentation(projectCreation.writeAccessors))
+        readAccessors = Access[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),
+        writeAccessors = Access[AccessKind.Write](Accessors.fromRepresentation(projectCreation.writeAccessors))
       )
     }
 

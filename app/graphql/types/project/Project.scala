@@ -6,7 +6,7 @@ import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
-import services.project.ProjectAccess
+import services.project.Access
 import FromInternal.syntax._
 
 @JsonCodec
@@ -26,7 +26,7 @@ case class Project(
 object Project {
 
   implicit val projectFromInternal: FromInternal[Project, services.project.Project] = {
-    def accessorsFromInternal[AK](projectAccess: ProjectAccess[AK]): Accessors =
+    def accessorsFromInternal[AK](projectAccess: Access[AK]): Accessors =
       services.access.Accessors.toRepresentation(projectAccess.accessors).fromInternal
     project =>
       Project(

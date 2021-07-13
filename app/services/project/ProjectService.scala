@@ -64,14 +64,14 @@ class ProjectService @Inject() (
 
   private def setReadAccessC(
       projectId: ProjectId,
-      projectAccess: ProjectAccess[AccessKind.Read]
-  ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
+      projectAccess: Access[AccessKind.Read]
+  ): ConnectionIO[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
     setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
 
   private def setWriteAccessC(
       projectId: ProjectId,
-      projectAccess: ProjectAccess[AccessKind.Write]
-  ): ConnectionIO[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
+      projectAccess: Access[AccessKind.Write]
+  ): ConnectionIO[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
     setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, projectAccess)
 
   private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
@@ -79,20 +79,20 @@ class ProjectService @Inject() (
       daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
   )(
       projectId: ProjectId,
-      projectAccess: ProjectAccess[AccessK]
+      projectAccess: Access[AccessK]
   )(implicit
-      accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry],
+      accessToDB: AccessToDB[ProjectId, AccessK, DBAccessK, DBAccessEntry],
       accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]] = {
-    val components = ProjectAccess.DbRepresentation(projectId, projectAccess)
+  ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
+    val components = Access.DbRepresentation(projectId, projectAccess)
     (
       daoFunctionsDBAccessK.insertC(components.access),
       daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
     ).mapN { (access, entries) =>
-      ProjectAccess.DbRepresentation[AccessK, DBAccessK, DBAccessEntry](
-        projectId = accessFromDB.projectId(access),
-        projectAccess = ProjectAccess.fromDb(
-          ProjectAccess.DbRepresentation.fromComponents(
+      Access.DbRepresentation[ProjectId, AccessK, DBAccessK, DBAccessEntry](
+        id = accessFromDB.projectId(access),
+        access = Access.fromDb(
+          Access.DbRepresentation.fromComponents(
             access = access,
             accessEntries = entries
           )
@@ -156,11 +156,11 @@ class ProjectService @Inject() (
           project = projectRow,
           plainTasks = plainTasks,
           projectReferenceTasks = projectReferenceTasks,
-          readAccess = ProjectAccess.DbRepresentation.fromComponents(
+          readAccess = Access.DbRepresentation.fromComponents(
             readAccess.getOrElse(db.models.ProjectReadAccess(projectId.uuid, isAllowList = false)),
             readAccessEntries
           ),
-          writeAccess = ProjectAccess.DbRepresentation.fromComponents(
+          writeAccess = Access.DbRepresentation.fromComponents(
             writeAccess.getOrElse(db.models.ProjectWriteAccess(projectId.uuid, isAllowList = false)),
             writeAccessEntries
           )
@@ -175,10 +175,10 @@ class ProjectService @Inject() (
   }
 
   private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
-      dbComponentsC: ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]]]
+      dbComponentsC: ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
   )(implicit
       accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(ProjectAccess.fromDb(_).accessors))
+  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
 
   def allowReadUsers[F[_]: Async: ContextShift](
       projectId: ProjectId,
@@ -189,7 +189,7 @@ class ProjectService @Inject() (
   def allowReadUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccessC)
 
   def allowWriteUsers[F[_]: Async: ContextShift](
@@ -201,7 +201,7 @@ class ProjectService @Inject() (
   def allowWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccessC)
 
   def blockReadUsers[F[_]: Async: ContextShift](
@@ -213,7 +213,7 @@ class ProjectService @Inject() (
   def blockReadUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccessC)
 
   def blockWriteUsers[F[_]: Async: ContextShift](
@@ -225,19 +225,19 @@ class ProjectService @Inject() (
   def blockWriteUsersC(
       projectId: ProjectId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
+  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccessC)
 
   private def modifyUsersWithRights[AK, DBAccessK, DBAccessEntry](
       projectId: ProjectId,
       userIds: NonEmptySet[UserId],
-      accessors: Project => ProjectAccess[AK],
+      accessors: Project => Access[AK],
       modifier: (Accessors, NonEmptySet[UserId]) => Accessors,
       setAccess: (
           ProjectId,
-          ProjectAccess[AK]
-      ) => ConnectionIO[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]]
-  ): ConnectionIO[ServerError.Valid[ProjectAccess.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
+          Access[AK]
+      ) => ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]]
+  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
     val transformer =
       for {
         project <- fetchT(projectId)
@@ -281,8 +281,8 @@ object ProjectService {
           ownerId = UserId(dbComponents.project.ownerId),
           parentProjectId = dbComponents.project.parentProjectId.map(ProjectId.apply),
           flatIfSingleTask = dbComponents.project.flatIfSingleTask,
-          readAccessors = ProjectAccess.fromDb(dbComponents.readAccess),
-          writeAccessors = ProjectAccess.fromDb(dbComponents.writeAccess)
+          readAccessors = Access.fromDb(dbComponents.readAccess),
+          writeAccessors = Access.fromDb(dbComponents.writeAccess)
         )
       }
 
@@ -290,8 +290,8 @@ object ProjectService {
     def project: db.models.Project
     def plainTasks: Seq[db.models.PlainTask]
     def projectReferenceTasks: Seq[db.models.ProjectReferenceTask]
-    def readAccess: ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]
-    def writeAccess: ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
+    def readAccess: Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]
+    def writeAccess: Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
   }
 
   object DbRepresentation {
@@ -300,8 +300,8 @@ object ProjectService {
         override val project: db.models.Project,
         override val plainTasks: Seq[db.models.PlainTask],
         override val projectReferenceTasks: Seq[db.models.ProjectReferenceTask],
-        override val readAccess: ProjectAccess.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry],
-        override val writeAccess: ProjectAccess.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
+        override val readAccess: Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry],
+        override val writeAccess: Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
     ) extends DbRepresentation
 
     def apply(project: Project): DbRepresentation = {
@@ -318,8 +318,8 @@ object ProjectService {
         ),
         plainTasks = plainTasks,
         projectReferenceTasks = projectReferenceTasks,
-        readAccess = ProjectAccess.toDb(project.id, project.readAccessors),
-        writeAccess = ProjectAccess.toDb(project.id, project.writeAccessors)
+        readAccess = Access.toDb(project.id, project.readAccessors),
+        writeAccess = Access.toDb(project.id, project.writeAccessors)
       )
     }
 

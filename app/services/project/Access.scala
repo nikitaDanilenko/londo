@@ -3,14 +3,14 @@ package services.project
 import cats.data.NonEmptyList
 import services.access.{ AccessFromDB, AccessToDB, Accessors }
 
-case class ProjectAccess[AK](accessors: Accessors)
+case class Access[AK](accessors: Accessors)
 
-object ProjectAccess {
+object Access {
 
   def fromDb[AccessK, DBAccessK, DBAccessEntry](
       dbComponents: DbRepresentation[DBAccessK, DBAccessEntry]
-  )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): ProjectAccess[AccessK] =
-    ProjectAccess[AccessK](
+  )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): Access[AccessK] =
+    Access[AccessK](
       accessors = Accessors.fromRepresentation(
         Accessors.Representation(
           isAllowList = accessFromDB.isAllowList(dbComponents.access),
@@ -20,12 +20,12 @@ object ProjectAccess {
       )
     )
 
-  def toDb[AccessK, DBAccessK, DBAccessEntry](projectId: ProjectId, readAccess: ProjectAccess[AccessK])(implicit
-      accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry]
+  def toDb[Id, AccessK, DBAccessK, DBAccessEntry](id: Id, readAccess: Access[AccessK])(implicit
+      accessToDB: AccessToDB[Id, AccessK, DBAccessK, DBAccessEntry]
   ): DbRepresentation[DBAccessK, DBAccessEntry] =
     DbRepresentation(
-      projectId = projectId,
-      projectAccess = readAccess
+      id = id,
+      access = readAccess
     )
 
   sealed trait DbRepresentation[DBAccessK, DBAccessEntry] {
@@ -40,14 +40,14 @@ object ProjectAccess {
         override val accessEntries: Seq[DBAccessEntry]
     ) extends DbRepresentation[DBAccessK, DBAccessEntry]
 
-    def apply[AccessK, DBAccessK, DBAccessEntry](projectId: ProjectId, projectAccess: ProjectAccess[AccessK])(implicit
-        accessToDB: AccessToDB[AccessK, DBAccessK, DBAccessEntry]
+    def apply[Id, AccessK, DBAccessK, DBAccessEntry](id: Id, access: Access[AccessK])(implicit
+        accessToDB: AccessToDB[Id, AccessK, DBAccessK, DBAccessEntry]
     ): DbRepresentation[DBAccessK, DBAccessEntry] = {
-      val userRestriction = Accessors.toRepresentation(projectAccess.accessors)
+      val userRestriction = Accessors.toRepresentation(access.accessors)
       DbRepresentationImpl(
-        accessToDB.mkAccess(projectId, userRestriction.isAllowList),
+        accessToDB.mkAccess(id, userRestriction.isAllowList),
         accessEntries =
-          userRestriction.userIds.fold(Seq.empty[DBAccessEntry])(_.toList.map(accessToDB.mkAccessEntry(projectId, _)))
+          userRestriction.userIds.fold(Seq.empty[DBAccessEntry])(_.toList.map(accessToDB.mkAccessEntry(id, _)))
       )
     }
 

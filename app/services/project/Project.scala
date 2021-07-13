@@ -13,6 +13,6 @@ case class Project(
     ownerId: UserId,
     parentProjectId: Option[ProjectId],
     flatIfSingleTask: Boolean,
-    readAccessors: ProjectAccess[AccessKind.Read],
-    writeAccessors: ProjectAccess[AccessKind.Write]
+    readAccessors: Access[AccessKind.Read],
+    writeAccessors: Access[AccessKind.Write]
 )
