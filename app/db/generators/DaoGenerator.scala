@@ -316,6 +316,26 @@ object DaoGenerator {
         keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
       ),
       columnSearches = List.empty
+    ),
+    daoGeneratorParameters[DashboardProjectAssociation](
+      keyDescription = KeyDescription.column2(
+        Column.uuid(
+          name = "dashboardId",
+          mandatory = true
+        ),
+        Column.uuid(
+          name = "projectId",
+          mandatory = true
+        ),
+        keyCaseClass2 =
+          KeyCaseClass2.fromNames("DashboardProjectAssociationKey")("dashboardId", "uuid")("projectId", "uuid")
+      ),
+      columnSearches = List(
+        Column.string(
+          name = "dashboardId",
+          mandatory = true
+        )
+      )
     )
   )
 
