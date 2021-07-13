@@ -1,6 +1,6 @@
 package services.project
 
-import cats.data.{ EitherT, NonEmptyList, NonEmptySet, Validated }
+import cats.data.{ EitherT, NonEmptyList, NonEmptySet }
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import cats.syntax.traverse._
@@ -10,9 +10,7 @@ import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.ServerError
 import monocle.syntax.all._
-import services.access.AccessFromDB.instances._
-import services.access.AccessToDB.instances._
-import services.access.{ Access, AccessFromDB, AccessKind, AccessToDB, Accessors }
+import services.access._
 import services.task.Task
 import services.user.UserId
 
@@ -112,7 +110,7 @@ class ProjectService @Inject() (
       )
     } yield project
 
-    transformer.value.map(Validated.fromEither)
+    transformer.value.map(ServerError.fromEitherNel)
   }
 
   def update[F[_]: Async: ContextShift](
@@ -129,7 +127,7 @@ class ProjectService @Inject() (
       _ <- ServerError.liftC(projectDAO.replaceC(updatedRow))
       updatedWrittenProject <- fetchT(projectId)
     } yield updatedWrittenProject
-    transformer.value.map(Validated.fromEither)
+    transformer.value.map(ServerError.fromEitherNel)
   }
 
   def fetch[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
@@ -251,7 +249,7 @@ class ProjectService @Inject() (
         )
       } yield updatedAccess
 
-    transformer.value.map(Validated.fromEither)
+    transformer.value.map(ServerError.fromEitherNel)
   }
 
   private def fetchT(projectId: ProjectId): EitherT[ConnectionIO, NonEmptyList[ServerError], Project] =
