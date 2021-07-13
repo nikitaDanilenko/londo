@@ -27,7 +27,7 @@ object Project {
 
   implicit val projectFromInternal: FromInternal[Project, services.project.Project] = {
     def accessorsFromInternal[AK](projectAccess: ProjectAccess[AK]): Accessors =
-      services.project.Accessors.toRepresentation(projectAccess.accessors).fromInternal
+      services.access.Accessors.toRepresentation(projectAccess.accessors).fromInternal
     project =>
       Project(
         id = project.id.fromInternal,

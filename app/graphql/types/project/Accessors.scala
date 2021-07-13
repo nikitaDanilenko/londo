@@ -21,7 +21,7 @@ case class Accessors(
 
 object Accessors {
 
-  implicit val accessorsFromAndToInternal: FromAndToInternal[Accessors, services.project.Accessors.Representation] =
+  implicit val accessorsFromAndToInternal: FromAndToInternal[Accessors, services.access.Accessors.Representation] =
     FromAndToInternal.create(
       fromInternal = accessors =>
         Accessors(
@@ -29,7 +29,7 @@ object Accessors {
           userIds = accessors.userIds.map(_.fromInternal)
         ),
       toInternal = accessors =>
-        services.project.Accessors.Representation(
+        services.access.Accessors.Representation(
           isAllowList = accessors.isAllowList,
           userIds = accessors.userIds.map(_.toInternal)
         )

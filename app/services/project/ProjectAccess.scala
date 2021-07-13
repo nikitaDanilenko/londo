@@ -1,6 +1,7 @@
 package services.project
 
 import cats.data.NonEmptyList
+import services.access.{ AccessFromDB, AccessToDB, Accessors }
 
 case class ProjectAccess[AK](accessors: Accessors)
 

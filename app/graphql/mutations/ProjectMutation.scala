@@ -12,6 +12,7 @@ import graphql.types.user.UserId
 import graphql.types.util.NonEmptyList
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
+import services.access
 
 import scala.concurrent.Future
 
@@ -169,7 +170,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       serviceFunction: (
           services.project.ProjectId,
           NonEmptySet[services.user.UserId]
-      ) => IO[ServerError.Valid[services.project.Accessors]]
+      ) => IO[ServerError.Valid[access.Accessors]]
   )(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
@@ -180,7 +181,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
         userIds.toInternal.toNes
       ).map(_.toEither)
     )
-      .map(a => services.project.Accessors.toRepresentation(a).fromInternal[Accessors])
+      .map(a => services.access.Accessors.toRepresentation(a).fromInternal[Accessors])
       .value
       .map(ServerError.fromEitherNel)
 

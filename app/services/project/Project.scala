@@ -1,5 +1,6 @@
 package services.project
 
+import services.access.AccessKind
 import services.task.Task
 import services.user.UserId
 

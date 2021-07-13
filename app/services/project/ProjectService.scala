@@ -10,8 +10,9 @@ import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.ServerError
 import monocle.syntax.all._
-import services.project.AccessFromDB.instances._
-import services.project.AccessToDB.instances._
+import services.access.AccessFromDB.instances._
+import services.access.AccessToDB.instances._
+import services.access.{ AccessFromDB, AccessKind, AccessToDB, Accessors }
 import services.task.Task
 import services.user.UserId
 

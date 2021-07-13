@@ -1,4 +1,4 @@
-package services.project
+package services.access
 
 import cats.data.{ NonEmptyList, NonEmptySet }
 import services.user.UserId

@@ -10,7 +10,8 @@ import graphql.HasGraphQLServices.syntax._
 import graphql.types.ToInternal.syntax._
 import graphql.types.project.ProjectId
 import graphql.types.user.UserId
-import services.project.{ Accessors, ProjectService }
+import services.access.Accessors
+import services.project.ProjectService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
