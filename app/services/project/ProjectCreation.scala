@@ -1,7 +1,7 @@
 package services.project
 
 import cats.effect.IO
-import services.access.{ AccessKind, Accessors }
+import services.access.{ Access, AccessKind, Accessors }
 import services.user.UserId
 import utils.random.RandomGenerator
 

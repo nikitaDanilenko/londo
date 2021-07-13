@@ -6,8 +6,8 @@ import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
-import services.project.Access
 import FromInternal.syntax._
+import services.access.Access
 
 @JsonCodec
 case class Project(

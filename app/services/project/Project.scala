@@ -1,6 +1,6 @@
 package services.project
 
-import services.access.AccessKind
+import services.access.{ Access, AccessKind }
 import services.task.Task
 import services.user.UserId
 
