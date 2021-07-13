@@ -328,10 +328,10 @@ object DaoGenerator {
           mandatory = true
         ),
         keyCaseClass2 =
-          KeyCaseClass2.fromNames("DashboardProjectAssociationKey")("dashboardId", "uuid")("projectId", "uuid")
+          KeyCaseClass2.fromNames("DashboardProjectAssociationId")("dashboardId", "uuid")("projectId", "uuid")
       ),
       columnSearches = List(
-        Column.string(
+        Column.uuid(
           name = "dashboardId",
           mandatory = true
         )
