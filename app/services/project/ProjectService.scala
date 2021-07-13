@@ -82,7 +82,7 @@ class ProjectService @Inject() (
       projectAccess: Access[AccessK]
   )(implicit
       accessToDB: AccessToDB[ProjectId, AccessK, DBAccessK, DBAccessEntry],
-      accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]
+      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
   ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
     val components = Access.DbRepresentation(projectId, projectAccess)
     (
@@ -90,7 +90,7 @@ class ProjectService @Inject() (
       daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
     ).mapN { (access, entries) =>
       Access.DbRepresentation[ProjectId, AccessK, DBAccessK, DBAccessEntry](
-        id = accessFromDB.projectId(access),
+        id = accessFromDB.id(access),
         access = Access.fromDb(
           Access.DbRepresentation.fromComponents(
             access = access,
@@ -177,7 +177,7 @@ class ProjectService @Inject() (
   private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
       dbComponentsC: ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
   )(implicit
-      accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]
+      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
   ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
 
   def allowReadUsers[F[_]: Async: ContextShift](

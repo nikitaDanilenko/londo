@@ -6,9 +6,9 @@ case class Access[AK](accessors: Accessors)
 
 object Access {
 
-  def fromDb[AccessK, DBAccessK, DBAccessEntry](
+  def fromDb[Id, AccessK, DBAccessK, DBAccessEntry](
       dbComponents: DbRepresentation[DBAccessK, DBAccessEntry]
-  )(implicit accessFromDB: AccessFromDB[AccessK, DBAccessK, DBAccessEntry]): Access[AccessK] =
+  )(implicit accessFromDB: AccessFromDB[Id, AccessK, DBAccessK, DBAccessEntry]): Access[AccessK] =
     Access[AccessK](
       accessors = Accessors.fromRepresentation(
         Accessors.Representation(
@@ -51,7 +51,7 @@ object Access {
     }
 
     def fromComponents[DBAccessK, DBAccessEntry](access: DBAccessK, accessEntries: Seq[DBAccessEntry])(implicit
-        accessFromDB: AccessFromDB[_, DBAccessK, DBAccessEntry]
+        accessFromDB: AccessFromDB[_, _, DBAccessK, DBAccessEntry]
     ): DbRepresentation[DBAccessK, DBAccessEntry] =
       DbRepresentationImpl(
         access = access,
