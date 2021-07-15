@@ -14,7 +14,6 @@ case class ProjectUpdate(
     name: String,
     description: Option[String],
     ownerId: UserId,
-    parentProjectId: Option[ProjectId],
     flatIfSingleTask: Boolean
 )
 
@@ -26,7 +25,6 @@ object ProjectUpdate {
         name = graphQL.name,
         description = graphQL.description,
         ownerId = graphQL.ownerId.toInternal,
-        parentProjectId = graphQL.parentProjectId.map(_.toInternal),
         flatIfSingleTask = graphQL.flatIfSingleTask
       )
 

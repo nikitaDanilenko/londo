@@ -11,7 +11,6 @@ case class Project(
     name: String,
     description: Option[String],
     ownerId: UserId,
-    parentProjectId: Option[ProjectId],
     flatIfSingleTask: Boolean,
     readAccessors: Access[AccessKind.Read],
     writeAccessors: Access[AccessKind.Write]

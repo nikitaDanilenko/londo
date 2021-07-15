@@ -277,7 +277,6 @@ object ProjectService {
           name = dbComponents.project.name,
           description = dbComponents.project.description,
           ownerId = UserId(dbComponents.project.ownerId),
-          parentProjectId = dbComponents.project.parentProjectId.map(ProjectId.apply),
           flatIfSingleTask = dbComponents.project.flatIfSingleTask,
           readAccessors = Access.fromDb(dbComponents.readAccess),
           writeAccessors = Access.fromDb(dbComponents.writeAccess)
@@ -311,7 +310,7 @@ object ProjectService {
           ownerId = project.ownerId.uuid,
           name = project.name,
           description = project.description,
-          parentProjectId = project.parentProjectId.map(_.uuid),
+          parentProjectId = ???,
           flatIfSingleTask = project.flatIfSingleTask
         ),
         plainTasks = plainTasks,

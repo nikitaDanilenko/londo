@@ -12,7 +12,6 @@ import sangria.schema.InputObjectType
 case class ProjectCreation(
     name: String,
     description: Option[String],
-    parentProject: Option[ProjectId],
     flatIfSingleTask: Boolean,
     readAccessors: Accessors,
     writeAccessors: Accessors
@@ -25,7 +24,6 @@ object ProjectCreation {
       services.project.ProjectCreation(
         name = projectCreation.name,
         description = projectCreation.description,
-        parentProject = projectCreation.parentProject.map(_.toInternal),
         flatIfSingleTask = projectCreation.flatIfSingleTask,
         readAccessors = projectCreation.readAccessors.toInternal,
         writeAccessors = projectCreation.writeAccessors.toInternal

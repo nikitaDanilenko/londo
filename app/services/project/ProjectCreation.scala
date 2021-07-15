@@ -8,7 +8,6 @@ import utils.random.RandomGenerator
 case class ProjectCreation(
     name: String,
     description: Option[String],
-    parentProject: Option[ProjectId],
     flatIfSingleTask: Boolean,
     readAccessors: Accessors.Representation,
     writeAccessors: Accessors.Representation
@@ -26,7 +25,6 @@ object ProjectCreation {
         description = projectCreation.description,
         ownerId = ownerId,
         flatIfSingleTask = projectCreation.flatIfSingleTask,
-        parentProjectId = projectCreation.parentProject,
         readAccessors = Access[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),
         writeAccessors = Access[AccessKind.Write](Accessors.fromRepresentation(projectCreation.writeAccessors))
       )

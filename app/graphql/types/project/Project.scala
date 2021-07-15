@@ -17,7 +17,6 @@ case class Project(
     name: String,
     description: Option[String],
     ownerId: UserId,
-    parentProjectId: Option[ProjectId],
     flatIfSingleTask: Boolean,
     readAccessors: Accessors,
     writeAccessors: Accessors
@@ -36,7 +35,6 @@ object Project {
         name = project.name,
         description = project.description,
         ownerId = project.ownerId.fromInternal,
-        parentProjectId = project.parentProjectId.map(_.fromInternal),
         flatIfSingleTask = project.flatIfSingleTask,
         readAccessors = accessorsFromInternal(project.readAccessors),
         writeAccessors = accessorsFromInternal(project.writeAccessors)
