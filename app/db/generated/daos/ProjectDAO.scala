@@ -48,7 +48,6 @@ class ProjectDAO @Inject() (dbContext: DbContext, override protected val dbTrans
           (t, e) => t.ownerId -> e.ownerId,
           (t, e) => t.name -> e.name,
           (t, e) => t.description -> e.description,
-          (t, e) => t.parentProjectId -> e.parentProjectId,
           (t, e) => t.flatIfSingleTask -> e.flatIfSingleTask
         )
         .returning(x => x)
@@ -87,22 +86,6 @@ class ProjectDAO @Inject() (dbContext: DbContext, override protected val dbTrans
     run(deleteByNameAction(key))
   }
 
-  def findByParentProjectId[F[_]: Async: ContextShift](key: UUID): F[List[Project]] = {
-    findByParentProjectIdC(key).transact(dbTransactorProvider.transactor[F])
-  }
-
-  def findByParentProjectIdC(key: UUID): ConnectionIO[List[Project]] = {
-    run(findByParentProjectIdAction(key))
-  }
-
-  def deleteByParentProjectId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
-    deleteByParentProjectIdC(key).transact(dbTransactorProvider.transactor[F])
-  }
-
-  def deleteByParentProjectIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByParentProjectIdAction(key))
-  }
-
   private def findByOwnerIdAction(key: UUID) = {
     quote {
       PublicSchema.ProjectDao.query.filter(a => a.ownerId == lift(key))
@@ -124,18 +107,6 @@ class ProjectDAO @Inject() (dbContext: DbContext, override protected val dbTrans
   private def deleteByNameAction(key: String) = {
     quote {
       findByNameAction(key).delete
-    }
-  }
-
-  private def findByParentProjectIdAction(key: UUID) = {
-    quote {
-      PublicSchema.ProjectDao.query.filter(a => a.parentProjectId.contains(lift(key)))
-    }
-  }
-
-  private def deleteByParentProjectIdAction(key: UUID) = {
-    quote {
-      findByParentProjectIdAction(key).delete
     }
   }
 

@@ -117,10 +117,6 @@ object DaoGenerator {
         Column.string(
           name = "name",
           mandatory = true
-        ),
-        Column.uuid(
-          name = "parentProjectId",
-          mandatory = false
         )
       )
     ),

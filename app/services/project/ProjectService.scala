@@ -310,7 +310,6 @@ object ProjectService {
           ownerId = project.ownerId.uuid,
           name = project.name,
           description = project.description,
-          parentProjectId = ???,
           flatIfSingleTask = project.flatIfSingleTask
         ),
         plainTasks = plainTasks,
