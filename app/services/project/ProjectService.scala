@@ -11,7 +11,7 @@ import doobie.ConnectionIO
 import errors.ServerError
 import monocle.syntax.all._
 import services.access._
-import services.task.Task
+import services.task.{ ResolvedTask, Task }
 import services.user.UserId
 
 import javax.inject.Inject
@@ -225,6 +225,51 @@ class ProjectService @Inject() (
       userIds: NonEmptySet[UserId]
   ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccessC)
+
+  def resolveProject[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[ResolvedProject]] =
+    transactionally(resolvedProjectC(projectId))
+
+  def resolvedProjectC(projectId: ProjectId): ConnectionIO[ServerError.Valid[ResolvedProject]] =
+    resolveProjectT(projectId).value.map(ServerError.fromEitherNel)
+
+  private def resolveProjectT(
+      projectId: ProjectId
+  ): EitherT[ConnectionIO, NonEmptyList[ServerError], ResolvedProject] = {
+    for {
+      project <- fetchT(projectId)
+      resolvedProjectReferenceTasks <- project.projectReferenceTasks.traverse(reference =>
+        resolveProjectT(reference.projectReference).map(project =>
+          ResolvedTask.ProjectReference(
+            id = reference.id,
+            project = project,
+            weight = reference.weight
+          )
+        )
+      )
+    } yield {
+      val resolvedPlainTasks = project.plainTasks.map(plain =>
+        ResolvedTask.Plain(
+          id = plain.id,
+          name = plain.name,
+          taskKind = plain.taskKind,
+          unit = plain.unit,
+          progress = plain.progress,
+          weight = plain.weight
+        )
+      )
+      ResolvedProject(
+        id = project.id,
+        plainTasks = resolvedPlainTasks,
+        projectReferenceTasks = resolvedProjectReferenceTasks,
+        name = project.name,
+        description = project.description,
+        ownerId = project.ownerId,
+        flatIfSingleTask = project.flatIfSingleTask,
+        readAccessors = project.readAccessors,
+        writeAccessors = project.writeAccessors
+      )
+    }
+  }
 
   private def modifyUsersWithRights[AK, DBAccessK, DBAccessEntry](
       projectId: ProjectId,
