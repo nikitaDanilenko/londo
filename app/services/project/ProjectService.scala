@@ -31,25 +31,7 @@ class ProjectService @Inject() (
       ownerId: UserId,
       projectCreation: ProjectCreation
   ): F[ServerError.Valid[Project]] =
-    transactionally {
-      for {
-        createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(ownerId, projectCreation))
-        project <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
-        readAccess <- setReadAccessC(createdProject.id, createdProject.readAccessors)
-        writeAccess <- setWriteAccessC(createdProject.id, createdProject.writeAccessors)
-      } yield {
-        val createdProjectComponents = ProjectService.toDbRepresentation(createdProject)
-        ProjectService.fromDbRepresentation(
-          ProjectService.DbRepresentation.Impl(
-            project = project,
-            plainTasks = createdProjectComponents.plainTasks,
-            projectReferenceTasks = createdProjectComponents.projectReferenceTasks,
-            readAccess = readAccess,
-            writeAccess = writeAccess
-          )
-        )
-      }
-    }
+    transactionally(createC(ownerId, projectCreation))
 
   def createC(ownerId: UserId, projectCreation: ProjectCreation): ConnectionIO[ServerError.Valid[Project]] =
     for {
