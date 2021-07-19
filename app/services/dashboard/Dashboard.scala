@@ -1,12 +1,11 @@
 package services.dashboard
 
 import services.access.{ Access, AccessKind }
-import services.project.Project
 import services.user.UserId
 
 case class Dashboard(
     id: DashboardId,
-    projects: Vector[Project],
+    projects: Vector[WeightedProject],
     header: String,
     description: Option[String],
     userId: UserId,
