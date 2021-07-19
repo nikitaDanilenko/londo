@@ -59,6 +59,27 @@ class DashboardService @Inject() (
     transformer.value.map(ServerError.fromEitherNel)
   }
 
+  def update[F[_]: Async: ContextShift](
+      dashboardId: DashboardId,
+      dashboardUpdate: DashboardUpdate
+  ): F[ServerError.Valid[Dashboard]] =
+    transactionally(updateC(dashboardId, dashboardUpdate))
+
+  // TODO: Fix missing access rights update
+  def updateC(
+      dashboardId: DashboardId,
+      dashboardUpdate: DashboardUpdate
+  ): ConnectionIO[ServerError.Valid[Dashboard]] = {
+    val transformer = for {
+      dashboard <- fetchT(dashboardId)
+      updatedDashboard = DashboardUpdate.applyToDashboard(dashboard, dashboardUpdate)
+      updatedRow = DashboardService.toDbRepresentation(updatedDashboard).dashboard
+      _ <- ServerError.liftNelC(dashboardDAO.replaceC(updatedRow))
+      updatedWrittenDashboard <- fetchT(dashboardId)
+    } yield updatedWrittenDashboard
+    transformer.value.map(ServerError.fromEitherNel)
+  }
+
   def fetch[F[_]: Async: ContextShift](dashboardId: DashboardId): F[ServerError.Valid[Dashboard]] =
     transactionally(fetchC(dashboardId))
 
