@@ -3,16 +3,19 @@ package services.dashboard
 import cats.data.{ EitherT, NonEmptyList, NonEmptySet }
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
+import cats.syntax.traverse._
 import db.generated.daos._
 import db.models.{ DashboardReadAccess, DashboardReadAccessEntry, DashboardWriteAccess, DashboardWriteAccessEntry }
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.ServerError
 import monocle.syntax.all._
+import services.access.AccessFromDB._
+import services.access.AccessToDB._
 import services.access._
+import services.project.{ ProjectId, ProjectService }
 import services.user.UserId
-import AccessToDB._
-import AccessFromDB._
+import utils.math.NaturalUtil
 
 import javax.inject.Inject
 
@@ -23,6 +26,7 @@ class DashboardService @Inject() (
     dashboardReadAccessEntryDAO: DashboardReadAccessEntryDAO,
     dashboardWriteAccessDAO: DashboardWriteAccessDAO,
     dashboardWriteAccessEntryDAO: DashboardWriteAccessEntryDAO,
+    projectService: ProjectService,
     transactionally: Transactionally
 ) {
 
@@ -69,7 +73,56 @@ class DashboardService @Inject() (
     transactionally(fetchC(dashboardId))
 
   def fetchC(dashboardId: DashboardId): ConnectionIO[ServerError.Valid[Dashboard]] = {
-    ???
+    val dashboardReadAccessId = dashboardId.asDashboardReadAccessId
+    val dashboardWriteAccessId = dashboardId.asDashboardWriteAccessId
+
+    val transformer = for {
+      dashboardRow <- EitherT.fromOptionF(
+        dashboardDAO.findC(db.keys.DashboardId(dashboardId.uuid)),
+        NonEmptyList.of(ServerError.Dashboard.NotFound)
+      )
+      dashboardProjectAssociations <- EitherT.liftF(dashboardProjectAssociationDAO.findByDashboardIdC(dashboardId.uuid))
+      projects <- dashboardProjectAssociations.traverse(dpa =>
+        EitherT(projectService.resolvedProjectC(ProjectId(dpa.projectId)).map(_.toEither))
+          .subflatMap(rp =>
+            NaturalUtil
+              .fromInt(dpa.weight)
+              .toEither
+              .map(weight =>
+                WeightedProject(
+                  resolvedProject = rp,
+                  weight = weight
+                )
+              )
+          )
+      )
+      readAccess <- ServerError.liftNelC(dashboardReadAccessDAO.findC(dashboardReadAccessId))
+      readAccessEntries <-
+        ServerError.liftNelC(dashboardReadAccessEntryDAO.findByDashboardReadAccessIdC(dashboardReadAccessId.uuid))
+      writeAccess <- ServerError.liftNelC(dashboardWriteAccessDAO.findC(dashboardWriteAccessId))
+      writeAccessEntries <-
+        ServerError.liftNelC(dashboardWriteAccessEntryDAO.findByDashboardWriteAccessIdC(dashboardWriteAccessId.uuid))
+    } yield Dashboard(
+      id = dashboardId,
+      projects = projects.toVector,
+      header = dashboardRow.header,
+      description = dashboardRow.description,
+      userId = UserId(dashboardRow.userId),
+      readAccessors = Access.fromDb(
+        Access.DbRepresentation.fromComponents(
+          readAccess.getOrElse(db.models.DashboardReadAccess(dashboardId.uuid, isAllowList = false)),
+          readAccessEntries
+        )
+      ),
+      writeAccessors = Access.fromDb(
+        Access.DbRepresentation.fromComponents(
+          writeAccess.getOrElse(db.models.DashboardWriteAccess(dashboardId.uuid, isAllowList = false)),
+          writeAccessEntries
+        )
+      )
+    )
+
+    transformer.value.map(ServerError.fromEitherNel)
   }
 
   private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
@@ -139,7 +192,7 @@ class DashboardService @Inject() (
     val transformer =
       for {
         dashboard <- fetchT(dashboardId)
-        updatedAccess <- ServerError.liftC(
+        updatedAccess <- ServerError.liftNelC(
           setAccess(
             dashboardId,
             accessors(dashboard)
@@ -161,19 +214,6 @@ object DashboardService {
 
   def toDbRepresentation(dashboard: Dashboard): DbRepresentation =
     DbRepresentation(dashboard)
-
-  def fromDbRepresentation(
-      dbComponents: DbRepresentation
-  ): ServerError.Valid[Dashboard] = ???
-
-//    Dashboard(
-//      id = DashboardId(dbComponents.dashboard.id),
-//      header = dbComponents.dashboard.header,
-//      description = dbComponents.dashboard.description,
-//      userId = UserId(dbComponents.dashboard.userId),
-//      readAccessors = Access.fromDb(dbComponents.readAccess),
-//      writeAccessors = Access.fromDb(dbComponents.writeAccess)
-//    )
 
   sealed trait DbRepresentation {
     def dashboard: db.models.Dashboard
@@ -201,7 +241,13 @@ object DashboardService {
         ),
         readAccess = Access.toDb(dashboard.id, dashboard.readAccessors),
         writeAccess = Access.toDb(dashboard.id, dashboard.writeAccessors),
-        dashboardProjectAssociations = ???
+        dashboardProjectAssociations = dashboard.projects.map(wp =>
+          db.models.DashboardProjectAssociation(
+            dashboardId = dashboard.id.uuid,
+            projectId = wp.resolvedProject.id.uuid,
+            weight = wp.weight.intValue
+          )
+        )
       )
     }
 
