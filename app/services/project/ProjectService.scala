@@ -124,7 +124,7 @@ class ProjectService @Inject() (
       project <- fetchT(projectId)
       updatedProject = ProjectUpdate.applyToProject(project, projectUpdate)
       updatedRow = ProjectService.toDbRepresentation(updatedProject).project
-      _ <- ServerError.liftC(projectDAO.replaceC(updatedRow))
+      _ <- ServerError.liftNelC(projectDAO.replaceC(updatedRow))
       updatedWrittenProject <- fetchT(projectId)
     } yield updatedWrittenProject
     transformer.value.map(ServerError.fromEitherNel)
@@ -137,17 +137,16 @@ class ProjectService @Inject() (
     val projectReadAccessId = projectId.asProjectReadAccessId
     val projectWriteAccessId = projectId.asProjectWriteAccessId
 
-    def liftF[A](a: ConnectionIO[A]): EitherT[ConnectionIO, ServerError, A] =
-      EitherT.liftF[ConnectionIO, ServerError, A](a)
-
     val action = for {
       projectRow <- EitherT.fromOptionF(projectDAO.findC(ProjectId.toDb(projectId)), ServerError.Project.NotFound)
-      plainTasks <- liftF(plainTaskDAO.findByProjectIdC(projectId.uuid))
-      projectReferenceTasks <- liftF(projectReferenceTaskDAO.findByProjectIdC(projectId.uuid))
-      readAccess <- liftF(projectReadAccessDAO.findC(projectReadAccessId))
-      readAccessEntries <- liftF(projectReadAccessEntryDAO.findByProjectReadAccessIdC(projectReadAccessId.uuid))
-      writeAccess <- liftF(projectWriteAccessDAO.findC(projectWriteAccessId))
-      writeAccessEntries <- liftF(projectWriteAccessEntryDAO.findByProjectWriteAccessIdC(projectWriteAccessId.uuid))
+      plainTasks <- ServerError.liftC(plainTaskDAO.findByProjectIdC(projectId.uuid))
+      projectReferenceTasks <- ServerError.liftC(projectReferenceTaskDAO.findByProjectIdC(projectId.uuid))
+      readAccess <- ServerError.liftC(projectReadAccessDAO.findC(projectReadAccessId))
+      readAccessEntries <-
+        ServerError.liftC(projectReadAccessEntryDAO.findByProjectReadAccessIdC(projectReadAccessId.uuid))
+      writeAccess <- ServerError.liftC(projectWriteAccessDAO.findC(projectWriteAccessId))
+      writeAccessEntries <-
+        ServerError.liftC(projectWriteAccessEntryDAO.findByProjectWriteAccessIdC(projectWriteAccessId.uuid))
     } yield {
       ProjectService.fromDbRepresentation(
         ProjectService.DbRepresentation.Impl(
@@ -284,7 +283,7 @@ class ProjectService @Inject() (
     val transformer =
       for {
         project <- fetchT(projectId)
-        updatedAccess <- ServerError.liftC(
+        updatedAccess <- ServerError.liftNelC(
           setAccess(
             projectId,
             accessors(project)
