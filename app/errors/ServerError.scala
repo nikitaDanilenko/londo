@@ -37,8 +37,11 @@ object ServerError {
   def valid[A](a: A): Valid[A] =
     Validated.valid(a)
 
-  def liftC[A](ca: ConnectionIO[A]): EitherT[ConnectionIO, NonEmptyList[ServerError], A] =
+  def liftNelC[A](ca: ConnectionIO[A]): EitherT[ConnectionIO, NonEmptyList[ServerError], A] =
     EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], A](ca)
+
+  def liftC[A](ca: ConnectionIO[A]): EitherT[ConnectionIO, ServerError, A] =
+    EitherT.liftF[ConnectionIO, ServerError, A](ca)
 
   implicit val serverErrorEncoder: Encoder[ServerError] = Encoder.instance[ServerError] { serverError =>
     Json.obj(
@@ -111,6 +114,14 @@ object ServerError {
 
   object Project {
     case object NotFound extends ServerErrorInstance("No project with the given id found")
+  }
+
+  object Conversion {
+    case object IntToNatural extends ServerErrorInstance("The integer does not represent a valid natural number")
+  }
+
+  object Dashboard {
+    case object NotFound extends ServerErrorInstance("No dashboard with the given id found")
   }
 
 }
