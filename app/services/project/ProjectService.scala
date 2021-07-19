@@ -62,6 +62,7 @@ class ProjectService @Inject() (
   ): F[ServerError.Valid[Project]] =
     transactionally(updateC(projectId, projectUpdate))
 
+  // TODO: Fix missing access rights update
   def updateC(projectId: ProjectId, projectUpdate: ProjectUpdate): ConnectionIO[ServerError.Valid[Project]] = {
     val transformer = for {
       project <- fetchT(projectId)
