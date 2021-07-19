@@ -30,45 +30,6 @@ class DashboardService @Inject() (
     transactionally: Transactionally
 ) {
 
-  private def setReadAccessC(
-      dashboardId: DashboardId,
-      dashboardAccess: Access[AccessKind.Read]
-  ): ConnectionIO[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]] =
-    setAccess(dashboardReadAccessDAO, dashboardReadAccessEntryDAO)(dashboardId, dashboardAccess)
-
-  private def setWriteAccessC(
-      dashboardId: DashboardId,
-      dashboardAccess: Access[AccessKind.Write]
-  ): ConnectionIO[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]] =
-    setAccess(dashboardWriteAccessDAO, dashboardWriteAccessEntryDAO)(dashboardId, dashboardAccess)
-
-  private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
-      daoFunctionsDBAccessK: DAOFunctions[DBAccessK, DBAccessKey],
-      daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
-  )(
-      dashboardId: DashboardId,
-      dashboardAccess: Access[AccessK]
-  )(implicit
-      accessToDB: AccessToDB[DashboardId, AccessK, DBAccessK, DBAccessEntry],
-      accessFromDB: AccessFromDB[DashboardId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
-    val components = Access.DbRepresentation(dashboardId, dashboardAccess)
-    (
-      daoFunctionsDBAccessK.insertC(components.access),
-      daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
-    ).mapN { (access, entries) =>
-      Access.DbRepresentation[DashboardId, AccessK, DBAccessK, DBAccessEntry](
-        id = accessFromDB.id(access),
-        access = Access.fromDb(
-          Access.DbRepresentation.fromComponents(
-            access = access,
-            accessEntries = entries
-          )
-        )
-      )
-    }
-  }
-
   def fetch[F[_]: Async: ContextShift](dashboardId: DashboardId): F[ServerError.Valid[Dashboard]] =
     transactionally(fetchC(dashboardId))
 
@@ -124,12 +85,6 @@ class DashboardService @Inject() (
 
     transformer.value.map(ServerError.fromEitherNel)
   }
-
-  private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
-      dbComponentsC: ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
-  )(implicit
-      accessFromDB: AccessFromDB[DashboardId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
 
   def allowReadUsers[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
@@ -207,6 +162,51 @@ class DashboardService @Inject() (
 
   private def fetchT(dashboardId: DashboardId): EitherT[ConnectionIO, NonEmptyList[ServerError], Dashboard] =
     EitherT(fetchC(dashboardId).map(_.toEither))
+
+  private def setReadAccessC(
+      dashboardId: DashboardId,
+      dashboardAccess: Access[AccessKind.Read]
+  ): ConnectionIO[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]] =
+    setAccess(dashboardReadAccessDAO, dashboardReadAccessEntryDAO)(dashboardId, dashboardAccess)
+
+  private def setWriteAccessC(
+      dashboardId: DashboardId,
+      dashboardAccess: Access[AccessKind.Write]
+  ): ConnectionIO[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]] =
+    setAccess(dashboardWriteAccessDAO, dashboardWriteAccessEntryDAO)(dashboardId, dashboardAccess)
+
+  private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
+      daoFunctionsDBAccessK: DAOFunctions[DBAccessK, DBAccessKey],
+      daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
+  )(
+      dashboardId: DashboardId,
+      dashboardAccess: Access[AccessK]
+  )(implicit
+      accessToDB: AccessToDB[DashboardId, AccessK, DBAccessK, DBAccessEntry],
+      accessFromDB: AccessFromDB[DashboardId, AccessK, DBAccessK, DBAccessEntry]
+  ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
+    val components = Access.DbRepresentation(dashboardId, dashboardAccess)
+    (
+      daoFunctionsDBAccessK.insertC(components.access),
+      daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
+    ).mapN { (access, entries) =>
+      Access.DbRepresentation[DashboardId, AccessK, DBAccessK, DBAccessEntry](
+        id = accessFromDB.id(access),
+        access = Access.fromDb(
+          Access.DbRepresentation.fromComponents(
+            access = access,
+            accessEntries = entries
+          )
+        )
+      )
+    }
+  }
+
+  private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
+      dbComponentsC: ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
+  )(implicit
+      accessFromDB: AccessFromDB[DashboardId, AccessK, DBAccessK, DBAccessEntry]
+  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
 
 }
 

@@ -60,45 +60,6 @@ class ProjectService @Inject() (
       project <- fetchC(createdProject.id)
     } yield project
 
-  private def setReadAccessC(
-      projectId: ProjectId,
-      projectAccess: Access[AccessKind.Read]
-  ): ConnectionIO[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
-    setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
-
-  private def setWriteAccessC(
-      projectId: ProjectId,
-      projectAccess: Access[AccessKind.Write]
-  ): ConnectionIO[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
-    setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, projectAccess)
-
-  private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
-      daoFunctionsDBAccessK: DAOFunctions[DBAccessK, DBAccessKey],
-      daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
-  )(
-      projectId: ProjectId,
-      projectAccess: Access[AccessK]
-  )(implicit
-      accessToDB: AccessToDB[ProjectId, AccessK, DBAccessK, DBAccessEntry],
-      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
-    val components = Access.DbRepresentation(projectId, projectAccess)
-    (
-      daoFunctionsDBAccessK.insertC(components.access),
-      daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
-    ).mapN { (access, entries) =>
-      Access.DbRepresentation[ProjectId, AccessK, DBAccessK, DBAccessEntry](
-        id = accessFromDB.id(access),
-        access = Access.fromDb(
-          Access.DbRepresentation.fromComponents(
-            access = access,
-            accessEntries = entries
-          )
-        )
-      )
-    }
-  }
-
   def delete[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Valid[Project]] =
     transactionally(deleteC(projectId))
 
@@ -170,12 +131,6 @@ class ProjectService @Inject() (
         identity
       )
   }
-
-  private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
-      dbComponentsC: ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
-  )(implicit
-      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
 
   def allowReadUsers[F[_]: Async: ContextShift](
       projectId: ProjectId,
@@ -298,6 +253,51 @@ class ProjectService @Inject() (
 
   private def fetchT(projectId: ProjectId): EitherT[ConnectionIO, NonEmptyList[ServerError], Project] =
     EitherT(fetchC(projectId).map(_.toEither))
+
+  private def setReadAccessC(
+      projectId: ProjectId,
+      projectAccess: Access[AccessKind.Read]
+  ): ConnectionIO[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
+    setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
+
+  private def setWriteAccessC(
+      projectId: ProjectId,
+      projectAccess: Access[AccessKind.Write]
+  ): ConnectionIO[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
+    setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, projectAccess)
+
+  private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
+      daoFunctionsDBAccessK: DAOFunctions[DBAccessK, DBAccessKey],
+      daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
+  )(
+      projectId: ProjectId,
+      projectAccess: Access[AccessK]
+  )(implicit
+      accessToDB: AccessToDB[ProjectId, AccessK, DBAccessK, DBAccessEntry],
+      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
+  ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
+    val components = Access.DbRepresentation(projectId, projectAccess)
+    (
+      daoFunctionsDBAccessK.insertC(components.access),
+      daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
+    ).mapN { (access, entries) =>
+      Access.DbRepresentation[ProjectId, AccessK, DBAccessK, DBAccessEntry](
+        id = accessFromDB.id(access),
+        access = Access.fromDb(
+          Access.DbRepresentation.fromComponents(
+            access = access,
+            accessEntries = entries
+          )
+        )
+      )
+    }
+  }
+
+  private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
+      dbComponentsC: ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
+  )(implicit
+      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
+  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
 
 }
 
