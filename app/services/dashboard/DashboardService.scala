@@ -65,7 +65,6 @@ class DashboardService @Inject() (
   ): F[ServerError.Valid[Dashboard]] =
     transactionally(updateC(dashboardId, dashboardUpdate))
 
-  // TODO: Fix missing access rights update
   def updateC(
       dashboardId: DashboardId,
       dashboardUpdate: DashboardUpdate
