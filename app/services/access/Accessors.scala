@@ -85,7 +85,7 @@ object Accessors {
         }
     }
 
-  def intersectAll(accessors: Accessors*): Accessors =
+  def intersectAll(accessors: Iterable[Accessors]): Accessors =
     accessors.foldLeft(Everyone: Accessors)(intersect)
 
   case class Representation(
