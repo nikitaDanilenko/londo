@@ -68,6 +68,26 @@ object Accessors {
       case NobodyExcept(included)   => included.contains(userId)
     }
 
+  def intersect(accessors1: Accessors, accessors2: Accessors): Accessors =
+    accessors1 match {
+      case Everyone                  => accessors2
+      case Nobody                    => Nobody
+      case EveryoneExcept(excluded1) => blockUsers(accessors2, excluded1)
+      case NobodyExcept(included1) =>
+        accessors2 match {
+          case Everyone                  => accessors1
+          case Nobody                    => Nobody
+          case EveryoneExcept(excluded2) => blockUsers(accessors1, excluded2)
+          case NobodyExcept(included2) =>
+            NonEmptySet
+              .fromSet(included1 & included2)
+              .fold(Nobody: Accessors)(NobodyExcept.apply)
+        }
+    }
+
+  def intersectAll(accessors: Accessors*): Accessors =
+    accessors.foldLeft(Everyone: Accessors)(intersect)
+
   case class Representation(
       isAllowList: Boolean,
       //An empty option is taken to mean "everyone".
