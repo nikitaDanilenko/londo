@@ -5,6 +5,7 @@ import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import cats.syntax.traverse._
 import db.generated.daos._
+import db.keys.DashboardProjectAssociationId
 import db.models.{ DashboardReadAccess, DashboardReadAccessEntry, DashboardWriteAccess, DashboardWriteAccessEntry }
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
@@ -15,6 +16,7 @@ import services.access.AccessToDB._
 import services.access._
 import services.project.{ ProjectId, ProjectService }
 import services.user.UserId
+import spire.math.Natural
 import utils.math.NaturalUtil
 
 import javax.inject.Inject
@@ -134,6 +136,50 @@ class DashboardService @Inject() (
 
     transformer.value.map(ServerError.fromEitherNel)
   }
+
+  def addProject[F[_]: Async: ContextShift](
+      dashboardId: DashboardId,
+      projectId: ProjectId,
+      weight: Natural
+  ): F[ServerError.Valid[Dashboard]] =
+    transactionally(addProjectC(dashboardId, projectId, weight))
+
+  def addProjectC(
+      dashboardId: DashboardId,
+      projectId: ProjectId,
+      weight: Natural
+  ): ConnectionIO[ServerError.Valid[Dashboard]] = {
+    for {
+      // TODO: Insertion can fail. Where is the handler for such a case?
+      _ <- dashboardProjectAssociationDAO.insertC(
+        // TODO: It seems odd that we use the uuids here directly, whereas for deletion we use typed db keys
+        db.models.DashboardProjectAssociation(
+          dashboardId = dashboardId.uuid,
+          projectId = projectId.uuid,
+          weight = weight.intValue
+        )
+      )
+      dashboard <- fetchC(dashboardId)
+    } yield dashboard
+  }
+
+  def removeProject[F[_]: Async: ContextShift](
+      dashboardId: DashboardId,
+      projectId: ProjectId
+  ): F[ServerError.Valid[Dashboard]] =
+    transactionally(removeProjectC(dashboardId, projectId))
+
+  def removeProjectC(dashboardId: DashboardId, projectId: ProjectId): ConnectionIO[ServerError.Valid[Dashboard]] =
+    for {
+      // TODO: Deletion can fail. Where is the handler for such a case?
+      _ <- dashboardProjectAssociationDAO.deleteC(
+        DashboardProjectAssociationId(
+          dashboardId = DashboardId.toDb(dashboardId),
+          projectId = ProjectId.toDb(projectId)
+        )
+      )
+      dashboard <- fetchC(dashboardId)
+    } yield dashboard
 
   def allowReadUsers[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
