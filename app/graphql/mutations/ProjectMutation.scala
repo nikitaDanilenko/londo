@@ -191,7 +191,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
   )(
       f: services.user.UserId => IO[ServerError.Valid[A]]
   ): Future[A] = {
-    validateProjectProjectAccess(
+    validateProjectAccess(
       projectService = graphQLServices.projectService,
       projectId = projectId,
       accessorsOf = _.writeAccessors.accessors

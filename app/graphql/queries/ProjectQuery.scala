@@ -22,7 +22,7 @@ trait ProjectQuery extends HasGraphQLServices with HasLoggedInUser {
   )(
       f: (services.user.UserId, services.project.Project) => IO[ServerError.Valid[A]]
   ): Future[A] = {
-    validateProjectProjectAccess(
+    validateProjectAccess(
       projectService = graphQLServices.projectService,
       projectId = projectId,
       accessorsOf = _.readAccessors.accessors
