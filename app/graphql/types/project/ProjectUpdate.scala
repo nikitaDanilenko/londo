@@ -20,12 +20,12 @@ case class ProjectUpdate(
 object ProjectUpdate {
 
   implicit val projectUpdateToInternal: ToInternal[ProjectUpdate, services.project.ProjectUpdate] =
-    graphQL =>
+    projectUpdate =>
       services.project.ProjectUpdate(
-        name = graphQL.name,
-        description = graphQL.description,
-        ownerId = graphQL.ownerId.toInternal,
-        flatIfSingleTask = graphQL.flatIfSingleTask
+        name = projectUpdate.name,
+        description = projectUpdate.description,
+        ownerId = projectUpdate.ownerId.toInternal,
+        flatIfSingleTask = projectUpdate.flatIfSingleTask
       )
 
   implicit val projectUpdateInputObjectType: InputObjectType[ProjectUpdate] = deriveInputObjectType[ProjectUpdate]()
