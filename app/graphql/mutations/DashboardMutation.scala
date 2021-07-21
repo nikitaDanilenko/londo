@@ -26,6 +26,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
       .handleServerError
   }
 
+  @GraphQLField
   def updateDashboard(dashboardId: DashboardId, dashboardUpdate: DashboardUpdate): Future[Dashboard] =
     validateDashboardWriteAccess(dashboardId) { _ =>
       graphQLServices.dashboardService
