@@ -1,10 +1,10 @@
 package graphql.types.task
 
 import graphql.types.FromInternal
-import graphql.types.project.{ ProjectId, ResolvedProject }
+import graphql.types.project.ResolvedProject
 import io.circe.generic.JsonCodec
 import sangria.macros.derive
-import sangria.macros.derive.deriveObjectType
+import sangria.macros.derive.{ ObjectTypeName, deriveObjectType }
 import sangria.schema.{ ObjectType, OutputType }
 import spire.math.Natural
 import utils.json.CirceUtil.instances._
@@ -36,7 +36,9 @@ object ResolvedTask {
           weight = plain.weight
         )
 
-    implicit val plainObjectType: ObjectType[Unit, Plain] = deriveObjectType[Unit, Plain]()
+    implicit val plainObjectType: ObjectType[Unit, Plain] = deriveObjectType[Unit, Plain](
+      ObjectTypeName("ResolvedPlain")
+    )
 
   }
 
@@ -58,7 +60,9 @@ object ResolvedTask {
       )
 
     implicit val projectReferenceOutputType: OutputType[ProjectReference] =
-      derive.deriveObjectType[Unit, ProjectReference]()
+      derive.deriveObjectType[Unit, ProjectReference](
+        ObjectTypeName("ResolvedProjectReference")
+      )
 
   }
 
