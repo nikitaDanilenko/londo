@@ -1,5 +1,6 @@
 package graphql
 
+import services.dashboard.DashboardService
 import services.project.ProjectService
 import services.task.TaskService
 import services.user.UserService
@@ -10,7 +11,8 @@ import scala.concurrent.ExecutionContext
 case class GraphQLServices @Inject() (
     userService: UserService,
     projectService: ProjectService,
-    taskService: TaskService
+    taskService: TaskService,
+    dashboardService: DashboardService
 )(implicit
     val executionContext: ExecutionContext
 )
