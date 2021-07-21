@@ -1,10 +1,10 @@
-package graphql.types.project
+package graphql.types.access
 
+import graphql.types.FromAndToInternal
 import graphql.types.FromInternal.syntax._
 import graphql.types.ToInternal.syntax._
 import graphql.types.user.UserId
 import graphql.types.util.NonEmptyList
-import graphql.types.FromAndToInternal
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput

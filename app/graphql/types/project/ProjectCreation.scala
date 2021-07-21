@@ -2,6 +2,7 @@ package graphql.types.project
 
 import graphql.types.ToInternal
 import graphql.types.ToInternal.syntax._
+import graphql.types.access.Accessors
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType
 import sangria.marshalling.FromInput

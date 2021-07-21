@@ -1,19 +1,19 @@
 package graphql.types.project
 
 import graphql.types.FromInternal
-import graphql.types.FromInternal.syntax._
 import graphql.types.access.Accessors
-import graphql.types.task.Task
 import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
+import FromInternal.syntax._
+import graphql.types.task.ResolvedTask
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 
 @JsonCodec
-case class Project(
+case class ResolvedProject(
     id: ProjectId,
-    plainTasks: Vector[Task.Plain],
-    projectReferenceTasks: Vector[Task.ProjectReference],
+    plainTasks: Vector[ResolvedTask.Plain],
+    projectReferenceTasks: Vector[ResolvedTask.ProjectReference],
     name: String,
     description: Option[String],
     ownerId: UserId,
@@ -22,10 +22,10 @@ case class Project(
     writeAccessors: Accessors
 )
 
-object Project {
+object ResolvedProject {
 
-  implicit val projectFromInternal: FromInternal[Project, services.project.Project] = { project =>
-    Project(
+  implicit val projectFromInternal: FromInternal[ResolvedProject, services.project.ResolvedProject] = { project =>
+    ResolvedProject(
       id = project.id.fromInternal,
       plainTasks = project.plainTasks.map(_.fromInternal),
       projectReferenceTasks = project.projectReferenceTasks.map(_.fromInternal),
@@ -38,6 +38,6 @@ object Project {
     )
   }
 
-  implicit val projectObjectType: ObjectType[Unit, Project] = deriveObjectType[Unit, Project]()
+  implicit val projectObjectType: ObjectType[Unit, ResolvedProject] = deriveObjectType[Unit, ResolvedProject]()
 
 }
