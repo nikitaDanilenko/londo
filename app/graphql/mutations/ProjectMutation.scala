@@ -6,6 +6,7 @@ import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
 import graphql.types.FromInternal.syntax._
 import graphql.types.ToInternal.syntax._
+import graphql.types.access.Accessors
 import graphql.types.project._
 import graphql.types.task._
 import graphql.types.user.UserId
