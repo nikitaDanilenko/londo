@@ -14,7 +14,7 @@ import monocle.syntax.all._
 import services.access.AccessFromDB._
 import services.access.AccessToDB._
 import services.access._
-import services.project.{ ProjectId, ProjectService }
+import services.project.{ ProjectId, ProjectService, WeightedProject }
 import services.user.UserId
 import spire.math.Natural
 import utils.math.NaturalUtil

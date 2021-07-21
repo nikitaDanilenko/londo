@@ -1,6 +1,7 @@
 package services.dashboard
 
 import services.access.{ Access, AccessKind }
+import services.project.WeightedProject
 import services.user.UserId
 
 case class Dashboard(
