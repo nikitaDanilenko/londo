@@ -1,5 +1,6 @@
 package services.project
 
+import cats.data.NonEmptySet
 import services.access.{ Access, AccessKind, Accessors }
 import services.task.ResolvedTask
 import services.user.UserId
@@ -29,7 +30,10 @@ object ResolvedProject {
       resolvedProject: ResolvedProject
   ): Accessors = {
     def readAccessorsOf(resolvedProject: ResolvedProject): Vector[Accessors] =
-      accessorsOf(resolvedProject) +: resolvedProject.projectReferenceTasks.flatMap(r => readAccessorsOf(r.project))
+      Accessors.allowUsers(
+        accessorsOf(resolvedProject),
+        NonEmptySet.of(resolvedProject.ownerId)
+      ) +: resolvedProject.projectReferenceTasks.flatMap(r => readAccessorsOf(r.project))
 
     Accessors.intersectAll(readAccessorsOf(resolvedProject))
   }
