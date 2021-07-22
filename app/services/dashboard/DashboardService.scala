@@ -181,6 +181,36 @@ class DashboardService @Inject() (
       dashboard <- fetchC(dashboardId)
     } yield dashboard
 
+  def setWeight[F[_]: Async: ContextShift](
+      dashboardId: DashboardId,
+      projectWeightOnDashboard: ProjectWeightOnDashboard
+  ): F[ServerError.Valid[Dashboard]] =
+    transactionally(setWeightC(dashboardId, projectWeightOnDashboard))
+
+  def setWeightC(
+      dashboardId: DashboardId,
+      projectWeightOnDashboard: ProjectWeightOnDashboard
+  ): ConnectionIO[ServerError.Valid[Dashboard]] =
+    for {
+      // TODO: Replacement can fail. Add error handler for this case.
+      _ <- dashboardProjectAssociationDAO.replaceC(
+        ProjectWeightOnDashboard.toDb(dashboardId, projectWeightOnDashboard)
+      )
+      dashboard <- fetchC(dashboardId)
+    } yield dashboard
+
+  def setWeights[F[_]: Async: ContextShift](
+      dashboardId: DashboardId,
+      projectWeights: Seq[ProjectWeightOnDashboard]
+  ): F[ServerError.Valid[Dashboard]] =
+    transactionally(setWeightsC(dashboardId, projectWeights))
+
+  def setWeightsC(
+      dashboardId: DashboardId,
+      projectWeights: Seq[ProjectWeightOnDashboard]
+  ): ConnectionIO[ServerError.Valid[Dashboard]] =
+    projectWeights.traverse(setWeightC(dashboardId, _)).flatMap(_ => fetchC(dashboardId))
+
   def allowReadUsers[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
