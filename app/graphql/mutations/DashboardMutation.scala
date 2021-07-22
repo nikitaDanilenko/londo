@@ -5,9 +5,12 @@ import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
 import graphql.types.FromInternal.syntax._
 import graphql.types.ToInternal.syntax._
-import graphql.types.dashboard.{ Dashboard, DashboardCreation, DashboardId, DashboardUpdate }
+import graphql.types.dashboard.{ Dashboard, DashboardCreation, DashboardId, DashboardUpdate, ProjectWeightOnDashboard }
+import graphql.types.project.ProjectId
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
+import spire.math.Natural
+import cats.syntax.traverse._
 
 import scala.concurrent.Future
 
@@ -37,13 +40,68 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
         .map(_.fromInternal[Dashboard])
     }
 
-  def deleteDashboard = ???
+  @GraphQLField
+  def deleteDashboard(dashboardId: DashboardId): Future[Dashboard] =
+    validateDashboardWriteAccess(dashboardId) { _ =>
+      graphQLServices.dashboardService
+        .delete(dashboardId.toInternal)
+        .map(_.fromInternal[Dashboard])
+    }
 
-  def addProjectToDashboard = ???
+  @GraphQLField
+  def addProjectToDashboard(dashboardId: DashboardId, projectId: ProjectId, weight: Natural): Future[Dashboard] =
+    for {
+      _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.valid(())) }
+      dashboard <- validateProjectAccess(graphQLServices.projectService, projectId, _.readAccessors.accessors) {
+        (_, _) =>
+          graphQLServices.dashboardService
+            .addProject(
+              dashboardId = dashboardId.toInternal,
+              projectId = projectId.toInternal,
+              weight = weight
+            )
+      }
+    } yield dashboard.fromInternal[Dashboard]
 
-  def adjustWeightsOnDashboard = ???
+  def adjustWeightsOnDashboard(
+      dashboardId: DashboardId,
+      projectWeightsOnDashboard: Seq[ProjectWeightOnDashboard]
+  ): Future[Dashboard] =
+    // TODO: The below implementation seems too convoluted.
+    for {
+      _ <- validateDashboardWriteAccess(dashboardId)(_ => IO.pure(ServerError.valid(())))
+      validatedProjectWeightsOnDashboard <- projectWeightsOnDashboard.traverse { projectWeightsOnDashboard =>
+        validateProjectAccess(
+          graphQLServices.projectService,
+          projectWeightsOnDashboard.projectId,
+          _.readAccessors.accessors
+        ) { (_, _) =>
+          IO.pure(ServerError.valid(projectWeightsOnDashboard))
+        }
+      }
+      dashboard <-
+        graphQLServices.dashboardService
+          .setWeights(
+            dashboardId.toInternal,
+            validatedProjectWeightsOnDashboard.map(_.toInternal[services.dashboard.ProjectWeightOnDashboard])
+          )
+          .map(_.fromInternal[Dashboard])
+          .unsafeToFuture()
+          .handleServerError
+    } yield dashboard
 
-  def removeProjectFromDashboard = ???
+  def removeProjectFromDashboard(dashboardId: DashboardId, projectId: ProjectId): Future[Dashboard] =
+    for {
+      _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.valid(())) }
+      dashboard <- validateProjectAccess(graphQLServices.projectService, projectId, _.readAccessors.accessors) {
+        (_, _) =>
+          graphQLServices.dashboardService
+            .removeProject(
+              dashboardId = dashboardId.toInternal,
+              projectId = projectId.toInternal
+            )
+      }
+    } yield dashboard.fromInternal[Dashboard]
 
   /*  TODO: Dashboard write access allows to modify the dashboard alone.
    *   Unclear:
