@@ -63,6 +63,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
       }
     } yield dashboard.fromInternal[Dashboard]
 
+  @GraphQLField
   def adjustWeightsOnDashboard(
       dashboardId: DashboardId,
       projectWeightsOnDashboard: Seq[ProjectWeightOnDashboard]
@@ -90,6 +91,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
           .handleServerError
     } yield dashboard
 
+  @GraphQLField
   def removeProjectFromDashboard(dashboardId: DashboardId, projectId: ProjectId): Future[Dashboard] =
     for {
       _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.valid(())) }
