@@ -11,6 +11,7 @@ import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 import spire.math.Natural
 import utils.json.CirceUtil.instances._
+import utils.graphql.SangriaUtil.instances._
 
 @JsonCodec
 case class ProjectWeightOnDashboard(
