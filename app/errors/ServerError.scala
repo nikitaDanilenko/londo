@@ -118,6 +118,8 @@ object ServerError {
 
   object Conversion {
     case object IntToNatural extends ServerErrorInstance("The integer does not represent a valid natural number")
+    case object BigIntToNatural extends ServerErrorInstance("The integer does not represent a valid natural number")
+    case object PositiveNatural extends ServerErrorInstance("Zero is not a positive natural number")
   }
 
   object Dashboard {
