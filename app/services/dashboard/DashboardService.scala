@@ -1,6 +1,6 @@
 package services.dashboard
 
-import cats.data.{ EitherT, NonEmptyList, NonEmptySet }
+import cats.data.{ EitherT, NonEmptySet }
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import cats.syntax.traverse._
@@ -35,10 +35,10 @@ class DashboardService @Inject() (
   def create[F[_]: Async: ContextShift](
       userId: UserId,
       dashboardCreation: DashboardCreation
-  ): F[ServerError.Valid[Dashboard]] =
+  ): F[ServerError.Or[Dashboard]] =
     transactionally(createC(userId, dashboardCreation))
 
-  def createC(userId: UserId, dashboardCreation: DashboardCreation): ConnectionIO[ServerError.Valid[Dashboard]] =
+  def createC(userId: UserId, dashboardCreation: DashboardCreation): ConnectionIO[ServerError.Or[Dashboard]] =
     for {
       createdDashboard <- Async[ConnectionIO].liftIO(DashboardCreation.create(userId, dashboardCreation))
       _ <- dashboardDAO.insertC(DashboardService.toDbRepresentation(createdDashboard).dashboard)
@@ -47,59 +47,57 @@ class DashboardService @Inject() (
       dashboard <- fetchC(createdDashboard.id)
     } yield dashboard
 
-  def delete[F[_]: Async: ContextShift](dashboardId: DashboardId): F[ServerError.Valid[Dashboard]] =
+  def delete[F[_]: Async: ContextShift](dashboardId: DashboardId): F[ServerError.Or[Dashboard]] =
     transactionally(deleteC(dashboardId))
 
-  def deleteC(dashboardId: DashboardId): ConnectionIO[ServerError.Valid[Dashboard]] = {
+  def deleteC(dashboardId: DashboardId): ConnectionIO[ServerError.Or[Dashboard]] = {
     val transformer = for {
       dashboard <- fetchT(dashboardId)
-      _ <- EitherT.liftF[ConnectionIO, NonEmptyList[ServerError], db.models.Dashboard](
-        dashboardDAO.deleteC(DashboardId.toDb(dashboardId))
-      )
+      _ <- ServerError.liftC(dashboardDAO.deleteC(DashboardId.toDb(dashboardId)))
     } yield dashboard
 
-    transformer.value.map(ServerError.fromEitherNel)
+    transformer.value
   }
 
   def update[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       dashboardUpdate: DashboardUpdate
-  ): F[ServerError.Valid[Dashboard]] =
+  ): F[ServerError.Or[Dashboard]] =
     transactionally(updateC(dashboardId, dashboardUpdate))
 
   def updateC(
       dashboardId: DashboardId,
       dashboardUpdate: DashboardUpdate
-  ): ConnectionIO[ServerError.Valid[Dashboard]] = {
+  ): ConnectionIO[ServerError.Or[Dashboard]] = {
     val transformer = for {
       dashboard <- fetchT(dashboardId)
       updatedDashboard = DashboardUpdate.applyToDashboard(dashboard, dashboardUpdate)
       updatedRow = DashboardService.toDbRepresentation(updatedDashboard).dashboard
-      _ <- ServerError.liftNelC(dashboardDAO.replaceC(updatedRow))
+      _ <- ServerError.liftC(dashboardDAO.replaceC(updatedRow))
       updatedWrittenDashboard <- fetchT(dashboardId)
     } yield updatedWrittenDashboard
-    transformer.value.map(ServerError.fromEitherNel)
+    transformer.value
   }
 
-  def fetch[F[_]: Async: ContextShift](dashboardId: DashboardId): F[ServerError.Valid[Dashboard]] =
+  def fetch[F[_]: Async: ContextShift](dashboardId: DashboardId): F[ServerError.Or[Dashboard]] =
     transactionally(fetchC(dashboardId))
 
-  def fetchC(dashboardId: DashboardId): ConnectionIO[ServerError.Valid[Dashboard]] = {
+  def fetchC(dashboardId: DashboardId): ConnectionIO[ServerError.Or[Dashboard]] = {
     val dashboardReadAccessId = dashboardId.asDashboardReadAccessId
     val dashboardWriteAccessId = dashboardId.asDashboardWriteAccessId
 
     val transformer = for {
       dashboardRow <- EitherT.fromOptionF(
         dashboardDAO.findC(DashboardId.toDb(dashboardId)),
-        NonEmptyList.of(ServerError.Dashboard.NotFound)
+        ServerError.Dashboard.NotFound
       )
-      dashboardProjectAssociations <- EitherT.liftF(dashboardProjectAssociationDAO.findByDashboardIdC(dashboardId.uuid))
+      dashboardProjectAssociations <-
+        ServerError.liftC(dashboardProjectAssociationDAO.findByDashboardIdC(dashboardId.uuid))
       projects <- dashboardProjectAssociations.traverse(dpa =>
-        EitherT(projectService.resolvedProjectC(ProjectId(dpa.projectId)).map(_.toEither))
+        EitherT(projectService.resolvedProjectC(ProjectId(dpa.projectId)))
           .subflatMap(rp =>
             NaturalUtil
               .fromInt(dpa.weight)
-              .toEither
               .map(weight =>
                 WeightedProject(
                   resolvedProject = rp,
@@ -108,12 +106,12 @@ class DashboardService @Inject() (
               )
           )
       )
-      readAccess <- ServerError.liftNelC(dashboardReadAccessDAO.findC(dashboardReadAccessId))
+      readAccess <- EitherT.fromOptionF(dashboardReadAccessDAO.findC(dashboardReadAccessId), ???)
       readAccessEntries <-
-        ServerError.liftNelC(dashboardReadAccessEntryDAO.findByDashboardReadAccessIdC(dashboardReadAccessId.uuid))
-      writeAccess <- ServerError.liftNelC(dashboardWriteAccessDAO.findC(dashboardWriteAccessId))
+        ServerError.liftC(dashboardReadAccessEntryDAO.findByDashboardReadAccessIdC(dashboardReadAccessId.uuid))
+      writeAccess <- EitherT.fromOptionF(dashboardWriteAccessDAO.findC(dashboardWriteAccessId), ???)
       writeAccessEntries <-
-        ServerError.liftNelC(dashboardWriteAccessEntryDAO.findByDashboardWriteAccessIdC(dashboardWriteAccessId.uuid))
+        ServerError.liftC(dashboardWriteAccessEntryDAO.findByDashboardWriteAccessIdC(dashboardWriteAccessId.uuid))
     } yield Dashboard(
       id = dashboardId,
       projects = projects.toVector,
@@ -122,33 +120,33 @@ class DashboardService @Inject() (
       userId = UserId(dashboardRow.userId),
       readAccessors = Access.fromDb(
         Access.DbRepresentation.fromComponents(
-          readAccess.getOrElse(db.models.DashboardReadAccess(dashboardId.uuid, isAllowList = false)),
+          readAccess,
           readAccessEntries
         )
       ),
       writeAccessors = Access.fromDb(
         Access.DbRepresentation.fromComponents(
-          writeAccess.getOrElse(db.models.DashboardWriteAccess(dashboardId.uuid, isAllowList = false)),
+          writeAccess,
           writeAccessEntries
         )
       )
     )
 
-    transformer.value.map(ServerError.fromEitherNel)
+    transformer.value
   }
 
   def addProject[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       projectId: ProjectId,
       weight: Natural
-  ): F[ServerError.Valid[Dashboard]] =
+  ): F[ServerError.Or[Dashboard]] =
     transactionally(addProjectC(dashboardId, projectId, weight))
 
   def addProjectC(
       dashboardId: DashboardId,
       projectId: ProjectId,
       weight: Natural
-  ): ConnectionIO[ServerError.Valid[Dashboard]] = {
+  ): ConnectionIO[ServerError.Or[Dashboard]] = {
     for {
       // TODO: Insertion can fail. Where is the handler for such a case?
       _ <- dashboardProjectAssociationDAO.insertC(
@@ -166,10 +164,10 @@ class DashboardService @Inject() (
   def removeProject[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       projectId: ProjectId
-  ): F[ServerError.Valid[Dashboard]] =
+  ): F[ServerError.Or[Dashboard]] =
     transactionally(removeProjectC(dashboardId, projectId))
 
-  def removeProjectC(dashboardId: DashboardId, projectId: ProjectId): ConnectionIO[ServerError.Valid[Dashboard]] =
+  def removeProjectC(dashboardId: DashboardId, projectId: ProjectId): ConnectionIO[ServerError.Or[Dashboard]] =
     for {
       // TODO: Deletion can fail. Where is the handler for such a case?
       _ <- dashboardProjectAssociationDAO.deleteC(
@@ -184,13 +182,13 @@ class DashboardService @Inject() (
   def setWeight[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       projectWeightOnDashboard: ProjectWeightOnDashboard
-  ): F[ServerError.Valid[Dashboard]] =
+  ): F[ServerError.Or[Dashboard]] =
     transactionally(setWeightC(dashboardId, projectWeightOnDashboard))
 
   def setWeightC(
       dashboardId: DashboardId,
       projectWeightOnDashboard: ProjectWeightOnDashboard
-  ): ConnectionIO[ServerError.Valid[Dashboard]] =
+  ): ConnectionIO[ServerError.Or[Dashboard]] =
     for {
       // TODO: Replacement can fail. Add error handler for this case.
       _ <- dashboardProjectAssociationDAO.replaceC(
@@ -202,61 +200,61 @@ class DashboardService @Inject() (
   def setWeights[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       projectWeights: Seq[ProjectWeightOnDashboard]
-  ): F[ServerError.Valid[Dashboard]] =
+  ): F[ServerError.Or[Dashboard]] =
     transactionally(setWeightsC(dashboardId, projectWeights))
 
   def setWeightsC(
       dashboardId: DashboardId,
       projectWeights: Seq[ProjectWeightOnDashboard]
-  ): ConnectionIO[ServerError.Valid[Dashboard]] =
+  ): ConnectionIO[ServerError.Or[Dashboard]] =
     projectWeights.traverse(setWeightC(dashboardId, _)).flatMap(_ => fetchC(dashboardId))
 
   def allowReadUsers[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): F[ServerError.Valid[Accessors]] =
+  ): F[ServerError.Or[Accessors]] =
     transactionally(toAccessors(allowReadUsersC(dashboardId, userIds)))
 
   def allowReadUsersC(
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]]] =
     modifyUsersWithRights(dashboardId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccessC)
 
   def allowWriteUsers[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): F[ServerError.Valid[Accessors]] =
+  ): F[ServerError.Or[Accessors]] =
     transactionally(toAccessors(allowWriteUsersC(dashboardId, userIds)))
 
   def allowWriteUsersC(
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]]] =
     modifyUsersWithRights(dashboardId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccessC)
 
   def blockReadUsers[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): F[ServerError.Valid[Accessors]] =
+  ): F[ServerError.Or[Accessors]] =
     transactionally(toAccessors(blockReadUsersC(dashboardId, userIds)))
 
   def blockReadUsersC(
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]]] =
     modifyUsersWithRights(dashboardId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccessC)
 
   def blockWriteUsers[F[_]: Async: ContextShift](
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): F[ServerError.Valid[Accessors]] =
+  ): F[ServerError.Or[Accessors]] =
     transactionally(toAccessors(blockWriteUsersC(dashboardId, userIds)))
 
   def blockWriteUsersC(
       dashboardId: DashboardId,
       userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]]] =
     modifyUsersWithRights(dashboardId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccessC)
 
   private def modifyUsersWithRights[AK, DBAccessK, DBAccessEntry](
@@ -268,11 +266,11 @@ class DashboardService @Inject() (
           DashboardId,
           Access[AK]
       ) => ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]]
-  ): ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
     val transformer =
       for {
         dashboard <- fetchT(dashboardId)
-        updatedAccess <- ServerError.liftNelC(
+        updatedAccess <- ServerError.liftC(
           setAccess(
             dashboardId,
             accessors(dashboard)
@@ -282,11 +280,11 @@ class DashboardService @Inject() (
         )
       } yield updatedAccess
 
-    transformer.value.map(ServerError.fromEitherNel)
+    transformer.value
   }
 
-  private def fetchT(dashboardId: DashboardId): EitherT[ConnectionIO, NonEmptyList[ServerError], Dashboard] =
-    EitherT(fetchC(dashboardId).map(_.toEither))
+  private def fetchT(dashboardId: DashboardId): EitherT[ConnectionIO, ServerError, Dashboard] =
+    EitherT(fetchC(dashboardId))
 
   private def setReadAccessC(
       dashboardId: DashboardId,
@@ -328,10 +326,10 @@ class DashboardService @Inject() (
   }
 
   private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
-      dbComponentsC: ConnectionIO[ServerError.Valid[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
+      dbComponentsC: ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
   )(implicit
       accessFromDB: AccessFromDB[DashboardId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ServerError.Valid[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
+  ): ConnectionIO[ServerError.Or[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
 
 }
 
