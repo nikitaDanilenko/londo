@@ -126,4 +126,14 @@ object ServerError {
     case object NotFound extends ServerErrorInstance("No dashboard with the given id found")
   }
 
+  // TODO: Check necessity
+  case class BulkError(serverErrors: NonEmptyList[ServerError]) extends ServerError {
+
+    override lazy val message: String = {
+      val bulkMessage = serverErrors.map(serverError => s"* ${serverError.message}").toList.mkString("\n")
+      s"The following errors occurred:\n$bulkMessage"
+    }
+
+  }
+
 }
