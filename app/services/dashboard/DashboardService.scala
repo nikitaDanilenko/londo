@@ -106,10 +106,12 @@ class DashboardService @Inject() (
               )
           )
       )
-      readAccess <- EitherT.fromOptionF(dashboardReadAccessDAO.findC(dashboardReadAccessId), ???)
+      readAccess <-
+        EitherT.fromOptionF(dashboardReadAccessDAO.findC(dashboardReadAccessId), ServerError.Dashboard.NoReadAccess)
       readAccessEntries <-
         ServerError.liftC(dashboardReadAccessEntryDAO.findByDashboardReadAccessIdC(dashboardReadAccessId.uuid))
-      writeAccess <- EitherT.fromOptionF(dashboardWriteAccessDAO.findC(dashboardWriteAccessId), ???)
+      writeAccess <-
+        EitherT.fromOptionF(dashboardWriteAccessDAO.findC(dashboardWriteAccessId), ServerError.Dashboard.NoWriteAccess)
       writeAccessEntries <-
         ServerError.liftC(dashboardWriteAccessEntryDAO.findByDashboardWriteAccessIdC(dashboardWriteAccessId.uuid))
     } yield Dashboard(
