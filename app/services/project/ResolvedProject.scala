@@ -2,7 +2,7 @@ package services.project
 
 import cats.data.NonEmptySet
 import services.access.{ Access, AccessKind, Accessors }
-import services.task.ResolvedTask
+import services.task.{ Progress, ResolvedTask }
 import services.user.UserId
 
 case class ResolvedProject(
@@ -24,6 +24,11 @@ object ResolvedProject {
 
   def transitiveWriteAccessOf(resolvedProject: ResolvedProject): Access[AccessKind.Write] =
     Access(transitiveAccessorsOf(_.writeAccessors.accessors, resolvedProject))
+
+  def progress(resolvedProject: ResolvedProject): Progress = {
+//    def descend(resolvedProject: ResolvedProject)
+    ???
+  }
 
   private def transitiveAccessorsOf(
       accessorsOf: ResolvedProject => Accessors,

@@ -31,8 +31,13 @@ object ServerError {
   def fromCondition[A](condition: Boolean, errorCase: => ServerError, successCase: => A): Valid[A] =
     Validated.condNel(condition, successCase, errorCase)
 
-  def fromOption[A](option: Option[A], errorCase: => ServerError): Valid[A] =
-    fromEither(option.toRight(errorCase))
+  def fromOption[A](option: Option[A], errorCase: => ServerError): ServerError.Or[A] =
+    option.toRight(errorCase)
+
+  def result[A](a: A): ServerError.Or[A] = Right(a)
+
+  def fromValidated[A](v: ServerError.Valid[A]): ServerError.Or[A] =
+    v.toEither.left.map(BulkError)
 
   def valid[A](a: A): Valid[A] =
     Validated.valid(a)
@@ -114,6 +119,8 @@ object ServerError {
 
   object Project {
     case object NotFound extends ServerErrorInstance("No project with the given id found")
+    case object NoReadAccess extends ServerErrorInstance("No read access for project")
+    case object NoWriteAccess extends ServerErrorInstance("No write access for project")
   }
 
   object Conversion {
@@ -124,6 +131,8 @@ object ServerError {
 
   object Dashboard {
     case object NotFound extends ServerErrorInstance("No dashboard with the given id found")
+    case object NoReadAccess extends ServerErrorInstance("No read access for dashboard")
+    case object NoWriteAccess extends ServerErrorInstance("No write access for dashboard")
   }
 
   // TODO: Check necessity
