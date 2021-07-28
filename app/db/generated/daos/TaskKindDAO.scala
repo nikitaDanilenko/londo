@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -14,10 +15,13 @@ class TaskKindDAO @Inject() (dbContext: DbContext, override protected val dbTran
     extends DAOFunctions[TaskKind, TaskKindDAO.Key] {
   import dbContext._
   override def findC(key: TaskKindDAO.Key): ConnectionIO[Option[TaskKind]] = run(findAction(key)).map(_.headOption)
-  override def insertC(row: TaskKind): ConnectionIO[TaskKind] = run(insertAction(row))
-  override def insertAllC(rows: Seq[TaskKind]): ConnectionIO[List[TaskKind]] = run(insertAllAction(rows))
-  override def deleteC(key: TaskKindDAO.Key): ConnectionIO[TaskKind] = run(deleteAction(key))
-  override def replaceC(row: TaskKind): ConnectionIO[TaskKind] = run(replaceAction(row))
+  override def insertC(row: TaskKind): ConnectionIO[Either[Throwable, TaskKind]] = run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[TaskKind]): ConnectionIO[Either[Throwable, List[TaskKind]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: TaskKindDAO.Key): ConnectionIO[Either[Throwable, TaskKind]] = run(deleteAction(key)).attempt
+  override def replaceC(row: TaskKind): ConnectionIO[Either[Throwable, TaskKind]] = run(replaceAction(row)).attempt
 
   private def findAction(key: TaskKindDAO.Key) =
     quote {

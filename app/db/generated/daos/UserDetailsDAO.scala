@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -17,10 +18,16 @@ class UserDetailsDAO @Inject() (dbContext: DbContext, override protected val dbT
   override def findC(key: UserDetailsDAO.Key): ConnectionIO[Option[UserDetails]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: UserDetails): ConnectionIO[UserDetails] = run(insertAction(row))
-  override def insertAllC(rows: Seq[UserDetails]): ConnectionIO[List[UserDetails]] = run(insertAllAction(rows))
-  override def deleteC(key: UserDetailsDAO.Key): ConnectionIO[UserDetails] = run(deleteAction(key))
-  override def replaceC(row: UserDetails): ConnectionIO[UserDetails] = run(replaceAction(row))
+  override def insertC(row: UserDetails): ConnectionIO[Either[Throwable, UserDetails]] = run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[UserDetails]): ConnectionIO[Either[Throwable, List[UserDetails]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: UserDetailsDAO.Key): ConnectionIO[Either[Throwable, UserDetails]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: UserDetails): ConnectionIO[Either[Throwable, UserDetails]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: UserDetailsDAO.Key) =
     quote {

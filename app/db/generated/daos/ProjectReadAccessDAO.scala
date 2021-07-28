@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,13 +20,17 @@ class ProjectReadAccessDAO @Inject() (
   override def findC(key: ProjectReadAccessDAO.Key): ConnectionIO[Option[ProjectReadAccess]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: ProjectReadAccess): ConnectionIO[ProjectReadAccess] = run(insertAction(row))
+  override def insertC(row: ProjectReadAccess): ConnectionIO[Either[Throwable, ProjectReadAccess]] =
+    run(insertAction(row)).attempt
 
-  override def insertAllC(rows: Seq[ProjectReadAccess]): ConnectionIO[List[ProjectReadAccess]] =
-    run(insertAllAction(rows))
+  override def insertAllC(rows: Seq[ProjectReadAccess]): ConnectionIO[Either[Throwable, List[ProjectReadAccess]]] =
+    run(insertAllAction(rows)).attempt
 
-  override def deleteC(key: ProjectReadAccessDAO.Key): ConnectionIO[ProjectReadAccess] = run(deleteAction(key))
-  override def replaceC(row: ProjectReadAccess): ConnectionIO[ProjectReadAccess] = run(replaceAction(row))
+  override def deleteC(key: ProjectReadAccessDAO.Key): ConnectionIO[Either[Throwable, ProjectReadAccess]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: ProjectReadAccess): ConnectionIO[Either[Throwable, ProjectReadAccess]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: ProjectReadAccessDAO.Key) =
     quote {

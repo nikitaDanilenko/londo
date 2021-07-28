@@ -38,13 +38,13 @@ object GeneratedDAO {
         }
         """,
         q"""
-        def ${functionNames.deleteLayers.function}[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[Long] = {
+        def ${functionNames.deleteLayers.function}[F[_]: Async: ContextShift](key: ${column.typeTerm}): F[Either[Throwable, Long]] = {
           ${functionNames.deleteLayers.functionC}(key).transact(dbTransactorProvider.transactor[F])
         }
         """,
         q"""
-        def ${functionNames.deleteLayers.functionC}(key: ${column.typeTerm}): ConnectionIO[Long] = {
-          run(${functionNames.deleteLayers.functionAction}(key))
+        def ${functionNames.deleteLayers.functionC}(key: ${column.typeTerm}): ConnectionIO[Either[Throwable, Long]] = {
+          run(${functionNames.deleteLayers.functionAction}(key)).attempt
         }
         """
       )
@@ -73,6 +73,7 @@ object GeneratedDAO {
     val result = q"""
           package $daoPackageTerm {
           import cats.effect.{Async, ContextShift}
+          import cats.syntax.applicativeError._
           import db.models._
           import db.keys._
           import db.{DbContext, DbTransactorProvider, DAOFunctions}
@@ -91,17 +92,17 @@ object GeneratedDAO {
             override def findC(key: $keyType): ConnectionIO[Option[$typeName]] =
               run(findAction(key)).map(_.headOption)
   
-            override def insertC(row: $typeName): ConnectionIO[$typeName] =
-              run(insertAction(row))
+            override def insertC(row: $typeName): ConnectionIO[Either[Throwable, $typeName]] =
+              run(insertAction(row)).attempt
   
-            override def insertAllC(rows: Seq[$typeName]): ConnectionIO[List[$typeName]] =
-              run(insertAllAction(rows))
+            override def insertAllC(rows: Seq[$typeName]): ConnectionIO[Either[Throwable, List[$typeName]]] =
+              run(insertAllAction(rows)).attempt
   
-            override def deleteC(key: $keyType): ConnectionIO[$typeName] =
-              run(deleteAction(key))
+            override def deleteC(key: $keyType): ConnectionIO[Either[Throwable, $typeName]] =
+              run(deleteAction(key)).attempt
   
-            override def replaceC(row: $typeName): ConnectionIO[$typeName] =
-              run(replaceAction(row))
+            override def replaceC(row: $typeName): ConnectionIO[Either[Throwable, $typeName]] =
+              run(replaceAction(row)).attempt
     
             private def findAction(key: $keyType) =
               quote {

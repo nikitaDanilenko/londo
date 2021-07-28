@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,13 +20,17 @@ class RegistrationTokenDAO @Inject() (
   override def findC(key: RegistrationTokenDAO.Key): ConnectionIO[Option[RegistrationToken]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: RegistrationToken): ConnectionIO[RegistrationToken] = run(insertAction(row))
+  override def insertC(row: RegistrationToken): ConnectionIO[Either[Throwable, RegistrationToken]] =
+    run(insertAction(row)).attempt
 
-  override def insertAllC(rows: Seq[RegistrationToken]): ConnectionIO[List[RegistrationToken]] =
-    run(insertAllAction(rows))
+  override def insertAllC(rows: Seq[RegistrationToken]): ConnectionIO[Either[Throwable, List[RegistrationToken]]] =
+    run(insertAllAction(rows)).attempt
 
-  override def deleteC(key: RegistrationTokenDAO.Key): ConnectionIO[RegistrationToken] = run(deleteAction(key))
-  override def replaceC(row: RegistrationToken): ConnectionIO[RegistrationToken] = run(replaceAction(row))
+  override def deleteC(key: RegistrationTokenDAO.Key): ConnectionIO[Either[Throwable, RegistrationToken]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: RegistrationToken): ConnectionIO[Either[Throwable, RegistrationToken]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: RegistrationTokenDAO.Key) =
     quote {

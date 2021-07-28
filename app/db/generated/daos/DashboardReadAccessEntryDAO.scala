@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,15 +20,19 @@ class DashboardReadAccessEntryDAO @Inject() (
   override def findC(key: DashboardReadAccessEntryDAO.Key): ConnectionIO[Option[DashboardReadAccessEntry]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: DashboardReadAccessEntry): ConnectionIO[DashboardReadAccessEntry] = run(insertAction(row))
+  override def insertC(row: DashboardReadAccessEntry): ConnectionIO[Either[Throwable, DashboardReadAccessEntry]] =
+    run(insertAction(row)).attempt
 
-  override def insertAllC(rows: Seq[DashboardReadAccessEntry]): ConnectionIO[List[DashboardReadAccessEntry]] =
-    run(insertAllAction(rows))
+  override def insertAllC(
+      rows: Seq[DashboardReadAccessEntry]
+  ): ConnectionIO[Either[Throwable, List[DashboardReadAccessEntry]]] = run(insertAllAction(rows)).attempt
 
-  override def deleteC(key: DashboardReadAccessEntryDAO.Key): ConnectionIO[DashboardReadAccessEntry] =
-    run(deleteAction(key))
+  override def deleteC(
+      key: DashboardReadAccessEntryDAO.Key
+  ): ConnectionIO[Either[Throwable, DashboardReadAccessEntry]] = run(deleteAction(key)).attempt
 
-  override def replaceC(row: DashboardReadAccessEntry): ConnectionIO[DashboardReadAccessEntry] = run(replaceAction(row))
+  override def replaceC(row: DashboardReadAccessEntry): ConnectionIO[Either[Throwable, DashboardReadAccessEntry]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: DashboardReadAccessEntryDAO.Key) =
     quote {
@@ -73,12 +78,12 @@ class DashboardReadAccessEntryDAO @Inject() (
     run(findByDashboardReadAccessIdAction(key))
   }
 
-  def deleteByDashboardReadAccessId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteByDashboardReadAccessId[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByDashboardReadAccessIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByDashboardReadAccessIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByDashboardReadAccessIdAction(key))
+  def deleteByDashboardReadAccessIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByDashboardReadAccessIdAction(key)).attempt
   }
 
   def findByUserId[F[_]: Async: ContextShift](key: UUID): F[List[DashboardReadAccessEntry]] = {
@@ -89,12 +94,12 @@ class DashboardReadAccessEntryDAO @Inject() (
     run(findByUserIdAction(key))
   }
 
-  def deleteByUserId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteByUserId[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByUserIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByUserIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByUserIdAction(key))
+  def deleteByUserIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByUserIdAction(key)).attempt
   }
 
   private def findByDashboardReadAccessIdAction(key: UUID) = {

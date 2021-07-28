@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,17 +20,20 @@ class DashboardProjectAssociationDAO @Inject() (
   override def findC(key: DashboardProjectAssociationDAO.Key): ConnectionIO[Option[DashboardProjectAssociation]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: DashboardProjectAssociation): ConnectionIO[DashboardProjectAssociation] =
-    run(insertAction(row))
+  override def insertC(row: DashboardProjectAssociation): ConnectionIO[Either[Throwable, DashboardProjectAssociation]] =
+    run(insertAction(row)).attempt
 
-  override def insertAllC(rows: Seq[DashboardProjectAssociation]): ConnectionIO[List[DashboardProjectAssociation]] =
-    run(insertAllAction(rows))
+  override def insertAllC(
+      rows: Seq[DashboardProjectAssociation]
+  ): ConnectionIO[Either[Throwable, List[DashboardProjectAssociation]]] = run(insertAllAction(rows)).attempt
 
-  override def deleteC(key: DashboardProjectAssociationDAO.Key): ConnectionIO[DashboardProjectAssociation] =
-    run(deleteAction(key))
+  override def deleteC(
+      key: DashboardProjectAssociationDAO.Key
+  ): ConnectionIO[Either[Throwable, DashboardProjectAssociation]] = run(deleteAction(key)).attempt
 
-  override def replaceC(row: DashboardProjectAssociation): ConnectionIO[DashboardProjectAssociation] =
-    run(replaceAction(row))
+  override def replaceC(
+      row: DashboardProjectAssociation
+  ): ConnectionIO[Either[Throwable, DashboardProjectAssociation]] = run(replaceAction(row)).attempt
 
   private def findAction(key: DashboardProjectAssociationDAO.Key) =
     quote {
@@ -76,12 +80,12 @@ class DashboardProjectAssociationDAO @Inject() (
     run(findByDashboardIdAction(key))
   }
 
-  def deleteByDashboardId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteByDashboardId[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByDashboardIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByDashboardIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByDashboardIdAction(key))
+  def deleteByDashboardIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByDashboardIdAction(key)).attempt
   }
 
   private def findByDashboardIdAction(key: UUID) = {
