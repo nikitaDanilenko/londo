@@ -171,25 +171,24 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       serviceFunction: (
           services.project.ProjectId,
           NonEmptySet[services.user.UserId]
-      ) => IO[ServerError.Valid[access.Accessors]]
+      ) => IO[ServerError.Or[access.Accessors]]
   )(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
-  ): IO[ServerError.Valid[Accessors]] =
+  ): IO[ServerError.Or[Accessors]] =
     EitherT(
       serviceFunction(
         projectId.toInternal,
         userIds.toInternal.toNes
-      ).map(_.toEither)
+      )
     )
       .map(a => services.access.Accessors.toRepresentation(a).fromInternal[Accessors])
       .value
-      .map(ServerError.fromEitherNel)
 
   private def validateProjectWriteAccess[A](
       projectId: ProjectId
   )(
-      f: services.user.UserId => IO[ServerError.Valid[A]]
+      f: services.user.UserId => IO[ServerError.Or[A]]
   ): Future[A] = {
     validateProjectAccess(
       projectService = graphQLServices.projectService,

@@ -14,13 +14,13 @@ trait ProjectQuery extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField()
   def fetchProject(projectId: ProjectId): Future[Project] = {
-    validateProjectReadAccess(projectId)((_, project) => IO.pure(ServerError.valid(project.fromInternal[Project])))
+    validateProjectReadAccess(projectId)((_, project) => IO.pure(ServerError.result(project.fromInternal[Project])))
   }
 
   private def validateProjectReadAccess[A](
       projectId: ProjectId
   )(
-      f: (services.user.UserId, services.project.Project) => IO[ServerError.Valid[A]]
+      f: (services.user.UserId, services.project.Project) => IO[ServerError.Or[A]]
   ): Future[A] = {
     validateProjectAccess(
       projectService = graphQLServices.projectService,

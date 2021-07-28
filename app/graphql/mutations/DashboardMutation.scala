@@ -51,7 +51,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
   @GraphQLField
   def addProjectToDashboard(dashboardId: DashboardId, projectId: ProjectId, weight: Natural): Future[Dashboard] =
     for {
-      _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.valid(())) }
+      _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.result(())) }
       dashboard <- validateProjectAccess(graphQLServices.projectService, projectId, _.readAccessors.accessors) {
         (_, _) =>
           graphQLServices.dashboardService
@@ -70,14 +70,14 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
   ): Future[Dashboard] =
     // TODO: The below implementation seems too convoluted.
     for {
-      _ <- validateDashboardWriteAccess(dashboardId)(_ => IO.pure(ServerError.valid(())))
+      _ <- validateDashboardWriteAccess(dashboardId)(_ => IO.pure(ServerError.result(())))
       validatedProjectWeightsOnDashboard <- projectWeightsOnDashboard.traverse { projectWeightsOnDashboard =>
         validateProjectAccess(
           graphQLServices.projectService,
           projectWeightsOnDashboard.projectId,
           _.readAccessors.accessors
         ) { (_, _) =>
-          IO.pure(ServerError.valid(projectWeightsOnDashboard))
+          IO.pure(ServerError.result(projectWeightsOnDashboard))
         }
       }
       dashboard <-
@@ -94,7 +94,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
   @GraphQLField
   def removeProjectFromDashboard(dashboardId: DashboardId, projectId: ProjectId): Future[Dashboard] =
     for {
-      _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.valid(())) }
+      _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.result(())) }
       dashboard <- validateProjectAccess(graphQLServices.projectService, projectId, _.readAccessors.accessors) {
         (_, _) =>
           graphQLServices.dashboardService
@@ -115,7 +115,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
   private def validateDashboardWriteAccess[A](
       dashboardId: DashboardId
   )(
-      f: services.user.UserId => IO[ServerError.Valid[A]]
+      f: services.user.UserId => IO[ServerError.Or[A]]
   ): Future[A] = {
     validateDashboardAccess(
       dashboardService = graphQLServices.dashboardService,
