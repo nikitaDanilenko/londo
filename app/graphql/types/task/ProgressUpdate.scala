@@ -2,9 +2,10 @@ package graphql.types.task
 
 import graphql.types.ToInternal
 import io.circe.generic.JsonCodec
+import math.Positive
 import sangria.macros.derive.deriveInputObjectType
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.marshalling.FromInput
+import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
 import spire.math.Natural
 import utils.json.CirceUtil.instances._
@@ -13,7 +14,7 @@ import utils.graphql.SangriaUtil.instances._
 @JsonCodec
 case class ProgressUpdate(
     reached: Natural,
-    reachable: Natural
+    reachable: Positive
 )
 
 object ProgressUpdate {
