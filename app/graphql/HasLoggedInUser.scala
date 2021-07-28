@@ -5,6 +5,7 @@ import cats.data.{ EitherT, NonEmptySet }
 import cats.effect.{ ContextShift, IO, MonadThrow }
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import cats.syntax.traverse._
 import errors.{ ServerError, ServerException }
 import graphql.HasGraphQLServices.syntax._
 import graphql.types.ToInternal
@@ -46,8 +47,8 @@ trait HasLoggedInUser {
     fa.flatMap(a => allowedAccess(accessorsOf(a)).map(_ => conversion(a)))
 
   final protected def allowedAccessViaError[F[_]: MonadThrow, A, B](
-      fa: F[ServerError.Valid[A]]
-  )(accessorsOf: A => Accessors, conversion: A => B): F[ServerError.Valid[B]] =
+      fa: F[ServerError.Or[A]]
+  )(accessorsOf: A => Accessors, conversion: A => B): F[ServerError.Or[B]] =
     fa.flatMap(_.traverse(a => allowedAccess(accessorsOf(a)).map(_ => conversion(a))))
 
   def validateProjectAccess[A](
@@ -55,7 +56,7 @@ trait HasLoggedInUser {
       projectId: ProjectId,
       accessorsOf: services.project.Project => Accessors
   )(
-      f: (services.user.UserId, services.project.Project) => IO[ServerError.Valid[A]]
+      f: (services.user.UserId, services.project.Project) => IO[ServerError.Or[A]]
   )(implicit contextShift: ContextShift[IO], executionContext: ExecutionContext): Future[A] =
     validateAccessGeneric(
       fetchFunction = projectService.fetch[IO],
@@ -68,7 +69,7 @@ trait HasLoggedInUser {
       dashboardId: DashboardId,
       accessorsOf: services.dashboard.Dashboard => Accessors
   )(
-      f: (services.user.UserId, services.dashboard.Dashboard) => IO[ServerError.Valid[A]]
+      f: (services.user.UserId, services.dashboard.Dashboard) => IO[ServerError.Or[A]]
   )(implicit contextShift: ContextShift[IO], executionContext: ExecutionContext): Future[A] =
     validateAccessGeneric(
       fetchFunction = dashboardService.fetch[IO],
@@ -77,26 +78,25 @@ trait HasLoggedInUser {
     )(f)
 
   def validateAccessGeneric[GraphQLId, InternalId, T, Result](
-      fetchFunction: InternalId => IO[ServerError.Valid[T]],
+      fetchFunction: InternalId => IO[ServerError.Or[T]],
       graphQLId: GraphQLId,
       accessorsOf: T => Accessors
-  )(f: (services.user.UserId, T) => IO[ServerError.Valid[Result]])(implicit
+  )(f: (services.user.UserId, T) => IO[ServerError.Or[Result]])(implicit
       toInternal: ToInternal[GraphQLId, InternalId],
       contextShift: ContextShift[IO],
       executionContext: ExecutionContext
-  ): Future[Result] =
+  ): Future[Result] = {
     EitherT(
       fetchFunction(graphQLId.toInternal)
-        .map(_.toEither)
     ).flatMap(t =>
       EitherT
-        .liftF[IO, cats.data.NonEmptyList[ServerError], services.user.UserId](
+        .liftF[IO, ServerError, services.user.UserId](
           allowedAccess[IO](accessorsOf(t))
         )
-        .flatMap(userId => EitherT(f(userId, t).map(_.toEither)))
+        .flatMap(userId => EitherT(f(userId, t)))
     ).value
-      .map(ServerError.fromEitherNel)
       .unsafeToFuture()
       .handleServerError
+  }
 
 }
