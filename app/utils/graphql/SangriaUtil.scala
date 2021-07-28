@@ -1,7 +1,7 @@
 package utils.graphql
 
 import math.Positive
-import sangria.ast.{ BigIntValue, StringValue }
+import sangria.ast.{ BigIntValue, StringValue, Value }
 import sangria.schema.ScalarType
 import sangria.validation.{ ValueCoercionViolation, Violation }
 import spire.math.Natural
@@ -13,63 +13,75 @@ object SangriaUtil {
 
   trait Instances {
 
-    // TODO: Consider abstraction, if similar types occur again
-    implicit val uuidType: ScalarType[UUID] = ScalarType[UUID](
-      name = "UUID",
-      coerceInput = {
-        case StringValue(s, _, _, _, _) => parseUUID(s)
-        case _                          => Left(UUIDCoercionViolation)
-      },
-      coerceOutput = (d, _) => d.toString,
-      coerceUserInput = {
-        case s: String => parseUUID(s)
-        case _         => Left(UUIDCoercionViolation)
-      }
-    )
-
-    implicit val unitType: ScalarType[Unit] =
-      ScalarType[Unit](
-        name = "Unit",
-        coerceInput = {
-          case StringValue(s, _, _, _, _) => parseUnit(s)
-          case _                          => Left(UnitCoercionViolation)
+    implicit val uuidType: ScalarType[UUID] =
+      createScalarType(
+        name = "UUID",
+        matcher = {
+          case StringValue(s, _, _, _, _) => s
         },
-        coerceOutput = (d, _) => d.toString,
-        coerceUserInput = {
-          case s: String => parseUnit(s)
-          case _         => Left(UnitCoercionViolation)
-        }
+        parse = parseUUID,
+        parseString = parseUUID,
+        UUIDCoercionViolation
       )
 
-    implicit val naturalType: ScalarType[Natural] = ScalarType[Natural](
-      name = "Natural",
-      coerceInput = {
-        case BigIntValue(bi, _, _) => parseNatural(bi)
-        case _                     => Left(NaturalCoercionViolation)
-      },
-      coerceOutput = (bi, _) => bi.toString(),
-      coerceUserInput = {
-        case s: String => Try(BigInt(s)).toEither.left.map(_ => NaturalCoercionViolation).flatMap(parseNatural)
-        case _         => Left(NaturalCoercionViolation)
-      }
-    )
+    implicit val unitType: ScalarType[Unit] =
+      createScalarType(
+        name = "Unit",
+        matcher = {
+          case StringValue(s, _, _, _, _) => s
+        },
+        parse = parseUnit,
+        parseString = parseUnit,
+        UnitCoercionViolation
+      )
 
-    implicit val positiveType: ScalarType[Positive] = ScalarType[Positive](
-      name = "Positive",
-      coerceInput = {
-        case BigIntValue(bi, _, _) => parsePositive(bi)
-        case _                     => Left(PositiveCoercionViolation)
-      },
-      coerceOutput = (bi, _) => bi.toString,
-      coerceUserInput = {
-        case s: String => Try(BigInt(s)).toEither.left.map(_ => PositiveCoercionViolation).flatMap(parsePositive)
-        case _         => Left(PositiveCoercionViolation)
-      }
-    )
+    implicit val naturalType: ScalarType[Natural] =
+      createScalarType(
+        name = "Natural",
+        matcher = {
+          case BigIntValue(bi, _, _) => bi
+        },
+        parse = parseNatural,
+        parseString = s => Try(BigInt(s)).toEither.left.map(_ => NaturalCoercionViolation).flatMap(parseNatural),
+        NaturalCoercionViolation
+      )
+
+    implicit val positiveType: ScalarType[Positive] =
+      createScalarType(
+        name = "Positive",
+        matcher = {
+          case BigIntValue(bi, _, _) => bi
+        },
+        parse = parsePositive,
+        parseString = s => Try(BigInt(s)).toEither.left.map(_ => PositiveCoercionViolation).flatMap(parsePositive),
+        PositiveCoercionViolation
+      )
 
   }
 
   object instances extends Instances
+
+  private def createScalarType[A, Rep](
+      name: String,
+      matcher: PartialFunction[Value, Rep],
+      parse: Rep => Either[Violation, A],
+      parseString: String => Either[Violation, A],
+      violation: => Violation
+  ): ScalarType[A] =
+    ScalarType[A](
+      name = name,
+      coerceInput = { v =>
+        Try(matcher(v)).toEither
+          .flatMap(parse)
+          .left
+          .map(_ => violation)
+      },
+      coerceOutput = (a, _) => a.toString,
+      coerceUserInput = {
+        case s: String => parseString(s)
+        case _         => Left(violation)
+      }
+    )
 
   private def parseUUID(string: String): Either[Violation, UUID] =
     Try(UUID.fromString(string)).toEither.left.map(_ => UUIDCoercionViolation)
