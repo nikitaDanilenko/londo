@@ -2,14 +2,13 @@ package services.dashboard
 
 import cats.data.{ EitherT, NonEmptySet }
 import cats.effect.{ Async, ContextShift }
-import cats.syntax.contravariantSemigroupal._
 import cats.syntax.traverse._
 import db.generated.daos._
 import db.keys.DashboardProjectAssociationId
 import db.models.{ DashboardReadAccess, DashboardReadAccessEntry, DashboardWriteAccess, DashboardWriteAccessEntry }
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import monocle.syntax.all._
 import services.access.AccessFromDB._
 import services.access.AccessToDB._
@@ -89,7 +88,7 @@ class DashboardService @Inject() (
     val transformer = for {
       dashboardRow <- EitherT.fromOptionF(
         dashboardDAO.findC(DashboardId.toDb(dashboardId)),
-        ServerError.Dashboard.NotFound
+        ErrorContext.Dashboard.NotFound.asServerError
       )
       dashboardProjectAssociations <-
         ServerError.liftC(dashboardProjectAssociationDAO.findByDashboardIdC(dashboardId.uuid))
@@ -106,12 +105,16 @@ class DashboardService @Inject() (
               )
           )
       )
-      readAccess <-
-        EitherT.fromOptionF(dashboardReadAccessDAO.findC(dashboardReadAccessId), ServerError.Dashboard.NoReadAccess)
+      readAccess <- EitherT.fromOptionF(
+        dashboardReadAccessDAO.findC(dashboardReadAccessId),
+        ErrorContext.Dashboard.NoReadAccess.asServerError
+      )
       readAccessEntries <-
         ServerError.liftC(dashboardReadAccessEntryDAO.findByDashboardReadAccessIdC(dashboardReadAccessId.uuid))
-      writeAccess <-
-        EitherT.fromOptionF(dashboardWriteAccessDAO.findC(dashboardWriteAccessId), ServerError.Dashboard.NoWriteAccess)
+      writeAccess <- EitherT.fromOptionF(
+        dashboardWriteAccessDAO.findC(dashboardWriteAccessId),
+        ErrorContext.Dashboard.NoWriteAccess.asServerError
+      )
       writeAccessEntries <-
         ServerError.liftC(dashboardWriteAccessEntryDAO.findByDashboardWriteAccessIdC(dashboardWriteAccessId.uuid))
     } yield Dashboard(
@@ -150,7 +153,6 @@ class DashboardService @Inject() (
       weight: Natural
   ): ConnectionIO[ServerError.Or[Dashboard]] = {
     for {
-      // TODO: Insertion can fail. Where is the handler for such a case?
       _ <- dashboardProjectAssociationDAO.insertC(
         // TODO: It seems odd that we use the uuids here directly, whereas for deletion we use typed db keys
         db.models.DashboardProjectAssociation(
@@ -171,7 +173,6 @@ class DashboardService @Inject() (
 
   def removeProjectC(dashboardId: DashboardId, projectId: ProjectId): ConnectionIO[ServerError.Or[Dashboard]] =
     for {
-      // TODO: Deletion can fail. Where is the handler for such a case?
       _ <- dashboardProjectAssociationDAO.deleteC(
         DashboardProjectAssociationId(
           dashboardId = DashboardId.toDb(dashboardId),
@@ -192,7 +193,6 @@ class DashboardService @Inject() (
       projectWeightOnDashboard: ProjectWeightOnDashboard
   ): ConnectionIO[ServerError.Or[Dashboard]] =
     for {
-      // TODO: Replacement can fail. Add error handler for this case.
       _ <- dashboardProjectAssociationDAO.replaceC(
         ProjectWeightOnDashboard.toDb(dashboardId, projectWeightOnDashboard)
       )
@@ -267,12 +267,12 @@ class DashboardService @Inject() (
       setAccess: (
           DashboardId,
           Access[AK]
-      ) => ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]]
+      ) => ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
   ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
     val transformer =
       for {
         dashboard <- fetchT(dashboardId)
-        updatedAccess <- ServerError.liftC(
+        updatedAccess <- EitherT(
           setAccess(
             dashboardId,
             accessors(dashboard)
@@ -291,13 +291,13 @@ class DashboardService @Inject() (
   private def setReadAccessC(
       dashboardId: DashboardId,
       dashboardAccess: Access[AccessKind.Read]
-  ): ConnectionIO[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DashboardReadAccess, DashboardReadAccessEntry]]] =
     setAccess(dashboardReadAccessDAO, dashboardReadAccessEntryDAO)(dashboardId, dashboardAccess)
 
   private def setWriteAccessC(
       dashboardId: DashboardId,
       dashboardAccess: Access[AccessKind.Write]
-  ): ConnectionIO[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DashboardWriteAccess, DashboardWriteAccessEntry]]] =
     setAccess(dashboardWriteAccessDAO, dashboardWriteAccessEntryDAO)(dashboardId, dashboardAccess)
 
   private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
@@ -309,12 +309,16 @@ class DashboardService @Inject() (
   )(implicit
       accessToDB: AccessToDB[DashboardId, AccessK, DBAccessK, DBAccessEntry],
       accessFromDB: AccessFromDB[DashboardId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
     val components = Access.DbRepresentation(dashboardId, dashboardAccess)
-    (
-      daoFunctionsDBAccessK.insertC(components.access),
-      daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
-    ).mapN { (access, entries) =>
+    val transformer = for {
+      access <- EitherT(daoFunctionsDBAccessK.insertC(components.access)).leftMap(_ =>
+        ErrorContext.Dashboard.AccessDbError.asServerError
+      )
+      entries <- EitherT(daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)).leftMap(_ =>
+        ErrorContext.Dashboard.AccessEntryDbError.asServerError
+      )
+    } yield {
       Access.DbRepresentation[DashboardId, AccessK, DBAccessK, DBAccessEntry](
         id = accessFromDB.id(access),
         access = Access.fromDb(
@@ -325,6 +329,7 @@ class DashboardService @Inject() (
         )
       )
     }
+    transformer.value
   }
 
   private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
