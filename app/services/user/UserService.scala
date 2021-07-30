@@ -11,7 +11,7 @@ import db.generated.daos._
 import db.keys.RegistrationTokenId
 import db.models.{ RegistrationToken, SessionKey }
 import doobie.ConnectionIO
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import security.Hash
 import security.jwt.{ JwtConfiguration, JwtExpiration }
 import services.email.{ EmailParameters, EmailService }
@@ -44,7 +44,7 @@ class UserService @Inject() (
         .findByNickname(nickname)
         .map(
           _.headOption
-            .toRight(ServerError.Login.Failure)
+            .toRight(ErrorContext.Login.Failure.asServerError)
         )
     ).flatMapF { user =>
       val isValid = Hash.verify(
@@ -62,7 +62,7 @@ class UserService @Inject() (
             Async[F]
               .liftIO(generateUserAuthentication(UserId(user.id), isValidityUnrestricted).map(_.asRight[ServerError]))
           )
-      else (ServerError.Login.Failure: ServerError).asLeft[String].pure
+      else ErrorContext.Login.Failure.asServerError.asLeft[String].pure
     }.value
   }
 
@@ -87,9 +87,11 @@ class UserService @Inject() (
   def fetch[F[_]: Async: ContextShift](userId: UserId): F[ServerError.Or[User]] = {
     val dbUserId = UserId.toDb(userId)
     val transformer = for {
-      userRow <- EitherT.fromOptionF(userDAO.find(dbUserId), ServerError.User.NotFound)
-      userSettings <- EitherT.fromOptionF(userSettingsDAO.find(dbUserId), ServerError.User.SettingsNotFound)
-      userDetails <- EitherT.fromOptionF(userDetailsDAO.find(dbUserId), ServerError.User.DetailsNotFound: ServerError)
+      userRow <- EitherT.fromOptionF(userDAO.find(dbUserId), ErrorContext.User.NotFound.asServerError)
+      userSettings <-
+        EitherT.fromOptionF(userSettingsDAO.find(dbUserId), ErrorContext.User.Settings.NotFound.asServerError)
+      userDetails <-
+        EitherT.fromOptionF(userDetailsDAO.find(dbUserId), ErrorContext.User.Details.NotFound.asServerError)
     } yield User.fromRow(
       userRow = userRow,
       settings = UserSettings.fromRow(userSettings),
@@ -106,24 +108,29 @@ class UserService @Inject() (
   def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[ServerError.Or[User]] = {
     val registrationTokenId = RegistrationTokenId(userCreation.email)
 
-    def lift[A](c: ConnectionIO[A]): EitherT[ConnectionIO, ServerError, A] =
-      EitherT.liftF[ConnectionIO, ServerError, A](c)
-
     val transformer = for {
       localToken <- EitherT.fromOptionF[ConnectionIO, ServerError, RegistrationToken](
         registrationTokenDAO.findC(registrationTokenId),
-        ServerError.Registration.NoRegistrationTokenForEmail: ServerError
+        ErrorContext.Registration.NoRegistrationTokenForEmail.asServerError
       )
       _ <- EitherT.cond[ConnectionIO](
         localToken.token == userCreation.token,
         (),
-        ServerError.Authentication.Token.Registration: ServerError
+        ErrorContext.Authentication.Token.Registration.asServerError
       )
-      createdUser <- EitherT.liftF(Async[ConnectionIO].liftIO(UserCreation.create(userCreation)))
-      userRow <- lift(userDAO.insertC(User.toRow(createdUser.user, createdUser.passwordParameters)))
-      settingsRow <- lift(userSettingsDAO.insertC(UserSettings.toRow(createdUser.user.id, createdUser.user.settings)))
-      detailsRow <- lift(userDetailsDAO.insertC(UserDetails.toRow(createdUser.user.id, createdUser.user.details)))
-      _ <- lift(registrationTokenDAO.deleteC(registrationTokenId))
+      createdUser <- ServerError.liftC(Async[ConnectionIO].liftIO(UserCreation.create(userCreation)))
+      userRow <- EitherT(userDAO.insertC(User.toRow(createdUser.user, createdUser.passwordParameters)))
+        .leftMap(_ => ErrorContext.User.Create.asServerError)
+      settingsRow <- EitherT(
+        userSettingsDAO.insertC(UserSettings.toRow(createdUser.user.id, createdUser.user.settings))
+      ).leftMap(_ => ErrorContext.User.Settings.Create.asServerError)
+      detailsRow <-
+        EitherT(userDetailsDAO.insertC(UserDetails.toRow(createdUser.user.id, createdUser.user.details))).leftMap(_ =>
+          ErrorContext.User.Details.Create.asServerError
+        )
+      _ <- EitherT(registrationTokenDAO.deleteC(registrationTokenId)).leftMap(_ =>
+        ErrorContext.Registration.Delete.asServerError
+      )
     } yield User.fromRow(userRow, UserSettings.fromRow(settingsRow), UserDetails.fromRow(detailsRow))
 
     transactionally(transformer.value)
@@ -140,22 +147,31 @@ class UserService @Inject() (
       // TODO: Improve structure, the current one seems a little awkward.
       response <- {
         if (users.nonEmpty)
-          Async[F].pure(Left(ServerError.Registration.EmailAlreadyRegistered: ServerError))
-        else
-          for {
-            token <- Async[F].liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))
-            registrationToken <- registrationTokenDAO.replace(RegistrationToken(email, token))
-            response <- Async[F].liftIO(
-              emailService.sendEmail(
-                EmailParameters(
-                  from = UserService.londoSenderAddress,
-                  to = registrationToken.email,
-                  // TODO: Add more explanation text to email
-                  content = registrationToken.token
+          EitherT
+            .leftT[F, Unit](ErrorContext.Registration.EmailAlreadyRegistered.asServerError)
+            .value
+        else {
+          val transformer = for {
+            token <- EitherT.liftF[F, ServerError, String](
+              Async[F].liftIO(RandomGenerator.randomAlphaNumericString(UserService.registrationTokenLength))
+            )
+            registrationToken <- EitherT(registrationTokenDAO.replace(RegistrationToken(email, token)))
+              .leftMap(_ => ErrorContext.Registration.Replace.asServerError)
+            response <- EitherT.liftF[F, ServerError, Unit](
+              Async[F].liftIO(
+                emailService.sendEmail(
+                  EmailParameters(
+                    from = UserService.londoSenderAddress,
+                    to = registrationToken.email,
+                    // TODO: Add more explanation text to email
+                    content = registrationToken.token
+                  )
                 )
               )
             )
-          } yield Right(response)
+          } yield response
+          transformer.value
+        }
       }
     } yield response
 

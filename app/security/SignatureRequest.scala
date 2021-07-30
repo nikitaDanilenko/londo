@@ -2,7 +2,7 @@ package security
 
 import cats.effect.IO
 import controllers.RequestHeaders
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import io.circe.generic.JsonCodec
 import io.circe.syntax._
 import play.api.mvc.{ Request, Result }
@@ -21,7 +21,7 @@ object SignatureRequest {
   def fromRequest[A](request: Request[A]): ServerError.Or[SignatureRequest] = {
     request.headers
       .get(RequestHeaders.authenticationInstantHeader)
-      .toRight(ServerError.Authentication.Signature.MissingInstant)
+      .toRight(ErrorContext.Authentication.Signature.MissingInstant.asServerError)
       .map { time =>
         SignatureRequest(
           httpVerb = request.method,

@@ -1,7 +1,7 @@
 package controllers.graphql
 
 import controllers.{ RequestHeaders, SignatureAction }
-import errors.ServerError
+import errors.ErrorContext
 import graphql._
 import io.circe.Json
 import io.circe.syntax._
@@ -36,7 +36,7 @@ class GraphQLController @Inject() (
     signatureAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
       val graphQLContext = request.headers
         .get(RequestHeaders.userTokenHeader)
-        .toRight(ServerError.Authentication.Token.Missing)
+        .toRight(ErrorContext.Authentication.Token.Missing.asServerError)
         .flatMap(JwtUtil.validateJwt(_, jwtConfiguration.signaturePublicKey))
         .fold(
           error => {

@@ -5,7 +5,7 @@ import cats.effect.{ Async, ContextShift, IO }
 import db.Transactionally
 import db.generated.daos.{ PlainTaskDAO, ProjectReferenceTaskDAO }
 import doobie.ConnectionIO
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import services.project.ProjectId
 import utils.fp.FunctionUtil.syntax._
 
@@ -28,12 +28,15 @@ class TaskService @Inject() (
       plainCreation: TaskCreation.Plain
   ): ConnectionIO[ServerError.Or[Task.Plain]] =
     createTaskC(
-      projectId = projectId,
       creation = plainCreation,
-      toTask = TaskCreation.Plain.create,
       fromRow = TaskService.plainTaskFromRow,
-      toRow = Task.Plain.toRow,
-      insert = plainTaskDAO.insertC
+      toRow = Task.Plain.toRow
+    )(
+      projectId = projectId,
+      toTask = TaskCreation.Plain.create,
+      insert = plainTaskDAO
+        .insertC(_)
+        .map(_.left.map(_ => ErrorContext.Task.Plain.Create.asServerError))
     )
 
   def createProjectReferenceTask[F[_]: Async: ContextShift](
@@ -47,12 +50,15 @@ class TaskService @Inject() (
       projectReferenceCreation: TaskCreation.ProjectReference
   ): ConnectionIO[ServerError.Or[Task.ProjectReference]] =
     createTaskC(
-      projectId = projectId,
       creation = projectReferenceCreation,
-      toTask = TaskCreation.ProjectReference.create,
       fromRow = TaskService.projectReferenceTaskFromRow,
-      toRow = Task.ProjectReference.toRow,
-      insert = projectReferenceTaskDAO.insertC
+      toRow = Task.ProjectReference.toRow
+    )(
+      projectId = projectId,
+      toTask = TaskCreation.ProjectReference.create,
+      insert = projectReferenceTaskDAO
+        .insertC(_)
+        .map(_.left.map(_ => ErrorContext.Task.ProjectReference.Create.asServerError))
     )
 
   def fetchPlain[F[_]: Async: ContextShift](taskKey: TaskKey): F[ServerError.Or[Task.Plain]] =
@@ -71,7 +77,13 @@ class TaskService @Inject() (
     transactionally(removePlainTaskC(taskKey))
 
   def removePlainTaskC(taskKey: TaskKey): ConnectionIO[ServerError.Or[Task.Plain]] =
-    removeTaskC(taskKey, plainTaskDAO.deleteC, TaskService.plainTaskFromRow)
+    removeTaskC(
+      taskKey = taskKey,
+      deleteC = plainTaskDAO
+        .deleteC(_)
+        .map(_.left.map(_ => ErrorContext.Task.Plain.Delete.asServerError)),
+      fromRow = TaskService.plainTaskFromRow
+    )
 
   def removeProjectReferenceTask[F[_]: Async: ContextShift](
       taskKey: TaskKey
@@ -79,7 +91,13 @@ class TaskService @Inject() (
     transactionally(removeProjectReferenceTaskC(taskKey))
 
   def removeProjectReferenceTaskC(taskKey: TaskKey): ConnectionIO[ServerError.Or[Task.ProjectReference]] =
-    removeTaskC(taskKey, projectReferenceTaskDAO.deleteC, TaskService.projectReferenceTaskFromRow)
+    removeTaskC(
+      taskKey = taskKey,
+      deleteC = projectReferenceTaskDAO
+        .deleteC(_)
+        .map(_.left.map(_ => ErrorContext.Task.ProjectReference.Delete.asServerError)),
+      fromRow = TaskService.projectReferenceTaskFromRow
+    )
 
   def updatePlainTask[F[_]: Async: ContextShift](
       taskKey: TaskKey,
@@ -140,11 +158,14 @@ class TaskService @Inject() (
       plainTask: Task.Plain
   ): EitherT[ConnectionIO, ServerError, Task.Plain] =
     replaceTaskT(
-      projectId = projectId,
-      task = plainTask,
-      replace = plainTaskDAO.replaceC,
       fromRow = TaskService.plainTaskFromRow,
       toRow = Task.Plain.toRow
+    )(
+      projectId = projectId,
+      task = plainTask,
+      replace = plainTaskDAO
+        .replaceC(_)
+        .map(_.left.map(_ => ErrorContext.Task.Plain.Replace.asServerError))
     )
 
   private def replaceProjectReferenceT(
@@ -152,37 +173,43 @@ class TaskService @Inject() (
       projectReferenceTask: Task.ProjectReference
   ): EitherT[ConnectionIO, ServerError, Task.ProjectReference] =
     replaceTaskT(
-      projectId = projectId,
-      task = projectReferenceTask,
-      replace = projectReferenceTaskDAO.replaceC,
       fromRow = TaskService.projectReferenceTaskFromRow,
       toRow = Task.ProjectReference.toRow
+    )(
+      projectId = projectId,
+      task = projectReferenceTask,
+      replace = projectReferenceTaskDAO
+        .replaceC(_)
+        .map(_.left.map(_ => ErrorContext.Task.ProjectReference.Replace.asServerError))
     )
 
-  private def replaceTaskT[Task, Row](
+  private def replaceTaskT[Task, Row](fromRow: Row => ServerError.Or[Task], toRow: (ProjectId, Task) => Row)(
       projectId: ProjectId,
       task: Task,
-      replace: Row => ConnectionIO[Row],
-      fromRow: Row => ServerError.Or[Task],
-      toRow: (ProjectId, Task) => Row
+      replace: Row => ConnectionIO[ServerError.Or[Row]]
   ): EitherT[ConnectionIO, ServerError, Task] =
     for {
-      writtenRow <- EitherT.liftF(replace(toRow(projectId, task)))
+      writtenRow <- EitherT(replace(toRow(projectId, task)))
       writtenTask <- EitherT.fromEither[ConnectionIO](fromRow(writtenRow))
     } yield writtenTask
 
   private def createTaskC[Creation, Task, Row](
-      projectId: ProjectId,
       creation: Creation,
-      toTask: Creation => IO[Task],
       fromRow: Row => ServerError.Or[Task],
-      toRow: (ProjectId, Task) => Row,
-      insert: Row => ConnectionIO[Row]
-  ): ConnectionIO[ServerError.Or[Task]] =
-    for {
-      createdTask <- Async[ConnectionIO].liftIO(toTask(creation))
-      writtenTask <- insert(toRow(projectId, createdTask))
-    } yield fromRow(writtenTask)
+      toRow: (ProjectId, Task) => Row
+  )(
+      projectId: ProjectId,
+      toTask: Creation => IO[Task],
+      insert: Row => ConnectionIO[ServerError.Or[Row]]
+  ): ConnectionIO[ServerError.Or[Task]] = {
+    val transformer = for {
+      createdTask <- ServerError.liftC(Async[ConnectionIO].liftIO(toTask(creation)))
+      writtenTask <- EitherT(insert(toRow(projectId, createdTask)))
+      taskFromRow <- EitherT.fromEither[ConnectionIO](fromRow(writtenTask))
+    } yield taskFromRow
+
+    transformer.value
+  }
 
   private def fetchTaskC[Task, Row](
       taskKey: TaskKey,
@@ -192,7 +219,7 @@ class TaskService @Inject() (
     find(TaskKey.toTaskId(taskKey))
       .map(
         ServerError
-          .fromOption(_, ServerError.Task.NotFound)
+          .fromOption(_, ErrorContext.Task.NotFound.asServerError)
           .flatMap(fromRow)
       )
 
@@ -213,11 +240,12 @@ class TaskService @Inject() (
 
   private def removeTaskC[Row, Task](
       taskKey: TaskKey,
-      deleteC: db.keys.TaskId => ConnectionIO[Row],
+      deleteC: db.keys.TaskId => ConnectionIO[ServerError.Or[Row]],
       fromRow: Row => ServerError.Or[Task]
   ): ConnectionIO[ServerError.Or[Task]] =
-    deleteC(TaskKey.toTaskId(taskKey))
-      .map(fromRow)
+    EitherT(deleteC(TaskKey.toTaskId(taskKey)))
+      .subflatMap(fromRow)
+      .value
 
 }
 

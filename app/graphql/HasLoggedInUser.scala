@@ -6,7 +6,7 @@ import cats.effect.{ ContextShift, IO, MonadThrow }
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.traverse._
-import errors.{ ServerError, ServerException }
+import errors.{ ErrorContext, ServerError, ServerException }
 import graphql.HasGraphQLServices.syntax._
 import graphql.types.ToInternal
 import graphql.types.ToInternal.syntax._
@@ -29,7 +29,7 @@ trait HasLoggedInUser {
     ApplicativeThrow[F].fromEither(
       loggedInUserId
         .filter(userId => Accessors.hasAccess(userId.toInternal, accessors))
-        .toRight(ServerException(ServerError.Authentication.Token.Restricted))
+        .toRight(ServerException(ErrorContext.Authentication.Token.Restricted.asServerError))
         .map(_.toInternal)
     )
 
@@ -37,7 +37,7 @@ trait HasLoggedInUser {
     ApplicativeThrow[F]
       .fromOption(
         loggedInUserId,
-        ServerException(ServerError.Authentication.Token.Restricted)
+        ServerException(ErrorContext.Authentication.Token.Restricted.asServerError)
       )
       .flatMap(create)
 

@@ -37,14 +37,20 @@ class DashboardService @Inject() (
   ): F[ServerError.Or[Dashboard]] =
     transactionally(createC(userId, dashboardCreation))
 
-  def createC(userId: UserId, dashboardCreation: DashboardCreation): ConnectionIO[ServerError.Or[Dashboard]] =
-    for {
-      createdDashboard <- Async[ConnectionIO].liftIO(DashboardCreation.create(userId, dashboardCreation))
-      _ <- dashboardDAO.insertC(DashboardService.toDbRepresentation(createdDashboard).dashboard)
-      _ <- setReadAccessC(createdDashboard.id, createdDashboard.readAccessors)
-      _ <- setWriteAccessC(createdDashboard.id, createdDashboard.writeAccessors)
-      dashboard <- fetchC(createdDashboard.id)
+  def createC(userId: UserId, dashboardCreation: DashboardCreation): ConnectionIO[ServerError.Or[Dashboard]] = {
+    val transformer = for {
+      createdDashboard <-
+        ServerError.liftC(Async[ConnectionIO].liftIO(DashboardCreation.create(userId, dashboardCreation)))
+      _ <- EitherT(dashboardDAO.insertC(DashboardService.toDbRepresentation(createdDashboard).dashboard)).leftMap(_ =>
+        ErrorContext.Dashboard.Create.asServerError
+      )
+      _ <- EitherT(setReadAccessC(createdDashboard.id, createdDashboard.readAccessors))
+      _ <- EitherT(setWriteAccessC(createdDashboard.id, createdDashboard.writeAccessors))
+      dashboard <- fetchT(createdDashboard.id)
     } yield dashboard
+
+    transformer.value
+  }
 
   def delete[F[_]: Async: ContextShift](dashboardId: DashboardId): F[ServerError.Or[Dashboard]] =
     transactionally(deleteC(dashboardId))

@@ -1,7 +1,7 @@
 package math
 
 import algebra.ring.AdditiveSemigroup
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import spire.algebra.MultiplicativeMonoid
 import spire.math.Natural
 
@@ -12,7 +12,7 @@ sealed abstract case class Positive(
 object Positive {
 
   def apply(natural: Natural): ServerError.Or[Positive] =
-    Either.cond(!natural.isZero, new Positive(natural) {}, ServerError.Conversion.PositiveNatural)
+    Either.cond(!natural.isZero, new Positive(natural) {}, ErrorContext.Conversion.PositiveNatural.asServerError)
 
   implicit val positiveAdditiveSemigroup: AdditiveSemigroup[Positive] = (x, y) => new Positive(x.natural + y.natural) {}
 

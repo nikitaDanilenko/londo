@@ -8,7 +8,7 @@ import db.generated.daos._
 import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import monocle.syntax.all._
 import services.access._
 import services.task.{ ResolvedTask, Task }
@@ -33,14 +33,17 @@ class ProjectService @Inject() (
   ): F[ServerError.Or[Project]] =
     transactionally(createC(ownerId, projectCreation))
 
-  def createC(ownerId: UserId, projectCreation: ProjectCreation): ConnectionIO[ServerError.Or[Project]] =
-    for {
-      createdProject <- Async[ConnectionIO].liftIO(ProjectCreation.create(ownerId, projectCreation))
-      _ <- projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project)
-      _ <- setReadAccessC(createdProject.id, createdProject.readAccessors)
-      _ <- setWriteAccessC(createdProject.id, createdProject.writeAccessors)
-      project <- fetchC(createdProject.id)
+  def createC(ownerId: UserId, projectCreation: ProjectCreation): ConnectionIO[ServerError.Or[Project]] = {
+    val transformer = for {
+      createdProject <- ServerError.liftC(Async[ConnectionIO].liftIO(ProjectCreation.create(ownerId, projectCreation)))
+      _ <- EitherT(projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project))
+        .leftMap(_ => ErrorContext.Project.Create.asServerError)
+      _ <- EitherT(setReadAccessC(createdProject.id, createdProject.readAccessors))
+      _ <- EitherT(setWriteAccessC(createdProject.id, createdProject.writeAccessors))
+      project <- fetchT(createdProject.id)
     } yield project
+    transformer.value
+  }
 
   def delete[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Or[Project]] =
     transactionally(deleteC(projectId))
@@ -48,9 +51,8 @@ class ProjectService @Inject() (
   def deleteC(projectId: ProjectId): ConnectionIO[ServerError.Or[Project]] = {
     val transformer = for {
       project <- fetchT(projectId)
-      _ <- EitherT.liftF[ConnectionIO, ServerError, db.models.Project](
-        projectDAO.deleteC(ProjectId.toDb(projectId))
-      )
+      _ <- EitherT(projectDAO.deleteC(ProjectId.toDb(projectId)))
+        .leftMap(_ => ErrorContext.Project.Delete.asServerError)
     } yield project
 
     transformer.value
@@ -67,7 +69,7 @@ class ProjectService @Inject() (
       project <- fetchT(projectId)
       updatedProject = ProjectUpdate.applyToProject(project, projectUpdate)
       updatedRow = ProjectService.toDbRepresentation(updatedProject).project
-      _ <- ServerError.liftC(projectDAO.replaceC(updatedRow))
+      _ <- EitherT(projectDAO.replaceC(updatedRow)).leftMap(_ => ErrorContext.Project.Replace.asServerError)
       updatedWrittenProject <- fetchT(projectId)
     } yield updatedWrittenProject
     transformer.value
@@ -81,15 +83,20 @@ class ProjectService @Inject() (
     val projectWriteAccessId = projectId.asProjectWriteAccessId
 
     val action = for {
-      projectRow <- EitherT.fromOptionF(projectDAO.findC(ProjectId.toDb(projectId)), ServerError.Project.NotFound)
+      projectRow <-
+        EitherT.fromOptionF(projectDAO.findC(ProjectId.toDb(projectId)), ErrorContext.Project.NotFound.asServerError)
       plainTasks <- ServerError.liftC(plainTaskDAO.findByProjectIdC(projectId.uuid))
       projectReferenceTasks <- ServerError.liftC(projectReferenceTaskDAO.findByProjectIdC(projectId.uuid))
-      readAccess <-
-        EitherT.fromOptionF(projectReadAccessDAO.findC(projectReadAccessId), ServerError.Project.NoReadAccess)
+      readAccess <- EitherT.fromOptionF(
+        projectReadAccessDAO.findC(projectReadAccessId),
+        ErrorContext.Project.NoReadAccess.asServerError
+      )
       readAccessEntries <-
         ServerError.liftC(projectReadAccessEntryDAO.findByProjectReadAccessIdC(projectReadAccessId.uuid))
-      writeAccess <-
-        EitherT.fromOptionF(projectWriteAccessDAO.findC(projectWriteAccessId), ServerError.Project.NoWriteAccess)
+      writeAccess <- EitherT.fromOptionF(
+        projectWriteAccessDAO.findC(projectWriteAccessId),
+        ErrorContext.Project.NoWriteAccess.asServerError
+      )
       writeAccessEntries <-
         ServerError.liftC(projectWriteAccessEntryDAO.findByProjectWriteAccessIdC(projectWriteAccessId.uuid))
     } yield {
@@ -218,12 +225,12 @@ class ProjectService @Inject() (
       setAccess: (
           ProjectId,
           Access[AK]
-      ) => ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]]
+      ) => ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
   ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
     val transformer =
       for {
         project <- fetchT(projectId)
-        updatedAccess <- ServerError.liftC(
+        updatedAccess <- EitherT(
           setAccess(
             projectId,
             accessors(project)
@@ -242,13 +249,13 @@ class ProjectService @Inject() (
   private def setReadAccessC(
       projectId: ProjectId,
       projectAccess: Access[AccessKind.Read]
-  ): ConnectionIO[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
     setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
 
   private def setWriteAccessC(
       projectId: ProjectId,
       projectAccess: Access[AccessKind.Write]
-  ): ConnectionIO[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]] =
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
     setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, projectAccess)
 
   private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
@@ -260,12 +267,16 @@ class ProjectService @Inject() (
   )(implicit
       accessToDB: AccessToDB[ProjectId, AccessK, DBAccessK, DBAccessEntry],
       accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[Access.DbRepresentation[DBAccessK, DBAccessEntry]] = {
+  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
     val components = Access.DbRepresentation(projectId, projectAccess)
-    (
-      daoFunctionsDBAccessK.insertC(components.access),
-      daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)
-    ).mapN { (access, entries) =>
+    val transformer = for {
+      access <- EitherT(daoFunctionsDBAccessK.insertC(components.access)).leftMap(_ =>
+        ErrorContext.Project.AccessDbError.asServerError
+      )
+      entries <- EitherT(daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)).leftMap(_ =>
+        ErrorContext.Project.AccessEntryDbError.asServerError
+      )
+    } yield {
       Access.DbRepresentation[ProjectId, AccessK, DBAccessK, DBAccessEntry](
         id = accessFromDB.id(access),
         access = Access.fromDb(
@@ -276,6 +287,7 @@ class ProjectService @Inject() (
         )
       )
     }
+    transformer.value
   }
 
   private def toAccessors[AccessK, DBAccessK, DBAccessEntry](

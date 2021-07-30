@@ -1,6 +1,6 @@
 package services.task
 
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import math.Positive
 import services.project.ProjectId
 import services.task
@@ -95,7 +95,7 @@ object Task {
   private def nonNegativeWeight(weight: Int): ServerError.Valid[Natural] =
     ServerError.fromCondition(
       weight >= 0,
-      ServerError.Task.NegativeWeight,
+      ErrorContext.Task.NegativeWeight.asServerError,
       Natural(weight)
     )
 
