@@ -1,5 +1,6 @@
 package graphql.mutations
 
+import cats.data.{ EitherT, NonEmptySet }
 import cats.effect.IO
 import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
@@ -11,6 +12,10 @@ import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
 import spire.math.Natural
 import cats.syntax.traverse._
+import graphql.types.access.Accessors
+import graphql.types.user.UserId
+import graphql.types.util.NonEmptyList
+import services.access
 
 import scala.concurrent.Future
 
@@ -28,6 +33,52 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
       .unsafeToFuture()
       .handleServerError
   }
+
+  @GraphQLField
+  def allowReadUsersProject(
+      dashboardId: DashboardId,
+      userIds: NonEmptyList[UserId]
+  ): Future[Accessors] =
+    validateDashboardWriteAccess(dashboardId) { _ =>
+      modifyAccessUsers(graphQLServices.dashboardService.allowReadUsers(_, _))(dashboardId, userIds)
+    }
+
+  @GraphQLField
+  def allowWriteUsersProject(
+      dashboardId: DashboardId,
+      userIds: NonEmptyList[UserId]
+  ): Future[Accessors] =
+    validateDashboardWriteAccess(dashboardId) { _ =>
+      modifyAccessUsers(graphQLServices.dashboardService.allowWriteUsers(_, _))(dashboardId, userIds)
+    }
+
+  @GraphQLField
+  def blockReadUsersProject(
+      dashboardId: DashboardId,
+      userIds: NonEmptyList[UserId]
+  ): Future[Accessors] =
+    validateDashboardWriteAccess(dashboardId) { _ =>
+      modifyAccessUsers(graphQLServices.dashboardService.blockReadUsers(_, _))(dashboardId, userIds)
+    }
+
+  @GraphQLField
+  def blockWriteUsersProject(
+      dashboardId: DashboardId,
+      userIds: NonEmptyList[UserId]
+  ): Future[Accessors] =
+    validateDashboardWriteAccess(dashboardId) { _ =>
+      modifyAccessUsers(graphQLServices.dashboardService.blockWriteUsers(_, _))(dashboardId, userIds)
+    }
+
+  @GraphQLField
+  def deleteProject(
+      dashboardId: DashboardId
+  ): Future[Dashboard] =
+    validateDashboardWriteAccess(dashboardId) { _ =>
+      graphQLServices.dashboardService
+        .delete(dashboardId = dashboardId.toInternal)
+        .map(_.fromInternal[Dashboard])
+    }
 
   @GraphQLField
   def updateDashboard(dashboardId: DashboardId, dashboardUpdate: DashboardUpdate): Future[Dashboard] =
@@ -123,5 +174,23 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
       accessorsOf = _.writeAccessors.accessors
     )((user, _) => f(user))
   }
+
+  private def modifyAccessUsers(
+      serviceFunction: (
+          services.dashboard.DashboardId,
+          NonEmptySet[services.user.UserId]
+      ) => IO[ServerError.Or[access.Accessors]]
+  )(
+      dashboardId: DashboardId,
+      userIds: NonEmptyList[UserId]
+  ): IO[ServerError.Or[Accessors]] =
+    EitherT(
+      serviceFunction(
+        dashboardId.toInternal,
+        userIds.toInternal.toNes
+      )
+    )
+      .map(a => services.access.Accessors.toRepresentation(a).fromInternal[Accessors])
+      .value
 
 }
