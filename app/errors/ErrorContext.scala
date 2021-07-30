@@ -77,6 +77,11 @@ object ErrorContext {
     case object NotFound extends ServerErrorInstance("No project with the given id found")
     case object NoReadAccess extends ServerErrorInstance("No read access for project")
     case object NoWriteAccess extends ServerErrorInstance("No write access for project")
+    case object AccessDbError extends ServerErrorInstance("Error writing dashboard access")
+    case object AccessEntryDbError extends ServerErrorInstance("Error writing dashboard access")
+    case object Delete extends ServerErrorInstance("Error while deleting a dashboard")
+    case object Replace extends ServerErrorInstance("Error while replacing a dashboard")
+    case object Create extends ServerErrorInstance("Error while creating a dashboard")
   }
 
   object Conversion {
@@ -91,6 +96,9 @@ object ErrorContext {
     case object NoWriteAccess extends ServerErrorInstance("No write access for dashboard")
     case object AccessDbError extends ServerErrorInstance("Error writing dashboard access")
     case object AccessEntryDbError extends ServerErrorInstance("Error writing dashboard access")
+    case object Delete extends ServerErrorInstance("Error while deleting a dashboard")
+    case object Replace extends ServerErrorInstance("Error while replacing a dashboard")
+    case object Create extends ServerErrorInstance("Error while creating a dashboard")
   }
 
 }

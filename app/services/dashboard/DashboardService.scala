@@ -52,7 +52,9 @@ class DashboardService @Inject() (
   def deleteC(dashboardId: DashboardId): ConnectionIO[ServerError.Or[Dashboard]] = {
     val transformer = for {
       dashboard <- fetchT(dashboardId)
-      _ <- ServerError.liftC(dashboardDAO.deleteC(DashboardId.toDb(dashboardId)))
+      _ <- EitherT(dashboardDAO.deleteC(DashboardId.toDb(dashboardId))).leftMap(_ =>
+        ErrorContext.Dashboard.Delete.asServerError
+      )
     } yield dashboard
 
     transformer.value
@@ -72,7 +74,7 @@ class DashboardService @Inject() (
       dashboard <- fetchT(dashboardId)
       updatedDashboard = DashboardUpdate.applyToDashboard(dashboard, dashboardUpdate)
       updatedRow = DashboardService.toDbRepresentation(updatedDashboard).dashboard
-      _ <- ServerError.liftC(dashboardDAO.replaceC(updatedRow))
+      _ <- EitherT(dashboardDAO.replaceC(updatedRow)).leftMap(_ => ErrorContext.Dashboard.Replace.asServerError)
       updatedWrittenDashboard <- fetchT(dashboardId)
     } yield updatedWrittenDashboard
     transformer.value
