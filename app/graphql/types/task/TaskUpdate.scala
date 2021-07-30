@@ -4,11 +4,11 @@ import graphql.types.ToInternal
 import graphql.types.ToInternal.syntax._
 import graphql.types.project.ProjectId
 import io.circe.generic.JsonCodec
+import math.Positive
 import sangria.macros.derive.deriveInputObjectType
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
-import spire.math.Natural
 import utils.json.CirceUtil.instances._
 import utils.graphql.SangriaUtil.instances._
 
@@ -19,7 +19,7 @@ object TaskUpdate {
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
-      weight: Natural
+      weight: Positive
   )
 
   object PlainUpdate {
@@ -42,7 +42,7 @@ object TaskUpdate {
   @JsonCodec
   case class ProjectReferenceUpdate(
       projectReferenceId: ProjectId,
-      weight: Natural
+      weight: Positive
   )
 
   object ProjectReferenceUpdate {

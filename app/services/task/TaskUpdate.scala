@@ -1,7 +1,7 @@
 package services.task
 
+import math.Positive
 import services.project.ProjectId
-import spire.math.Natural
 
 object TaskUpdate {
 
@@ -9,7 +9,7 @@ object TaskUpdate {
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
-      weight: Natural
+      weight: Positive
   )
 
   object Plain {
@@ -26,7 +26,7 @@ object TaskUpdate {
 
   case class ProjectReference(
       projectReferenceId: ProjectId,
-      weight: Natural
+      weight: Positive
   )
 
   object ProjectReference {

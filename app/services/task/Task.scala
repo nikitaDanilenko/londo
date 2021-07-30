@@ -1,11 +1,11 @@
 package services.task
 
-import errors.{ ErrorContext, ServerError }
+import cats.syntax.contravariantSemigroupal._
+import errors.ServerError
 import math.Positive
 import services.project.ProjectId
 import services.task
 import spire.math.Natural
-import cats.syntax.contravariantSemigroupal._
 import utils.math.NaturalUtil
 
 object Task {
@@ -16,14 +16,14 @@ object Task {
       taskKind: TaskKind,
       unit: Option[String],
       progress: Progress,
-      weight: Natural
+      weight: Positive
   )
 
   object Plain {
 
     def fromRow(taskRow: db.models.PlainTask): ServerError.Valid[Plain] =
       (
-        nonNegativeWeight(taskRow.weight),
+        positiveWeight(taskRow.weight),
         ServerError.fromEither(asNatural(taskRow.reachable).flatMap(Positive.apply)),
         ServerError.fromEither(asNatural(taskRow.reached))
       )
@@ -50,7 +50,7 @@ object Task {
         kindId = TaskKind.toRow(plainTask.taskKind).id,
         reached = asBigDecimal(plainTask.progress.reached),
         reachable = asBigDecimal(plainTask.progress.reachable.natural),
-        weight = plainTask.weight.intValue
+        weight = plainTask.weight.natural.intValue
       )
 
   }
@@ -58,13 +58,13 @@ object Task {
   case class ProjectReference(
       id: TaskId,
       projectReference: ProjectId,
-      weight: Natural
+      weight: Positive
   )
 
   object ProjectReference {
 
     def fromRow(taskRow: db.models.ProjectReferenceTask): ServerError.Valid[ProjectReference] =
-      nonNegativeWeight(taskRow.weight).map { weight =>
+      positiveWeight(taskRow.weight).map { weight =>
         ProjectReference(
           id = task.TaskId(
             uuid = taskRow.id
@@ -81,7 +81,7 @@ object Task {
         id = projectReferenceTask.id.uuid,
         projectId = projectId.uuid,
         projectReferenceId = projectReferenceTask.projectReference.uuid,
-        weight = projectReferenceTask.weight.intValue
+        weight = projectReferenceTask.weight.natural.intValue
       )
 
   }
@@ -92,11 +92,7 @@ object Task {
   private def asBigDecimal(natural: Natural): BigDecimal =
     BigDecimal(natural.toBigInt)
 
-  private def nonNegativeWeight(weight: Int): ServerError.Valid[Natural] =
-    ServerError.fromCondition(
-      weight >= 0,
-      ErrorContext.Task.NegativeWeight.asServerError,
-      Natural(weight)
-    )
+  private def positiveWeight(weight: Int): ServerError.Valid[Positive] =
+    ServerError.fromEither(Positive(Natural(weight)))
 
 }

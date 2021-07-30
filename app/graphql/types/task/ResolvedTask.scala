@@ -6,10 +6,10 @@ import io.circe.generic.JsonCodec
 import sangria.macros.derive
 import sangria.macros.derive.{ ObjectTypeName, deriveObjectType }
 import sangria.schema.{ ObjectType, OutputType }
-import spire.math.Natural
 import utils.json.CirceUtil.instances._
 import utils.graphql.SangriaUtil.instances._
 import graphql.types.FromInternal.syntax._
+import math.Positive
 
 object ResolvedTask {
 
@@ -20,7 +20,7 @@ object ResolvedTask {
       taskKind: TaskKind,
       unit: Option[String],
       progress: Progress,
-      weight: Natural
+      weight: Positive
   )
 
   object Plain {
@@ -46,7 +46,7 @@ object ResolvedTask {
   case class ProjectReference(
       id: TaskId,
       project: ResolvedProject,
-      weight: Natural
+      weight: Positive
   )
 
   object ProjectReference {
