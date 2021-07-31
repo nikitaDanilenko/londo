@@ -7,6 +7,7 @@ import services.task.{ Progress, ResolvedTask, WeightedProgress }
 import services.user.UserId
 import spire.syntax.additiveSemigroup._
 import cats.syntax.contravariantSemigroupal._
+import utils.fp.NonEmptyListUtil
 
 case class ResolvedProject(
     id: ProjectId,
@@ -33,7 +34,7 @@ object ResolvedProject {
     def descend(resolvedProject: ResolvedProject): Option[Progress] = {
       val overallWeight = NonEmptyList
         .fromFoldable(resolvedProject.plainTasks.map(_.weight) ++ resolvedProject.projectReferenceTasks.map(_.weight))
-        .map(ws => ws.tail.foldLeft(ws.head)(_ + _))
+        .map(NonEmptyListUtil.foldLeft1(_)(_ + _))
 
       val weightedProgresses =
         resolvedProject.plainTasks.map(p => WeightedProgress(p.weight, p.progress)) ++
