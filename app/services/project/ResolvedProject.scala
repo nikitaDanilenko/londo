@@ -1,9 +1,10 @@
 package services.project
 
-import cats.data.NonEmptySet
+import cats.data.{ NonEmptyList, NonEmptySet }
 import services.access.{ Access, AccessKind, Accessors }
-import services.task.{ Progress, ResolvedTask }
+import services.task.{ Progress, ResolvedTask, WeightedProgress }
 import services.user.UserId
+import cats.instances.vector._
 
 case class ResolvedProject(
     id: ProjectId,
@@ -25,9 +26,17 @@ object ResolvedProject {
   def transitiveWriteAccessOf(resolvedProject: ResolvedProject): Access[AccessKind.Write] =
     Access(transitiveAccessorsOf(_.writeAccessors.accessors, resolvedProject))
 
-  def progress(resolvedProject: ResolvedProject): Progress = {
-//    def descend(resolvedProject: ResolvedProject)
-    ???
+  def progress(resolvedProject: ResolvedProject): Option[Progress] = {
+    def descend(resolvedProject: ResolvedProject): Option[Progress] = {
+      val weightedProgresses =
+        resolvedProject.plainTasks.map(p => WeightedProgress(p.weight, p.progress)) ++
+          resolvedProject.projectReferenceTasks
+            .flatMap(r => descend(r.project).map(WeightedProgress(r.weight, _)))
+      NonEmptyList
+        .fromFoldable(weightedProgresses)
+        .map(WeightedProgress.average)
+    }
+    descend(resolvedProject)
   }
 
   private def transitiveAccessorsOf(
