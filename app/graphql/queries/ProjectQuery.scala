@@ -15,7 +15,7 @@ import scala.concurrent.Future
 trait ProjectQuery extends HasGraphQLServices with HasLoggedInUser {
   import ioImplicits._
 
-  @GraphQLField()
+  @GraphQLField
   def fetchProject(projectId: ProjectId): Future[Project] = {
     validateProjectReadAccess(projectId)((_, project) => IO.pure(ServerError.result(project.fromInternal[Project])))
   }
