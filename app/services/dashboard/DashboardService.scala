@@ -1,6 +1,6 @@
 package services.dashboard
 
-import cats.data.{ EitherT, NonEmptySet }
+import cats.data.{ EitherT, NonEmptyList, NonEmptySet }
 import cats.effect.{ Async, ContextShift }
 import cats.syntax.traverse._
 import db.generated.daos._
@@ -9,14 +9,19 @@ import db.models.{ DashboardReadAccess, DashboardReadAccessEntry, DashboardWrite
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
 import errors.{ ErrorContext, ServerError }
+import math.Positive
 import monocle.syntax.all._
 import services.access.AccessFromDB._
 import services.access.AccessToDB._
 import services.access._
-import services.project.{ ProjectId, ProjectService, WeightedProject }
+import services.project.{ ProjectId, ProjectService, ResolvedProject, WeightedProject }
+import services.task.{ Progress, WeightedProgress }
 import services.user.UserId
 import spire.math.Natural
 import utils.math.NaturalUtil
+import spire.syntax.additiveSemigroup._
+import utils.fp.NonEmptyListUtil
+import cats.syntax.contravariantSemigroupal._
 
 import javax.inject.Inject
 
@@ -105,6 +110,7 @@ class DashboardService @Inject() (
           .subflatMap(rp =>
             NaturalUtil
               .fromInt(dpa.weight)
+              .flatMap(Positive(_))
               .map(weight =>
                 WeightedProject(
                   resolvedProject = rp,
@@ -383,12 +389,23 @@ object DashboardService {
           db.models.DashboardProjectAssociation(
             dashboardId = dashboard.id.uuid,
             projectId = wp.resolvedProject.id.uuid,
-            weight = wp.weight.intValue
+            weight = wp.weight.natural.intValue
           )
         )
       )
     }
 
+  }
+
+  def progress(dashboard: Dashboard): Option[Progress] = {
+    val overallWeight = NonEmptyList
+      .fromFoldable(dashboard.projects.map(_.weight))
+      .map(NonEmptyListUtil.foldLeft1(_)(_ + _))
+    val weightedProgresses = NonEmptyList.fromFoldable(
+      dashboard.projects
+        .flatMap(wp => ResolvedProject.progress(wp.resolvedProject).map(WeightedProgress(wp.weight, _)))
+    )
+    (weightedProgresses, overallWeight).mapN(WeightedProgress.average)
   }
 
 }
