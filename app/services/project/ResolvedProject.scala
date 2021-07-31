@@ -1,10 +1,12 @@
 package services.project
 
 import cats.data.{ NonEmptyList, NonEmptySet }
+import cats.instances.vector._
 import services.access.{ Access, AccessKind, Accessors }
 import services.task.{ Progress, ResolvedTask, WeightedProgress }
 import services.user.UserId
-import cats.instances.vector._
+import spire.syntax.additiveSemigroup._
+import cats.syntax.contravariantSemigroupal._
 
 case class ResolvedProject(
     id: ProjectId,
@@ -26,15 +28,22 @@ object ResolvedProject {
   def transitiveWriteAccessOf(resolvedProject: ResolvedProject): Access[AccessKind.Write] =
     Access(transitiveAccessorsOf(_.writeAccessors.accessors, resolvedProject))
 
+  // TODO: Check correctness of implementation - account for correct weight for referenced projects without progress
   def progress(resolvedProject: ResolvedProject): Option[Progress] = {
     def descend(resolvedProject: ResolvedProject): Option[Progress] = {
+      val overallWeight = NonEmptyList
+        .fromFoldable(resolvedProject.plainTasks.map(_.weight) ++ resolvedProject.projectReferenceTasks.map(_.weight))
+        .map(ws => ws.tail.foldLeft(ws.head)(_ + _))
+
       val weightedProgresses =
         resolvedProject.plainTasks.map(p => WeightedProgress(p.weight, p.progress)) ++
           resolvedProject.projectReferenceTasks
             .flatMap(r => descend(r.project).map(WeightedProgress(r.weight, _)))
-      NonEmptyList
-        .fromFoldable(weightedProgresses)
-        .map(WeightedProgress.average)
+      (
+        NonEmptyList.fromFoldable(weightedProgresses),
+        overallWeight
+      ).mapN(WeightedProgress.average)
+
     }
     descend(resolvedProject)
   }
