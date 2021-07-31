@@ -3,16 +3,16 @@ package graphql.types.project
 import graphql.types.FromInternal
 import graphql.types.FromInternal.syntax._
 import io.circe.generic.JsonCodec
+import math.Positive
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
-import spire.math.Natural
 import utils.graphql.SangriaUtil.instances._
 import utils.json.CirceUtil.instances._
 
 @JsonCodec
 case class WeightedProject(
     resolvedProject: ResolvedProject,
-    weight: Natural
+    weight: Positive
 )
 
 object WeightedProject {

@@ -1,8 +1,8 @@
 package services.project
 
-import spire.math.Natural
+import math.Positive
 
 case class WeightedProject(
     resolvedProject: ResolvedProject,
-    weight: Natural
+    weight: Positive
 )
