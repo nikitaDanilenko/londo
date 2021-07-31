@@ -35,7 +35,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
   }
 
   @GraphQLField
-  def allowReadUsersProject(
+  def allowReadUsersDashboard(
       dashboardId: DashboardId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
@@ -44,7 +44,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def allowWriteUsersProject(
+  def allowWriteUsersDashboard(
       dashboardId: DashboardId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
@@ -53,7 +53,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def blockReadUsersProject(
+  def blockReadUsersDashboard(
       dashboardId: DashboardId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
@@ -62,22 +62,12 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def blockWriteUsersProject(
+  def blockWriteUsersDashboard(
       dashboardId: DashboardId,
       userIds: NonEmptyList[UserId]
   ): Future[Accessors] =
     validateDashboardWriteAccess(dashboardId) { _ =>
       modifyAccessUsers(graphQLServices.dashboardService.blockWriteUsers(_, _))(dashboardId, userIds)
-    }
-
-  @GraphQLField
-  def deleteProject(
-      dashboardId: DashboardId
-  ): Future[Dashboard] =
-    validateDashboardWriteAccess(dashboardId) { _ =>
-      graphQLServices.dashboardService
-        .delete(dashboardId = dashboardId.toInternal)
-        .map(_.fromInternal[Dashboard])
     }
 
   @GraphQLField
@@ -95,7 +85,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
   def deleteDashboard(dashboardId: DashboardId): Future[Dashboard] =
     validateDashboardWriteAccess(dashboardId) { _ =>
       graphQLServices.dashboardService
-        .delete(dashboardId.toInternal)
+        .delete(dashboardId = dashboardId.toInternal)
         .map(_.fromInternal[Dashboard])
     }
 
