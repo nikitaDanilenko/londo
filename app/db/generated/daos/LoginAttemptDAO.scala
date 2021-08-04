@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,10 +20,17 @@ class LoginAttemptDAO @Inject() (
   override def findC(key: LoginAttemptDAO.Key): ConnectionIO[Option[LoginAttempt]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: LoginAttempt): ConnectionIO[LoginAttempt] = run(insertAction(row))
-  override def insertAllC(rows: Seq[LoginAttempt]): ConnectionIO[List[LoginAttempt]] = run(insertAllAction(rows))
-  override def deleteC(key: LoginAttemptDAO.Key): ConnectionIO[LoginAttempt] = run(deleteAction(key))
-  override def replaceC(row: LoginAttempt): ConnectionIO[LoginAttempt] = run(replaceAction(row))
+  override def insertC(row: LoginAttempt): ConnectionIO[Either[Throwable, LoginAttempt]] =
+    run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[LoginAttempt]): ConnectionIO[Either[Throwable, List[LoginAttempt]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: LoginAttemptDAO.Key): ConnectionIO[Either[Throwable, LoginAttempt]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: LoginAttempt): ConnectionIO[Either[Throwable, LoginAttempt]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: LoginAttemptDAO.Key) =
     quote {

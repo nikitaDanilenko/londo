@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,13 +20,17 @@ class ProjectWriteAccessDAO @Inject() (
   override def findC(key: ProjectWriteAccessDAO.Key): ConnectionIO[Option[ProjectWriteAccess]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: ProjectWriteAccess): ConnectionIO[ProjectWriteAccess] = run(insertAction(row))
+  override def insertC(row: ProjectWriteAccess): ConnectionIO[Either[Throwable, ProjectWriteAccess]] =
+    run(insertAction(row)).attempt
 
-  override def insertAllC(rows: Seq[ProjectWriteAccess]): ConnectionIO[List[ProjectWriteAccess]] =
-    run(insertAllAction(rows))
+  override def insertAllC(rows: Seq[ProjectWriteAccess]): ConnectionIO[Either[Throwable, List[ProjectWriteAccess]]] =
+    run(insertAllAction(rows)).attempt
 
-  override def deleteC(key: ProjectWriteAccessDAO.Key): ConnectionIO[ProjectWriteAccess] = run(deleteAction(key))
-  override def replaceC(row: ProjectWriteAccess): ConnectionIO[ProjectWriteAccess] = run(replaceAction(row))
+  override def deleteC(key: ProjectWriteAccessDAO.Key): ConnectionIO[Either[Throwable, ProjectWriteAccess]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: ProjectWriteAccess): ConnectionIO[Either[Throwable, ProjectWriteAccess]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: ProjectWriteAccessDAO.Key) =
     quote {

@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -14,10 +15,13 @@ class UserDAO @Inject() (dbContext: DbContext, override protected val dbTransact
     extends DAOFunctions[User, UserDAO.Key] {
   import dbContext._
   override def findC(key: UserDAO.Key): ConnectionIO[Option[User]] = run(findAction(key)).map(_.headOption)
-  override def insertC(row: User): ConnectionIO[User] = run(insertAction(row))
-  override def insertAllC(rows: Seq[User]): ConnectionIO[List[User]] = run(insertAllAction(rows))
-  override def deleteC(key: UserDAO.Key): ConnectionIO[User] = run(deleteAction(key))
-  override def replaceC(row: User): ConnectionIO[User] = run(replaceAction(row))
+  override def insertC(row: User): ConnectionIO[Either[Throwable, User]] = run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[User]): ConnectionIO[Either[Throwable, List[User]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: UserDAO.Key): ConnectionIO[Either[Throwable, User]] = run(deleteAction(key)).attempt
+  override def replaceC(row: User): ConnectionIO[Either[Throwable, User]] = run(replaceAction(row)).attempt
 
   private def findAction(key: UserDAO.Key) =
     quote {
@@ -63,12 +67,12 @@ class UserDAO @Inject() (dbContext: DbContext, override protected val dbTransact
     run(findByEmailAction(key))
   }
 
-  def deleteByEmail[F[_]: Async: ContextShift](key: String): F[Long] = {
+  def deleteByEmail[F[_]: Async: ContextShift](key: String): F[Either[Throwable, Long]] = {
     deleteByEmailC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByEmailC(key: String): ConnectionIO[Long] = {
-    run(deleteByEmailAction(key))
+  def deleteByEmailC(key: String): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByEmailAction(key)).attempt
   }
 
   def findByNickname[F[_]: Async: ContextShift](key: String): F[List[User]] = {
@@ -79,12 +83,12 @@ class UserDAO @Inject() (dbContext: DbContext, override protected val dbTransact
     run(findByNicknameAction(key))
   }
 
-  def deleteByNickname[F[_]: Async: ContextShift](key: String): F[Long] = {
+  def deleteByNickname[F[_]: Async: ContextShift](key: String): F[Either[Throwable, Long]] = {
     deleteByNicknameC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByNicknameC(key: String): ConnectionIO[Long] = {
-    run(deleteByNicknameAction(key))
+  def deleteByNicknameC(key: String): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByNicknameAction(key)).attempt
   }
 
   private def findByEmailAction(key: String) = {

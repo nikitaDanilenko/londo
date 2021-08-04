@@ -6,7 +6,7 @@ import db.ContextShiftProvider
 import db.generated.daos.SessionKeyDAO
 import db.keys.UserId
 import db.models.SessionKey
-import errors.ServerError
+import errors.{ ErrorContext, ServerError }
 import io.circe.syntax._
 import play.api.libs.circe.Circe
 import play.api.mvc.Results.BadRequest
@@ -40,18 +40,18 @@ class SignatureAction @Inject() (
           jwtContent <- EitherT.fromEither[Future](JwtUtil.validateJwt(token, jwtConfiguration.signaturePublicKey))
           sessionKey <- EitherT.fromOptionF[Future, ServerError, SessionKey](
             sessionKeyDAO.find[IO](UserId(jwtContent.userId.uuid)).unsafeToFuture(),
-            ServerError.Authentication.Token.MissingSessionKey: ServerError
+            ErrorContext.Authentication.Token.MissingSessionKey.asServerError
           )
           signatureRequest <- EitherT.fromEither[Future](SignatureRequest.fromRequest(request))
           signature <- EitherT.fromOption[Future](
             request.headers.get(RequestHeaders.authenticationHeader),
-            ServerError.Authentication.Signature.Missing
+            ErrorContext.Authentication.Signature.Missing.asServerError
           )
           result <- {
             if (SignatureHandler.validate(signature, SignatureRequest.hashOf(signatureRequest), sessionKey.publicKey))
               EitherT.liftF[Future, ServerError, Result](block(request))
             else
-              EitherT.leftT[Future, Result].apply(ServerError.Authentication.Signature.Invalid: ServerError)
+              EitherT.leftT[Future, Result].apply(ErrorContext.Authentication.Signature.Invalid.asServerError)
           }
         } yield result
         transformer.valueOr(error => BadRequest(error.asJson))

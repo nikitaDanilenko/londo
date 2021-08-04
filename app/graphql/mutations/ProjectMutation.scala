@@ -6,12 +6,14 @@ import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
 import graphql.types.FromInternal.syntax._
 import graphql.types.ToInternal.syntax._
+import graphql.types.access.Accessors
 import graphql.types.project._
 import graphql.types.task._
 import graphql.types.user.UserId
 import graphql.types.util.NonEmptyList
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
+import services.access
 
 import scala.concurrent.Future
 
@@ -169,27 +171,26 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       serviceFunction: (
           services.project.ProjectId,
           NonEmptySet[services.user.UserId]
-      ) => IO[ServerError.Valid[services.project.Accessors]]
+      ) => IO[ServerError.Or[access.Accessors]]
   )(
       projectId: ProjectId,
       userIds: NonEmptyList[UserId]
-  ): IO[ServerError.Valid[Accessors]] =
+  ): IO[ServerError.Or[Accessors]] =
     EitherT(
       serviceFunction(
         projectId.toInternal,
         userIds.toInternal.toNes
-      ).map(_.toEither)
+      )
     )
-      .map(a => services.project.Accessors.toRepresentation(a).fromInternal[Accessors])
+      .map(a => services.access.Accessors.toRepresentation(a).fromInternal[Accessors])
       .value
-      .map(ServerError.fromEitherNel)
 
   private def validateProjectWriteAccess[A](
       projectId: ProjectId
   )(
-      f: services.user.UserId => IO[ServerError.Valid[A]]
+      f: services.user.UserId => IO[ServerError.Or[A]]
   ): Future[A] = {
-    validateProjectProjectAccess(
+    validateProjectAccess(
       projectService = graphQLServices.projectService,
       projectId = projectId,
       accessorsOf = _.writeAccessors.accessors

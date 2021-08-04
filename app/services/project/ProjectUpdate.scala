@@ -6,7 +6,6 @@ case class ProjectUpdate(
     name: String,
     description: Option[String],
     ownerId: UserId,
-    parentProjectId: Option[ProjectId],
     flatIfSingleTask: Boolean
 )
 
@@ -17,7 +16,6 @@ object ProjectUpdate {
       name = projectUpdate.name,
       description = projectUpdate.description,
       ownerId = projectUpdate.ownerId,
-      parentProjectId = projectUpdate.parentProjectId,
       flatIfSingleTask = projectUpdate.flatIfSingleTask
     )
 

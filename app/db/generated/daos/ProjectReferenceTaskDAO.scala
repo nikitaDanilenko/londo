@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,13 +20,18 @@ class ProjectReferenceTaskDAO @Inject() (
   override def findC(key: ProjectReferenceTaskDAO.Key): ConnectionIO[Option[ProjectReferenceTask]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: ProjectReferenceTask): ConnectionIO[ProjectReferenceTask] = run(insertAction(row))
+  override def insertC(row: ProjectReferenceTask): ConnectionIO[Either[Throwable, ProjectReferenceTask]] =
+    run(insertAction(row)).attempt
 
-  override def insertAllC(rows: Seq[ProjectReferenceTask]): ConnectionIO[List[ProjectReferenceTask]] =
-    run(insertAllAction(rows))
+  override def insertAllC(
+      rows: Seq[ProjectReferenceTask]
+  ): ConnectionIO[Either[Throwable, List[ProjectReferenceTask]]] = run(insertAllAction(rows)).attempt
 
-  override def deleteC(key: ProjectReferenceTaskDAO.Key): ConnectionIO[ProjectReferenceTask] = run(deleteAction(key))
-  override def replaceC(row: ProjectReferenceTask): ConnectionIO[ProjectReferenceTask] = run(replaceAction(row))
+  override def deleteC(key: ProjectReferenceTaskDAO.Key): ConnectionIO[Either[Throwable, ProjectReferenceTask]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: ProjectReferenceTask): ConnectionIO[Either[Throwable, ProjectReferenceTask]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: ProjectReferenceTaskDAO.Key) =
     quote {
@@ -73,12 +79,12 @@ class ProjectReferenceTaskDAO @Inject() (
     run(findByIdAction(key))
   }
 
-  def deleteById[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteById[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByIdAction(key))
+  def deleteByIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByIdAction(key)).attempt
   }
 
   def findByProjectId[F[_]: Async: ContextShift](key: UUID): F[List[ProjectReferenceTask]] = {
@@ -89,12 +95,12 @@ class ProjectReferenceTaskDAO @Inject() (
     run(findByProjectIdAction(key))
   }
 
-  def deleteByProjectId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteByProjectId[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByProjectIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByProjectIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByProjectIdAction(key))
+  def deleteByProjectIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByProjectIdAction(key)).attempt
   }
 
   private def findByIdAction(key: UUID) = {

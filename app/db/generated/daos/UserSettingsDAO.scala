@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,10 +20,17 @@ class UserSettingsDAO @Inject() (
   override def findC(key: UserSettingsDAO.Key): ConnectionIO[Option[UserSettings]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: UserSettings): ConnectionIO[UserSettings] = run(insertAction(row))
-  override def insertAllC(rows: Seq[UserSettings]): ConnectionIO[List[UserSettings]] = run(insertAllAction(rows))
-  override def deleteC(key: UserSettingsDAO.Key): ConnectionIO[UserSettings] = run(deleteAction(key))
-  override def replaceC(row: UserSettings): ConnectionIO[UserSettings] = run(replaceAction(row))
+  override def insertC(row: UserSettings): ConnectionIO[Either[Throwable, UserSettings]] =
+    run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[UserSettings]): ConnectionIO[Either[Throwable, List[UserSettings]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: UserSettingsDAO.Key): ConnectionIO[Either[Throwable, UserSettings]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: UserSettings): ConnectionIO[Either[Throwable, UserSettings]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: UserSettingsDAO.Key) =
     quote {

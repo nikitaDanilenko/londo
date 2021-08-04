@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -19,13 +20,18 @@ class DashboardWriteAccessDAO @Inject() (
   override def findC(key: DashboardWriteAccessDAO.Key): ConnectionIO[Option[DashboardWriteAccess]] =
     run(findAction(key)).map(_.headOption)
 
-  override def insertC(row: DashboardWriteAccess): ConnectionIO[DashboardWriteAccess] = run(insertAction(row))
+  override def insertC(row: DashboardWriteAccess): ConnectionIO[Either[Throwable, DashboardWriteAccess]] =
+    run(insertAction(row)).attempt
 
-  override def insertAllC(rows: Seq[DashboardWriteAccess]): ConnectionIO[List[DashboardWriteAccess]] =
-    run(insertAllAction(rows))
+  override def insertAllC(
+      rows: Seq[DashboardWriteAccess]
+  ): ConnectionIO[Either[Throwable, List[DashboardWriteAccess]]] = run(insertAllAction(rows)).attempt
 
-  override def deleteC(key: DashboardWriteAccessDAO.Key): ConnectionIO[DashboardWriteAccess] = run(deleteAction(key))
-  override def replaceC(row: DashboardWriteAccess): ConnectionIO[DashboardWriteAccess] = run(replaceAction(row))
+  override def deleteC(key: DashboardWriteAccessDAO.Key): ConnectionIO[Either[Throwable, DashboardWriteAccess]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: DashboardWriteAccess): ConnectionIO[Either[Throwable, DashboardWriteAccess]] =
+    run(replaceAction(row)).attempt
 
   private def findAction(key: DashboardWriteAccessDAO.Key) =
     quote {

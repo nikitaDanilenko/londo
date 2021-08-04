@@ -1,10 +1,11 @@
 package services.task
 
+import math.Positive
 import spire.math.Natural
 
 case class ProgressUpdate(
     reached: Natural,
-    reachable: Natural
+    reachable: Positive
 )
 
 object ProgressUpdate {

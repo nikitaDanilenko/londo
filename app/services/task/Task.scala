@@ -1,9 +1,12 @@
 package services.task
 
+import cats.syntax.contravariantSemigroupal._
 import errors.ServerError
+import math.Positive
 import services.project.ProjectId
 import services.task
 import spire.math.Natural
+import utils.math.NaturalUtil
 
 object Task {
 
@@ -13,20 +16,27 @@ object Task {
       taskKind: TaskKind,
       unit: Option[String],
       progress: Progress,
-      weight: Natural
+      weight: Positive
   )
 
   object Plain {
 
     def fromRow(taskRow: db.models.PlainTask): ServerError.Valid[Plain] =
-      nonNegativeWeight(taskRow.weight)
-        .map { weight =>
+      (
+        positiveWeight(taskRow.weight),
+        ServerError.fromEither(asNatural(taskRow.reachable).flatMap(Positive.apply)),
+        ServerError.fromEither(asNatural(taskRow.reached))
+      )
+        .mapN { (weight, reachable, reached) =>
           Plain(
             id = task.TaskId(uuid = taskRow.id),
             name = taskRow.name,
             taskKind = TaskKind.fromId(taskRow.kindId),
             unit = taskRow.unit,
-            progress = Progress.fraction(asNatural(taskRow.reachable), asNatural(taskRow.reached)),
+            progress = Progress.fraction(
+              reachable = reachable,
+              reached = reached
+            ),
             weight = weight
           )
         }
@@ -39,8 +49,8 @@ object Task {
         unit = plainTask.unit,
         kindId = TaskKind.toRow(plainTask.taskKind).id,
         reached = asBigDecimal(plainTask.progress.reached),
-        reachable = asBigDecimal(plainTask.progress.reachable),
-        weight = plainTask.weight.intValue
+        reachable = asBigDecimal(plainTask.progress.reachable.natural),
+        weight = plainTask.weight.natural.intValue
       )
 
   }
@@ -48,13 +58,13 @@ object Task {
   case class ProjectReference(
       id: TaskId,
       projectReference: ProjectId,
-      weight: Natural
+      weight: Positive
   )
 
   object ProjectReference {
 
     def fromRow(taskRow: db.models.ProjectReferenceTask): ServerError.Valid[ProjectReference] =
-      nonNegativeWeight(taskRow.weight).map { weight =>
+      positiveWeight(taskRow.weight).map { weight =>
         ProjectReference(
           id = task.TaskId(
             uuid = taskRow.id
@@ -71,22 +81,18 @@ object Task {
         id = projectReferenceTask.id.uuid,
         projectId = projectId.uuid,
         projectReferenceId = projectReferenceTask.projectReference.uuid,
-        weight = projectReferenceTask.weight.intValue
+        weight = projectReferenceTask.weight.natural.intValue
       )
 
   }
 
-  private def asNatural(bigDecimal: BigDecimal): Natural =
-    Natural(bigDecimal.toBigInt)
+  private def asNatural(bigDecimal: BigDecimal): ServerError.Or[Natural] =
+    NaturalUtil.fromBigInt(bigDecimal.toBigInt)
 
   private def asBigDecimal(natural: Natural): BigDecimal =
     BigDecimal(natural.toBigInt)
 
-  private def nonNegativeWeight(weight: Int): ServerError.Valid[Natural] =
-    ServerError.fromCondition(
-      weight >= 0,
-      ServerError.Task.NegativeWeight,
-      Natural(weight)
-    )
+  private def positiveWeight(weight: Int): ServerError.Valid[Positive] =
+    ServerError.fromEither(Positive(Natural(weight)))
 
 }

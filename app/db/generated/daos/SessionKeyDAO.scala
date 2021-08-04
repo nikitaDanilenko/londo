@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -14,10 +15,15 @@ class SessionKeyDAO @Inject() (dbContext: DbContext, override protected val dbTr
     extends DAOFunctions[SessionKey, SessionKeyDAO.Key] {
   import dbContext._
   override def findC(key: SessionKeyDAO.Key): ConnectionIO[Option[SessionKey]] = run(findAction(key)).map(_.headOption)
-  override def insertC(row: SessionKey): ConnectionIO[SessionKey] = run(insertAction(row))
-  override def insertAllC(rows: Seq[SessionKey]): ConnectionIO[List[SessionKey]] = run(insertAllAction(rows))
-  override def deleteC(key: SessionKeyDAO.Key): ConnectionIO[SessionKey] = run(deleteAction(key))
-  override def replaceC(row: SessionKey): ConnectionIO[SessionKey] = run(replaceAction(row))
+  override def insertC(row: SessionKey): ConnectionIO[Either[Throwable, SessionKey]] = run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[SessionKey]): ConnectionIO[Either[Throwable, List[SessionKey]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: SessionKeyDAO.Key): ConnectionIO[Either[Throwable, SessionKey]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: SessionKey): ConnectionIO[Either[Throwable, SessionKey]] = run(replaceAction(row)).attempt
 
   private def findAction(key: SessionKeyDAO.Key) =
     quote {

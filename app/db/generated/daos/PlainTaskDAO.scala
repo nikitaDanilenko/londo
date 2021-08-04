@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -14,10 +15,15 @@ class PlainTaskDAO @Inject() (dbContext: DbContext, override protected val dbTra
     extends DAOFunctions[PlainTask, PlainTaskDAO.Key] {
   import dbContext._
   override def findC(key: PlainTaskDAO.Key): ConnectionIO[Option[PlainTask]] = run(findAction(key)).map(_.headOption)
-  override def insertC(row: PlainTask): ConnectionIO[PlainTask] = run(insertAction(row))
-  override def insertAllC(rows: Seq[PlainTask]): ConnectionIO[List[PlainTask]] = run(insertAllAction(rows))
-  override def deleteC(key: PlainTaskDAO.Key): ConnectionIO[PlainTask] = run(deleteAction(key))
-  override def replaceC(row: PlainTask): ConnectionIO[PlainTask] = run(replaceAction(row))
+  override def insertC(row: PlainTask): ConnectionIO[Either[Throwable, PlainTask]] = run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[PlainTask]): ConnectionIO[Either[Throwable, List[PlainTask]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: PlainTaskDAO.Key): ConnectionIO[Either[Throwable, PlainTask]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: PlainTask): ConnectionIO[Either[Throwable, PlainTask]] = run(replaceAction(row)).attempt
 
   private def findAction(key: PlainTaskDAO.Key) =
     quote {
@@ -65,12 +71,12 @@ class PlainTaskDAO @Inject() (dbContext: DbContext, override protected val dbTra
     run(findByIdAction(key))
   }
 
-  def deleteById[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteById[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByIdAction(key))
+  def deleteByIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByIdAction(key)).attempt
   }
 
   def findByProjectId[F[_]: Async: ContextShift](key: UUID): F[List[PlainTask]] = {
@@ -81,12 +87,12 @@ class PlainTaskDAO @Inject() (dbContext: DbContext, override protected val dbTra
     run(findByProjectIdAction(key))
   }
 
-  def deleteByProjectId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteByProjectId[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByProjectIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByProjectIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByProjectIdAction(key))
+  def deleteByProjectIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByProjectIdAction(key)).attempt
   }
 
   private def findByIdAction(key: UUID) = {

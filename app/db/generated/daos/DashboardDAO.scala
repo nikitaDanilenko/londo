@@ -1,6 +1,7 @@
 package db.generated.daos
 
 import cats.effect.{ Async, ContextShift }
+import cats.syntax.applicativeError._
 import db.models._
 import db.keys._
 import db.{ DbContext, DbTransactorProvider, DAOFunctions }
@@ -14,10 +15,15 @@ class DashboardDAO @Inject() (dbContext: DbContext, override protected val dbTra
     extends DAOFunctions[Dashboard, DashboardDAO.Key] {
   import dbContext._
   override def findC(key: DashboardDAO.Key): ConnectionIO[Option[Dashboard]] = run(findAction(key)).map(_.headOption)
-  override def insertC(row: Dashboard): ConnectionIO[Dashboard] = run(insertAction(row))
-  override def insertAllC(rows: Seq[Dashboard]): ConnectionIO[List[Dashboard]] = run(insertAllAction(rows))
-  override def deleteC(key: DashboardDAO.Key): ConnectionIO[Dashboard] = run(deleteAction(key))
-  override def replaceC(row: Dashboard): ConnectionIO[Dashboard] = run(replaceAction(row))
+  override def insertC(row: Dashboard): ConnectionIO[Either[Throwable, Dashboard]] = run(insertAction(row)).attempt
+
+  override def insertAllC(rows: Seq[Dashboard]): ConnectionIO[Either[Throwable, List[Dashboard]]] =
+    run(insertAllAction(rows)).attempt
+
+  override def deleteC(key: DashboardDAO.Key): ConnectionIO[Either[Throwable, Dashboard]] =
+    run(deleteAction(key)).attempt
+
+  override def replaceC(row: Dashboard): ConnectionIO[Either[Throwable, Dashboard]] = run(replaceAction(row)).attempt
 
   private def findAction(key: DashboardDAO.Key) =
     quote {
@@ -61,12 +67,12 @@ class DashboardDAO @Inject() (dbContext: DbContext, override protected val dbTra
     run(findByUserIdAction(key))
   }
 
-  def deleteByUserId[F[_]: Async: ContextShift](key: UUID): F[Long] = {
+  def deleteByUserId[F[_]: Async: ContextShift](key: UUID): F[Either[Throwable, Long]] = {
     deleteByUserIdC(key).transact(dbTransactorProvider.transactor[F])
   }
 
-  def deleteByUserIdC(key: UUID): ConnectionIO[Long] = {
-    run(deleteByUserIdAction(key))
+  def deleteByUserIdC(key: UUID): ConnectionIO[Either[Throwable, Long]] = {
+    run(deleteByUserIdAction(key)).attempt
   }
 
   private def findByUserIdAction(key: UUID) = {

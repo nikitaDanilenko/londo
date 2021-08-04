@@ -1,8 +1,8 @@
 package services.task
 
 import cats.effect.IO
+import math.Positive
 import services.project.ProjectId
-import spire.math.Natural
 import utils.random.RandomGenerator
 
 object TaskCreation {
@@ -12,7 +12,7 @@ object TaskCreation {
       taskKind: TaskKind,
       unit: Option[String],
       progress: Progress,
-      weight: Natural
+      weight: Positive
   )
 
   object Plain {
@@ -32,7 +32,7 @@ object TaskCreation {
   }
 
   case class ProjectReference(
-      weight: Natural,
+      weight: Positive,
       projectReferenceId: ProjectId
   )
 

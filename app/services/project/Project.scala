@@ -1,5 +1,6 @@
 package services.project
 
+import services.access.{ Access, AccessKind }
 import services.task.Task
 import services.user.UserId
 
@@ -10,8 +11,7 @@ case class Project(
     name: String,
     description: Option[String],
     ownerId: UserId,
-    parentProjectId: Option[ProjectId],
     flatIfSingleTask: Boolean,
-    readAccessors: ProjectAccess[AccessKind.Read],
-    writeAccessors: ProjectAccess[AccessKind.Write]
+    readAccessors: Access[AccessKind.Read],
+    writeAccessors: Access[AccessKind.Write]
 )

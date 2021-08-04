@@ -1,13 +1,13 @@
 package services.project
 
 import cats.effect.IO
+import services.access.{ Access, AccessKind, Accessors }
 import services.user.UserId
 import utils.random.RandomGenerator
 
 case class ProjectCreation(
     name: String,
     description: Option[String],
-    parentProject: Option[ProjectId],
     flatIfSingleTask: Boolean,
     readAccessors: Accessors.Representation,
     writeAccessors: Accessors.Representation
@@ -25,9 +25,8 @@ object ProjectCreation {
         description = projectCreation.description,
         ownerId = ownerId,
         flatIfSingleTask = projectCreation.flatIfSingleTask,
-        parentProjectId = projectCreation.parentProject,
-        readAccessors = ProjectAccess[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),
-        writeAccessors = ProjectAccess[AccessKind.Write](Accessors.fromRepresentation(projectCreation.writeAccessors))
+        readAccessors = Access[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),
+        writeAccessors = Access[AccessKind.Write](Accessors.fromRepresentation(projectCreation.writeAccessors))
       )
     }
 
