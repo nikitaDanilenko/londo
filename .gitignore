@@ -10,3 +10,8 @@ target
 .bsp/
 
 *.iml
+
+# Frontend
+
+/frontend/elm-stuff
+/frontend/node_modules
