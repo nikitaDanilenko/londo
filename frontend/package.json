@@ -1,0 +1,7 @@
+{
+  "name": "londo-elm-graphql-project",
+  "version": "1.0.0",
+  "scripts": {
+    "apiGen": "elm-graphql http://localhost:9000/graphql --base LondoGQL"
+  }
+}
