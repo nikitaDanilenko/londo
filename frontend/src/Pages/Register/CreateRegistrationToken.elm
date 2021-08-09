@@ -12,6 +12,7 @@ import LondoGQL.Mutation as Mutation
 import LondoGQL.Scalar exposing (Unit)
 import RemoteData exposing (RemoteData)
 
+
 type Msg
     = RequestToken
     | ChangeEmail String
@@ -29,9 +30,9 @@ updateEmail model email =
     { model | email = email }
 
 
-init : Language -> (Model, Cmd Msg)
+init : Language -> ( Model, Cmd Msg )
 init language =
-    ({ email = "", language = language }, Cmd.none)
+    ( { email = "", language = language }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -44,7 +45,7 @@ update msg model =
             ( model |> flip updateEmail string, Cmd.none )
 
         GotResponse remoteData ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -65,4 +66,3 @@ makeRequest model =
     requestTokenQuery model
         |> Graphql.Http.mutationRequest "http://localhost:9000/graphql"
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
-
