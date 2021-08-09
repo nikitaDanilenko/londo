@@ -29,9 +29,9 @@ updateEmail model email =
     { model | email = email }
 
 
-init : Language -> Model
+init : Language -> (Model, Cmd Msg)
 init language =
-    { email = "", language = language }
+    ({ email = "", language = language }, Cmd.none)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
