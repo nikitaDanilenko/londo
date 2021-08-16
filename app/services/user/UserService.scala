@@ -30,6 +30,7 @@ class UserService @Inject() (
     registrationTokenDAO: RegistrationTokenDAO,
     emailService: EmailService,
     jwtConfiguration: JwtConfiguration,
+    frontendConfiguration: FrontendConfiguration,
     transactionally: Transactionally
 ) {
 
@@ -164,7 +165,10 @@ class UserService @Inject() (
                     from = UserService.londoSenderAddress,
                     to = registrationToken.email,
                     // TODO: Add more explanation text to email
-                    content = registrationToken.token
+                    content = RegistrationToken.createRegistrationLink(
+                      frontendConfiguration = frontendConfiguration,
+                      registrationToken = registrationToken
+                    )
                   )
                 )
               )
