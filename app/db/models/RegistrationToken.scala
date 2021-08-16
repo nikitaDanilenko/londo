@@ -10,7 +10,6 @@ object RegistrationToken {
       frontendConfiguration: FrontendConfiguration,
       registrationToken: RegistrationToken
   ): String = {
-    pprint.log(frontendConfiguration)
     val replaced = frontendConfiguration.registrationPattern
       .replace(frontendConfiguration.emailPlaceholder, registrationToken.email)
       .replace(frontendConfiguration.tokenPlaceholder, registrationToken.token)
