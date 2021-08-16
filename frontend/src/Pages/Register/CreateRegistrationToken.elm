@@ -1,6 +1,7 @@
 module Pages.Register.CreateRegistrationToken exposing (Model, Msg, init, update, view)
 
 import Basics.Extra exposing (flip)
+import Configuration
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.SelectionSet exposing (SelectionSet)
@@ -95,5 +96,5 @@ requestTokenQuery model =
 makeRequest : Model -> Cmd Msg
 makeRequest model =
     requestTokenQuery model
-        |> Graphql.Http.mutationRequest "http://localhost:9000/graphql"
+        |> Graphql.Http.mutationRequest Configuration.graphQLEndpoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
