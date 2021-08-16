@@ -1,4 +1,4 @@
-module Pages.Register.CreateRegistrationToken exposing (..)
+module Pages.Register.CreateRegistrationToken exposing (Model, Msg, init, update, view)
 
 import Basics.Extra exposing (flip)
 import Graphql.Http
@@ -10,6 +10,7 @@ import Html.Events exposing (onClick, onInput)
 import Language.Language exposing (Language)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Scalar exposing (Unit)
+import Maybe.Extra exposing (unwrap)
 import RemoteData exposing (RemoteData)
 
 
@@ -19,9 +20,16 @@ type Msg
     | GotResponse (RemoteData (Graphql.Http.Error Unit) Unit)
 
 
+type State
+    = Initial
+    | Success
+    | Failure
+
+
 type alias Model =
     { email : String
     , language : Language
+    , state : State
     }
 
 
@@ -30,9 +38,14 @@ updateEmail model email =
     { model | email = email }
 
 
+updateState : Model -> State -> Model
+updateState model state =
+    { model | state = state }
+
+
 init : Language -> ( Model, Cmd Msg )
 init language =
-    ( { email = "", language = language }, Cmd.none )
+    ( { email = "", language = language, state = Initial }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -45,15 +58,33 @@ update msg model =
             ( model |> flip updateEmail string, Cmd.none )
 
         GotResponse remoteData ->
-            ( model, Cmd.none )
+            let
+                state =
+                    remoteData |> RemoteData.toMaybe |> unwrap Failure (\_ -> Success)
+            in
+            ( updateState model state, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    div [ id "registrationRequest" ]
-        [ div [ id "registrationEmail" ] [ input [ onInput ChangeEmail ] [] ]
-        , div [ id "registrationButton" ] [ button [ class "requestButton", onClick RequestToken ] [ text model.language.requestTokenForRegistration ] ]
-        ]
+    case model.state of
+        Initial ->
+            div [ id "registrationRequest" ]
+                [ div [ id "registrationEmail" ] [ input [ onInput ChangeEmail ] [] ]
+                , div [ id "registrationButton" ] [ button [ class "requestButton", onClick RequestToken ] [ text model.language.requestTokenForRegistration ] ]
+                ]
+
+        Success ->
+            displayResponse model.language.tokenRequestSuccessful
+
+        Failure ->
+            displayResponse model.language.tokenRequestFailed
+
+
+displayResponse : String -> Html Msg
+displayResponse msg =
+    div [ id "registrationResponse" ]
+        [ text msg ]
 
 
 requestTokenQuery : Model -> SelectionSet Unit RootMutation
