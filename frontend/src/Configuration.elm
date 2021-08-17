@@ -1,4 +1,7 @@
 module Configuration exposing (..)
 
-graphQLEndpoint : String
-graphQLEndpoint = "http://localhost:9000/graphql"
+--todo: Keep watch for possible restructuring; this may be sensible to provide only the relevant configuration flags
+type alias Configuration =
+    { graphQLEndpoint : String
+    , mainPageURL : String
+    }
