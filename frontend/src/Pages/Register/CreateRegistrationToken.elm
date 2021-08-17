@@ -1,7 +1,7 @@
-module Pages.Register.CreateRegistrationToken exposing (Model, Msg, init, update, view)
+module Pages.Register.CreateRegistrationToken exposing (Flags, Model, Msg, init, update, view)
 
 import Basics.Extra exposing (flip)
-import Configuration
+import Configuration exposing (Configuration)
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.SelectionSet exposing (SelectionSet)
@@ -11,7 +11,7 @@ import Html.Events exposing (onClick, onInput)
 import Language.Language exposing (Language)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Scalar exposing (Unit)
-import Maybe.Extra exposing (unwrap)
+import Pages.Util.TriState as TriState exposing (TriState)
 import RemoteData exposing (RemoteData)
 
 
@@ -21,16 +21,17 @@ type Msg
     | GotResponse (RemoteData (Graphql.Http.Error Unit) Unit)
 
 
-type State
-    = Initial
-    | Success
-    | Failure
-
-
 type alias Model =
     { email : String
     , language : Language
-    , state : State
+    , state : TriState
+    , configuration : Configuration
+    }
+
+
+type alias Flags =
+    { language : Language
+    , configuration : Configuration
     }
 
 
@@ -39,14 +40,14 @@ updateEmail model email =
     { model | email = email }
 
 
-updateState : Model -> State -> Model
+updateState : Model -> TriState -> Model
 updateState model state =
     { model | state = state }
 
 
-init : Language -> ( Model, Cmd Msg )
-init language =
-    ( { email = "", language = language, state = Initial }, Cmd.none )
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( { email = "", language = flags.language, state = TriState.Initial, configuration = flags.configuration }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,26 +60,22 @@ update msg model =
             ( model |> flip updateEmail string, Cmd.none )
 
         GotResponse remoteData ->
-            let
-                state =
-                    remoteData |> RemoteData.toMaybe |> unwrap Failure (\_ -> Success)
-            in
-            ( updateState model state, Cmd.none )
+            ( updateState model (TriState.fromRemoteData remoteData), Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
     case model.state of
-        Initial ->
+        TriState.Initial ->
             div [ id "registrationRequest" ]
                 [ div [ id "registrationEmail" ] [ input [ onInput ChangeEmail ] [] ]
                 , div [ id "registrationButton" ] [ button [ class "requestButton", onClick RequestToken ] [ text model.language.requestTokenForRegistration ] ]
                 ]
 
-        Success ->
+        TriState.Success ->
             displayResponse model.language.tokenRequestSuccessful
 
-        Failure ->
+        TriState.Failure ->
             displayResponse model.language.tokenRequestFailed
 
 
@@ -96,5 +93,5 @@ requestTokenQuery model =
 makeRequest : Model -> Cmd Msg
 makeRequest model =
     requestTokenQuery model
-        |> Graphql.Http.mutationRequest Configuration.graphQLEndpoint
+        |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
