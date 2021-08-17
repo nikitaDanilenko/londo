@@ -14,7 +14,7 @@ object RegistrationToken {
       .replace(frontendConfiguration.emailPlaceholder, registrationToken.email)
       .replace(frontendConfiguration.tokenPlaceholder, registrationToken.token)
 
-    s"${frontendConfiguration.url}$replaced"
+    s"${frontendConfiguration.url}/#/$replaced"
   }
 
 }
