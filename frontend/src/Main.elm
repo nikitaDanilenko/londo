@@ -1,8 +1,9 @@
-module Pages.MainPage exposing (main)
+module Main exposing (main)
 
 import Basics.Extra exposing (flip)
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Nav
+import Configuration exposing (Configuration)
 import Html exposing (Html, div, text)
 import Language.Language as Language exposing (Language)
 import Pages.Register.CreateNewUser as CreateNewUser
@@ -11,7 +12,7 @@ import Url exposing (Protocol(..), Url)
 import Url.Parser as Parser exposing ((</>), Parser, s)
 
 
-main : Program () Model Msg
+main : Program Configuration Model Msg
 main =
     Browser.application
         { init = init
@@ -47,7 +48,7 @@ titleFor _ =
     "Londo"
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Configuration -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     stepTo url { page = NotFound, key = key }
 
