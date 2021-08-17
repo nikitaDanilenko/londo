@@ -14,6 +14,7 @@ import Pages.Register.NewUser as NewUser exposing (NewUser, NewUserField(..))
 import Pages.Util.Links exposing (linkButton)
 import Pages.Util.TriState as TriState exposing (TriState(..))
 import RemoteData exposing (RemoteData)
+import Url.Builder as UrlBuilder
 
 
 type alias Model =
@@ -110,10 +111,16 @@ view md =
         Success ->
             div [ id "createdUser" ]
                 [ text md.language.userCreation.success
-                , linkButton { url = "", attributes = [ class "navigationButton" ], children = [ text md.language.userCreation.loginPageLinkText ], isDisabled = False }
+                , linkButton
+                    { url = UrlBuilder.relative [ md.configuration.mainPageURL, md.configuration.subFolders.login ] []
+                    , attributes = [ class "navigationButton" ]
+                    , children = [ text md.language.userCreation.loginPageLinkText ]
+                    , isDisabled = False
+                    }
                 ]
 
         Failure ->
+            --todo: Add error handling
             div [] []
 
 
