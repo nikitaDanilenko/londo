@@ -27,6 +27,7 @@ main =
 type alias Model =
     { key : Nav.Key
     , page : Page
+    , configuration : Configuration
     }
 
 
@@ -49,8 +50,12 @@ titleFor _ =
 
 
 init : Configuration -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
-    stepTo url { page = NotFound, key = key }
+init configuration url key =
+    stepTo url
+        { page = NotFound
+        , key = key
+        , configuration = configuration
+        }
 
 
 view : Model -> Html Msg
@@ -99,11 +104,11 @@ update msg model =
 
 stepTo : Url -> Model -> ( Model, Cmd Msg )
 stepTo url model =
-    case Parser.parse routeParser (fragmentToPath url) of
+    case Parser.parse (routeParser model.configuration) (fragmentToPath url) of
         Just answer ->
             case answer of
-                CreateRegistrationTokenRoute language ->
-                    CreateRegistrationToken.init language |> stepCreateRegistrationToken model
+                CreateRegistrationTokenRoute flags ->
+                    CreateRegistrationToken.init flags |> stepCreateRegistrationToken model
 
                 CreateNewUserRoute flags ->
                     CreateNewUser.init flags |> stepCreateNewUser model
@@ -123,15 +128,15 @@ stepCreateNewUser model ( createNewUser, cmd ) =
 
 
 type Route
-    = CreateRegistrationTokenRoute Language
+    = CreateRegistrationTokenRoute CreateRegistrationToken.Flags
     | CreateNewUserRoute CreateNewUser.Flags
 
 
-routeParser : Parser (Route -> a) a
-routeParser =
+routeParser : Configuration -> Parser (Route -> a) a
+routeParser configuration =
     let
         registrationParser =
-            s "register" </> languageParser
+            Parser.map (\l -> { language = l, configuration = configuration }) (s "register" </> languageParser)
     in
     Parser.oneOf
         [ route registrationParser CreateRegistrationTokenRoute
