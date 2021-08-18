@@ -21,7 +21,7 @@ type alias UserCreation =
     , tryAgain : String
     }
 
-
+--todo: Add password recovery parts
 type alias Login =
     { nickname : String
     , password : String
