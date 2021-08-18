@@ -22,6 +22,15 @@ type alias UserCreation =
     }
 
 
+type alias Login =
+    { nickname : String
+    , password : String
+    , login : String
+    , wrongCombination : String
+    , tryAgain : String
+    }
+
+
 default : Language
 default =
     english
