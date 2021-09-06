@@ -11,10 +11,10 @@ import io.circe.syntax._
 import play.api.libs.circe.Circe
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{ BodyParsers, _ }
-import security.SignatureRequest
+import security.{ SignatureConfiguration, SignatureRequest }
 import security.jwt.JwtConfiguration
 import utils.jwt.JwtUtil
-import utils.signature.SignatureHandler
+import utils.signature.{ DiffieHellman, SignatureHandler }
 
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
@@ -22,7 +22,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 class SignatureAction @Inject() (
     override val parse: PlayBodyParsers,
     sessionKeyDAO: SessionKeyDAO,
-    jwtConfiguration: JwtConfiguration
+    jwtConfiguration: JwtConfiguration,
+    signatureConfiguration: SignatureConfiguration
 )(implicit
     override val executionContext: ExecutionContext
 ) extends ActionBuilder[Request, AnyContent]
@@ -48,7 +49,18 @@ class SignatureAction @Inject() (
             ErrorContext.Authentication.Signature.Missing.asServerError
           )
           result <- {
-            if (SignatureHandler.validate(signature, SignatureRequest.hashOf(signatureRequest), sessionKey.publicKey))
+            val sharedSecret = DiffieHellman.sharedSecret(
+              modulus = signatureConfiguration.modulus,
+              publicPower = BigInt(sessionKey.publicKey),
+              privateExponent = signatureConfiguration.backendExponent
+            )
+            if (
+              SignatureHandler.validate(
+                signature = signature,
+                message = SignatureRequest.hashOf(signatureRequest),
+                secret = sharedSecret
+              )
+            )
               EitherT.liftF[Future, ServerError, Result](block(request))
             else
               EitherT.leftT[Future, Result].apply(ErrorContext.Authentication.Signature.Invalid.asServerError)
