@@ -21,7 +21,7 @@ class SignatureFilter @Inject() (signatureConfiguration: SignatureConfiguration)
             val sharedSecret = DiffieHellman
               .sharedSecret(
                 modulus = signatureConfiguration.modulus,
-                publicPower = BigInt(userPublicKey),
+                publicExponent = BigInt(userPublicKey),
                 privateExponent = signatureConfiguration.backendExponent
               )
             val signature = SignatureHandler.sign(
