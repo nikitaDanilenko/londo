@@ -2,32 +2,41 @@ package controllers.filters
 
 import controllers.RequestHeaders
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import security.SignatureRequest
-import security.jwt.JwtConfiguration
-import utils.signature.SignatureHandler
+import security.{ SignatureConfiguration, SignatureRequest }
+import utils.signature.{ DiffieHellman, SignatureHandler }
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
-class SignatureFilter @Inject() (jwtConfiguration: JwtConfiguration)(implicit executionContext: ExecutionContext)
-    extends EssentialFilter {
+class SignatureFilter @Inject() (signatureConfiguration: SignatureConfiguration)(implicit
+    executionContext: ExecutionContext
+) extends EssentialFilter {
 
   override def apply(next: EssentialAction): EssentialAction = { requestHeader =>
     next(requestHeader).mapFuture { result =>
-      SignatureRequest
-        .fromResult(requestHeader.method, result)
-        .map { signatureRequest =>
-          val signature = SignatureHandler.sign(
-            SignatureRequest.hashOf(signatureRequest),
-            jwtConfiguration.signaturePrivateKey
-          )
-          result.withHeaders(
-            RequestHeaders.authenticationHeader -> signature,
-            RequestHeaders.authenticationInstantHeader -> signatureRequest.authenticationInstant.toString
-          )
-        }
-        .unsafeToFuture()
-
+      requestHeader.headers.get(RequestHeaders.authenticationUserKey).fold(Future.successful(result)) { userPublicKey =>
+        SignatureRequest
+          .fromResult(requestHeader.method, result)
+          .map { signatureRequest =>
+            val sharedSecret = DiffieHellman
+              .sharedSecret(
+                modulus = signatureConfiguration.modulus,
+                publicPower = BigInt(userPublicKey),
+                privateExponent = signatureConfiguration.backendExponent
+              )
+            val signature = SignatureHandler.sign(
+              SignatureRequest.hashOf(signatureRequest),
+              sharedSecret
+            )
+            result
+              .withHeaders(
+                RequestHeaders.authenticationHeader -> signature,
+                RequestHeaders.authenticationInstantHeader -> signatureRequest.authenticationInstant.toString
+              )
+              .discardingHeader(RequestHeaders.authenticationUserKey)
+          }
+          .unsafeToFuture()
+      }
     }
   }
 

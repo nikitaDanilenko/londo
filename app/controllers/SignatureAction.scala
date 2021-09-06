@@ -60,9 +60,11 @@ class SignatureAction @Inject() (
                 message = SignatureRequest.hashOf(signatureRequest),
                 secret = sharedSecret
               )
-            )
-              EitherT.liftF[Future, ServerError, Result](block(request))
-            else
+            ) {
+              val resultWithExtraHeader =
+                block(request).map(_.withHeaders(RequestHeaders.authenticationUserKey -> sessionKey.publicKey))
+              EitherT.liftF[Future, ServerError, Result](resultWithExtraHeader)
+            } else
               EitherT.leftT[Future, Result].apply(ErrorContext.Authentication.Signature.Invalid.asServerError)
           }
         } yield result
