@@ -51,7 +51,7 @@ class SignatureAction @Inject() (
           result <- {
             val sharedSecret = DiffieHellman.sharedSecret(
               modulus = signatureConfiguration.modulus,
-              publicExponent = BigInt(sessionKey.publicKey),
+              publicNumber = BigInt(sessionKey.publicKey),
               privateExponent = signatureConfiguration.backendExponent
             )
             if (
