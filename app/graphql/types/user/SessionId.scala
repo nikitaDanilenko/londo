@@ -7,6 +7,7 @@ import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriv
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
+import utils.graphql.SangriaUtil.instances._
 
 import java.util.UUID
 
