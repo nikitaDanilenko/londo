@@ -27,7 +27,9 @@ class SessionKeyDAO @Inject() (dbContext: DbContext, override protected val dbTr
 
   private def findAction(key: SessionKeyDAO.Key) =
     quote {
-      PublicSchema.SessionKeyDao.query.filter(a => a.userId == lift(key.uuid))
+      PublicSchema.SessionKeyDao.query.filter(a =>
+        a.userId == lift(key.userId.uuid) && a.sessionId == lift(key.sessionId.uuid)
+      )
     }
 
   private def insertAction(row: SessionKey): Quoted[ActionReturning[SessionKey, SessionKey]] =
@@ -49,11 +51,11 @@ class SessionKeyDAO @Inject() (dbContext: DbContext, override protected val dbTr
     quote {
       PublicSchema.SessionKeyDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.userId)((t, e) => t.userId -> e.userId, (t, e) => t.publicKey -> e.publicKey)
+        .onConflictUpdate(_.userId, _.sessionId)((t, e) => t.userId -> e.userId, (t, e) => t.sessionId -> e.sessionId)
         .returning(x => x)
     }
   }
 
 }
 
-object SessionKeyDAO { type Key = UserId }
+object SessionKeyDAO { type Key = SessionKeyId }

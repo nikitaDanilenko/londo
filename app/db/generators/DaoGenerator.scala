@@ -284,12 +284,16 @@ object DaoGenerator {
       columnSearches = List.empty
     ),
     daoGeneratorParameters[SessionKey](
-      keyDescription = KeyDescription.column1(
+      keyDescription = KeyDescription.column2(
         Column.uuid(
           name = "userId",
           mandatory = true
         ),
-        keyCaseClass1 = KeyCaseClass1.fromNames("UserId", "uuid")
+        column2 = Column.uuid(
+          name = "sessionId",
+          mandatory = true
+        ),
+        keyCaseClass2 = KeyCaseClass2.fromNames("SessionKeyId")("userId", "uuid")("sessionId", "uuid")
       ),
       columnSearches = List.empty
     ),
