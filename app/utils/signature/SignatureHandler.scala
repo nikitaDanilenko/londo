@@ -2,21 +2,29 @@ package utils.signature
 
 import utils.string.StringUtil.syntax._
 
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+import java.security.spec.PKCS8EncodedKeySpec
+import java.security.{ KeyFactory, PrivateKey, PublicKey, Signature }
 
 object SignatureHandler {
 
-  val signatureAlgorithm: String = "HmacSHA512"
+  val signatureAlgorithm: String = "SHA3-512withRSA"
+  val keyAlgorithm: String = "RSA"
 
-  def validate(signature: String, message: String, secret: String): Boolean =
-    signature == sign(message, secret)
+  def sign(message: String, privateKey: PrivateKey): String = {
+    val signature = Signature.getInstance(signatureAlgorithm)
+    signature.initSign(privateKey)
+    signature.update(message.getBytes)
+    signature.sign().asBase64String
+  }
 
-  def sign(message: String, secret: String): String = {
-    val mac = Mac.getInstance(signatureAlgorithm)
-    mac.init(new SecretKeySpec(secret.getBytes, signatureAlgorithm))
-    mac.update(secret.getBytes)
-    mac.doFinal(message.getBytes).asBase64String
+  def privateKeyFromPKCS8String(string: String): PrivateKey = {
+    val keyFactory = KeyFactory.getInstance(keyAlgorithm)
+    keyFactory.generatePrivate(new PKCS8EncodedKeySpec(string.asBase64ByteArray))
+  }
+
+  def publicKeyFromPKCS8String(string: String): PublicKey = {
+    val keyFactory = KeyFactory.getInstance(keyAlgorithm)
+    keyFactory.generatePublic(new PKCS8EncodedKeySpec(string.asBase64ByteArray))
   }
 
 }
