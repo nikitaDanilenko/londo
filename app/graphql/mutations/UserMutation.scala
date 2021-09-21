@@ -16,11 +16,10 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
   def login(
       nickname: String,
       password: String,
-      publicSignatureKey: String,
       isValidityUnrestricted: Boolean
   ): Future[String] =
     graphQLServices.userService
-      .login(nickname, password, publicSignatureKey, isValidityUnrestricted)
+      .login(nickname, password, isValidityUnrestricted)
       .unsafeToFuture()
       .handleServerError
 
