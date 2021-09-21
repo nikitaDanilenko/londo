@@ -8,7 +8,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import db.Transactionally
 import db.generated.daos._
-import db.keys.RegistrationTokenId
+import db.keys.{ RegistrationTokenId, SessionKeyId }
 import db.models.{ RegistrationToken, SessionKey }
 import doobie.ConnectionIO
 import errors.{ ErrorContext, ServerError }
@@ -37,7 +37,6 @@ class UserService @Inject() (
   def login[F[_]: Async: ContextShift](
       nickname: String,
       password: String,
-      publicSignatureKey: String,
       isValidityUnrestricted: Boolean
   ): F[ServerError.Or[String]] = {
     EitherT(
@@ -56,18 +55,27 @@ class UserService @Inject() (
           iterations = Natural(user.iterations)
         )
       )
-      if (isValid)
-        sessionKeyDAO
-          .replace(SessionKey(user.id, publicSignatureKey))
-          .flatMap(_ =>
+      if (isValid) {
+        for {
+          sessionKey <- Async[F].liftIO(RandomGenerator.randomUUID)
+          _ <- sessionKeyDAO.replace(SessionKey(user.id, sessionKey))
+          r <-
             Async[F]
-              .liftIO(generateUserAuthentication(UserId(user.id), isValidityUnrestricted).map(_.asRight[ServerError]))
-          )
-      else ErrorContext.Login.Failure.asServerError.asLeft[String].pure
+              .liftIO(
+                generateUserAuthentication(
+                  userId = UserId(user.id),
+                  sessionId = SessionId(sessionKey),
+                  isValidityUnrestricted = isValidityUnrestricted
+                ).map(
+                  _.asRight[ServerError]
+                )
+              )
+        } yield r
+      } else ErrorContext.Login.Failure.asServerError.asLeft[String].pure
     }.value
   }
 
-  def generateUserAuthentication(userId: UserId, isValidityUnrestricted: Boolean): IO[String] = {
+  def generateUserAuthentication(userId: UserId, sessionId: SessionId, isValidityUnrestricted: Boolean): IO[String] = {
     TimeUtil.nowSeconds
       .map { now =>
         val jwtExpiration =
@@ -79,6 +87,7 @@ class UserService @Inject() (
             )
         JwtUtil.createJwt(
           userId = userId,
+          sessionId = sessionId,
           privateKey = jwtConfiguration.signaturePrivateKey,
           expiration = jwtExpiration
         )
@@ -101,9 +110,9 @@ class UserService @Inject() (
     transformer.value
   }
 
-  def logout[F[_]: Async: ContextShift](userId: UserId): F[Unit] =
+  def logout[F[_]: Async: ContextShift](userId: UserId, sessionId: SessionId): F[Unit] =
     sessionKeyDAO
-      .delete(UserId.toDb(userId))
+      .delete(SessionKeyId(UserId.toDb(userId), SessionId.toDb(sessionId)))
       .void
 
   def create[F[_]: Async: ContextShift](userCreation: UserCreation): F[ServerError.Or[User]] = {
