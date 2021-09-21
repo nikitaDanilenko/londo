@@ -1,20 +1,23 @@
 package security
 
 import play.api.Configuration
+import utils.signature.SignatureHandler
+
+import java.security.{ PrivateKey, PublicKey }
 
 sealed abstract case class SignatureConfiguration(
-    modulus: BigInt,
-    primitiveRoot: BigInt,
-    backendExponent: BigInt
+    privateKey: PrivateKey,
+    publicKey: PublicKey
 )
 
 object SignatureConfiguration {
 
   def apply(configuration: Configuration): SignatureConfiguration =
     new SignatureConfiguration(
-      modulus = BigInt(configuration.get[String]("application.signature.modulus")),
-      primitiveRoot = BigInt(configuration.get[String]("application.signature.primitiveRoot")),
-      backendExponent = BigInt(configuration.get[String]("application.signature.backendExponent"))
+      privateKey = SignatureHandler
+        .privateKeyFromPKCS8String(configuration.get[String]("application.signature.privateKey")),
+      publicKey = SignatureHandler
+        .publicKeyFromPKCS8String(configuration.get[String]("application.signature.publicKey"))
     ) {}
 
 }
