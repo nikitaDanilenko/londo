@@ -1,6 +1,6 @@
 package controllers.graphql
 
-import controllers.{ RequestHeaders, JWTAction }
+import controllers.{ JWTAction, RequestHeaders }
 import errors.ErrorContext
 import graphql._
 import io.circe.Json
@@ -43,7 +43,11 @@ class GraphQLController @Inject() (
             logger.warn(error.message)
             contextWithoutUser
           },
-          jwtContent => GraphQLContext.withUser(graphQLServices, jwtContent.userId)
+          jwtContent =>
+            GraphQLContext.withUser(
+              graphQLServices,
+              jwtContent
+            )
         )
 
       QueryParser
