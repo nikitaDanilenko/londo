@@ -26,7 +26,7 @@ class SignatureFilter @Inject() (signatureConfiguration: SignatureConfiguration)
               RequestHeaders.authenticationHeader -> signature,
               RequestHeaders.authenticationInstantHeader -> signatureRequest.authenticationInstant.toString
             )
-            .discardingHeader(RequestHeaders.authenticationUserId)
+            .discardingHeader(RequestHeaders.authenticationSessionId)
         }
         .unsafeToFuture()
     }
