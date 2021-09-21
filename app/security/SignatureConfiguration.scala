@@ -17,7 +17,7 @@ object SignatureConfiguration {
       privateKey = SignatureHandler
         .privateKeyFromPKCS8String(configuration.get[String]("application.signature.privateKey")),
       publicKey = SignatureHandler
-        .publicKeyFromPKCS8String(configuration.get[String]("application.signature.publicKey"))
+        .publicKeyFromX509String(configuration.get[String]("application.signature.publicKey"))
     ) {}
 
 }
