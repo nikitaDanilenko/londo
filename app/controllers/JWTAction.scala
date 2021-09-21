@@ -4,7 +4,7 @@ import cats.data.EitherT
 import cats.effect.{ ContextShift, IO }
 import db.ContextShiftProvider
 import db.generated.daos.SessionKeyDAO
-import db.keys.UserId
+import db.keys.{ SessionId, SessionKeyId, UserId }
 import db.models.SessionKey
 import errors.{ ErrorContext, ServerError }
 import io.circe.syntax._
@@ -37,13 +37,20 @@ class JWTAction @Inject() (
         val transformer = for {
           jwtContent <- EitherT.fromEither[Future](JwtUtil.validateJwt(token, jwtConfiguration.signaturePublicKey))
           sessionKey <- EitherT.fromOptionF[Future, ServerError, SessionKey](
-            sessionKeyDAO.find[IO](UserId(jwtContent.userId.uuid)).unsafeToFuture(),
+            sessionKeyDAO
+              .find[IO](
+                SessionKeyId(
+                  userId = UserId(jwtContent.userId.uuid),
+                  sessionId = SessionId(jwtContent.sessionId.uuid)
+                )
+              )
+              .unsafeToFuture(),
             ErrorContext.Authentication.Token.MissingSessionKey.asServerError
           )
           result <- {
             val resultWithExtraHeader =
               block(request)
-                .map(_.withHeaders(RequestHeaders.authenticationSessionId -> sessionKey.publicKey))
+                .map(_.withHeaders(RequestHeaders.authenticationSessionId -> sessionKey.sessionId.toString))
             EitherT.liftF[Future, ServerError, Result](resultWithExtraHeader)
           }
         } yield result
