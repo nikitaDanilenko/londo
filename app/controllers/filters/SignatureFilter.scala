@@ -3,10 +3,10 @@ package controllers.filters
 import controllers.RequestHeaders
 import play.api.mvc.{ EssentialAction, EssentialFilter }
 import security.{ SignatureConfiguration, SignatureRequest }
-import utils.signature.{ DiffieHellman, SignatureHandler }
+import utils.signature.SignatureHandler
 
 import javax.inject.Inject
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 
 class SignatureFilter @Inject() (signatureConfiguration: SignatureConfiguration)(implicit
     executionContext: ExecutionContext
@@ -14,29 +14,21 @@ class SignatureFilter @Inject() (signatureConfiguration: SignatureConfiguration)
 
   override def apply(next: EssentialAction): EssentialAction = { requestHeader =>
     next(requestHeader).mapFuture { result =>
-      requestHeader.headers.get(RequestHeaders.authenticationUserKey).fold(Future.successful(result)) { userPublicKey =>
-        SignatureRequest
-          .fromResult(requestHeader.method, result)
-          .map { signatureRequest =>
-            val sharedSecret = DiffieHellman
-              .sharedSecret(
-                modulus = signatureConfiguration.modulus,
-                publicNumber = BigInt(userPublicKey),
-                privateExponent = signatureConfiguration.backendExponent
-              )
-            val signature = SignatureHandler.sign(
-              SignatureRequest.hashOf(signatureRequest),
-              sharedSecret
+      SignatureRequest
+        .fromResult(requestHeader.method, result)
+        .map { signatureRequest =>
+          val signature = SignatureHandler.sign(
+            SignatureRequest.hashOf(signatureRequest),
+            signatureConfiguration.privateKey
+          )
+          result
+            .withHeaders(
+              RequestHeaders.authenticationHeader -> signature,
+              RequestHeaders.authenticationInstantHeader -> signatureRequest.authenticationInstant.toString
             )
-            result
-              .withHeaders(
-                RequestHeaders.authenticationHeader -> signature,
-                RequestHeaders.authenticationInstantHeader -> signatureRequest.authenticationInstant.toString
-              )
-              .discardingHeader(RequestHeaders.authenticationUserKey)
-          }
-          .unsafeToFuture()
-      }
+            .discardingHeader(RequestHeaders.authenticationUserId)
+        }
+        .unsafeToFuture()
     }
   }
 
