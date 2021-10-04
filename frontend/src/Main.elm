@@ -6,6 +6,7 @@ import Browser.Navigation as Nav
 import Configuration exposing (Configuration)
 import Html exposing (Html, div, text)
 import Language.Language as Language exposing (Language)
+import Pages.Login.Login as Login
 import Pages.Register.CreateNewUser as CreateNewUser
 import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
 import Url exposing (Protocol(..), Url)
@@ -34,6 +35,7 @@ type alias Model =
 type Page
     = CreateRegistrationToken CreateRegistrationToken.Model
     | CreateNewUser CreateNewUser.Model
+    | Login Login.Model
     | NotFound
 
 
@@ -42,6 +44,7 @@ type Msg
     | ChangedUrl Url
     | CreateRegistrationTokenMsg CreateRegistrationToken.Msg
     | CreateNewUserMsg CreateNewUser.Msg
+    | LoginMsg Login.Msg
 
 
 titleFor : Model -> String
@@ -66,6 +69,9 @@ view model =
 
         CreateNewUser createNewUser ->
             Html.map CreateNewUserMsg (CreateNewUser.view createNewUser)
+
+        Login login ->
+            Html.map LoginMsg (Login.view login)
 
         NotFound ->
             div [] [ text "Page not found" ]
@@ -101,6 +107,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        LoginMsg loginMsg ->
+            case model.page of
+                Login login ->
+                    stepLogin model (Login.update loginMsg login)
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 stepTo : Url -> Model -> ( Model, Cmd Msg )
 stepTo url model =
@@ -125,6 +139,11 @@ stepCreateRegistrationToken model ( createRegistrationToken, cmd ) =
 stepCreateNewUser : Model -> ( CreateNewUser.Model, Cmd CreateNewUser.Msg ) -> ( Model, Cmd Msg )
 stepCreateNewUser model ( createNewUser, cmd ) =
     ( { model | page = CreateNewUser createNewUser }, Cmd.map CreateNewUserMsg cmd )
+
+
+stepLogin : Model -> ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
+stepLogin model ( login, cmd ) =
+    ( { model | page = Login login }, Cmd.map LoginMsg cmd )
 
 
 type Route
