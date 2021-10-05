@@ -22,7 +22,6 @@ import LondoGQL.Union
 type alias LoginRequiredArguments =
     { nickname : String
     , password : String
-    , publicSignatureKey : String
     , isValidityUnrestricted : Bool
     }
 
@@ -31,7 +30,7 @@ login :
     LoginRequiredArguments
     -> SelectionSet String RootMutation
 login requiredArgs____ =
-    Object.selectionForField "String" "login" [ Argument.required "nickname" requiredArgs____.nickname Encode.string, Argument.required "password" requiredArgs____.password Encode.string, Argument.required "publicSignatureKey" requiredArgs____.publicSignatureKey Encode.string, Argument.required "isValidityUnrestricted" requiredArgs____.isValidityUnrestricted Encode.bool ] Decode.string
+    Object.selectionForField "String" "login" [ Argument.required "nickname" requiredArgs____.nickname Encode.string, Argument.required "password" requiredArgs____.password Encode.string, Argument.required "isValidityUnrestricted" requiredArgs____.isValidityUnrestricted Encode.bool ] Decode.string
 
 
 type alias RequestCreateRequiredArguments =
