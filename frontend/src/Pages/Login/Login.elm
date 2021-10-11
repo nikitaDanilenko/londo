@@ -4,7 +4,10 @@ import Configuration exposing (Configuration)
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation)
 import Graphql.SelectionSet exposing (SelectionSet)
-import Html exposing (Html, div)
+import Html exposing (Html, button, div, input, label, text)
+import Html.Attributes exposing (autocomplete, class, for, id, type_)
+import Html.Events exposing (onClick, onInput)
+import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language exposing (Language)
 import LondoGQL.Mutation as Mutation
 import Pages.Util.TriState as TriState exposing (TriState(..))
@@ -68,7 +71,18 @@ init flags =
 
 view : Model -> Html Msg
 view model =
-    div [] []
+    div [ id "initialMain" ]
+            [ div [ id "userField" ]
+                [ label [ for "user" ] [ text model.loginLanguage.nickname ]
+                , input [ autocomplete True, onInput SetUser, onEnter Login ] []
+                ]
+            , div [ id "passwordField" ]
+                [ label [ for "password" ] [ text model.loginLanguage.password ]
+                , input [ type_ "password", autocomplete True, onInput SetPassword, onEnter Login ] []
+                ]
+            , div [ id "fetchButton" ]
+                [ button [ class "button", onClick Login ] [ text model.loginLanguage.login ] ]
+            ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
