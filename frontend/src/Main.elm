@@ -6,11 +6,13 @@ import Browser.Navigation as Nav
 import Configuration exposing (Configuration)
 import Html exposing (Html, div, text)
 import Language.Language as Language exposing (Language)
+import Maybe.Extra
 import Pages.Login.Login as Login
 import Pages.Register.CreateNewUser as CreateNewUser
 import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
 import Url exposing (Protocol(..), Url)
-import Url.Parser as Parser exposing ((</>), Parser, s)
+import Url.Parser as Parser exposing ((</>), (<?>), Parser, s)
+import Url.Parser.Query as Query
 
 
 main : Program Configuration Model Msg
@@ -143,7 +145,8 @@ routeParser : Configuration -> Parser (Route -> a) a
 routeParser configuration =
     let
         registrationTokenParser =
-            Parser.map (\l -> { language = l, configuration = configuration }) (s configuration.subFolders.register </> languageParser)
+            (s configuration.subFolders.register <?> languageParser)
+                |> Parser.map (\l -> { language = l, configuration = configuration })
 
         createNewUserParser =
             Parser.map
@@ -154,7 +157,7 @@ routeParser configuration =
                     , configuration = configuration
                     }
                 )
-                (s configuration.subFolders.register </> s "email" </> Parser.string </> s "token" </> Parser.string </> languageParser)
+                (s configuration.subFolders.register </> s "email" </> Parser.string </> s "token" </> Parser.string <?> languageParser)
     in
     Parser.oneOf
         [ route registrationTokenParser CreateRegistrationTokenRoute
@@ -162,9 +165,9 @@ routeParser configuration =
         ]
 
 
-languageParser : Parser (Language -> a) a
+languageParser : Query.Parser Language
 languageParser =
-    Parser.map Language.fromString (s "language" </> Parser.string)
+    Query.map (Maybe.Extra.unwrap Language.default Language.fromString) (Query.string "language")
 
 
 fragmentToPath : Url -> Url
