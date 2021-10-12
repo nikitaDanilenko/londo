@@ -6,7 +6,7 @@ import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (class, disabled, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
-import Language.Language exposing (Language)
+import Language.Language as Language exposing (Language)
 import LondoGQL.InputObject
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.User
@@ -20,7 +20,7 @@ import Url.Builder as UrlBuilder
 type alias Model =
     { email : String
     , token : String
-    , language : Language
+    , language : Language.UserCreation
     , newUser : NewUser
     , state : TriState
     , configuration : Configuration
@@ -53,7 +53,7 @@ init flags =
         model =
             { email = flags.email
             , token = flags.token
-            , language = flags.language
+            , language = flags.language.userCreation
             , newUser = NewUser.empty
             , state = TriState.Initial
             , configuration = flags.configuration
@@ -72,7 +72,7 @@ view md =
             in
             div [ id "creatingUserView" ]
                 [ div [ id "creatingUser" ]
-                    [ label [ for "nickname" ] [ text md.language.userCreation.nickname ]
+                    [ label [ for "nickname" ] [ text md.language.nickname ]
                     , input
                         [ onInput (SetNewUserField UserField)
                         , value md.newUser.nickname
@@ -81,7 +81,7 @@ view md =
                         []
                     ]
                 , div [ id "creatingPassword1" ]
-                    [ label [ for "password1" ] [ text md.language.userCreation.password1 ]
+                    [ label [ for "password1" ] [ text md.language.password1 ]
                     , input
                         [ onInput (SetNewUserField PasswordField1)
                         , value md.newUser.password1
@@ -91,7 +91,7 @@ view md =
                         []
                     ]
                 , div [ id "creatingPassword2" ]
-                    [ label [ for "password2" ] [ text md.language.userCreation.password2 ]
+                    [ label [ for "password2" ] [ text md.language.password2 ]
                     , input
                         [ onInput (SetNewUserField PasswordField2)
                         , value md.newUser.password2
@@ -110,11 +110,11 @@ view md =
 
         Success ->
             div [ id "createdUser" ]
-                [ text md.language.userCreation.success
+                [ text md.language.success
                 , linkButton
                     { url = UrlBuilder.relative [ md.configuration.mainPageURL, md.configuration.subFolders.login ] []
                     , attributes = [ class "navigationButton" ]
-                    , children = [ text md.language.userCreation.loginPageLinkText ]
+                    , children = [ text md.language.loginPageLinkText ]
                     , isDisabled = False
                     }
                 ]

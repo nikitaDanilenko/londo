@@ -53,7 +53,7 @@ type Msg
 
 
 type alias Flags =
-    { loginLanguage : Language.Login
+    { language : Language
     , configuration : Configuration
     }
 
@@ -63,7 +63,7 @@ init flags =
     ({ user = ""
     , password = ""
     , isValidityUnrestricted = True
-    , loginLanguage = flags.loginLanguage
+    , loginLanguage = flags.language.login
     , state = Initial
     , configuration = flags.configuration
     }, Cmd.none)

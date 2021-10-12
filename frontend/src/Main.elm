@@ -149,23 +149,41 @@ routeParser : Configuration -> Parser (Route -> a) a
 routeParser configuration =
     let
         registrationTokenParser =
-            (s configuration.subFolders.register <?> languageParser)
+            (s configuration.subFolders.register
+                <?> languageParser
+            )
                 |> Parser.map (\l -> { language = l, configuration = configuration })
 
         createNewUserParser =
-            Parser.map
-                (\email token language ->
-                    { email = email
-                    , token = token
-                    , language = language
-                    , configuration = configuration
-                    }
-                )
-                (s configuration.subFolders.register </> s "email" </> Parser.string </> s "token" </> Parser.string <?> languageParser)
+            (s configuration.subFolders.register
+                </> s "email"
+                </> Parser.string
+                </> s "token"
+                </> Parser.string
+                <?> languageParser
+            )
+                |> Parser.map
+                    (\email token language ->
+                        { email = email
+                        , token = token
+                        , language = language
+                        , configuration = configuration
+                        }
+                    )
+
+        loginParser =
+            (s configuration.subFolders.login <?> languageParser)
+                |> Parser.map
+                    (\language ->
+                        { language = language
+                        , configuration = configuration
+                        }
+                    )
     in
     Parser.oneOf
         [ route registrationTokenParser CreateRegistrationTokenRoute
         , route createNewUserParser CreateNewUserRoute
+        , route loginParser LoginRoute
         ]
 
 

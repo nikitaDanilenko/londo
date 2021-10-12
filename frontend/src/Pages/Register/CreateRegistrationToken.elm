@@ -8,7 +8,7 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (class, id)
 import Html.Events exposing (onClick, onInput)
-import Language.Language exposing (Language)
+import Language.Language as Language exposing (Language)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Scalar exposing (Unit)
 import Pages.Util.TriState as TriState exposing (TriState)
@@ -23,7 +23,7 @@ type Msg
 
 type alias Model =
     { email : String
-    , language : Language
+    , language : Language.CreateRegistrationToken
     , state : TriState
     , configuration : Configuration
     }
@@ -47,7 +47,13 @@ updateState model state =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { email = "", language = flags.language, state = TriState.Initial, configuration = flags.configuration }, Cmd.none )
+    ( { email = ""
+      , language = flags.language.createRegistrationToken
+      , state = TriState.Initial
+      , configuration = flags.configuration
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
