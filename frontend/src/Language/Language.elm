@@ -2,11 +2,17 @@ module Language.Language exposing (..)
 
 
 type alias Language =
+    { createRegistrationToken : CreateRegistrationToken
+    , userCreation : UserCreation
+    , login : Login
+    }
+
+
+type alias CreateRegistrationToken =
     { enterEmailForRegistrationRequest : String
     , requestTokenForRegistration : String
     , tokenRequestSuccessful : String
     , tokenRequestFailed : String
-    , userCreation : UserCreation
     }
 
 
@@ -21,7 +27,11 @@ type alias UserCreation =
     , tryAgain : String
     }
 
+
+
 --todo: Add password recovery parts
+
+
 type alias Login =
     { nickname : String
     , password : String
@@ -38,10 +48,12 @@ default =
 
 english : Language
 english =
-    { enterEmailForRegistrationRequest = "Email for registration"
-    , requestTokenForRegistration = "Request registration"
-    , tokenRequestSuccessful = "Successfully requested token! Check your email to proceed!"
-    , tokenRequestFailed = "There was an error requesting the token. Please try again!"
+    { createRegistrationToken =
+        { enterEmailForRegistrationRequest = "Email for registration"
+        , requestTokenForRegistration = "Request registration"
+        , tokenRequestSuccessful = "Successfully requested token! Check your email to proceed!"
+        , tokenRequestFailed = "There was an error requesting the token. Please try again!"
+        }
     , userCreation =
         { nickname = "User name"
         , password1 = "Password"
@@ -51,6 +63,13 @@ english =
         , failure = "User creation failed"
         , loginPageLinkText = "Go to login page"
         , tryAgain = "Try again"
+        }
+    , login =
+        { nickname = "User name"
+        , password = "Password"
+        , login = "Log in"
+        , wrongCombination = "Wrong combination of user name and password"
+        , tryAgain = "Try again?"
         }
     }
 
