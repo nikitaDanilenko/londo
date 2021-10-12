@@ -79,8 +79,8 @@ view model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        ClickedLink urlRequest ->
+    case ( msg, model.page ) of
+        ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
                     ( model, Nav.pushUrl model.key (Url.toString url) )
@@ -88,32 +88,20 @@ update msg model =
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        ChangedUrl url ->
+        ( ChangedUrl url, _ ) ->
             stepTo url model
 
-        CreateRegistrationTokenMsg createRegistrationTokenMsg ->
-            case model.page of
-                CreateRegistrationToken createRegistrationToken ->
-                    stepCreateRegistrationToken model (CreateRegistrationToken.update createRegistrationTokenMsg createRegistrationToken)
+        ( CreateRegistrationTokenMsg createRegistrationTokenMsg, CreateRegistrationToken createRegistrationToken ) ->
+            stepCreateRegistrationToken model (CreateRegistrationToken.update createRegistrationTokenMsg createRegistrationToken)
 
-                _ ->
-                    ( model, Cmd.none )
+        ( CreateNewUserMsg createNewUserMsg, CreateNewUser createNewUser ) ->
+            stepCreateNewUser model (CreateNewUser.update createNewUserMsg createNewUser)
 
-        CreateNewUserMsg createNewUserMsg ->
-            case model.page of
-                CreateNewUser createNewUser ->
-                    stepCreateNewUser model (CreateNewUser.update createNewUserMsg createNewUser)
+        ( LoginMsg loginMsg, Login login ) ->
+            stepLogin model (Login.update loginMsg login)
 
-                _ ->
-                    ( model, Cmd.none )
-
-        LoginMsg loginMsg ->
-            case model.page of
-                Login login ->
-                    stepLogin model (Login.update loginMsg login)
-
-                _ ->
-                    ( model, Cmd.none )
+        _ ->
+            ( model, Cmd.none )
 
 
 stepTo : Url -> Model -> ( Model, Cmd Msg )
