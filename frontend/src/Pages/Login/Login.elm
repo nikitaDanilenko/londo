@@ -58,15 +58,15 @@ type alias Flags =
     }
 
 
-init : Flags -> Model
+init : Flags -> (Model, Cmd Msg)
 init flags =
-    { user = ""
+    ({ user = ""
     , password = ""
     , isValidityUnrestricted = True
     , loginLanguage = flags.loginLanguage
     , state = Initial
     , configuration = flags.configuration
-    }
+    }, Cmd.none)
 
 
 view : Model -> Html Msg

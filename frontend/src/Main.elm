@@ -117,6 +117,9 @@ stepTo url model =
                 CreateNewUserRoute flags ->
                     CreateNewUser.init flags |> stepCreateNewUser model
 
+                LoginRoute flags ->
+                    Login.init flags |> stepLogin model
+
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
 
@@ -139,6 +142,7 @@ stepLogin model ( login, cmd ) =
 type Route
     = CreateRegistrationTokenRoute CreateRegistrationToken.Flags
     | CreateNewUserRoute CreateNewUser.Flags
+    | LoginRoute Login.Flags
 
 
 routeParser : Configuration -> Parser (Route -> a) a
