@@ -20,8 +20,7 @@ object JwtUtil {
       .map(_ => ErrorContext.Authentication.Token.Decoding.asServerError)
       .flatMap { jwtClaim =>
         io.circe.parser
-          .parse(jwtClaim.content)
-          .flatMap(_.as[JwtContent])
+          .decode[JwtContent](jwtClaim.content)
           .left
           .map(_ => ErrorContext.Authentication.Token.Content.asServerError)
       }
