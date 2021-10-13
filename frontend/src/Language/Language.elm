@@ -5,6 +5,7 @@ type alias Language =
     { createRegistrationToken : CreateRegistrationToken
     , userCreation : UserCreation
     , login : Login
+    , overview : Overview
     }
 
 
@@ -41,6 +42,13 @@ type alias Login =
     }
 
 
+type alias Overview =
+    { dashboards : String
+    , projects : String
+    , settings : String
+    }
+
+
 default : Language
 default =
     english
@@ -70,6 +78,11 @@ english =
         , login = "Log in"
         , wrongCombination = "Wrong combination of user name and password"
         , tryAgain = "Try again?"
+        }
+    , overview =
+        { dashboards = "Dashboards"
+        , projects = "Projects"
+        , settings = "Settings"
         }
     }
 
