@@ -8,6 +8,7 @@ import Html exposing (Html, div, text)
 import Language.Language as Language exposing (Language)
 import Maybe.Extra
 import Pages.Login.Login as Login
+import Pages.Overview.Overview as Overview
 import Pages.Register.CreateNewUser as CreateNewUser
 import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
 import Url exposing (Protocol(..), Url)
@@ -38,6 +39,7 @@ type Page
     = CreateRegistrationToken CreateRegistrationToken.Model
     | CreateNewUser CreateNewUser.Model
     | Login Login.Model
+    | Overview Overview.Model
     | NotFound
 
 
@@ -47,6 +49,7 @@ type Msg
     | CreateRegistrationTokenMsg CreateRegistrationToken.Msg
     | CreateNewUserMsg CreateNewUser.Msg
     | LoginMsg Login.Msg
+    | OverviewMsg Overview.Msg
 
 
 titleFor : Model -> String
@@ -75,6 +78,9 @@ view model =
         Login login ->
             Html.map LoginMsg (Login.view login)
 
+        Overview overview ->
+            Html.map OverviewMsg (Overview.view overview)
+
         NotFound ->
             div [] [ text "Page not found" ]
 
@@ -101,6 +107,9 @@ update msg model =
 
         ( LoginMsg loginMsg, Login login ) ->
             stepLogin model (Login.update loginMsg login)
+
+        ( OverviewMsg overviewMsg, Overview overview ) ->
+            stepOverview model (Overview.update overviewMsg overview)
 
         _ ->
             ( model, Cmd.none )
@@ -138,6 +147,9 @@ stepLogin : Model -> ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
 stepLogin model ( login, cmd ) =
     ( { model | page = Login login }, Cmd.map LoginMsg cmd )
 
+stepOverview : Model -> ( Overview.Model, Cmd Overview.Msg ) -> ( Model, Cmd Msg )
+stepOverview model ( overview, cmd ) =
+    ( { model | page = Overview overview }, Cmd.map OverviewMsg cmd )
 
 type Route
     = CreateRegistrationTokenRoute CreateRegistrationToken.Flags
