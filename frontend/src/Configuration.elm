@@ -13,4 +13,5 @@ type alias Configuration =
 type alias SubFolders =
     { register : String
     , login : String
+    , overview: String
     }
