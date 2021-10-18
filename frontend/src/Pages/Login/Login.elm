@@ -1,5 +1,6 @@
 module Pages.Login.Login exposing (..)
 
+import Browser.Navigation
 import Configuration exposing (Configuration)
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation)
@@ -101,7 +102,11 @@ update msg model =
             ( model, makeRequest model )
 
         GotResponse remoteData ->
-            ( updateState model (TriState.fromRemoteData remoteData), Cmd.none )
+            case remoteData of
+                RemoteData.Success token ->
+                    ( model, navigateToOverview model.configuration token )
+                _ ->
+                    ( updateState model (TriState.fromRemoteData remoteData), Cmd.none)
 
 
 loginQuery : Model -> SelectionSet String RootMutation
@@ -114,3 +119,10 @@ makeRequest model =
     loginQuery model
         |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
+
+navigateToOverview : Configuration -> String -> Cmd Msg
+navigateToOverview configuration token =
+    -- todo: The word 'token' should be centralised
+    -- todo: Check loading the address works in a non-local setting.
+    let address = String.join "/" ["", "#", configuration.subFolders.overview, "token", token]
+    in Browser.Navigation.load address
