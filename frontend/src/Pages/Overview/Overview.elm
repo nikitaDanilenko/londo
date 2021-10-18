@@ -9,7 +9,7 @@ import UUID exposing (UUID)
 
 
 type alias Model =
-    { userId : UUID
+    { token : String
     , overviewLanguage : Language.Overview
     , configuration : Configuration
     }
@@ -22,7 +22,7 @@ type Msg
 
 
 type alias Flags =
-    { userId : UUID
+    { token : String
     , language : Language
     , configuration : Configuration
     }
@@ -30,7 +30,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { userId = flags.userId
+    ( { token = flags.token
       , overviewLanguage = flags.language.overview
       , configuration = flags.configuration
       }
