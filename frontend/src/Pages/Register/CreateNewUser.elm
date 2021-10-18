@@ -112,7 +112,7 @@ view md =
             div [ id "createdUser" ]
                 [ text md.language.success
                 , linkButton
-                    { url = UrlBuilder.relative [ md.configuration.mainPageURL, md.configuration.subFolders.login ] []
+                    { url = UrlBuilder.relative [ md.configuration.mainPageURL, "#", md.configuration.subFolders.login ] []
                     , attributes = [ class "navigationButton" ]
                     , children = [ text md.language.loginPageLinkText ]
                     , isDisabled = False
