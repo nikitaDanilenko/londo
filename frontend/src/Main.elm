@@ -129,6 +129,9 @@ stepTo url model =
                 LoginRoute flags ->
                     Login.init flags |> stepLogin model
 
+                OverviewRoute flags ->
+                    Overview.init flags |> stepOverview model
+
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
 
@@ -147,14 +150,17 @@ stepLogin : Model -> ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
 stepLogin model ( login, cmd ) =
     ( { model | page = Login login }, Cmd.map LoginMsg cmd )
 
+
 stepOverview : Model -> ( Overview.Model, Cmd Overview.Msg ) -> ( Model, Cmd Msg )
 stepOverview model ( overview, cmd ) =
     ( { model | page = Overview overview }, Cmd.map OverviewMsg cmd )
+
 
 type Route
     = CreateRegistrationTokenRoute CreateRegistrationToken.Flags
     | CreateNewUserRoute CreateNewUser.Flags
     | LoginRoute Login.Flags
+    | OverviewRoute Overview.Flags
 
 
 routeParser : Configuration -> Parser (Route -> a) a
@@ -191,17 +197,41 @@ routeParser configuration =
                         , configuration = configuration
                         }
                     )
+
+        overviewParser =
+            (s configuration.subFolders.overview
+                </> tokenParser
+                <?> languageParser
+            )
+                |> Parser.map
+                    (\token language ->
+                        { token = token
+                        , language = language
+                        , configuration = configuration
+                        }
+                    )
     in
     Parser.oneOf
         [ route registrationTokenParser CreateRegistrationTokenRoute
         , route createNewUserParser CreateNewUserRoute
         , route loginParser LoginRoute
+        , route overviewParser OverviewRoute
         ]
 
 
 languageParser : Query.Parser Language
 languageParser =
     Query.map (Maybe.Extra.unwrap Language.default Language.fromString) (Query.string "language")
+
+
+tokenParser : Parser (String -> a) a
+tokenParser =
+    s "token" </> Parser.string
+
+
+optionalTokenParser : Query.Parser (Maybe String)
+optionalTokenParser =
+    Query.string "token"
 
 
 fragmentToPath : Url -> Url
