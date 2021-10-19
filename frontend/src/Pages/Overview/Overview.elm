@@ -5,7 +5,6 @@ import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class, id)
 import Html.Events exposing (onClick)
 import Language.Language as Language exposing (Language)
-import UUID exposing (UUID)
 
 
 type alias Model =
@@ -41,11 +40,11 @@ init flags =
 view : Model -> Html Msg
 view model =
     div [ id "overviewMain" ]
-        [ div [ id "fetchButton" ]
+        [ div [ id "dashboardsButton" ]
             [ button [ class "button", onClick Dashboards ] [ text model.overviewLanguage.dashboards ] ]
-        , div [ id "fetchButton" ]
+        , div [ id "projectsButton" ]
             [ button [ class "button", onClick Projects ] [ text model.overviewLanguage.projects ] ]
-        , div [ id "fetchButton" ]
+        , div [ id "settingsButton" ]
             [ button [ class "button", onClick Settings ] [ text model.overviewLanguage.settings ] ]
         ]
 
