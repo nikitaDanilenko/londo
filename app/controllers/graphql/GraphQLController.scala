@@ -1,6 +1,6 @@
 package controllers.graphql
 
-import controllers.{ RequestHeaders, SignatureAction }
+import controllers.{ JWTAction, RequestHeaders }
 import errors.ErrorContext
 import graphql._
 import io.circe.Json
@@ -23,7 +23,7 @@ class GraphQLController @Inject() (
     graphQLSchema: GraphQLSchema,
     graphQLServices: GraphQLServices,
     jwtConfiguration: JwtConfiguration,
-    signatureAction: SignatureAction
+    jwtAction: JWTAction
 )(implicit
     executionContext: ExecutionContext
 ) extends BaseController
@@ -33,7 +33,7 @@ class GraphQLController @Inject() (
   private lazy val contextWithoutUser = GraphQLContext.withoutUser(graphQLServices)
 
   def graphQL: Action[GraphQLRequest] =
-    signatureAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
+    jwtAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
       val graphQLContext = request.headers
         .get(RequestHeaders.userTokenHeader)
         .toRight(ErrorContext.Authentication.Token.Missing.asServerError)
@@ -43,7 +43,11 @@ class GraphQLController @Inject() (
             logger.warn(error.message)
             contextWithoutUser
           },
-          jwtContent => GraphQLContext.withUser(graphQLServices, jwtContent.userId)
+          jwtContent =>
+            GraphQLContext.withUser(
+              graphQLServices,
+              jwtContent
+            )
         )
 
       QueryParser

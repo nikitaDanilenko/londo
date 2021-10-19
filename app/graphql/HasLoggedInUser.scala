@@ -13,6 +13,7 @@ import graphql.types.ToInternal.syntax._
 import graphql.types.dashboard.DashboardId
 import graphql.types.project.ProjectId
 import graphql.types.user.UserId
+import security.jwt.JwtContent
 import services.access.Accessors
 import services.dashboard.DashboardService
 import services.project.ProjectService
@@ -20,26 +21,26 @@ import services.project.ProjectService
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait HasLoggedInUser {
-  protected def loggedInUserId: Option[UserId]
+  protected def loggedInJwtContent: Option[JwtContent]
 
   final protected def validateAccess[F[_]: ApplicativeThrow](accessedUserId: UserId): F[services.user.UserId] =
     allowedAccess(Accessors.NobodyExcept(NonEmptySet.of(accessedUserId.toInternal)))
 
   final protected def allowedAccess[F[_]: ApplicativeThrow](accessors: Accessors): F[services.user.UserId] =
     ApplicativeThrow[F].fromEither(
-      loggedInUserId
-        .filter(userId => Accessors.hasAccess(userId.toInternal, accessors))
+      loggedInJwtContent
+        .filter(jwtContent => Accessors.hasAccess(jwtContent.userId.toInternal, accessors))
         .toRight(ServerException(ErrorContext.Authentication.Token.Restricted.asServerError))
-        .map(_.toInternal)
+        .map(_.userId.toInternal)
     )
 
   final protected def withUser[F[_]: MonadThrow, A](create: UserId => F[A]): F[A] =
     ApplicativeThrow[F]
       .fromOption(
-        loggedInUserId,
+        loggedInJwtContent,
         ServerException(ErrorContext.Authentication.Token.Restricted.asServerError)
       )
-      .flatMap(create)
+      .flatMap(jwtContent => create(jwtContent.userId))
 
   final protected def allowedAccessVia[F[_]: MonadThrow, A, B](
       fa: F[A]

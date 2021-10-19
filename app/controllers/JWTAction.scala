@@ -4,22 +4,20 @@ import cats.data.EitherT
 import cats.effect.{ ContextShift, IO }
 import db.ContextShiftProvider
 import db.generated.daos.SessionKeyDAO
-import db.keys.UserId
+import db.keys.{ SessionId, SessionKeyId, UserId }
 import db.models.SessionKey
 import errors.{ ErrorContext, ServerError }
 import io.circe.syntax._
 import play.api.libs.circe.Circe
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{ BodyParsers, _ }
-import security.SignatureRequest
 import security.jwt.JwtConfiguration
 import utils.jwt.JwtUtil
-import utils.signature.SignatureHandler
 
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 
-class SignatureAction @Inject() (
+class JWTAction @Inject() (
     override val parse: PlayBodyParsers,
     sessionKeyDAO: SessionKeyDAO,
     jwtConfiguration: JwtConfiguration
@@ -39,19 +37,21 @@ class SignatureAction @Inject() (
         val transformer = for {
           jwtContent <- EitherT.fromEither[Future](JwtUtil.validateJwt(token, jwtConfiguration.signaturePublicKey))
           sessionKey <- EitherT.fromOptionF[Future, ServerError, SessionKey](
-            sessionKeyDAO.find[IO](UserId(jwtContent.userId.uuid)).unsafeToFuture(),
+            sessionKeyDAO
+              .find[IO](
+                SessionKeyId(
+                  userId = UserId(jwtContent.userId.uuid),
+                  sessionId = SessionId(jwtContent.sessionId.uuid)
+                )
+              )
+              .unsafeToFuture(),
             ErrorContext.Authentication.Token.MissingSessionKey.asServerError
           )
-          signatureRequest <- EitherT.fromEither[Future](SignatureRequest.fromRequest(request))
-          signature <- EitherT.fromOption[Future](
-            request.headers.get(RequestHeaders.authenticationHeader),
-            ErrorContext.Authentication.Signature.Missing.asServerError
-          )
           result <- {
-            if (SignatureHandler.validate(signature, SignatureRequest.hashOf(signatureRequest), sessionKey.publicKey))
-              EitherT.liftF[Future, ServerError, Result](block(request))
-            else
-              EitherT.leftT[Future, Result].apply(ErrorContext.Authentication.Signature.Invalid.asServerError)
+            val resultWithExtraHeader =
+              block(request)
+                .map(_.withHeaders(RequestHeaders.authenticationSessionId -> sessionKey.sessionId.toString))
+            EitherT.liftF[Future, ServerError, Result](resultWithExtraHeader)
           }
         } yield result
         transformer.valueOr(error => BadRequest(error.asJson))

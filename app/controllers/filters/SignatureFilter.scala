@@ -2,15 +2,15 @@ package controllers.filters
 
 import controllers.RequestHeaders
 import play.api.mvc.{ EssentialAction, EssentialFilter }
-import security.SignatureRequest
-import security.jwt.JwtConfiguration
+import security.{ SignatureConfiguration, SignatureRequest }
 import utils.signature.SignatureHandler
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class SignatureFilter @Inject() (jwtConfiguration: JwtConfiguration)(implicit executionContext: ExecutionContext)
-    extends EssentialFilter {
+class SignatureFilter @Inject() (signatureConfiguration: SignatureConfiguration)(implicit
+    executionContext: ExecutionContext
+) extends EssentialFilter {
 
   override def apply(next: EssentialAction): EssentialAction = { requestHeader =>
     next(requestHeader).mapFuture { result =>
@@ -19,15 +19,16 @@ class SignatureFilter @Inject() (jwtConfiguration: JwtConfiguration)(implicit ex
         .map { signatureRequest =>
           val signature = SignatureHandler.sign(
             SignatureRequest.hashOf(signatureRequest),
-            jwtConfiguration.signaturePrivateKey
+            signatureConfiguration.privateKey
           )
-          result.withHeaders(
-            RequestHeaders.authenticationHeader -> signature,
-            RequestHeaders.authenticationInstantHeader -> signatureRequest.authenticationInstant.toString
-          )
+          result
+            .withHeaders(
+              RequestHeaders.authenticationHeader -> signature,
+              RequestHeaders.authenticationInstantHeader -> signatureRequest.authenticationInstant.toString
+            )
+            .discardingHeader(RequestHeaders.authenticationSessionId)
         }
         .unsafeToFuture()
-
     }
   }
 

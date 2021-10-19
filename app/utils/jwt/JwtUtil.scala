@@ -6,7 +6,7 @@ import io.circe.syntax._
 import pdi.jwt.algorithms.JwtAsymmetricAlgorithm
 import pdi.jwt.{ JwtAlgorithm, JwtCirce, JwtClaim, JwtHeader }
 import security.jwt.{ JwtContent, JwtExpiration }
-import services.user.UserId
+import services.user.{ SessionId, UserId }
 
 object JwtUtil {
 
@@ -20,18 +20,18 @@ object JwtUtil {
       .map(_ => ErrorContext.Authentication.Token.Decoding.asServerError)
       .flatMap { jwtClaim =>
         io.circe.parser
-          .parse(jwtClaim.content)
-          .flatMap(_.as[JwtContent])
+          .decode[JwtContent](jwtClaim.content)
           .left
           .map(_ => ErrorContext.Authentication.Token.Content.asServerError)
       }
 
-  def createJwt(userId: UserId, privateKey: String, expiration: JwtExpiration): String =
+  def createJwt(userId: UserId, sessionId: SessionId, privateKey: String, expiration: JwtExpiration): String =
     JwtCirce.encode(
       header = JwtHeader(algorithm = signatureAlgorithm),
       claim = JwtClaim(
         content = JwtContent(
-          userId = userId.fromInternal
+          userId = userId.fromInternal,
+          sessionId = sessionId.fromInternal
         ).asJson.noSpaces,
         expiration = expiration.expirationAt,
         notBefore = expiration.notBefore

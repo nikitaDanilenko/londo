@@ -1,16 +1,16 @@
 package graphql
 
 import graphql.mutations.{ DashboardMutation, ProjectMutation, UserMutation }
-import graphql.types.user.UserId
+import security.jwt.JwtContent
 
 trait Mutation extends UserMutation with ProjectMutation with DashboardMutation
 
 object Mutation {
 
-  def apply(_graphQLServices: GraphQLServices, _loggedInUserId: Option[UserId]): Mutation =
+  def apply(_graphQLServices: GraphQLServices, _loggedInJwtContent: Option[JwtContent]): Mutation =
     new Mutation {
       override protected val graphQLServices: GraphQLServices = _graphQLServices
-      override protected val loggedInUserId: Option[UserId] = _loggedInUserId
+      override protected val loggedInJwtContent: Option[JwtContent] = _loggedInJwtContent
     }
 
 }
