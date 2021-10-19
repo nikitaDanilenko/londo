@@ -6,6 +6,10 @@ type alias Language =
     , userCreation : UserCreation
     , login : Login
     , overview : Overview
+    , projectOverview : ProjectOverview
+    , newProject : NewProject
+    , editProject : EditProject
+    , searchProject : SearchProject
     }
 
 
@@ -49,6 +53,30 @@ type alias Overview =
     }
 
 
+type alias ProjectOverview =
+    { myProjects : String
+    , details : String
+    , newProject : String
+    , searchProject : String
+    }
+
+
+type alias NewProject =
+    { name : String
+    , description : String
+    , create : String
+    , cancel : String
+    }
+
+
+type alias EditProject =
+    {}
+
+
+type alias SearchProject =
+    {}
+
+
 default : Language
 default =
     english
@@ -84,6 +112,20 @@ english =
         , projects = "Projects"
         , settings = "Settings"
         }
+    , projectOverview =
+        { myProjects = "My projects"
+        , details = "Details"
+        , newProject = "New project"
+        , searchProject = "Search project"
+        }
+    , newProject =
+        { name = "Name"
+        , description = "Description"
+        , create = "Create"
+        , cancel = "Cancel"
+        }
+    , editProject = {}
+    , searchProject = {}
     }
 
 
