@@ -139,11 +139,11 @@ view model =
             ]
         , div [ id "creatingReadableBy" ]
             [ label [ for "readableBy" ] [ text model.language.readableBy ]
-            , viewAccessors model.language model.projectCreation.readAccessors
+            , viewAccessors model.language SetReadAccessors model.projectCreation.readAccessors
             ]
         , div [ id "creatingWritableBy" ]
             [ label [ for "writableBy" ] [ text model.language.writableBy ]
-            , viewAccessors model.language model.projectCreation.writeAccessors
+            , viewAccessors model.language SetWriteAccessors model.projectCreation.writeAccessors
             ]
         , button
             [ class "button"
@@ -159,8 +159,8 @@ isValidProjectCreation =
     .name >> String.isEmpty >> not
 
 
-viewAccessors : Language.NewProject -> AccessorsInput -> Html Msg
-viewAccessors language accessors =
+viewAccessors : Language.NewProject -> (AccessorsInput -> Msg) -> AccessorsInput -> Html Msg
+viewAccessors language setAccessorInput accessors =
     let
         usersOption =
             OptionalArgumentUtil.toMaybe accessors.userIds
@@ -170,18 +170,21 @@ viewAccessors language accessors =
     in
     ButtonGroup.radioButtonGroup
         []
-        -- todo: The assignment via the radio buttons seems wrong
         [ ButtonGroup.radioButton (accessors.isAllowList && not usersDefined)
-            [ Button.primary, Button.onClick (SetReadAccessors accessors) ]
+            [ Button.primary, Button.onClick (setAccessorInput { isAllowList = True, userIds = OptionalArgument.Absent }) ]
             [ text language.nobody ]
+
+        -- todo: The assignment is wrong, since the original value is taken - use proper controls to select values
         , ButtonGroup.radioButton (accessors.isAllowList && usersDefined)
-            [ Button.primary, Button.onClick (SetReadAccessors accessors) ]
+            [ Button.primary, Button.onClick (setAccessorInput { isAllowList = True, userIds = OptionalArgument.fromMaybe usersOption }) ]
             [ text language.onlyUsers ]
         , ButtonGroup.radioButton (not accessors.isAllowList && not usersDefined)
-            [ Button.primary, Button.onClick (SetReadAccessors accessors) ]
+            [ Button.primary, Button.onClick (setAccessorInput { isAllowList = False, userIds = OptionalArgument.Absent }) ]
             [ text language.everybody ]
+
+        -- todo: The assignment is wrong, since the original value is taken - use proper controls to select values
         , ButtonGroup.radioButton (not accessors.isAllowList && usersDefined)
-            [ Button.primary, Button.onClick (SetReadAccessors accessors) ]
+            [ Button.primary, Button.onClick (setAccessorInput { isAllowList = False, userIds = OptionalArgument.fromMaybe usersOption }) ]
             [ text language.exceptUsers ]
         ]
 
