@@ -9,6 +9,7 @@ import Language.Language as Language exposing (Language)
 import Maybe.Extra
 import Pages.Login.Login as Login
 import Pages.Overview.Overview as Overview
+import Pages.Project.NewProject as NewProject
 import Pages.Register.CreateNewUser as CreateNewUser
 import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
 import Url exposing (Protocol(..), Url)
@@ -40,6 +41,7 @@ type Page
     | CreateNewUser CreateNewUser.Model
     | Login Login.Model
     | Overview Overview.Model
+    | NewProject NewProject.Model
     | NotFound
 
 
@@ -50,6 +52,7 @@ type Msg
     | CreateNewUserMsg CreateNewUser.Msg
     | LoginMsg Login.Msg
     | OverviewMsg Overview.Msg
+    | NewProjectMsg NewProject.Msg
 
 
 titleFor : Model -> String
@@ -60,7 +63,7 @@ titleFor _ =
 init : Configuration -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init configuration url key =
     stepTo url
-        { page = NotFound
+        { page = NewProject ({ token = "", configuration = configuration, language = Language.default } |> NewProject.init |> Tuple.first)
         , key = key
         , configuration = configuration
         }
@@ -80,6 +83,9 @@ view model =
 
         Overview overview ->
             Html.map OverviewMsg (Overview.view overview)
+
+        NewProject newProject ->
+            Html.map NewProjectMsg (NewProject.view newProject)
 
         NotFound ->
             div [] [ text "Page not found" ]
@@ -110,6 +116,9 @@ update msg model =
 
         ( OverviewMsg overviewMsg, Overview overview ) ->
             stepOverview model (Overview.update overviewMsg overview)
+
+        ( NewProjectMsg newProjectMsg, NewProject newProject ) ->
+            stepNewProject model (NewProject.update newProjectMsg newProject)
 
         _ ->
             ( model, Cmd.none )
@@ -156,6 +165,12 @@ stepOverview model ( overview, cmd ) =
     ( { model | page = Overview overview }, Cmd.map OverviewMsg cmd )
 
 
+stepNewProject : Model -> ( NewProject.Model, Cmd NewProject.Msg ) -> ( Model, Cmd Msg )
+stepNewProject model ( newProject, cmd ) =
+    ( { model | page = NewProject newProject }, Cmd.map NewProjectMsg cmd )
+
+
+-- todo: Add new project route and corresponding parser
 type Route
     = CreateRegistrationTokenRoute CreateRegistrationToken.Flags
     | CreateNewUserRoute CreateNewUser.Flags
