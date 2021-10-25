@@ -105,7 +105,7 @@ view md =
                     , onClick CreateUser
                     , disabled (not (NewUser.isValid md.newUser))
                     ]
-                    [ text "Create" ]
+                    [ text md.language.create ]
                 ]
 
         Success ->
