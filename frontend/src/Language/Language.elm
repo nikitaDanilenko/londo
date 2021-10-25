@@ -30,6 +30,7 @@ type alias UserCreation =
     , failure : String
     , loginPageLinkText : String
     , tryAgain : String
+    , create : String
     }
 
 
@@ -66,6 +67,13 @@ type alias NewProject =
     , description : String
     , create : String
     , cancel : String
+    , everybody : String
+    , readableBy: String
+    , writableBy: String
+    , nobody : String
+    , onlyUsers : String
+    , exceptUsers : String
+    , flatIfSingleTask : String
     }
 
 
@@ -99,6 +107,7 @@ english =
         , failure = "User creation failed"
         , loginPageLinkText = "Go to login page"
         , tryAgain = "Try again"
+        , create = "Create"
         }
     , login =
         { nickname = "User name"
@@ -123,6 +132,13 @@ english =
         , description = "Description"
         , create = "Create"
         , cancel = "Cancel"
+        , everybody = "Everybody"
+        , readableBy = "Readable by"
+        , writableBy = "Editable by"
+        , nobody = "Nobody"
+        , onlyUsers = "Nobody, except the following people"
+        , exceptUsers = "Everybody, except the following people"
+        , flatIfSingleTask = "Flatten if the project contains only a single task"
         }
     , editProject = {}
     , searchProject = {}
