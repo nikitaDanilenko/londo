@@ -1,8 +1,8 @@
-module GraphQLFunctions.ProjectCreationUtil exposing (..)
+module GraphQLFunctions.ProjectCreation exposing (..)
 
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument
-import LondoGQL.InputObject exposing (AccessorsInput, ProjectCreation)
+import LondoGQL.InputObject exposing (AccessorsInput, PlainCreation, ProjectCreation)
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 

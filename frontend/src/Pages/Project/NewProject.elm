@@ -1,10 +1,14 @@
 module Pages.Project.NewProject exposing (..)
 
+import Basics.Extra exposing (flip)
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
+import GraphQLFunctions.Lens.PlainCreation as PlainCreation
+import GraphQLFunctions.Lens.ProgressInput as ProgressInput
+import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
-import GraphQLFunctions.ProjectCreationUtil as ProjectCreationUtil
+import GraphQLFunctions.ProjectCreation as ProjectCreationUtil
 import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import Html exposing (Html, button, div, input, label, text)
@@ -12,15 +16,18 @@ import Html.Attributes exposing (checked, class, disabled, for, id, type_, value
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language exposing (Language)
-import LondoGQL.InputObject exposing (AccessorsInput, ProjectCreation)
+import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
+import LondoGQL.InputObject exposing (AccessorsInput, PlainCreation, ProgressInput, ProjectCreation, ProjectReferenceCreation)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.Project
 import LondoGQL.Object.ProjectId
-import LondoGQL.Scalar exposing (Uuid)
+import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid)
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AccessorUtil as AccessorsUtil
+import Pages.Util.MathUtil as MathUtil
+import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData)
 
 
@@ -29,6 +36,8 @@ type alias Model =
     , configuration : Configuration
     , language : Language.NewProject
     , projectCreation : ProjectCreation
+    , plainTasks : List PlainCreation
+    , projectReferenceTasks : List ProjectReferenceCreation
     }
 
 
@@ -38,6 +47,12 @@ type Msg
     | SetFlatIfSingleTask
     | SetReadAccessors AccessorsInput
     | SetWriteAccessors AccessorsInput
+    | AddPlainTask
+    | SetPlainTaskAt Int PlainCreation
+    | DeletePlainTaskAt Int
+    | AddProjectReferenceTask
+    | SetProjectReferenceTaskAt Int ProjectReferenceCreation
+    | DeleteProjectReferenceTaskAt Int
     | Create
     | GotResponse (RemoteData (Graphql.Http.Error Uuid) Uuid)
 
@@ -68,6 +83,8 @@ init flags =
                 , readAccessors = AccessorsUtil.everybody
                 , writeAccessors = AccessorsUtil.nobody
                 }
+            , plainTasks = []
+            , projectReferenceTasks = []
             }
     in
     ( model, Cmd.none )
@@ -145,12 +162,145 @@ view model =
             [ label [ for "writableBy" ] [ text model.language.writableBy ]
             , viewAccessors model.language SetWriteAccessors model.projectCreation.writeAccessors
             ]
+        , div [ id "creatingPlainTasks" ]
+            (button [ class "button", onClick AddPlainTask ] [ text model.language.newPlainTask ]
+                :: List.indexedMap (editPlainTaskLine model.language) model.plainTasks
+            )
+        , div [ id "creatingProjectReferenceTasks" ]
+            (button [ class "button", onClick AddProjectReferenceTask ] [ text model.language.newProjectReferenceTask ]
+                :: List.indexedMap (editProjectReferenceTaskLine model.language) model.projectReferenceTasks
+            )
         , button
             [ class "button"
             , onClick Create
             , disabled (not (isValidProjectCreation model.projectCreation))
             ]
             [ text model.language.create ]
+        ]
+
+
+editPlainTaskLine : Language.NewProject -> Int -> PlainCreation -> Html Msg
+editPlainTaskLine language pos plainCreation =
+    let
+        taskKindRadioButton : TaskKind -> String -> ButtonGroup.RadioButtonItem Msg
+        taskKindRadioButton taskKind description =
+            ButtonGroup.radioButton (plainCreation.taskKind == taskKind)
+                [ Button.primary
+                , Button.onClick (PlainCreation.taskKind.set taskKind plainCreation |> SetPlainTaskAt pos)
+                ]
+                [ text description ]
+
+        percentualFromDecimal : String -> ProgressInput
+        percentualFromDecimal string =
+            { reached =
+                string
+                    |> String.filter Char.isDigit
+                    |> Natural
+            , reachable =
+                100
+                    * (1 + MathUtil.numberOfDecimalPlaces string)
+                    |> String.fromInt
+                    |> Positive
+            }
+
+        viewProgress : TaskKind -> List (Html Msg)
+        viewProgress taskKind =
+            case taskKind of
+                TaskKind.Discrete ->
+                    let
+                        reachableString =
+                            ScalarUtil.positiveToString plainCreation.progress.reachable
+
+                        completed =
+                            reachableString == ScalarUtil.naturalToString plainCreation.progress.reached
+
+                        complement =
+                            if completed then
+                                Natural "0"
+
+                            else
+                                Natural reachableString
+                    in
+                    [ input
+                        [ type_ "checkbox"
+                        , checked completed
+                        , onClick
+                            (plainCreation
+                                |> (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reached).set complement
+                                |> SetPlainTaskAt pos
+                            )
+                        ]
+                        []
+                    ]
+
+                TaskKind.Percentual ->
+                    [ input
+                        [ type_ "number"
+                        , Html.Attributes.min "0"
+                        , onInput
+                            (percentualFromDecimal
+                                >> flip PlainCreation.progress.set plainCreation
+                                >> SetPlainTaskAt pos
+                            )
+                        ]
+                        []
+                    ]
+
+                TaskKind.Fractional ->
+                    []
+    in
+    div [ class "plainTaskLine" ]
+        [ div [ class "plainName" ]
+            [ label [] [ text language.plainTaskName ]
+            , input
+                [ value plainCreation.name
+                , onInput (flip PlainCreation.name.set plainCreation >> SetPlainTaskAt pos)
+                ]
+                []
+            ]
+        , div [ class "plainTaskKind" ]
+            [ ButtonGroup.radioButtonGroup []
+                [ taskKindRadioButton TaskKind.Discrete language.discrete
+                , taskKindRadioButton TaskKind.Percentual language.percentual
+                , taskKindRadioButton TaskKind.Fractional language.fractional
+                ]
+            ]
+        , div [ class "plainProgress" ] []
+        , div [ class "plainUnit" ] []
+        , div [ class "weight" ] []
+        ]
+
+
+editProjectReferenceTaskLine : Language.NewProject -> Int -> ProjectReferenceCreation -> Html Msg
+editProjectReferenceTaskLine language pos projectReferenceCreation =
+    div [ class "projectReferenceLine" ]
+        [ div [ class "projectReferenceId" ]
+            [ label []
+                [ text language.projectReference ]
+            , input
+                [ projectReferenceCreation.projectReferenceId.uuid |> ScalarUtil.uuidToString |> value
+                , onInput
+                    (Uuid
+                        >> flip ProjectReferenceCreation.projectReferenceId.set projectReferenceCreation
+                        >> SetProjectReferenceTaskAt pos
+                    )
+                ]
+                []
+            ]
+        , div [ class "weight" ]
+            [ input
+                [ projectReferenceCreation.weight |> ScalarUtil.positiveToString |> value
+                , Html.Attributes.min "1"
+                , onInput
+                    (Positive
+                        >> flip ProjectReferenceCreation.weight.set projectReferenceCreation
+                        >> SetProjectReferenceTaskAt pos
+                    )
+                ]
+                []
+            ]
+        , button [ class "button", onClick (DeleteProjectReferenceTaskAt pos) ]
+            [ text language.remove ]
         ]
 
 

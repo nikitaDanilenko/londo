@@ -68,12 +68,26 @@ type alias NewProject =
     , create : String
     , cancel : String
     , everybody : String
-    , readableBy: String
-    , writableBy: String
+    , readableBy : String
+    , writableBy : String
     , nobody : String
     , onlyUsers : String
     , exceptUsers : String
     , flatIfSingleTask : String
+    , plainTasks : String
+    , newPlainTask : String
+    , projectReferenceTasks : String
+    , newProjectReferenceTask : String
+    , weight: String
+    , projectReference: String
+    , remove: String
+    , plainTaskName : String
+    , taskKind: String
+    , discrete: String
+    , percentual: String
+    , fractional: String
+    , unit: String
+    , progress: String
     }
 
 
@@ -139,6 +153,20 @@ english =
         , onlyUsers = "Nobody, except the following people"
         , exceptUsers = "Everybody, except the following people"
         , flatIfSingleTask = "Flatten if the project contains only a single task"
+        , plainTasks = "Plain tasks"
+        , newPlainTask = "Create new plain task"
+        , projectReferenceTasks = "Project reference tasks"
+        , newProjectReferenceTask = "Create new project reference task"
+        , weight = "Weight"
+        , projectReference = "Project reference"
+        , remove = "Remove"
+        , plainTaskName = "Name"
+        , taskKind = "Kind"
+        , discrete = "Discrete"
+        , percentual = "Percentual"
+        , fractional = "Fractional"
+        , unit = "Unit"
+        , progress = "Progress"
         }
     , editProject = {}
     , searchProject = {}
