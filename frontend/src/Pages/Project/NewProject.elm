@@ -319,7 +319,38 @@ editPlainTaskLine language pos plainCreation =
                     ]
 
                 TaskKind.Fractional ->
-                    []
+                    [ input
+                        [ type_ "number"
+                        , Html.Attributes.min "0"
+                        , onInput
+                            (Natural
+                                >> flip (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reached).set plainCreation
+                                >> SetPlainTaskAt pos
+                            )
+                        ]
+                        []
+                    , label [] [ text "/" ]
+                    , input
+                        [ type_ "number"
+                        , Html.Attributes.min "1"
+                        , onInput
+                            (Positive
+                                >> flip (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reachable).set plainCreation
+                                >> SetPlainTaskAt pos
+                            )
+                        ]
+                        []
+                    ]
+
+        -- todo: Add implementation
+        viewUnit : List (Html Msg)
+        viewUnit =
+            []
+
+        -- todo: Add implementation
+        viewWeight : Html Msg
+        viewWeight =
+            div [] []
     in
     div [ class "plainTaskLine" ]
         [ div [ class "plainName" ]
@@ -337,9 +368,9 @@ editPlainTaskLine language pos plainCreation =
                 , taskKindRadioButton TaskKind.Fractional language.fractional
                 ]
             ]
-        , div [ class "plainProgress" ] []
-        , div [ class "plainUnit" ] []
-        , div [ class "weight" ] []
+        , div [ class "plainProgress" ] (viewProgress plainCreation.taskKind)
+        , div [ class "plainUnit" ] viewUnit
+        , div [ class "weight" ] [ viewWeight ]
         ]
 
 
