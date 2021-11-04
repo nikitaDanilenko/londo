@@ -74,6 +74,28 @@ projectReferenceTasksLens =
     Lens .projectReferenceTasks (\b a -> { a | projectReferenceTasks = b })
 
 
+defaultPlainCreation : PlainCreation
+defaultPlainCreation =
+    { name = ""
+    , taskKind = TaskKind.Fractional
+    , unit = OptionalArgument.Absent
+    , progress =
+        { reachable = Positive "1"
+        , reached = Natural "0"
+        }
+    , weight = Positive "1"
+    }
+
+
+defaultProjectReferenceCreation : ProjectReferenceCreation
+defaultProjectReferenceCreation =
+    { weight = Positive "1"
+    , projectReferenceId =
+        { uuid = Uuid ""
+        }
+    }
+
+
 type alias Flags =
     { token : String
     , configuration : Configuration
@@ -133,7 +155,7 @@ update msg model =
 
         -- todo: Handle this case
         AddPlainTask ->
-            ( model, Cmd.none )
+            ( model |> plainTasksLens.set (defaultPlainCreation :: model.plainTasks), Cmd.none )
 
         SetPlainTaskAt pos plainCreation ->
             ( model
@@ -153,7 +175,7 @@ update msg model =
 
         -- todo: Handle this case
         AddProjectReferenceTask ->
-            ( model, Cmd.none )
+            ( model |> projectReferenceTasksLens.set (defaultProjectReferenceCreation :: model.projectReferenceTasks), Cmd.none )
 
         SetProjectReferenceTaskAt int projectReferenceCreation ->
             ( model
