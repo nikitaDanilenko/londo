@@ -153,7 +153,6 @@ update msg model =
         GotResponse remoteData ->
             ( model, Cmd.none )
 
-        -- todo: Handle this case
         AddPlainTask ->
             ( model |> plainTasksLens.set (defaultPlainCreation :: model.plainTasks), Cmd.none )
 
@@ -173,7 +172,6 @@ update msg model =
             , Cmd.none
             )
 
-        -- todo: Handle this case
         AddProjectReferenceTask ->
             ( model |> projectReferenceTasksLens.set (defaultProjectReferenceCreation :: model.projectReferenceTasks), Cmd.none )
 
