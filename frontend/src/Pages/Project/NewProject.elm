@@ -16,6 +16,7 @@ import Html.Attributes exposing (checked, class, disabled, for, id, type_, value
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language exposing (Language)
+import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (AccessorsInput, PlainCreation, ProgressInput, ProjectCreation, ProjectReferenceCreation)
 import LondoGQL.Mutation as Mutation
@@ -23,6 +24,7 @@ import LondoGQL.Object.Project
 import LondoGQL.Object.ProjectId
 import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid)
 import Maybe.Extra
+import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AccessorUtil as AccessorsUtil
@@ -60,6 +62,16 @@ type Msg
 projectCreationLens : Lens Model ProjectCreation
 projectCreationLens =
     Lens .projectCreation (\b a -> { a | projectCreation = b })
+
+
+plainTasksLens : Lens Model (List PlainCreation)
+plainTasksLens =
+    Lens .plainTasks (\b a -> { a | plainTasks = b })
+
+
+projectReferenceTasksLens : Lens Model (List ProjectReferenceCreation)
+projectReferenceTasksLens =
+    Lens .projectReferenceTasks (\b a -> { a | projectReferenceTasks = b })
 
 
 type alias Flags =
@@ -118,6 +130,46 @@ update msg model =
         -- todo: Redirect to correct frame (edit? overview?)
         GotResponse remoteData ->
             ( model, Cmd.none )
+
+        -- todo: Handle this case
+        AddPlainTask ->
+            ( model, Cmd.none )
+
+        SetPlainTaskAt pos plainCreation ->
+            ( model
+                |> (plainTasksLens |> Compose.lensWithOptional (list pos)).set
+                    plainCreation
+            , Cmd.none
+            )
+
+        DeletePlainTaskAt pos ->
+            ( model
+                |> plainTasksLens.set
+                    (model.plainTasks
+                        |> List.Extra.removeAt pos
+                    )
+            , Cmd.none
+            )
+
+        -- todo: Handle this case
+        AddProjectReferenceTask ->
+            ( model, Cmd.none )
+
+        SetProjectReferenceTaskAt int projectReferenceCreation ->
+            ( model
+                |> (projectReferenceTasksLens |> Compose.lensWithOptional (list int)).set
+                    projectReferenceCreation
+            , Cmd.none
+            )
+
+        DeleteProjectReferenceTaskAt pos ->
+            ( model
+                |> projectReferenceTasksLens.set
+                    (model.projectReferenceTasks
+                        |> List.Extra.removeAt pos
+                    )
+            , Cmd.none
+            )
 
 
 view : Model -> Html Msg
