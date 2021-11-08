@@ -141,6 +141,9 @@ stepTo url model =
                 OverviewRoute flags ->
                     Overview.init flags |> stepOverview model
 
+                NewProjectRoute flags ->
+                    NewProject.init flags |> stepNewProject model
+
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
 
@@ -170,12 +173,12 @@ stepNewProject model ( newProject, cmd ) =
     ( { model | page = NewProject newProject }, Cmd.map NewProjectMsg cmd )
 
 
--- todo: Add new project route and corresponding parser
 type Route
     = CreateRegistrationTokenRoute CreateRegistrationToken.Flags
     | CreateNewUserRoute CreateNewUser.Flags
     | LoginRoute Login.Flags
     | OverviewRoute Overview.Flags
+    | NewProjectRoute NewProject.Flags
 
 
 routeParser : Configuration -> Parser (Route -> a) a
@@ -225,12 +228,24 @@ routeParser configuration =
                         , configuration = configuration
                         }
                     )
+        newProjectParser =
+            (s configuration.subFolders.newProject
+            </> tokenParser
+            <?> languageParser)
+            |> Parser.map
+                                   (\token language ->
+                                       { token = token
+                                       , language = language
+                                       , configuration = configuration
+                                       }
+                                   )
     in
     Parser.oneOf
         [ route registrationTokenParser CreateRegistrationTokenRoute
         , route createNewUserParser CreateNewUserRoute
         , route loginParser LoginRoute
         , route overviewParser OverviewRoute
+        , route newProjectParser NewProjectRoute
         ]
 
 

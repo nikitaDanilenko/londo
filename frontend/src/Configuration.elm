@@ -14,4 +14,5 @@ type alias SubFolders =
     { register : String
     , login : String
     , overview: String
+    , newProject: String
     }

@@ -8,7 +8,8 @@ Elm.Main.init({
     subFolders : {
       login: process.env.ELM_APP_LONDO_SUBFOLDER_LOGIN,
       register: process.env.ELM_APP_LONDO_SUBFOLDER_REGISTER,
-      overview: process.env.ELM_APP_LONDO_SUBFOLDER_OVERVIEW
+      overview: process.env.ELM_APP_LONDO_SUBFOLDER_OVERVIEW,
+      newProject: process.env.ELM_APP_LONDO_SUBFOLDER_NEW_PROJECT
     }
   }
 });
