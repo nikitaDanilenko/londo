@@ -6,13 +6,13 @@ import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
 import GraphQLFunctions.Lens.PlainCreation as PlainCreation
 import GraphQLFunctions.Lens.ProgressInput as ProgressInput
+import GraphQLFunctions.Lens.ProjectCreation as ProjectCreationUtil
 import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
-import GraphQLFunctions.Lens.ProjectCreation as ProjectCreationUtil
 import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import Html exposing (Html, button, div, input, label, text)
-import Html.Attributes exposing (checked, class, disabled, for, id, type_, value)
+import Html.Attributes exposing (checked, class, disabled, for, id, placeholder, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language exposing (Language)
@@ -22,7 +22,7 @@ import LondoGQL.InputObject exposing (AccessorsInput, PlainCreation, ProgressInp
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.Project
 import LondoGQL.Object.ProjectId
-import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid (..))
+import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid(..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
@@ -314,11 +314,12 @@ editPlainTaskLine language pos plainCreation =
                                 >> flip PlainCreation.progress.set plainCreation
                                 >> SetPlainTaskAt pos
                             )
-                        ]
-                        [ plainCreation.progress.reached
+                        , plainCreation.progress.reached
                             |> ScalarUtil.naturalToString
-                            |> text
+                            |> value
                         ]
+                        []
+                    , label [] [ text "%" ]
                     ]
 
                 TaskKind.Fractional ->
@@ -330,11 +331,11 @@ editPlainTaskLine language pos plainCreation =
                                 >> flip (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reached).set plainCreation
                                 >> SetPlainTaskAt pos
                             )
-                        ]
-                        [ plainCreation.progress.reached
+                        , plainCreation.progress.reached
                             |> ScalarUtil.naturalToString
-                            |> text
+                            |> value
                         ]
+                        []
                     , label [] [ text "/" ]
                     , input
                         [ type_ "number"
@@ -344,11 +345,11 @@ editPlainTaskLine language pos plainCreation =
                                 >> flip (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reachable).set plainCreation
                                 >> SetPlainTaskAt pos
                             )
-                        ]
-                        [ plainCreation.progress.reachable
+                        , plainCreation.progress.reachable
                             |> ScalarUtil.positiveToString
-                            |> text
+                            |> value
                         ]
+                        []
                     ]
 
         viewUnit : List (Html Msg)
@@ -360,8 +361,12 @@ editPlainTaskLine language pos plainCreation =
                         >> flip PlainCreation.unit.set plainCreation
                         >> SetPlainTaskAt pos
                     )
+                , plainCreation.unit
+                    |> OptionalArgumentUtil.toMaybe
+                    |> Maybe.withDefault ""
+                    |> value
                 ]
-                (plainCreation.unit |> OptionalArgumentUtil.toMaybe |> Maybe.Extra.unwrap [] (\unit -> [ text unit ]))
+                []
             ]
 
         viewWeight : Html Msg
@@ -369,16 +374,17 @@ editPlainTaskLine language pos plainCreation =
             input
                 [ type_ "number"
                 , Html.Attributes.min "1"
+                , value
+                    (plainCreation.weight
+                        |> ScalarUtil.positiveToString
+                    )
                 , onInput
                     (Positive
                         >> flip PlainCreation.weight.set plainCreation
                         >> SetPlainTaskAt pos
                     )
                 ]
-                [ plainCreation.weight
-                    |> ScalarUtil.positiveToString
-                    |> text
-                ]
+                []
     in
     div [ class "plainTaskLine" ]
         [ div [ class "plainName" ]
@@ -387,18 +393,29 @@ editPlainTaskLine language pos plainCreation =
                 [ value plainCreation.name
                 , onInput (flip PlainCreation.name.set plainCreation >> SetPlainTaskAt pos)
                 ]
-                [ text plainCreation.name ]
+                []
             ]
-        , div [ class "plainTaskKind" ]
-            [ ButtonGroup.radioButtonGroup []
-                [ taskKindRadioButton TaskKind.Discrete language.discrete
-                , taskKindRadioButton TaskKind.Percentual language.percentual
-                , taskKindRadioButton TaskKind.Fractional language.fractional
+        , div [ class "plainTaskKindArea" ]
+            [ label [] [ text language.taskKind ]
+            , div [ class "plainTaskKind" ]
+                [ ButtonGroup.radioButtonGroup []
+                    [ taskKindRadioButton TaskKind.Discrete language.discrete
+                    , taskKindRadioButton TaskKind.Percentual language.percentual
+                    , taskKindRadioButton TaskKind.Fractional language.fractional
+                    ]
                 ]
             ]
-        , div [ class "plainProgress" ] (viewProgress plainCreation.taskKind)
+        , div [ class "plainProgressArea" ]
+            [ label [] [ text language.progress ]
+            , div [ class "plainProgress" ] (viewProgress plainCreation.taskKind)
+            ]
         , div [ class "plainUnit" ] viewUnit
-        , div [ class "weight" ] [ viewWeight ]
+        , div [ class "weightArea" ]
+            [ label [] [ text language.weight ]
+            , div [ class "weight" ] [ viewWeight ]
+            ]
+        , button [ class "button", onClick (DeletePlainTaskAt pos) ]
+            [ text language.remove ]
         ]
 
 
@@ -415,18 +432,26 @@ editProjectReferenceTaskLine language pos projectReferenceCreation =
                         >> flip ProjectReferenceCreation.projectReferenceId.set projectReferenceCreation
                         >> SetProjectReferenceTaskAt pos
                     )
+                , projectReferenceCreation.projectReferenceId.uuid
+                    |> ScalarUtil.uuidToString
+                    |> value
                 ]
                 []
             ]
-        , div [ class "weight" ]
-            [ input
+        , div [ class "weightArea" ]
+            [ label [] [ text language.weight ]
+            , input
                 [ projectReferenceCreation.weight |> ScalarUtil.positiveToString |> value
+                , type_ "number"
                 , Html.Attributes.min "1"
                 , onInput
                     (Positive
                         >> flip ProjectReferenceCreation.weight.set projectReferenceCreation
                         >> SetProjectReferenceTaskAt pos
                     )
+                , projectReferenceCreation.weight
+                    |> ScalarUtil.positiveToString
+                    |> value
                 ]
                 []
             ]
