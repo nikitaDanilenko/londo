@@ -364,10 +364,21 @@ editPlainTaskLine language pos plainCreation =
                 (plainCreation.unit |> OptionalArgumentUtil.toMaybe |> Maybe.Extra.unwrap [] (\unit -> [ text unit ]))
             ]
 
-        -- todo: Add implementation
         viewWeight : Html Msg
         viewWeight =
-            div [] []
+            input
+                [ type_ "number"
+                , Html.Attributes.min "1"
+                , onInput
+                    (Positive
+                        >> flip PlainCreation.weight.set plainCreation
+                        >> SetPlainTaskAt pos
+                    )
+                ]
+                [ plainCreation.weight
+                    |> ScalarUtil.positiveToString
+                    |> text
+                ]
     in
     div [ class "plainTaskLine" ]
         [ div [ class "plainName" ]
