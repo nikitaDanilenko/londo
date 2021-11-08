@@ -1,10 +1,10 @@
 module Pages.Util.NonEmptyUtil exposing (..)
 
-import List.Nonempty as List
+import List.Nonempty as NE
 
 
-nonEmptyToGraphQL : List.Nonempty a -> { head : a, tail : List a }
+nonEmptyToGraphQL : NE.Nonempty a -> { head : a, tail : List a }
 nonEmptyToGraphQL ne =
-    { head = List.head ne
-    , tail = List.tail ne
+    { head = NE.head ne
+    , tail = NE.tail ne
     }

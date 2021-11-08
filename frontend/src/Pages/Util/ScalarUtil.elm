@@ -1,6 +1,6 @@
 module Pages.Util.ScalarUtil exposing (..)
 
-import LondoGQL.Scalar exposing (Natural, Positive, Uuid)
+import LondoGQL.Scalar exposing (Natural (..), Positive (..), Uuid (..))
 
 
 uuidToString : Uuid -> String

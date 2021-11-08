@@ -1,7 +1,7 @@
 module Pages.Util.AccessorUtil exposing (everybody, except, nobody, only)
 
 import Graphql.OptionalArgument as OptionalArgument exposing (OptionalArgument)
-import List.Nonempty as List
+import List.Nonempty as NE
 import LondoGQL.InputObject exposing (AccessorsInput, NonEmptyListOfUserIdInput, UserIdInput)
 import LondoGQL.Scalar exposing (Uuid)
 import Pages.Util.NonEmptyUtil as NonEmptyUtil
@@ -21,22 +21,22 @@ nobody =
     }
 
 
-only : List.Nonempty Uuid -> AccessorsInput
+only : NE.Nonempty Uuid -> AccessorsInput
 only us =
     { isAllowList = True
     , userIds = usersInputList us
     }
 
 
-except : List.Nonempty Uuid -> AccessorsInput
+except : NE.Nonempty Uuid -> AccessorsInput
 except us =
     { isAllowList = False
     , userIds = usersInputList us
     }
 
 
-usersInputList : List.Nonempty Uuid -> OptionalArgument NonEmptyListOfUserIdInput
+usersInputList : NE.Nonempty Uuid -> OptionalArgument NonEmptyListOfUserIdInput
 usersInputList =
-    List.map (\uid -> { uuid = uid })
+    NE.map (\uid -> { uuid = uid })
         >> NonEmptyUtil.nonEmptyToGraphQL
         >> OptionalArgument.Present

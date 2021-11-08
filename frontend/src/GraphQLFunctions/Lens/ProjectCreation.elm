@@ -1,4 +1,4 @@
-module GraphQLFunctions.ProjectCreation exposing (..)
+module GraphQLFunctions.Lens.ProjectCreation exposing (..)
 
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument

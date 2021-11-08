@@ -8,7 +8,7 @@ import GraphQLFunctions.Lens.PlainCreation as PlainCreation
 import GraphQLFunctions.Lens.ProgressInput as ProgressInput
 import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
-import GraphQLFunctions.ProjectCreation as ProjectCreationUtil
+import GraphQLFunctions.Lens.ProjectCreation as ProjectCreationUtil
 import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import Html exposing (Html, button, div, input, label, text)
@@ -22,7 +22,7 @@ import LondoGQL.InputObject exposing (AccessorsInput, PlainCreation, ProgressInp
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.Project
 import LondoGQL.Object.ProjectId
-import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid)
+import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid (..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
