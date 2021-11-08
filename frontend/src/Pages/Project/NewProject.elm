@@ -315,7 +315,10 @@ editPlainTaskLine language pos plainCreation =
                                 >> SetPlainTaskAt pos
                             )
                         ]
-                        []
+                        [ plainCreation.progress.reached
+                            |> ScalarUtil.naturalToString
+                            |> text
+                        ]
                     ]
 
                 TaskKind.Fractional ->
@@ -328,7 +331,10 @@ editPlainTaskLine language pos plainCreation =
                                 >> SetPlainTaskAt pos
                             )
                         ]
-                        []
+                        [ plainCreation.progress.reached
+                            |> ScalarUtil.naturalToString
+                            |> text
+                        ]
                     , label [] [ text "/" ]
                     , input
                         [ type_ "number"
@@ -339,13 +345,24 @@ editPlainTaskLine language pos plainCreation =
                                 >> SetPlainTaskAt pos
                             )
                         ]
-                        []
+                        [ plainCreation.progress.reachable
+                            |> ScalarUtil.positiveToString
+                            |> text
+                        ]
                     ]
 
-        -- todo: Add implementation
         viewUnit : List (Html Msg)
         viewUnit =
-            []
+            [ input
+                [ onInput
+                    (Just
+                        >> Maybe.Extra.filter (String.isEmpty >> not)
+                        >> flip PlainCreation.unit.set plainCreation
+                        >> SetPlainTaskAt pos
+                    )
+                ]
+                (plainCreation.unit |> OptionalArgumentUtil.toMaybe |> Maybe.Extra.unwrap [] (\unit -> [ text unit ]))
+            ]
 
         -- todo: Add implementation
         viewWeight : Html Msg
@@ -359,7 +376,7 @@ editPlainTaskLine language pos plainCreation =
                 [ value plainCreation.name
                 , onInput (flip PlainCreation.name.set plainCreation >> SetPlainTaskAt pos)
                 ]
-                []
+                [ text plainCreation.name ]
             ]
         , div [ class "plainTaskKind" ]
             [ ButtonGroup.radioButtonGroup []
