@@ -1,9 +1,12 @@
 module Pages.Util.FromInput exposing (..)
 
+import Basics.Extra exposing (flip)
 import List.Extra
+import LondoGQL.InputObject exposing (ProgressInput)
 import LondoGQL.Scalar exposing (Natural, Positive)
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
+import Pages.Util.MathUtil as MathUtil
 import Pages.Util.ScalarUtil as ScalarUtil
 
 
@@ -52,9 +55,12 @@ isValid fromInput =
             False
 
 
-lift : (model -> FromInput a -> model) -> FromInput a -> String -> model -> model
-lift ui fromInput txt model =
+setWithLens : Lens model (FromInput a) -> String -> model -> model
+setWithLens lens txt model =
     let
+        fromInput =
+            lens.get model
+
         possiblyValid =
             if String.isEmpty txt || fromInput.partial txt then
                 fromInput
@@ -68,10 +74,15 @@ lift ui fromInput txt model =
         Ok v ->
             possiblyValid
                 |> value.set v
-                |> ui model
+                |> flip lens.set model
 
         Err _ ->
-            ui model possiblyValid
+            lens.set possiblyValid model
+
+
+lift : Lens model (FromInput a) -> Lens model String
+lift lens =
+    Lens (lens.get >> .text) (setWithLens lens)
 
 
 natural : FromInput Natural
@@ -110,6 +121,7 @@ natural =
                 >> Maybe.Extra.isJust
         }
 
+
 positive : FromInput Positive
 positive =
     let
@@ -144,4 +156,55 @@ positive =
             parsePositive
                 >> Result.toMaybe
                 >> Maybe.Extra.isJust
+        }
+
+
+percentualProgress : FromInput ProgressInput
+percentualProgress =
+    let
+        zero =
+            { reachable = Positive "100"
+            , reached = natural.ifEmptyValue
+            }
+
+        isDecimalPoint : Char -> Bool
+        isDecimalPoint c =
+            c == '.' || c == ','
+
+        countDecimalPoints : String -> Int
+        countDecimalPoints =
+            String.toList >> List.Extra.count isDecimalPoint
+
+        isPartial : String -> Bool
+        isPartial =
+            parseDecimal
+                >> Result.toMaybe
+                >> Maybe.Extra.isJust
+
+        parseDecimal : String -> Result String ProgressInput
+        parseDecimal txt =
+            let
+                decimalPoints =
+                    countDecimalPoints txt
+
+                withoutDecimalPoint =
+                    txt |> String.filter (isDecimalPoint >> not)
+
+                numberOfDecimalPlaces =
+                    MathUtil.numberOfDecimalPlaces txt
+            in
+            if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlaces && String.all Char.isDigit txt) || txt == "100") then
+                Ok
+                    { reachable = "100" |> String.padRight numberOfDecimalPlaces '0' |> Positive
+                    , reached = Natural withoutDecimalPoint
+                    }
+
+            else
+                Err "Not a valid percentual value"
+    in
+    emptyText
+        { value = zero
+        , ifEmptyValue = zero
+        , parse = parseDecimal
+        , isPartial = isPartial
         }
