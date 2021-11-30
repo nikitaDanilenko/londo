@@ -1,9 +1,22 @@
-module Pages.Util.FromInput exposing (..)
+module Pages.Util.FromInput exposing
+    ( FromInput
+    , boundedNatural
+    , emptyText
+    , isValid
+    , lift
+    , limitTo
+    , natural
+    , percentualProgress
+    , positive
+    , text
+    , value
+    )
 
 import Basics.Extra exposing (flip)
+import Integer exposing (Integer)
 import List.Extra
 import LondoGQL.InputObject exposing (ProgressInput)
-import LondoGQL.Scalar exposing (Natural, Positive)
+import LondoGQL.Scalar exposing (Natural(..), Positive(..))
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 import Pages.Util.MathUtil as MathUtil
@@ -64,7 +77,6 @@ setWithLens lens txt model =
         possiblyValid =
             if String.isEmpty txt || fromInput.partial txt then
                 fromInput
-                    |> value.set fromInput.ifEmptyValue
                     |> text.set txt
 
             else
@@ -120,6 +132,35 @@ natural =
                 >> Result.toMaybe
                 >> Maybe.Extra.isJust
         }
+
+
+boundedNatural : Natural -> FromInput Natural
+boundedNatural n =
+    let
+        zero =
+            Natural "0"
+
+        parseNatural =
+            boundedNaturalParser n
+    in
+    emptyText
+        { value = zero
+        , ifEmptyValue = zero
+        , parse = parseNatural
+        , isPartial =
+            parseNatural
+                >> Result.toMaybe
+                >> Maybe.Extra.isJust
+        }
+
+
+limitTo : Natural -> FromInput Natural -> FromInput Natural
+limitTo n fi =
+    { fi
+        | parse = boundedNaturalParser n
+        , value = ScalarUtil.minNatural fi.value n
+        , text = ScalarUtil.naturalToString n
+    }
 
 
 positive : FromInput Positive
@@ -185,15 +226,15 @@ percentualProgress =
         parseDecimal txt =
             let
                 decimalPoints =
-                    countDecimalPoints txt
+                    Debug.log "decimalPoints" (countDecimalPoints txt)
 
                 withoutDecimalPoint =
                     txt |> String.filter (isDecimalPoint >> not)
 
                 numberOfDecimalPlaces =
-                    MathUtil.numberOfDecimalPlaces txt
+                    Debug.log "numberOfDecimalPlaces" (MathUtil.numberOfDecimalPlaces txt)
             in
-            if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlaces && String.all Char.isDigit txt) || txt == "100") then
+            if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlaces && String.all Char.isDigit withoutDecimalPoint) || txt == "100") then
                 Ok
                     { reachable = "100" |> String.padRight numberOfDecimalPlaces '0' |> Positive
                     , reached = Natural withoutDecimalPoint
@@ -208,3 +249,39 @@ percentualProgress =
         , parse = parseDecimal
         , isPartial = isPartial
         }
+
+
+boundedNaturalParser : Natural -> String -> Result String Natural
+boundedNaturalParser n =
+    let
+        zero =
+            Natural "0"
+
+        stringToInteger : String -> Integer
+        stringToInteger =
+            Integer.fromString >> Maybe.withDefault Integer.zero
+
+        upperBound =
+            n |> ScalarUtil.naturalToString |> stringToInteger
+
+        parseNatural : String -> Result String Natural
+        parseNatural str =
+            (if String.isEmpty str then
+                zero
+                    |> ScalarUtil.naturalToString
+                    |> Ok
+
+             else if String.all Char.isDigit str && Integer.lte (stringToInteger str) upperBound then
+                Ok str
+
+             else
+                Err "The string does not represent a natural number"
+            )
+                |> Result.map
+                    (String.toList
+                        >> List.Extra.dropWhile ((==) '0')
+                        >> String.fromList
+                        >> Natural
+                    )
+    in
+    parseNatural
