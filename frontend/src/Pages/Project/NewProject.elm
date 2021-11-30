@@ -4,15 +4,13 @@ import Basics.Extra exposing (flip)
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
-import GraphQLFunctions.Lens.PlainCreation as PlainCreation
-import GraphQLFunctions.Lens.ProgressInput as ProgressInput
 import GraphQLFunctions.Lens.ProjectCreation as ProjectCreationUtil
 import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import Html exposing (Html, button, div, input, label, text)
-import Html.Attributes exposing (checked, class, disabled, for, id, placeholder, type_, value)
+import Html.Attributes exposing (checked, class, disabled, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language exposing (Language)
@@ -27,8 +25,10 @@ import Maybe.Extra
 import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
+import Pages.Project.PlainCreationClientInput as PlainCreationClientInput exposing (PlainCreationClientInput)
+import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
 import Pages.Util.AccessorUtil as AccessorsUtil
-import Pages.Util.MathUtil as MathUtil
+import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData)
 
@@ -38,7 +38,7 @@ type alias Model =
     , configuration : Configuration
     , language : Language.NewProject
     , projectCreation : ProjectCreation
-    , plainTasks : List PlainCreation
+    , plainTasks : List PlainCreationClientInput
     , projectReferenceTasks : List ProjectReferenceCreation
     }
 
@@ -50,7 +50,7 @@ type Msg
     | SetReadAccessors AccessorsInput
     | SetWriteAccessors AccessorsInput
     | AddPlainTask
-    | SetPlainTaskAt Int PlainCreation
+    | SetPlainTaskAt Int PlainCreationClientInput
     | DeletePlainTaskAt Int
     | AddProjectReferenceTask
     | SetProjectReferenceTaskAt Int ProjectReferenceCreation
@@ -64,7 +64,7 @@ projectCreationLens =
     Lens .projectCreation (\b a -> { a | projectCreation = b })
 
 
-plainTasksLens : Lens Model (List PlainCreation)
+plainTasksLens : Lens Model (List PlainCreationClientInput)
 plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
 
@@ -72,19 +72,6 @@ plainTasksLens =
 projectReferenceTasksLens : Lens Model (List ProjectReferenceCreation)
 projectReferenceTasksLens =
     Lens .projectReferenceTasks (\b a -> { a | projectReferenceTasks = b })
-
-
-defaultPlainCreation : PlainCreation
-defaultPlainCreation =
-    { name = ""
-    , taskKind = TaskKind.Fractional
-    , unit = OptionalArgument.Absent
-    , progress =
-        { reachable = Positive "1"
-        , reached = Natural "0"
-        }
-    , weight = Positive "1"
-    }
 
 
 defaultProjectReferenceCreation : ProjectReferenceCreation
@@ -154,12 +141,11 @@ update msg model =
             ( model, Cmd.none )
 
         AddPlainTask ->
-            ( model |> plainTasksLens.set (defaultPlainCreation :: model.plainTasks), Cmd.none )
+            ( model |> plainTasksLens.set (PlainCreationClientInput.default :: model.plainTasks), Cmd.none )
 
-        SetPlainTaskAt pos plainCreation ->
+        SetPlainTaskAt pos plainCreationClientInput ->
             ( model
-                |> (plainTasksLens |> Compose.lensWithOptional (list pos)).set
-                    plainCreation
+                |> (plainTasksLens |> Compose.lensWithOptional (list pos)).set plainCreationClientInput
             , Cmd.none
             )
 
@@ -251,54 +237,92 @@ view model =
         ]
 
 
-editPlainTaskLine : Language.NewProject -> Int -> PlainCreation -> Html Msg
-editPlainTaskLine language pos plainCreation =
+editPlainTaskLine : Language.NewProject -> Int -> PlainCreationClientInput -> Html Msg
+editPlainTaskLine language pos plainCreationClientInput =
     let
+        progressClientInputByTaskKind : TaskKind -> ProgressClientInput
+        progressClientInputByTaskKind taskKind =
+            case taskKind of
+                TaskKind.Percentual ->
+                    ProgressClientInput.from FromInput.percentualProgress
+
+                _ ->
+                    ProgressClientInput.default
+
         taskKindRadioButton : TaskKind -> String -> ButtonGroup.RadioButtonItem Msg
         taskKindRadioButton taskKind description =
-            ButtonGroup.radioButton (plainCreation.taskKind == taskKind)
+            ButtonGroup.radioButton (plainCreationClientInput.taskKind == taskKind)
                 [ Button.primary
-                , Button.onClick (PlainCreation.taskKind.set taskKind plainCreation |> SetPlainTaskAt pos)
+                , Button.onClick
+                    (plainCreationClientInput
+                        |> PlainCreationClientInput.taskKind.set taskKind
+                        |> PlainCreationClientInput.progress.set (progressClientInputByTaskKind taskKind)
+                        |> SetPlainTaskAt pos
+                    )
                 ]
                 [ text description ]
 
-        percentualFromDecimal : String -> ProgressInput
-        percentualFromDecimal string =
-            { reached =
-                string
-                    |> String.filter Char.isDigit
-                    |> Natural
-            , reachable =
-                100
-                    * (1 + MathUtil.numberOfDecimalPlaces string)
-                    |> String.fromInt
-                    |> Positive
-            }
+        progressReachedLens : Lens PlainCreationClientInput (FromInput Natural)
+        progressReachedLens =
+            PlainCreationClientInput.progress
+                |> Compose.lensWithLens ProgressClientInput.reached
+
+        adjustPercentual : Natural -> Positive -> String
+        adjustPercentual reached reachable =
+            let
+                magnitudeOver =
+                    reachable |> ScalarUtil.positiveToString |> String.length |> (\l -> l - 3)
+
+                reachedString =
+                    ScalarUtil.naturalToString reached
+
+                reachedLength =
+                    String.length reachedString
+
+                additionalZeroes =
+                    max 0 (1 + magnitudeOver - reachedLength)
+            in
+            reachedString
+                |> String.padLeft additionalZeroes '0'
+                |> String.toList
+                |> (\l -> List.Extra.splitAt (List.length l - magnitudeOver) l)
+                |> (\( n, mantissa ) ->
+                        if List.isEmpty mantissa then
+                            n
+
+                        else
+                            List.concat [ n, [ ',' ], mantissa ]
+                   )
+                |> String.fromList
 
         viewProgress : TaskKind -> List (Html Msg)
         viewProgress taskKind =
             case taskKind of
+                -- todo: Change behaviour so switching task kinds performs some kind of translation correctly.
                 TaskKind.Discrete ->
                     let
-                        reachableString =
-                            ScalarUtil.positiveToString plainCreation.progress.reachable
+                        reachableNatural =
+                            Debug.log "rn" (ScalarUtil.positiveToNatural plainCreationClientInput.progress.reachable.value)
 
                         completed =
-                            reachableString == ScalarUtil.naturalToString plainCreation.progress.reached
+                            reachableNatural == plainCreationClientInput.progress.reached.value
 
                         complement =
                             if completed then
-                                Natural "0"
+                                ScalarUtil.zeroNatural
 
                             else
-                                Natural reachableString
+                                reachableNatural
+
+                        complementInput =
+                            FromInput.value.set complement FromInput.natural
                     in
                     [ input
                         [ type_ "checkbox"
                         , checked completed
                         , onClick
-                            (plainCreation
-                                |> (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reached).set complement
+                            (plainCreationClientInput
+                                |> progressReachedLens.set complementInput
                                 |> SetPlainTaskAt pos
                             )
                         ]
@@ -307,15 +331,11 @@ editPlainTaskLine language pos plainCreation =
 
                 TaskKind.Percentual ->
                     [ input
-                        [ type_ "number"
-                        , Html.Attributes.min "0"
-                        , onInput
-                            (percentualFromDecimal
-                                >> flip PlainCreation.progress.set plainCreation
+                        [ onInput
+                            (flip (FromInput.lift progressReachedLens).set plainCreationClientInput
                                 >> SetPlainTaskAt pos
                             )
-                        , plainCreation.progress.reached
-                            |> ScalarUtil.naturalToString
+                        , adjustPercentual plainCreationClientInput.progress.reached.value plainCreationClientInput.progress.reachable.value
                             |> value
                         ]
                         []
@@ -324,28 +344,38 @@ editPlainTaskLine language pos plainCreation =
 
                 TaskKind.Fractional ->
                     [ input
-                        [ type_ "number"
-                        , Html.Attributes.min "0"
-                        , onInput
-                            (Natural
-                                >> flip (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reached).set plainCreation
+                        [ onInput
+                            (flip (FromInput.lift progressReachedLens).set plainCreationClientInput
                                 >> SetPlainTaskAt pos
                             )
-                        , plainCreation.progress.reached
+                        , plainCreationClientInput.progress.reached.value
                             |> ScalarUtil.naturalToString
                             |> value
                         ]
                         []
                     , label [] [ text "/" ]
                     , input
-                        [ type_ "number"
-                        , Html.Attributes.min "1"
-                        , onInput
-                            (Positive
-                                >> flip (PlainCreation.progress |> Compose.lensWithLens ProgressInput.reachable).set plainCreation
-                                >> SetPlainTaskAt pos
+                        [ onInput
+                            (\n ->
+                                (FromInput.lift
+                                    (PlainCreationClientInput.progress
+                                        |> Compose.lensWithLens ProgressClientInput.reachable
+                                    )
+                                ).set
+                                    n
+                                    plainCreationClientInput
+                                    |> (\pci ->
+                                        ScalarUtil.stringToNatural n
+                                        |> Maybe.withDefault ((progressReachedLens |> Compose.lensWithLens FromInput.value).get pci)
+                                        |> (\k ->
+                                            progressReachedLens.set
+                                                (FromInput.limitTo k (progressReachedLens.get pci))
+                                                pci
+                                                )
+                                       )
+                                    |> SetPlainTaskAt pos
                             )
-                        , plainCreation.progress.reachable
+                        , plainCreationClientInput.progress.reachable.value
                             |> ScalarUtil.positiveToString
                             |> value
                         ]
@@ -358,10 +388,10 @@ editPlainTaskLine language pos plainCreation =
                 [ onInput
                     (Just
                         >> Maybe.Extra.filter (String.isEmpty >> not)
-                        >> flip PlainCreation.unit.set plainCreation
+                        >> flip PlainCreationClientInput.unit.set plainCreationClientInput
                         >> SetPlainTaskAt pos
                     )
-                , plainCreation.unit
+                , plainCreationClientInput.unit
                     |> OptionalArgumentUtil.toMaybe
                     |> Maybe.withDefault ""
                     |> value
@@ -372,15 +402,12 @@ editPlainTaskLine language pos plainCreation =
         viewWeight : Html Msg
         viewWeight =
             input
-                [ type_ "number"
-                , Html.Attributes.min "1"
-                , value
-                    (plainCreation.weight
+                [ value
+                    (plainCreationClientInput.weight.value
                         |> ScalarUtil.positiveToString
                     )
                 , onInput
-                    (Positive
-                        >> flip PlainCreation.weight.set plainCreation
+                    (flip (FromInput.lift PlainCreationClientInput.weight).set plainCreationClientInput
                         >> SetPlainTaskAt pos
                     )
                 ]
@@ -390,8 +417,8 @@ editPlainTaskLine language pos plainCreation =
         [ div [ class "plainName" ]
             [ label [] [ text language.plainTaskName ]
             , input
-                [ value plainCreation.name
-                , onInput (flip PlainCreation.name.set plainCreation >> SetPlainTaskAt pos)
+                [ value plainCreationClientInput.name
+                , onInput (flip PlainCreationClientInput.name.set plainCreationClientInput >> SetPlainTaskAt pos)
                 ]
                 []
             ]
@@ -407,7 +434,7 @@ editPlainTaskLine language pos plainCreation =
             ]
         , div [ class "plainProgressArea" ]
             [ label [] [ text language.progress ]
-            , div [ class "plainProgress" ] (viewProgress plainCreation.taskKind)
+            , div [ class "plainProgress" ] (viewProgress plainCreationClientInput.taskKind)
             ]
         , div [ class "plainUnit" ] viewUnit
         , div [ class "weightArea" ]
