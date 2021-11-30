@@ -225,13 +225,13 @@ percentualProgress =
         parseDecimal txt =
             let
                 decimalPoints =
-                    Debug.log "decimalPoints" (countDecimalPoints txt)
+                    countDecimalPoints txt
 
                 withoutDecimalPoint =
                     txt |> String.filter (isDecimalPoint >> not)
 
                 numberOfDecimalPlaces =
-                    Debug.log "numberOfDecimalPlaces" (MathUtil.numberOfDecimalPlaces txt)
+                    MathUtil.numberOfDecimalPlaces txt
             in
             if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlaces && String.all Char.isDigit withoutDecimalPoint) || txt == "100") then
                 Ok
