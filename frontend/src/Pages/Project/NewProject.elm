@@ -332,6 +332,7 @@ editPlainTaskLine language pos plainCreationClientInput =
                 TaskKind.Percentual ->
                     [ input
                         [ onInput
+                            -- todo: Adjustment needs to take place on lift level
                             (flip (FromInput.lift progressReachedLens).set plainCreationClientInput
                                 >> SetPlainTaskAt pos
                             )
@@ -365,13 +366,13 @@ editPlainTaskLine language pos plainCreationClientInput =
                                     n
                                     plainCreationClientInput
                                     |> (\pci ->
-                                        ScalarUtil.stringToNatural n
-                                        |> Maybe.withDefault ((progressReachedLens |> Compose.lensWithLens FromInput.value).get pci)
-                                        |> (\k ->
-                                            progressReachedLens.set
-                                                (FromInput.limitTo k (progressReachedLens.get pci))
-                                                pci
-                                                )
+                                            ScalarUtil.stringToNatural n
+                                                |> Maybe.withDefault ((progressReachedLens |> Compose.lensWithLens FromInput.value).get pci)
+                                                |> (\k ->
+                                                        progressReachedLens.set
+                                                            (FromInput.limitTo k (progressReachedLens.get pci))
+                                                            pci
+                                                   )
                                        )
                                     |> SetPlainTaskAt pos
                             )
@@ -399,6 +400,7 @@ editPlainTaskLine language pos plainCreationClientInput =
                 []
             ]
 
+        -- todo: Units make sense only for fractional task kind
         viewWeight : Html Msg
         viewWeight =
             input
@@ -445,7 +447,8 @@ editPlainTaskLine language pos plainCreationClientInput =
             [ text language.remove ]
         ]
 
-
+-- todo: Add control for adding a reference via UUID while displaying the reference name.
+-- The same control can be used for user selection elsewhere.
 editProjectReferenceTaskLine : Language.NewProject -> Int -> ProjectReferenceCreation -> Html Msg
 editProjectReferenceTaskLine language pos projectReferenceCreation =
     div [ class "projectReferenceLine" ]
