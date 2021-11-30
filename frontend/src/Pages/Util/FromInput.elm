@@ -101,7 +101,7 @@ natural : FromInput Natural
 natural =
     let
         zero =
-            Natural "0"
+            ScalarUtil.zeroNatural
 
         parseNatural : String -> Result String Natural
         parseNatural str =
@@ -138,7 +138,7 @@ boundedNatural : Natural -> FromInput Natural
 boundedNatural n =
     let
         zero =
-            Natural "0"
+            ScalarUtil.zeroNatural
 
         parseNatural =
             boundedNaturalParser n
@@ -159,7 +159,6 @@ limitTo n fi =
     { fi
         | parse = boundedNaturalParser n
         , value = ScalarUtil.minNatural fi.value n
-        , text = ScalarUtil.naturalToString n
     }
 
 
@@ -255,7 +254,7 @@ boundedNaturalParser : Natural -> String -> Result String Natural
 boundedNaturalParser n =
     let
         zero =
-            Natural "0"
+            ScalarUtil.zeroNatural
 
         stringToInteger : String -> Integer
         stringToInteger =
