@@ -1,7 +1,7 @@
 module GraphQLFunctions.Lens.PlainCreation exposing (..)
 
-import GraphQLFunctions.OptionalArgumentUtil as OptionalArgument
-import Graphql.OptionalArgument as OptionalArgumentUtil
+import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
+import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.Enum.TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (PlainCreation, ProgressInput)
 import LondoGQL.Scalar exposing (Positive)
@@ -20,7 +20,7 @@ taskKind =
 
 unit : Lens PlainCreation (Maybe String)
 unit =
-    Lens (.unit >> OptionalArgument.toMaybe) (\b a -> { a | unit = OptionalArgumentUtil.fromMaybe b })
+    Lens (.unit >> OptionalArgumentUtil.toMaybe) (\b a -> { a | unit = OptionalArgument.fromMaybe b })
 
 
 progress : Lens PlainCreation ProgressInput
