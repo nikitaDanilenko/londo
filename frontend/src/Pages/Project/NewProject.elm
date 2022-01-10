@@ -24,6 +24,7 @@ import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid(..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
+import Monocle.Iso exposing (Iso)
 import Monocle.Lens exposing (Lens)
 import Pages.Project.PlainCreationClientInput as PlainCreationClientInput exposing (PlainCreationClientInput)
 import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
@@ -283,7 +284,7 @@ editPlainTaskLine language pos plainCreationClientInput =
                     max 0 (1 + magnitudeOver - reachedLength)
             in
             reachedString
-                |> String.padLeft additionalZeroes '0'
+                |> String.append (String.repeat additionalZeroes "0")
                 |> String.toList
                 |> (\l -> List.Extra.splitAt (List.length l - magnitudeOver) l)
                 |> (\( n, mantissa ) ->
@@ -302,7 +303,7 @@ editPlainTaskLine language pos plainCreationClientInput =
                 TaskKind.Discrete ->
                     let
                         reachableNatural =
-                            Debug.log "rn" (ScalarUtil.positiveToNatural plainCreationClientInput.progress.reachable.value)
+                            ScalarUtil.positiveToNatural plainCreationClientInput.progress.reachable.value
 
                         completed =
                             reachableNatural == plainCreationClientInput.progress.reached.value
@@ -329,11 +330,18 @@ editPlainTaskLine language pos plainCreationClientInput =
                         []
                     ]
 
+                -- todo: There is a bug here, since entering a decimal point generates an internal
+                --       zero, which leads to the input "1", "1.", "1.02".
+                --       Either the correct behaviour should be reached via an additional parameter,
+                --       or the entire input of decimal numbers should be refactored.
+                --       It is tempting to use two fields (whole part, and mantissa),
+                --       but there need to be interactions between the two fields, which make
+                --       such a solution less straightforward as one might think.
                 TaskKind.Percentual ->
                     [ input
                         [ onInput
                             -- todo: Adjustment needs to take place on lift level
-                            (flip (FromInput.lift progressReachedLens).set plainCreationClientInput
+                            (flip (FromInput.lift (PlainCreationClientInput.progress |> Compose.lensWithIso percentualIso)).set plainCreationClientInput
                                 >> SetPlainTaskAt pos
                             )
                         , adjustPercentual plainCreationClientInput.progress.reached.value plainCreationClientInput.progress.reachable.value
@@ -447,8 +455,25 @@ editPlainTaskLine language pos plainCreationClientInput =
             [ text language.remove ]
         ]
 
+
+percentualIso : Iso ProgressClientInput (FromInput ProgressInput)
+percentualIso =
+    Iso
+        (\pci ->
+            FromInput.percentualProgress
+                |> FromInput.value.set
+                    { reached = pci.reached.value
+                    , reachable = pci.reachable.value
+                    }
+        )
+        ProgressClientInput.from
+
+
+
 -- todo: Add control for adding a reference via UUID while displaying the reference name.
 -- The same control can be used for user selection elsewhere.
+
+
 editProjectReferenceTaskLine : Language.NewProject -> Int -> ProjectReferenceCreation -> Html Msg
 editProjectReferenceTaskLine language pos projectReferenceCreation =
     div [ class "projectReferenceLine" ]
