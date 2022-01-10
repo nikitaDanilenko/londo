@@ -203,7 +203,7 @@ percentualProgress : FromInput ProgressInput
 percentualProgress =
     let
         zero =
-            { reachable = Positive "100"
+            { reachable = ScalarUtil.positive100
             , reached = natural.ifEmptyValue
             }
 
@@ -230,13 +230,16 @@ percentualProgress =
                 withoutDecimalPoint =
                     txt |> String.filter (isDecimalPoint >> not)
 
-                numberOfDecimalPlaces =
+                numberOfDecimalPlacesStrict =
                     MathUtil.numberOfDecimalPlaces txt
+
+                numberOfDecimalPlacesFuzzy =
+                    if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then 1 else numberOfDecimalPlacesStrict
             in
-            if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlaces && String.all Char.isDigit withoutDecimalPoint) || txt == "100") then
+            if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlacesStrict && String.all Char.isDigit withoutDecimalPoint) || txt == "100") then
                 Ok
-                    { reachable = "100" |> String.padRight numberOfDecimalPlaces '0' |> Positive
-                    , reached = Natural withoutDecimalPoint
+                    { reachable = "100" |> flip String.append (String.repeat numberOfDecimalPlacesFuzzy "0") |> Positive
+                    , reached = Natural (String.append withoutDecimalPoint (String.repeat (if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then 1 else 0) "0"))
                     }
 
             else

@@ -19,6 +19,8 @@ positiveToNatural : Positive -> Natural
 positiveToNatural (Positive p) =
     Natural p
 
+positive100 : Positive
+positive100 = Positive "100"
 
 naturalToString : Natural -> String
 naturalToString (Natural natural) =
