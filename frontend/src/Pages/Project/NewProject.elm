@@ -4,6 +4,7 @@ import Basics.Extra exposing (flip)
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
+import Constants
 import GraphQLFunctions.Lens.ProjectCreation as ProjectCreationUtil
 import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
@@ -554,4 +555,5 @@ create : Model -> Cmd Msg
 create model =
     Mutation.createProject { projectCreation = model.projectCreation } (LondoGQL.Object.Project.id LondoGQL.Object.ProjectId.uuid)
         |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
+        |> Graphql.Http.withHeader Constants.userToken model.token
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
