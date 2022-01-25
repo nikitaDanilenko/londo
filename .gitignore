@@ -11,6 +11,8 @@ target
 
 *.iml
 
+null
+
 # Frontend
 
 /frontend/elm-stuff
