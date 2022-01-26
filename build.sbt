@@ -40,8 +40,7 @@ libraryDependencies ++= Seq(
   "com.beachape"               %% "enumeratum-circe"     % "1.7.0",
   "com.github.julien-truffaut" %% "monocle-core"         % "3.0.0-M5",
   "com.github.julien-truffaut" %% "monocle-macro"        % "3.0.0-M5",
-  "io.circe"                   %% "circe-generic-extras" % circeVersion,
-  "com.davegurnell"            %% "bridges"              % "0.24.0"
+  "io.circe"                   %% "circe-generic-extras" % circeVersion
 )
 
 scalacOptions ++= Seq(
@@ -59,9 +58,3 @@ lazy val daoGenerate = Command.command("daoGenerate") { state =>
 }
 
 commands += daoGenerate
-
-lazy val elmGenerate = Command.command("elmGenerate") { state =>
-  "runMain elm.BridgeGenerator" :: state
-}
-
-commands += elmGenerate
