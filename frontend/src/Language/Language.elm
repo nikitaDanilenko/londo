@@ -8,6 +8,7 @@ type alias Language =
     , overview : Overview
     , projectOverview : ProjectOverview
     , newProject : NewProject
+    , taskEditor : TaskEditor
     , editProject : EditProject
     , searchProject : SearchProject
     }
@@ -74,20 +75,25 @@ type alias NewProject =
     , onlyUsers : String
     , exceptUsers : String
     , flatIfSingleTask : String
-    , plainTasks : String
+    }
+
+
+type alias TaskEditor =
+    { plainTasks : String
     , newPlainTask : String
     , projectReferenceTasks : String
     , newProjectReferenceTask : String
-    , weight: String
-    , projectReference: String
-    , remove: String
+    , weight : String
+    , projectReference : String
+    , remove : String
     , plainTaskName : String
-    , taskKind: String
-    , discrete: String
-    , percentual: String
-    , fractional: String
-    , unit: String
-    , progress: String
+    , taskKind : String
+    , discrete : String
+    , percentual : String
+    , fractional : String
+    , unit : String
+    , progress : String
+    , projectName : String
     }
 
 
@@ -153,7 +159,9 @@ english =
         , onlyUsers = "Nobody, except the following people"
         , exceptUsers = "Everybody, except the following people"
         , flatIfSingleTask = "Flatten if the project contains only a single task"
-        , plainTasks = "Plain tasks"
+        }
+    , taskEditor =
+        { plainTasks = "Plain tasks"
         , newPlainTask = "Create new plain task"
         , projectReferenceTasks = "Project reference tasks"
         , newProjectReferenceTask = "Create new project reference task"
@@ -167,6 +175,7 @@ english =
         , fractional = "Fractional"
         , unit = "Unit"
         , progress = "Progress"
+        , projectName = "Project name"
         }
     , editProject = {}
     , searchProject = {}
