@@ -5,6 +5,7 @@ import LondoGQL.Scalar exposing (Natural, Positive)
 import Monocle.Lens exposing (Lens)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Pages.Util.ScalarUtil as ScalarUtil
+import Types.Progress exposing (Progress)
 
 
 type alias ProgressClientInput =
@@ -37,6 +38,13 @@ to : ProgressClientInput -> ProgressInput
 to input =
     { reachable = input.reachable.value
     , reached = input.reached.value
+    }
+
+
+fromProgress : Progress -> ProgressClientInput
+fromProgress p =
+    { reachable = FromInput.value.set p.reachable FromInput.positive
+    , reached = FromInput.value.set p.reached FromInput.natural
     }
 
 

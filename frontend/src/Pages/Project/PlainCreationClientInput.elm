@@ -8,6 +8,7 @@ import LondoGQL.Scalar exposing (Natural, Positive)
 import Monocle.Lens exposing (Lens)
 import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
+import Types.PlainTask exposing (PlainTask)
 
 
 type alias PlainCreationClientInput =
@@ -26,6 +27,16 @@ to input =
     , unit = input.unit
     , progress = ProgressClientInput.to input.progress
     , weight = input.weight.value
+    }
+
+
+from : PlainTask -> PlainCreationClientInput
+from plainTask =
+    { name = plainTask.name
+    , taskKind = plainTask.taskKind
+    , unit = OptionalArgument.fromMaybe plainTask.unit
+    , progress = ProgressClientInput.fromProgress plainTask.progress
+    , weight = FromInput.value.set plainTask.weight FromInput.positive
     }
 
 
