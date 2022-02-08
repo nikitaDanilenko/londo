@@ -94,6 +94,9 @@ type alias TaskEditor =
     , unit : String
     , progress : String
     , projectName : String
+    , create : String
+    , edit : String
+    , cancel : String
     }
 
 
@@ -176,6 +179,9 @@ english =
         , unit = "Unit"
         , progress = "Progress"
         , projectName = "Project name"
+        , create = "Create"
+        , edit = "Edit"
+        , cancel = "Cancel"
         }
     , editProject = {}
     , searchProject = {}
