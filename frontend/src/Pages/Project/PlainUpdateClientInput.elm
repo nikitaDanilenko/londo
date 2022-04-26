@@ -1,4 +1,4 @@
-module Pages.Project.PlainCreationClientInput exposing (..)
+module Pages.Project.PlainUpdateClientInput exposing (..)
 
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument exposing (OptionalArgument)
@@ -11,7 +11,7 @@ import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Types.PlainTask exposing (PlainTask)
 
 
-type alias PlainCreationClientInput =
+type alias PlainUpdateClientInput =
     { name : String
     , taskKind : TaskKind.TaskKind
     , unit : OptionalArgument String
@@ -20,7 +20,7 @@ type alias PlainCreationClientInput =
     }
 
 
-to : PlainCreationClientInput -> PlainCreation
+to : PlainUpdateClientInput -> PlainCreation
 to input =
     { name = input.name
     , taskKind = input.taskKind
@@ -30,7 +30,7 @@ to input =
     }
 
 
-from : PlainTask -> PlainCreationClientInput
+from : PlainTask -> PlainUpdateClientInput
 from plainTask =
     { name = plainTask.name
     , taskKind = plainTask.taskKind
@@ -40,7 +40,7 @@ from plainTask =
     }
 
 
-default : PlainCreationClientInput
+default : PlainUpdateClientInput
 default =
     { name = ""
     , taskKind = TaskKind.Fractional
@@ -50,26 +50,26 @@ default =
     }
 
 
-name : Lens PlainCreationClientInput String
+name : Lens PlainUpdateClientInput String
 name =
     Lens .name (\b a -> { a | name = b })
 
 
-taskKind : Lens PlainCreationClientInput TaskKind
+taskKind : Lens PlainUpdateClientInput TaskKind
 taskKind =
     Lens .taskKind (\b a -> { a | taskKind = b })
 
 
-unit : Lens PlainCreationClientInput (Maybe String)
+unit : Lens PlainUpdateClientInput (Maybe String)
 unit =
     Lens (.unit >> OptionalArgumentUtil.toMaybe) (\b a -> { a | unit = OptionalArgument.fromMaybe b })
 
 
-progress : Lens PlainCreationClientInput ProgressClientInput
+progress : Lens PlainUpdateClientInput ProgressClientInput
 progress =
     Lens .progress (\b a -> { a | progress = b })
 
 
-weight : Lens PlainCreationClientInput (FromInput Positive)
+weight : Lens PlainUpdateClientInput (FromInput Positive)
 weight =
     Lens .weight (\b a -> { a | weight = b })
