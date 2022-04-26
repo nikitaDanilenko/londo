@@ -21,7 +21,6 @@ import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid(..))
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
-import Pages.Project.PlainCreationClientInput exposing (PlainCreationClientInput)
 import Pages.Util.AccessorUtil as AccessorsUtil
 import RemoteData exposing (RemoteData)
 
@@ -31,8 +30,6 @@ type alias Model =
     , configuration : Configuration
     , language : Language.NewProject
     , projectCreation : ProjectCreation
-    , plainTasks : List PlainCreationClientInput
-    , projectReferenceTasks : List ProjectReferenceCreation
     }
 
 
@@ -71,8 +68,6 @@ init flags =
                 , readAccessors = AccessorsUtil.everybody
                 , writeAccessors = AccessorsUtil.nobody
                 }
-            , plainTasks = []
-            , projectReferenceTasks = []
             }
     in
     ( model, Cmd.none )
