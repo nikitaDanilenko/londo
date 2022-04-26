@@ -218,7 +218,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     (plainUpdateClientInput
                         |> PlainUpdateClientInput.taskKind.set taskKind
                         |> PlainUpdateClientInput.progress.set (progressClientInputByTaskKind taskKind)
-                        |> UpdatePlainTask
+                        |> UpdatePlainTask pos
                     )
                 ]
                 [ text description ]
@@ -284,7 +284,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                         , onClick
                             (plainUpdateClientInput
                                 |> progressReachedLens.set complementInput
-                                |> UpdatePlainTask
+                                |> UpdatePlainTask pos
                             )
                         ]
                         []
@@ -302,7 +302,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                         [ onInput
                             -- todo: Adjustment needs to take place on lift level
                             (flip (FromInput.lift (PlainUpdateClientInput.progress |> Compose.lensWithIso percentualIso)).set plainUpdateClientInput
-                                >> UpdatePlainTask
+                                >> UpdatePlainTask pos
                             )
                         , adjustPercentual plainUpdateClientInput.progress.reached.value plainUpdateClientInput.progress.reachable.value
                             |> value
@@ -315,7 +315,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     [ input
                         [ onInput
                             (flip (FromInput.lift progressReachedLens).set plainUpdateClientInput
-                                >> UpdatePlainTask
+                                >> UpdatePlainTask pos
                             )
                         , plainUpdateClientInput.progress.reached.value
                             |> ScalarUtil.naturalToString
@@ -342,7 +342,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                                                             pci
                                                    )
                                        )
-                                    |> UpdatePlainTask
+                                    |> UpdatePlainTask pos
                             )
                         , plainUpdateClientInput.progress.reachable.value
                             |> ScalarUtil.positiveToString
@@ -358,7 +358,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     (Just
                         >> Maybe.Extra.filter (String.isEmpty >> not)
                         >> flip PlainUpdateClientInput.unit.set plainUpdateClientInput
-                        >> UpdatePlainTask
+                        >> UpdatePlainTask pos
                     )
                 , plainUpdateClientInput.unit
                     |> OptionalArgumentUtil.toMaybe
@@ -378,7 +378,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     )
                 , onInput
                     (flip (FromInput.lift PlainUpdateClientInput.weight).set plainUpdateClientInput
-                        >> UpdatePlainTask
+                        >> UpdatePlainTask pos
                     )
                 ]
                 []
@@ -388,7 +388,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
             [ label [] [ text language.plainTaskName ]
             , input
                 [ value plainUpdateClientInput.name
-                , onInput (flip PlainUpdateClientInput.name.set plainUpdateClientInput >> UpdatePlainTask)
+                , onInput (flip PlainUpdateClientInput.name.set plainUpdateClientInput >> UpdatePlainTask pos)
                 ]
                 []
             ]
