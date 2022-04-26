@@ -4,6 +4,7 @@ import Basics.Extra exposing (flip)
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
+import Either exposing (Either(..))
 import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Html exposing (Html, button, div, input, label, text)
@@ -12,17 +13,22 @@ import Html.Events exposing (onClick, onInput)
 import Language.Language as Language
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
+import LondoGQL.InputObject exposing (ProgressInput, ProjectReferenceCreation)
 import LondoGQL.Scalar exposing (Natural, Positive, Uuid(..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
 import Monocle.Iso exposing (Iso)
-import Monocle.Lens exposing (Lens)
-import Pages.Project.PlainCreationClientInput as PlainCreationClientInput
+import Monocle.Lens as Lens exposing (Lens)
+import Monocle.Optional as Optional
+import Pages.Project.PlainUpdateClientInput as PlainUpdateClientInput exposing (PlainUpdateClientInput, default)
+import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
+import Pages.Project.ProjectReferenceUpdateClientInput as ProjectReferenceUpdateClientInput exposing (ProjectReferenceUpdateClientInput)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Pages.Util.ScalarUtil as ScalarUtil
 import Types.PlainTask exposing (PlainTask)
 import Types.Project exposing (Project)
+import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Types.ProjectReferenceTask exposing (ProjectReferenceTask)
 
 
@@ -31,31 +37,48 @@ type alias Model =
     , configuration : Configuration
     , language : Language.TaskEditor
     , project : Project
-    , plainTasks : List PlainTask
-    , projectReferenceTasks : List ProjectReferenceTask
+    , plainTasks : List (Either PlainTask (Editing PlainTask PlainUpdateClientInput))
+    , projectReferenceTasks : List (Either ProjectReferenceTask (Editing ProjectReferenceTask ProjectReferenceUpdateClientInput))
     }
 
 
 type Msg
     = AddPlainTask
-    --| SetPlainTaskAt Int PlainCreationClientInput
+    | UpdatePlainTask Int PlainUpdateClientInput
+    | EnterEditPlainTaskAt Int PlainTask
+    | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
     | AddProjectReferenceTask
-    --| SetProjectReferenceTaskAt Int ProjectReferenceCreation
+    | UpdateProjectReferenceTask Int ProjectReferenceUpdateClientInput
+    | EnterEditProjectReferenceTaskAt Int ProjectReferenceTask
     | DeleteProjectReferenceTaskAt Int
+
+
+type alias Editing a b =
+    { original : a
+    , editing : b
+    }
+
+
+editingLens : Lens (Editing a b) b
+editingLens =
+    Lens .editing (\b a -> { a | editing = b })
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         AddPlainTask ->
-            ( model |> plainTasksLens.set (PlainCreationClientInput.default :: model.plainTasks), Cmd.none )
+            ( model |> addPlainTask, Cmd.none )
 
-        SetPlainTaskAt pos plainCreationClientInput ->
-            ( model
-                |> (plainTasksLens |> Compose.lensWithOptional (list pos)).set plainCreationClientInput
-            , Cmd.none
-            )
+        UpdatePlainTask pos plainUpdateClientInput ->
+            ( model |> (plainTasksLens |> Compose.lensWithOptional (list pos)).set (Right plainUpdateClientInput), Cmd.none )
+
+        EnterEditPlainTaskAt pos ->
+            ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack PlainUpdateClientInput.from identity >> Right), Cmd.none )
+
+        ExitEditPlainTaskAt pos ->
+            ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack identity PlainUpdateClientInput.to >> Right), Cmd.none )
 
         DeletePlainTaskAt pos ->
             ( model
@@ -67,12 +90,11 @@ update msg model =
             )
 
         AddProjectReferenceTask ->
-            ( model |> projectReferenceTasksLens.set (defaultProjectReferenceCreation :: model.projectReferenceTasks), Cmd.none )
+            ( model |> projectReferenceTasksLens.set (Right ProjectReferenceUpdateClientInput.default :: model.projectReferenceTasks), Cmd.none )
 
-        SetProjectReferenceTaskAt int projectReferenceCreation ->
+        UpdateProjectReferenceTask pos projectReferenceUpdateClientInput ->
             ( model
-                |> (projectReferenceTasksLens |> Compose.lensWithOptional (list int)).set
-                    projectReferenceCreation
+                |> projectReferenceTaskCreationLens.set (Just projectReferenceUpdateClientInput)
             , Cmd.none
             )
 
@@ -88,6 +110,29 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    let
+        viewEditPlainTasks =
+            List.indexedMap
+                (\i entry ->
+                    case entry of
+                        Left pt ->
+                            editOrDeletePlainTaskLine model.language i pt
+
+                        Right editing ->
+                            editPlainTaskLine model.language i editing.editing
+                )
+
+        viewEditProjectReferenceTasks =
+            List.indexedMap
+                (\i entry ->
+                    case entry of
+                        Left prt ->
+                            editOrDeleteProjectReferenceTaskLine model.language i prt
+
+                        Right editing ->
+                            editProjectReferenceTaskLine model.language i editing.editing
+                )
+    in
     div [ id "creatingProjectView" ]
         [ div [ id "creatingProject" ]
             [ label [ for "projectName" ] [ text model.language.projectName ]
@@ -95,14 +140,8 @@ view model =
                 [ value model.project.name ]
                 []
             ]
-        , div [ id "creatingPlainTasks" ]
-            (button [ class "button", onClick AddPlainTask ] [ text model.language.newPlainTask ]
-                :: List.indexedMap (editPlainTaskLine model.language) model.plainTasks
-            )
-        , div [ id "creatingProjectReferenceTasks" ]
-            (button [ class "button", onClick AddProjectReferenceTask ] [ text model.language.newProjectReferenceTask ]
-                :: List.indexedMap (editProjectReferenceTaskLine model.language) model.projectReferenceTasks
-            )
+        , viewEditPlainTasks model.plainTasks
+        , viewEditProjectReferenceTasks model.projectReferenceTasks
         ]
 
 
@@ -128,12 +167,12 @@ percentualIso =
         ProgressClientInput.from
 
 
-plainTasksLens : Lens Model (List PlainCreationClientInput)
+plainTasksLens : Lens Model (List (Either PlainTask (Editing PlainTask PlainUpdateClientInput)))
 plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
 
 
-projectReferenceTasksLens : Lens Model (List ProjectReferenceCreation)
+projectReferenceTasksLens : Lens Model (List (Either ProjectReferenceTask (Editing ProjectReferenceTask ProjectReferenceUpdateClientInput)))
 projectReferenceTasksLens =
     Lens .projectReferenceTasks (\b a -> { a | projectReferenceTasks = b })
 
@@ -143,8 +182,24 @@ projectReferenceTasksLens =
 -- The same control can be used for user selection elsewhere.
 
 
-editPlainTaskLine : Language.TaskEditor -> Int -> PlainCreationClientInput -> Html Msg
-editPlainTaskLine language pos plainCreationClientInput =
+editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> PlainTask -> Html Msg
+editOrDeletePlainTaskLine language pos plainTask =
+    div [ id "editingPlainTask" ]
+        [ button [ class "button", onClick (EnterEditPlainTaskAt pos plainTask) ] [ text language.edit ]
+        , button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.cancel ]
+        ]
+
+
+editOrDeleteProjectReferenceTaskLine : Language.TaskEditor -> Int -> ProjectReferenceTask -> Html Msg
+editOrDeleteProjectReferenceTaskLine language pos projectReferenceTask =
+    div [ id "editingProjectReferenceTask" ]
+        [ button [ class "button", onClick (EnterEditProjectReferenceTaskAt pos projectReferenceTask) ] [ text language.edit ]
+        , button [ class "button", onClick (DeleteProjectReferenceTaskAt pos) ] [ text language.cancel ]
+        ]
+
+
+editPlainTaskLine : Language.TaskEditor -> Int -> PlainUpdateClientInput -> Html Msg
+editPlainTaskLine language pos plainUpdateClientInput =
     let
         progressClientInputByTaskKind : TaskKind -> ProgressClientInput
         progressClientInputByTaskKind taskKind =
@@ -157,20 +212,20 @@ editPlainTaskLine language pos plainCreationClientInput =
 
         taskKindRadioButton : TaskKind -> String -> ButtonGroup.RadioButtonItem Msg
         taskKindRadioButton taskKind description =
-            ButtonGroup.radioButton (plainCreationClientInput.taskKind == taskKind)
+            ButtonGroup.radioButton (plainUpdateClientInput.taskKind == taskKind)
                 [ Button.primary
                 , Button.onClick
-                    (plainCreationClientInput
-                        |> PlainCreationClientInput.taskKind.set taskKind
-                        |> PlainCreationClientInput.progress.set (progressClientInputByTaskKind taskKind)
-                        |> SetPlainTaskAt pos
+                    (plainUpdateClientInput
+                        |> PlainUpdateClientInput.taskKind.set taskKind
+                        |> PlainUpdateClientInput.progress.set (progressClientInputByTaskKind taskKind)
+                        |> UpdatePlainTask
                     )
                 ]
                 [ text description ]
 
-        progressReachedLens : Lens PlainCreationClientInput (FromInput Natural)
+        progressReachedLens : Lens PlainUpdateClientInput (FromInput Natural)
         progressReachedLens =
-            PlainCreationClientInput.progress
+            PlainUpdateClientInput.progress
                 |> Compose.lensWithLens ProgressClientInput.reached
 
         adjustPercentual : Natural -> Positive -> String
@@ -208,10 +263,10 @@ editPlainTaskLine language pos plainCreationClientInput =
                 TaskKind.Discrete ->
                     let
                         reachableNatural =
-                            ScalarUtil.positiveToNatural plainCreationClientInput.progress.reachable.value
+                            ScalarUtil.positiveToNatural plainUpdateClientInput.progress.reachable.value
 
                         completed =
-                            reachableNatural == plainCreationClientInput.progress.reached.value
+                            reachableNatural == plainUpdateClientInput.progress.reached.value
 
                         complement =
                             if completed then
@@ -227,9 +282,9 @@ editPlainTaskLine language pos plainCreationClientInput =
                         [ type_ "checkbox"
                         , checked completed
                         , onClick
-                            (plainCreationClientInput
+                            (plainUpdateClientInput
                                 |> progressReachedLens.set complementInput
-                                |> SetPlainTaskAt pos
+                                |> UpdatePlainTask
                             )
                         ]
                         []
@@ -246,10 +301,10 @@ editPlainTaskLine language pos plainCreationClientInput =
                     [ input
                         [ onInput
                             -- todo: Adjustment needs to take place on lift level
-                            (flip (FromInput.lift (PlainCreationClientInput.progress |> Compose.lensWithIso percentualIso)).set plainCreationClientInput
-                                >> SetPlainTaskAt pos
+                            (flip (FromInput.lift (PlainUpdateClientInput.progress |> Compose.lensWithIso percentualIso)).set plainUpdateClientInput
+                                >> UpdatePlainTask
                             )
-                        , adjustPercentual plainCreationClientInput.progress.reached.value plainCreationClientInput.progress.reachable.value
+                        , adjustPercentual plainUpdateClientInput.progress.reached.value plainUpdateClientInput.progress.reachable.value
                             |> value
                         ]
                         []
@@ -259,10 +314,10 @@ editPlainTaskLine language pos plainCreationClientInput =
                 TaskKind.Fractional ->
                     [ input
                         [ onInput
-                            (flip (FromInput.lift progressReachedLens).set plainCreationClientInput
-                                >> SetPlainTaskAt pos
+                            (flip (FromInput.lift progressReachedLens).set plainUpdateClientInput
+                                >> UpdatePlainTask
                             )
-                        , plainCreationClientInput.progress.reached.value
+                        , plainUpdateClientInput.progress.reached.value
                             |> ScalarUtil.naturalToString
                             |> value
                         ]
@@ -272,12 +327,12 @@ editPlainTaskLine language pos plainCreationClientInput =
                         [ onInput
                             (\n ->
                                 (FromInput.lift
-                                    (PlainCreationClientInput.progress
+                                    (PlainUpdateClientInput.progress
                                         |> Compose.lensWithLens ProgressClientInput.reachable
                                     )
                                 ).set
                                     n
-                                    plainCreationClientInput
+                                    plainUpdateClientInput
                                     |> (\pci ->
                                             ScalarUtil.stringToNatural n
                                                 |> Maybe.withDefault ((progressReachedLens |> Compose.lensWithLens FromInput.value).get pci)
@@ -287,9 +342,9 @@ editPlainTaskLine language pos plainCreationClientInput =
                                                             pci
                                                    )
                                        )
-                                    |> SetPlainTaskAt pos
+                                    |> UpdatePlainTask
                             )
-                        , plainCreationClientInput.progress.reachable.value
+                        , plainUpdateClientInput.progress.reachable.value
                             |> ScalarUtil.positiveToString
                             |> value
                         ]
@@ -302,10 +357,10 @@ editPlainTaskLine language pos plainCreationClientInput =
                 [ onInput
                     (Just
                         >> Maybe.Extra.filter (String.isEmpty >> not)
-                        >> flip PlainCreationClientInput.unit.set plainCreationClientInput
-                        >> SetPlainTaskAt pos
+                        >> flip PlainUpdateClientInput.unit.set plainUpdateClientInput
+                        >> UpdatePlainTask
                     )
-                , plainCreationClientInput.unit
+                , plainUpdateClientInput.unit
                     |> OptionalArgumentUtil.toMaybe
                     |> Maybe.withDefault ""
                     |> value
@@ -318,12 +373,12 @@ editPlainTaskLine language pos plainCreationClientInput =
         viewWeight =
             input
                 [ value
-                    (plainCreationClientInput.weight.value
+                    (plainUpdateClientInput.weight.value
                         |> ScalarUtil.positiveToString
                     )
                 , onInput
-                    (flip (FromInput.lift PlainCreationClientInput.weight).set plainCreationClientInput
-                        >> SetPlainTaskAt pos
+                    (flip (FromInput.lift PlainUpdateClientInput.weight).set plainUpdateClientInput
+                        >> UpdatePlainTask
                     )
                 ]
                 []
@@ -332,8 +387,8 @@ editPlainTaskLine language pos plainCreationClientInput =
         [ div [ class "plainName" ]
             [ label [] [ text language.plainTaskName ]
             , input
-                [ value plainCreationClientInput.name
-                , onInput (flip PlainCreationClientInput.name.set plainCreationClientInput >> SetPlainTaskAt pos)
+                [ value plainUpdateClientInput.name
+                , onInput (flip PlainUpdateClientInput.name.set plainUpdateClientInput >> UpdatePlainTask)
                 ]
                 []
             ]
@@ -349,32 +404,37 @@ editPlainTaskLine language pos plainCreationClientInput =
             ]
         , div [ class "plainProgressArea" ]
             [ label [] [ text language.progress ]
-            , div [ class "plainProgress" ] (viewProgress plainCreationClientInput.taskKind)
+            , div [ class "plainProgress" ] (viewProgress plainUpdateClientInput.taskKind)
             ]
         , div [ class "plainUnit" ] viewUnit
         , div [ class "weightArea" ]
             [ label [] [ text language.weight ]
             , div [ class "weight" ] [ viewWeight ]
             ]
-        , button [ class "button", onClick (DeletePlainTaskAt pos) ]
+        , button [ class "button", onClick (ExitEditPlainTaskAt pos) ]
             [ text language.remove ]
         ]
 
 
-editProjectReferenceTaskLine : Language.TaskEditor -> Int -> ProjectReferenceCreation -> Html Msg
-editProjectReferenceTaskLine language pos projectReferenceCreation =
+editProjectReferenceTaskLine : Language.TaskEditor -> Int -> ProjectReferenceUpdateClientInput -> Html Msg
+editProjectReferenceTaskLine language pos projectReferenceUpdateClientInput =
     div [ class "projectReferenceLine" ]
         [ div [ class "projectReferenceId" ]
             [ label []
                 [ text language.projectReference ]
             , input
-                [ projectReferenceCreation.projectReferenceId.uuid |> ScalarUtil.uuidToString |> value
+                [ projectReferenceUpdateClientInput.projectReferenceId
+                    |> ProjectId.uuid
+                    |> ScalarUtil.uuidToString
+                    |> value
                 , onInput
                     (Uuid
-                        >> flip ProjectReferenceCreation.projectReferenceId.set projectReferenceCreation
-                        >> SetProjectReferenceTaskAt pos
+                        >> ProjectId
+                        >> flip ProjectReferenceUpdateClientInput.projectReferenceId.set projectReferenceUpdateClientInput
+                        >> UpdateProjectReferenceTask pos
                     )
-                , projectReferenceCreation.projectReferenceId.uuid
+                , projectReferenceUpdateClientInput.projectReferenceId
+                    |> ProjectId.uuid
                     |> ScalarUtil.uuidToString
                     |> value
                 ]
@@ -383,15 +443,14 @@ editProjectReferenceTaskLine language pos projectReferenceCreation =
         , div [ class "weightArea" ]
             [ label [] [ text language.weight ]
             , input
-                [ projectReferenceCreation.weight |> ScalarUtil.positiveToString |> value
+                [ projectReferenceUpdateClientInput.weight.value |> ScalarUtil.positiveToString |> value
                 , type_ "number"
                 , Html.Attributes.min "1"
                 , onInput
-                    (Positive
-                        >> flip ProjectReferenceCreation.weight.set projectReferenceCreation
-                        >> SetProjectReferenceTaskAt pos
+                    (flip (FromInput.lift ProjectReferenceUpdateClientInput.weight).set projectReferenceUpdateClientInput
+                        >> UpdateProjectReferenceTask pos
                     )
-                , projectReferenceCreation.weight
+                , projectReferenceUpdateClientInput.weight.value
                     |> ScalarUtil.positiveToString
                     |> value
                 ]
