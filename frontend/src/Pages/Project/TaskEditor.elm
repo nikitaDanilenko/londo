@@ -74,8 +74,11 @@ update msg model =
         UpdatePlainTask pos plainUpdateClientInput ->
             ( model |> (plainTasksLens |> Compose.lensWithOptional (list pos)).set (Right plainUpdateClientInput), Cmd.none )
 
-        EnterEditPlainTaskAt pos ->
-            ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack PlainUpdateClientInput.from identity >> Right), Cmd.none )
+        EnterEditPlainTaskAt pos original ->
+            ( model
+                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack PlainUpdateClientInput.from identity >> Right)
+            , Cmd.none
+            )
 
         ExitEditPlainTaskAt pos ->
             ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack identity PlainUpdateClientInput.to >> Right), Cmd.none )
@@ -113,36 +116,27 @@ view model =
     let
         viewEditPlainTasks =
             List.indexedMap
-                (\i entry ->
-                    case entry of
-                        Left pt ->
-                            editOrDeletePlainTaskLine model.language i pt
-
-                        Right editing ->
-                            editPlainTaskLine model.language i editing.editing
+                (\i ->
+                    Either.unpack (editOrDeletePlainTaskLine model.language i) (.editing >> editPlainTaskLine model.language i)
                 )
 
         viewEditProjectReferenceTasks =
             List.indexedMap
-                (\i entry ->
-                    case entry of
-                        Left prt ->
-                            editOrDeleteProjectReferenceTaskLine model.language i prt
-
-                        Right editing ->
-                            editProjectReferenceTaskLine model.language i editing.editing
+                (\i ->
+                    Either.unpack (editOrDeleteProjectReferenceTaskLine model.language i) (.editing >> editProjectReferenceTaskLine model.language i)
                 )
     in
     div [ id "creatingProjectView" ]
-        [ div [ id "creatingProject" ]
+        (div [ id "creatingProject" ]
             [ label [ for "projectName" ] [ text model.language.projectName ]
             , label
                 [ value model.project.name ]
                 []
             ]
-        , viewEditPlainTasks model.plainTasks
-        , viewEditProjectReferenceTasks model.projectReferenceTasks
-        ]
+            :: (viewEditPlainTasks model.plainTasks
+                    ++ viewEditProjectReferenceTasks model.projectReferenceTasks
+               )
+        )
 
 
 defaultProjectReferenceCreation : ProjectReferenceCreation
