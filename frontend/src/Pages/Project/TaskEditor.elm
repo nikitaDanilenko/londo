@@ -72,16 +72,19 @@ update msg model =
             ( model |> addPlainTask, Cmd.none )
 
         UpdatePlainTask pos plainUpdateClientInput ->
-            ( model |> (plainTasksLens |> Compose.lensWithOptional (list pos)).set (Right plainUpdateClientInput), Cmd.none )
+            ( model
+                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.mapRight (editingLens.set plainUpdateClientInput))
+            , Cmd.none
+            )
 
         EnterEditPlainTaskAt pos original ->
             ( model
-                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack PlainUpdateClientInput.from identity >> Right)
+                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack (\pt -> { original = pt, editing = PlainUpdateClientInput.from pt }) identity >> Right)
             , Cmd.none
             )
 
         ExitEditPlainTaskAt pos ->
-            ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack identity PlainUpdateClientInput.to >> Right), Cmd.none )
+            ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack identity .original >> Left), Cmd.none )
 
         DeletePlainTaskAt pos ->
             ( model
