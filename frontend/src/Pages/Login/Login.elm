@@ -24,7 +24,7 @@ type alias Model =
     , configuration : Configuration
     }
 
-
+-- todo: Use lenses
 updateUser : Model -> String -> Model
 updateUser model user =
     { model | user = user }
