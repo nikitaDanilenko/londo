@@ -247,13 +247,14 @@ buildPlainUpdate required____ fillOptionals____ =
             fillOptionals____
                 { unit = Absent }
     in
-    { name = required____.name, taskKind = required____.taskKind, unit = optionals____.unit, weight = required____.weight }
+    { name = required____.name, taskKind = required____.taskKind, unit = optionals____.unit, weight = required____.weight, progressUpdate = required____.progressUpdate }
 
 
 type alias PlainUpdateRequiredFields =
     { name : String
     , taskKind : LondoGQL.Enum.TaskKind.TaskKind
     , weight : LondoGQL.ScalarCodecs.Positive
+    , progressUpdate : ProgressUpdate
     }
 
 
@@ -268,6 +269,7 @@ type alias PlainUpdate =
     , taskKind : LondoGQL.Enum.TaskKind.TaskKind
     , unit : OptionalArgument String
     , weight : LondoGQL.ScalarCodecs.Positive
+    , progressUpdate : ProgressUpdate
     }
 
 
@@ -276,7 +278,7 @@ type alias PlainUpdate =
 encodePlainUpdate : PlainUpdate -> Value
 encodePlainUpdate input____ =
     Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "weight", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.weight |> Just ) ]
+        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "weight", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.weight |> Just ), ( "progressUpdate", encodeProgressUpdate input____.progressUpdate |> Just ) ]
 
 
 buildProgressInput :
@@ -304,6 +306,35 @@ type alias ProgressInput =
 -}
 encodeProgressInput : ProgressInput -> Value
 encodeProgressInput input____ =
+    Encode.maybeObject
+        [ ( "reached", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecNatural) input____.reached |> Just ), ( "reachable", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.reachable |> Just ) ]
+
+
+buildProgressUpdate :
+    ProgressUpdateRequiredFields
+    -> ProgressUpdate
+buildProgressUpdate required____ =
+    { reached = required____.reached, reachable = required____.reachable }
+
+
+type alias ProgressUpdateRequiredFields =
+    { reached : LondoGQL.ScalarCodecs.Natural
+    , reachable : LondoGQL.ScalarCodecs.Positive
+    }
+
+
+{-| Type for the ProgressUpdate input object.
+-}
+type alias ProgressUpdate =
+    { reached : LondoGQL.ScalarCodecs.Natural
+    , reachable : LondoGQL.ScalarCodecs.Positive
+    }
+
+
+{-| Encode a ProgressUpdate into a value that can be used as an argument.
+-}
+encodeProgressUpdate : ProgressUpdate -> Value
+encodeProgressUpdate input____ =
     Encode.maybeObject
         [ ( "reached", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecNatural) input____.reached |> Just ), ( "reachable", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.reachable |> Just ) ]
 

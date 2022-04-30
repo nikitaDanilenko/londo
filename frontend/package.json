@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "apiGen": "elm-graphql http://localhost:9000/graphql --base LondoGQL"
+  },
+  "devDependencies": {
+    "@dillonkearns/elm-graphql": "^4.2.4"
   }
 }
