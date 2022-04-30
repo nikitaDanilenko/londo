@@ -4,16 +4,22 @@ import Basics.Extra exposing (flip)
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
+import Constants
 import Either exposing (Either(..))
 import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
+import Graphql.Http
+import Graphql.OptionalArgument as OptionalArgument
 import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (checked, class, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Language.Language as Language
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
-import LondoGQL.InputObject exposing (ProgressInput, ProjectReferenceCreation)
+import LondoGQL.InputObject exposing (PlainCreation, ProgressInput, ProjectReferenceCreation)
+import LondoGQL.Mutation as Mutation
+import LondoGQL.Object.Plain
+import LondoGQL.Object.TaskId
 import LondoGQL.Scalar exposing (Natural, Positive, Uuid(..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
@@ -26,10 +32,12 @@ import Pages.Project.ProgressClientInput as ProgressClientInput exposing (Progre
 import Pages.Project.ProjectReferenceUpdateClientInput as ProjectReferenceUpdateClientInput exposing (ProjectReferenceUpdateClientInput)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Pages.Util.ScalarUtil as ScalarUtil
-import Types.PlainTask exposing (PlainTask)
+import RemoteData exposing (RemoteData(..))
+import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Project exposing (Project)
 import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Types.ProjectReferenceTask exposing (ProjectReferenceTask)
+import Types.TaskId exposing (TaskId(..))
 
 
 type alias Model =
@@ -44,6 +52,7 @@ type alias Model =
 
 type Msg
     = AddPlainTask
+    | GotAddPlainTaskResponse (RemoteData (Graphql.Http.Error Uuid) Uuid)
     | UpdatePlainTask Int PlainUpdateClientInput
     | EnterEditPlainTaskAt Int PlainTask
     | ExitEditPlainTaskAt Int
@@ -52,6 +61,10 @@ type Msg
     | UpdateProjectReferenceTask Int ProjectReferenceUpdateClientInput
     | EnterEditProjectReferenceTaskAt Int ProjectReferenceTask
     | DeleteProjectReferenceTaskAt Int
+
+
+
+-- todo: Move to separate module
 
 
 type alias Editing a b =
@@ -69,7 +82,32 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         AddPlainTask ->
-            ( model |> addPlainTask, Cmd.none )
+            ( model, addPlainTask model )
+
+        GotAddPlainTaskResponse remoteData ->
+            case remoteData of
+                Success uuid ->
+                    let
+                        newPlainTask =
+                            PlainTask.fromCreation (TaskId uuid) defaultPlainTaskCreation
+
+                        newModel =
+                            Lens.modify plainTasksLens
+                                (\ts ->
+                                    ts
+                                        ++ [ Right
+                                                { original = newPlainTask
+                                                , editing = PlainUpdateClientInput.from newPlainTask
+                                                }
+                                           ]
+                                )
+                                model
+                    in
+                    ( newModel, Cmd.none )
+
+                _ ->
+                    -- todo: Handle error case
+                    ( model, Cmd.none )
 
         UpdatePlainTask pos plainUpdateClientInput ->
             ( model
@@ -456,3 +494,25 @@ editProjectReferenceTaskLine language pos projectReferenceUpdateClientInput =
         , button [ class "button", onClick (DeleteProjectReferenceTaskAt pos) ]
             [ text language.remove ]
         ]
+
+
+defaultPlainTaskCreation : PlainCreation
+defaultPlainTaskCreation =
+    { name = ""
+    , taskKind = TaskKind.Percentual
+    , unit = OptionalArgument.fromMaybe Nothing
+    , progress = ProgressClientInput.to ProgressClientInput.default
+    , weight = Positive "1"
+    }
+
+
+addPlainTask : Model -> Cmd Msg
+addPlainTask model =
+    Mutation.addPlainTask
+        { projectId = { uuid = model.project.id }
+        , plainCreation = defaultPlainTaskCreation
+        }
+        (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid)
+        |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
+        |> Graphql.Http.withHeader Constants.userToken model.token
+        |> Graphql.Http.send (RemoteData.fromResult >> GotAddPlainTaskResponse)

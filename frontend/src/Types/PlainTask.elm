@@ -1,8 +1,9 @@
 module Types.PlainTask exposing (..)
 
+import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.Enum.TaskKind exposing (TaskKind)
-import LondoGQL.InputObject exposing (PlainUpdate)
+import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate)
 import LondoGQL.Scalar exposing (Positive)
 import Monocle.Lens exposing (Lens)
 import Types.Progress exposing (Progress)
@@ -19,13 +20,26 @@ type alias PlainTask =
     }
 
 
+fromCreation : TaskId -> PlainCreation -> PlainTask
+fromCreation id plainCreation =
+    { id = id
+    , name = plainCreation.name
+    , taskKind = plainCreation.taskKind
+    , unit = OptionalArgumentUtil.toMaybe plainCreation.unit
+    , progress = plainCreation.progress
+    , weight = plainCreation.weight
+    }
+
+
 toUpdate : PlainTask -> PlainUpdate
 toUpdate plainTask =
     { name = plainTask.name
     , taskKind = plainTask.taskKind
     , unit = OptionalArgument.fromMaybe plainTask.unit
     , weight = plainTask.weight
+    , progressUpdate = plainTask.progress
     }
+
 
 name : Lens PlainTask String
 name =

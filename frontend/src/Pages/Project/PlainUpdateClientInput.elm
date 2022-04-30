@@ -3,7 +3,7 @@ module Pages.Project.PlainUpdateClientInput exposing (..)
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument exposing (OptionalArgument)
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
-import LondoGQL.InputObject exposing (PlainCreation, ProgressInput)
+import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate, ProgressInput)
 import LondoGQL.Scalar exposing (Natural, Positive)
 import Monocle.Lens exposing (Lens)
 import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
@@ -20,12 +20,12 @@ type alias PlainUpdateClientInput =
     }
 
 
-to : PlainUpdateClientInput -> PlainCreation
+to : PlainUpdateClientInput -> PlainUpdate
 to input =
     { name = input.name
     , taskKind = input.taskKind
     , unit = input.unit
-    , progress = ProgressClientInput.to input.progress
+    , progressUpdate = ProgressClientInput.to input.progress
     , weight = input.weight.value
     }
 
