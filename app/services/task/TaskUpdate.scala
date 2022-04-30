@@ -9,7 +9,8 @@ object TaskUpdate {
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
-      weight: Positive
+      weight: Positive,
+      progressUpdate: ProgressUpdate
   )
 
   object Plain {
@@ -19,7 +20,11 @@ object TaskUpdate {
         name = plainUpdate.name,
         taskKind = plainUpdate.taskKind,
         unit = plainUpdate.unit,
-        weight = plainUpdate.weight
+        weight = plainUpdate.weight,
+        progress = Progress.fraction(
+          reachable = plainUpdate.progressUpdate.reachable,
+          reached = plainUpdate.progressUpdate.reached
+        )
       )
 
   }
