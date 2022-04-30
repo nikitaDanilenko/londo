@@ -19,7 +19,8 @@ object TaskUpdate {
       name: String,
       taskKind: TaskKind,
       unit: Option[String],
-      weight: Positive
+      weight: Positive,
+      progressUpdate: ProgressUpdate
   )
 
   object PlainUpdate {
@@ -29,7 +30,8 @@ object TaskUpdate {
         name = plain.name,
         taskKind = plain.taskKind.toInternal,
         unit = plain.unit,
-        weight = plain.weight
+        weight = plain.weight,
+        progressUpdate = plain.progressUpdate.toInternal
       )
 
     implicit val taskUpdatePlainUpdateInputObjectType: InputObjectType[PlainUpdate] =
