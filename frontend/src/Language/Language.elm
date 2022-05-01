@@ -97,6 +97,7 @@ type alias TaskEditor =
     , create : String
     , edit : String
     , cancel : String
+    , save: String
     }
 
 
@@ -182,6 +183,7 @@ english =
         , create = "Create"
         , edit = "Edit"
         , cancel = "Cancel"
+        , save = "Save"
         }
     , editProject = {}
     , searchProject = {}

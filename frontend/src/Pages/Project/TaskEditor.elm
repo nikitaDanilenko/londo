@@ -10,15 +10,17 @@ import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreatio
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
+import Graphql.SelectionSet as SelectionSet
 import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (checked, class, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Language.Language as Language
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
-import LondoGQL.InputObject exposing (PlainCreation, ProgressInput, ProjectReferenceCreation)
+import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate, ProgressInput, ProjectReferenceCreation)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.Plain
+import LondoGQL.Object.Progress
 import LondoGQL.Object.TaskId
 import LondoGQL.Scalar exposing (Natural, Positive, Uuid(..))
 import Maybe.Extra
@@ -37,7 +39,7 @@ import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Project exposing (Project)
 import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Types.ProjectReferenceTask exposing (ProjectReferenceTask)
-import Types.TaskId exposing (TaskId(..))
+import Types.TaskId as TaskId exposing (TaskId(..))
 
 
 type alias Model =
@@ -54,12 +56,14 @@ type Msg
     = AddPlainTask
     | GotAddPlainTaskResponse (RemoteData (Graphql.Http.Error Uuid) Uuid)
     | UpdatePlainTask Int PlainUpdateClientInput
-    | EnterEditPlainTaskAt Int PlainTask
+    | SavePlainTaskEdit Int
+    | GotSavePlainTaskResponse (RemoteData (Graphql.Http.Error PlainTask) PlainTask)
+    | EnterEditPlainTaskAt Int
     | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
     | AddProjectReferenceTask
     | UpdateProjectReferenceTask Int ProjectReferenceUpdateClientInput
-    | EnterEditProjectReferenceTaskAt Int ProjectReferenceTask
+    | EnterEditProjectReferenceTaskAt Int
     | DeleteProjectReferenceTaskAt Int
 
 
@@ -115,7 +119,7 @@ update msg model =
             , Cmd.none
             )
 
-        EnterEditPlainTaskAt pos original ->
+        EnterEditPlainTaskAt pos ->
             ( model
                 |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack (\pt -> { original = pt, editing = PlainUpdateClientInput.from pt }) identity >> Right)
             , Cmd.none
@@ -150,6 +154,12 @@ update msg model =
                     )
             , Cmd.none
             )
+
+        SavePlainTaskEdit pos ->
+            ( model, savePlainTask model pos )
+
+        EnterEditProjectReferenceTaskAt pos ->
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -217,18 +227,18 @@ projectReferenceTasksLens =
 -- The same control can be used for user selection elsewhere.
 
 
-editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> PlainTask -> Html Msg
-editOrDeletePlainTaskLine language pos plainTask =
+editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> Html Msg
+editOrDeletePlainTaskLine language pos =
     div [ id "editingPlainTask" ]
-        [ button [ class "button", onClick (EnterEditPlainTaskAt pos plainTask) ] [ text language.edit ]
+        [ button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ]
         , button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.cancel ]
         ]
 
 
-editOrDeleteProjectReferenceTaskLine : Language.TaskEditor -> Int -> ProjectReferenceTask -> Html Msg
-editOrDeleteProjectReferenceTaskLine language pos projectReferenceTask =
+editOrDeleteProjectReferenceTaskLine : Language.TaskEditor -> Int -> Html Msg
+editOrDeleteProjectReferenceTaskLine language pos =
     div [ id "editingProjectReferenceTask" ]
-        [ button [ class "button", onClick (EnterEditProjectReferenceTaskAt pos projectReferenceTask) ] [ text language.edit ]
+        [ button [ class "button", onClick (EnterEditProjectReferenceTaskAt pos) ] [ text language.edit ]
         , button [ class "button", onClick (DeleteProjectReferenceTaskAt pos) ] [ text language.cancel ]
         ]
 
@@ -446,8 +456,10 @@ editPlainTaskLine language pos plainUpdateClientInput =
             [ label [] [ text language.weight ]
             , div [ class "weight" ] [ viewWeight ]
             ]
+        , button [ class "button", onClick (SavePlainTaskEdit pos) ]
+            [ text language.save ]
         , button [ class "button", onClick (ExitEditPlainTaskAt pos) ]
-            [ text language.remove ]
+            [ text language.cancel ]
         ]
 
 
@@ -516,3 +528,44 @@ addPlainTask model =
         |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
         |> Graphql.Http.withHeader Constants.userToken model.token
         |> Graphql.Http.send (RemoteData.fromResult >> GotAddPlainTaskResponse)
+
+
+savePlainTask : Model -> PlainUpdate -> TaskId -> Cmd Msg
+savePlainTask model plainUpdate taskId =
+    Mutation.updatePlainTask
+        { taskKey =
+            { projectId = { uuid = model.project.id }
+            , taskId = { uuid = TaskId.uuid taskId }
+            }
+        , plainUpdate = plainUpdate
+        }
+        (SelectionSet.map6
+            (\id name taskKind unit progress weight ->
+                { id = id
+                , name = name
+                , taskKind = taskKind
+                , unit = unit
+                , progress = progress
+                , weight = weight
+                }
+            )
+            (SelectionSet.map TaskId (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid))
+            LondoGQL.Object.Plain.name
+            LondoGQL.Object.Plain.taskKind
+            LondoGQL.Object.Plain.unit
+            (LondoGQL.Object.Plain.progress
+                (SelectionSet.map2
+                    (\reached reachable ->
+                        { reached = reached
+                        , reachable = reachable
+                        }
+                    )
+                    LondoGQL.Object.Progress.reached
+                    LondoGQL.Object.Progress.reachable
+                )
+            )
+            LondoGQL.Object.Plain.weight
+        )
+        |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
+        |> Graphql.Http.withHeader Constants.userToken model.token
+        |> Graphql.Http.send (RemoteData.fromResult >> GotSavePlainTaskResponse)
