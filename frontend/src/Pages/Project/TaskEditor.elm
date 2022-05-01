@@ -59,10 +59,6 @@ type Msg
     | DeletePlainTaskAt Int
 
 
-
--- todo: Move to separate module
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -179,11 +175,6 @@ plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
 
 
-
--- todo: Add control for adding a reference via UUID while displaying the reference name.
--- The same control can be used for user selection elsewhere.
-
-
 editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> Html Msg
 editOrDeletePlainTaskLine language pos =
     div [ id "editingPlainTask" ]
@@ -294,7 +285,6 @@ editPlainTaskLine language pos plainUpdateClientInput =
                 TaskKind.Percentual ->
                     [ input
                         [ onInput
-                            -- todo: Adjustment needs to take place on lift level
                             (flip (FromInput.lift (PlainUpdateClientInput.progress |> Compose.lensWithIso percentualIso)).set plainUpdateClientInput
                                 >> UpdatePlainTask pos
                             )
