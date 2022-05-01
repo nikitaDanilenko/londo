@@ -57,7 +57,7 @@ type Msg
     | GotAddPlainTaskResponse (RemoteData (Graphql.Http.Error Uuid) Uuid)
     | UpdatePlainTask Int PlainUpdateClientInput
     | SavePlainTaskEdit Int
-    | GotSavePlainTaskResponse (RemoteData (Graphql.Http.Error PlainTask) PlainTask)
+    | GotSavePlainTaskResponse Int (RemoteData (Graphql.Http.Error PlainTask) PlainTask)
     | EnterEditPlainTaskAt Int
     | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
@@ -119,6 +119,28 @@ update msg model =
             , Cmd.none
             )
 
+        SavePlainTaskEdit pos ->
+            let
+                cmd =
+                    Maybe.Extra.unwrap
+                        Cmd.none
+                        (Either.unwrap Cmd.none (\editing -> savePlainTask model (PlainUpdateClientInput.to editing.editing) editing.original.id pos))
+                        (List.Extra.getAt pos model.plainTasks)
+            in
+            ( model, cmd )
+
+        GotSavePlainTaskResponse pos remoteData ->
+            case remoteData of
+                Success plainTask ->
+                    ( model
+                        |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.mapBoth (always plainTask) identity)
+                    , Cmd.none
+                    )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
+
         EnterEditPlainTaskAt pos ->
             ( model
                 |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack (\pt -> { original = pt, editing = PlainUpdateClientInput.from pt }) identity >> Right)
@@ -155,9 +177,6 @@ update msg model =
             , Cmd.none
             )
 
-        SavePlainTaskEdit pos ->
-            ( model, savePlainTask model pos )
-
         EnterEditProjectReferenceTaskAt pos ->
             ( model, Cmd.none )
 
@@ -168,13 +187,13 @@ view model =
         viewEditPlainTasks =
             List.indexedMap
                 (\i ->
-                    Either.unpack (editOrDeletePlainTaskLine model.language i) (.editing >> editPlainTaskLine model.language i)
+                    Either.unwrap (editOrDeletePlainTaskLine model.language i) (.editing >> editPlainTaskLine model.language i)
                 )
 
         viewEditProjectReferenceTasks =
             List.indexedMap
                 (\i ->
-                    Either.unpack (editOrDeleteProjectReferenceTaskLine model.language i) (.editing >> editProjectReferenceTaskLine model.language i)
+                    Either.unwrap (editOrDeleteProjectReferenceTaskLine model.language i) (.editing >> editProjectReferenceTaskLine model.language i)
                 )
     in
     div [ id "creatingProjectView" ]
@@ -530,8 +549,8 @@ addPlainTask model =
         |> Graphql.Http.send (RemoteData.fromResult >> GotAddPlainTaskResponse)
 
 
-savePlainTask : Model -> PlainUpdate -> TaskId -> Cmd Msg
-savePlainTask model plainUpdate taskId =
+savePlainTask : Model -> PlainUpdate -> TaskId -> Int -> Cmd Msg
+savePlainTask model plainUpdate taskId pos =
     Mutation.updatePlainTask
         { taskKey =
             { projectId = { uuid = model.project.id }
@@ -568,4 +587,4 @@ savePlainTask model plainUpdate taskId =
         )
         |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
         |> Graphql.Http.withHeader Constants.userToken model.token
-        |> Graphql.Http.send (RemoteData.fromResult >> GotSavePlainTaskResponse)
+        |> Graphql.Http.send (RemoteData.fromResult >> GotSavePlainTaskResponse pos)
