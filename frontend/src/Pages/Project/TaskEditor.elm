@@ -36,6 +36,7 @@ import RemoteData exposing (RemoteData(..))
 import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Project exposing (Project)
 import Types.TaskId as TaskId exposing (TaskId(..))
+import Util.Editing as Editing exposing (Editing)
 
 
 type alias Model =
@@ -62,17 +63,6 @@ type Msg
 -- todo: Move to separate module
 
 
-type alias Editing a b =
-    { original : a
-    , editing : b
-    }
-
-
-editingLens : Lens (Editing a b) b
-editingLens =
-    Lens .editing (\b a -> { a | editing = b })
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -92,7 +82,7 @@ update msg model =
                                     ts
                                         ++ [ Right
                                                 { original = newPlainTask
-                                                , editing = PlainUpdateClientInput.from newPlainTask
+                                                , update = PlainUpdateClientInput.from newPlainTask
                                                 }
                                            ]
                                 )
@@ -106,7 +96,7 @@ update msg model =
 
         UpdatePlainTask pos plainUpdateClientInput ->
             ( model
-                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.mapRight (editingLens.set plainUpdateClientInput))
+                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.mapRight (Editing.updateLens.set plainUpdateClientInput))
             , Cmd.none
             )
 
@@ -115,7 +105,7 @@ update msg model =
                 cmd =
                     Maybe.Extra.unwrap
                         Cmd.none
-                        (Either.unwrap Cmd.none (\editing -> savePlainTask model (PlainUpdateClientInput.to editing.editing) editing.original.id pos))
+                        (Either.unwrap Cmd.none (\editing -> savePlainTask model (PlainUpdateClientInput.to editing.update) editing.original.id pos))
                         (List.Extra.getAt pos model.plainTasks)
             in
             ( model, cmd )
@@ -134,7 +124,7 @@ update msg model =
 
         EnterEditPlainTaskAt pos ->
             ( model
-                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack (\pt -> { original = pt, editing = PlainUpdateClientInput.from pt }) identity >> Right)
+                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack (\pt -> { original = pt, update = PlainUpdateClientInput.from pt }) identity >> Right)
             , Cmd.none
             )
 
@@ -157,7 +147,7 @@ view model =
         viewEditPlainTasks =
             List.indexedMap
                 (\i ->
-                    Either.unwrap (editOrDeletePlainTaskLine model.language i) (.editing >> editPlainTaskLine model.language i)
+                    Either.unwrap (editOrDeletePlainTaskLine model.language i) (.update >> editPlainTaskLine model.language i)
                 )
     in
     div [ id "creatingProjectView" ]
