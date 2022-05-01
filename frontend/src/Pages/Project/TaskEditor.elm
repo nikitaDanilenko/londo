@@ -6,7 +6,6 @@ import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
 import Constants
 import Either exposing (Either(..))
-import GraphQLFunctions.Lens.ProjectReferenceCreation as ProjectReferenceCreation
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
@@ -17,7 +16,7 @@ import Html.Events exposing (onClick, onInput)
 import Language.Language as Language
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
-import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate, ProgressInput, ProjectReferenceCreation)
+import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate, ProgressInput)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.Plain
 import LondoGQL.Object.Progress
@@ -29,16 +28,13 @@ import Monocle.Compose as Compose
 import Monocle.Iso exposing (Iso)
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional
-import Pages.Project.PlainUpdateClientInput as PlainUpdateClientInput exposing (PlainUpdateClientInput, default)
+import Pages.Project.PlainUpdateClientInput as PlainUpdateClientInput exposing (PlainUpdateClientInput)
 import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
-import Pages.Project.ProjectReferenceUpdateClientInput as ProjectReferenceUpdateClientInput exposing (ProjectReferenceUpdateClientInput)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData(..))
 import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Project exposing (Project)
-import Types.ProjectId as ProjectId exposing (ProjectId(..))
-import Types.ProjectReferenceTask exposing (ProjectReferenceTask)
 import Types.TaskId as TaskId exposing (TaskId(..))
 
 
@@ -48,7 +44,6 @@ type alias Model =
     , language : Language.TaskEditor
     , project : Project
     , plainTasks : List (Either PlainTask (Editing PlainTask PlainUpdateClientInput))
-    , projectReferenceTasks : List (Either ProjectReferenceTask (Editing ProjectReferenceTask ProjectReferenceUpdateClientInput))
     }
 
 
@@ -61,10 +56,6 @@ type Msg
     | EnterEditPlainTaskAt Int
     | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
-    | AddProjectReferenceTask
-    | UpdateProjectReferenceTask Int ProjectReferenceUpdateClientInput
-    | EnterEditProjectReferenceTaskAt Int
-    | DeleteProjectReferenceTaskAt Int
 
 
 
@@ -159,27 +150,6 @@ update msg model =
             , Cmd.none
             )
 
-        AddProjectReferenceTask ->
-            ( model |> projectReferenceTasksLens.set (Right ProjectReferenceUpdateClientInput.default :: model.projectReferenceTasks), Cmd.none )
-
-        UpdateProjectReferenceTask pos projectReferenceUpdateClientInput ->
-            ( model
-                |> projectReferenceTaskCreationLens.set (Just projectReferenceUpdateClientInput)
-            , Cmd.none
-            )
-
-        DeleteProjectReferenceTaskAt pos ->
-            ( model
-                |> projectReferenceTasksLens.set
-                    (model.projectReferenceTasks
-                        |> List.Extra.removeAt pos
-                    )
-            , Cmd.none
-            )
-
-        EnterEditProjectReferenceTaskAt pos ->
-            ( model, Cmd.none )
-
 
 view : Model -> Html Msg
 view model =
@@ -189,12 +159,6 @@ view model =
                 (\i ->
                     Either.unwrap (editOrDeletePlainTaskLine model.language i) (.editing >> editPlainTaskLine model.language i)
                 )
-
-        viewEditProjectReferenceTasks =
-            List.indexedMap
-                (\i ->
-                    Either.unwrap (editOrDeleteProjectReferenceTaskLine model.language i) (.editing >> editProjectReferenceTaskLine model.language i)
-                )
     in
     div [ id "creatingProjectView" ]
         (div [ id "creatingProject" ]
@@ -203,19 +167,8 @@ view model =
                 [ value model.project.name ]
                 []
             ]
-            :: (viewEditPlainTasks model.plainTasks
-                    ++ viewEditProjectReferenceTasks model.projectReferenceTasks
-               )
+            :: viewEditPlainTasks model.plainTasks
         )
-
-
-defaultProjectReferenceCreation : ProjectReferenceCreation
-defaultProjectReferenceCreation =
-    { weight = Positive "1"
-    , projectReferenceId =
-        { uuid = Uuid ""
-        }
-    }
 
 
 percentualIso : Iso ProgressClientInput (FromInput ProgressInput)
@@ -236,11 +189,6 @@ plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
 
 
-projectReferenceTasksLens : Lens Model (List (Either ProjectReferenceTask (Editing ProjectReferenceTask ProjectReferenceUpdateClientInput)))
-projectReferenceTasksLens =
-    Lens .projectReferenceTasks (\b a -> { a | projectReferenceTasks = b })
-
-
 
 -- todo: Add control for adding a reference via UUID while displaying the reference name.
 -- The same control can be used for user selection elsewhere.
@@ -251,14 +199,6 @@ editOrDeletePlainTaskLine language pos =
     div [ id "editingPlainTask" ]
         [ button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ]
         , button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.cancel ]
-        ]
-
-
-editOrDeleteProjectReferenceTaskLine : Language.TaskEditor -> Int -> Html Msg
-editOrDeleteProjectReferenceTaskLine language pos =
-    div [ id "editingProjectReferenceTask" ]
-        [ button [ class "button", onClick (EnterEditProjectReferenceTaskAt pos) ] [ text language.edit ]
-        , button [ class "button", onClick (DeleteProjectReferenceTaskAt pos) ] [ text language.cancel ]
         ]
 
 
@@ -479,51 +419,6 @@ editPlainTaskLine language pos plainUpdateClientInput =
             [ text language.save ]
         , button [ class "button", onClick (ExitEditPlainTaskAt pos) ]
             [ text language.cancel ]
-        ]
-
-
-editProjectReferenceTaskLine : Language.TaskEditor -> Int -> ProjectReferenceUpdateClientInput -> Html Msg
-editProjectReferenceTaskLine language pos projectReferenceUpdateClientInput =
-    div [ class "projectReferenceLine" ]
-        [ div [ class "projectReferenceId" ]
-            [ label []
-                [ text language.projectReference ]
-            , input
-                [ projectReferenceUpdateClientInput.projectReferenceId
-                    |> ProjectId.uuid
-                    |> ScalarUtil.uuidToString
-                    |> value
-                , onInput
-                    (Uuid
-                        >> ProjectId
-                        >> flip ProjectReferenceUpdateClientInput.projectReferenceId.set projectReferenceUpdateClientInput
-                        >> UpdateProjectReferenceTask pos
-                    )
-                , projectReferenceUpdateClientInput.projectReferenceId
-                    |> ProjectId.uuid
-                    |> ScalarUtil.uuidToString
-                    |> value
-                ]
-                []
-            ]
-        , div [ class "weightArea" ]
-            [ label [] [ text language.weight ]
-            , input
-                [ projectReferenceUpdateClientInput.weight.value |> ScalarUtil.positiveToString |> value
-                , type_ "number"
-                , Html.Attributes.min "1"
-                , onInput
-                    (flip (FromInput.lift ProjectReferenceUpdateClientInput.weight).set projectReferenceUpdateClientInput
-                        >> UpdateProjectReferenceTask pos
-                    )
-                , projectReferenceUpdateClientInput.weight.value
-                    |> ScalarUtil.positiveToString
-                    |> value
-                ]
-                []
-            ]
-        , button [ class "button", onClick (DeleteProjectReferenceTaskAt pos) ]
-            [ text language.remove ]
         ]
 
 
