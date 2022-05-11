@@ -2,12 +2,12 @@ module Types.Project exposing (..)
 
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject exposing (ProjectUpdate)
-import LondoGQL.Scalar exposing (Uuid)
+import Types.ProjectId exposing (ProjectId)
 import Types.UserId as UserId exposing (UserId)
 
 
 type alias Project =
-    { id : Uuid
+    { id : ProjectId
     , name : String
     , description : Maybe String
     , ownerId : UserId

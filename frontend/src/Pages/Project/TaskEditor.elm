@@ -13,14 +13,17 @@ import Graphql.SelectionSet as SelectionSet
 import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (checked, class, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
-import Language.Language as Language
+import Language.Language as Language exposing (Language)
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate, ProgressInput)
 import LondoGQL.Mutation as Mutation
+import LondoGQL.Object
 import LondoGQL.Object.Plain
 import LondoGQL.Object.Progress
+import LondoGQL.Object.Project
 import LondoGQL.Object.TaskId
+import LondoGQL.Query as Query
 import LondoGQL.Scalar exposing (Natural, Positive(..), Uuid(..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
@@ -35,7 +38,9 @@ import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData(..))
 import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Project exposing (Project)
+import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Types.TaskId as TaskId exposing (TaskId(..))
+import Types.UserId exposing (UserId(..))
 import Util.Editing as Editing exposing (Editing)
 
 
@@ -57,6 +62,38 @@ type Msg
     | EnterEditPlainTaskAt Int
     | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
+    | GotFetchPlainTasksResponse (RemoteData (Graphql.Http.Error (List PlainTask)) (List PlainTask))
+
+
+type alias Flags =
+    { projectId : ProjectId
+    , token : String
+    , configuration : Configuration
+    , language : Language
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    let
+        defaultUuid =
+            Uuid "00000000-0000-0000-0000-000000000000"
+
+        model =
+            { token = flags.token
+            , configuration = flags.configuration
+            , language = flags.language.taskEditor
+            , project =
+                { id = flags.projectId
+                , name = ""
+                , description = Nothing
+                , ownerId = UserId defaultUuid
+                , flatIfSingleTask = False
+                }
+            , plainTasks = []
+            }
+    in
+    ( model, fetchPlainTasks model )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -127,6 +164,7 @@ update msg model =
         ExitEditPlainTaskAt pos ->
             ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack identity .original >> Left), Cmd.none )
 
+        -- todo: The actual deletion in the backend is missing
         DeletePlainTaskAt pos ->
             ( model
                 |> plainTasksLens.set
@@ -135,6 +173,15 @@ update msg model =
                     )
             , Cmd.none
             )
+
+        GotFetchPlainTasksResponse remoteData ->
+            case remoteData of
+                Success plainTasks ->
+                    ( model |> plainTasksLens.set (plainTasks |> List.map Left), Cmd.none )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -415,7 +462,7 @@ defaultPlainTaskCreation =
 addPlainTask : Model -> Cmd Msg
 addPlainTask model =
     Mutation.addPlainTask
-        { projectId = { uuid = model.project.id }
+        { projectId = { uuid = model.project.id |> ProjectId.uuid }
         , plainCreation = defaultPlainTaskCreation
         }
         (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid)
@@ -428,38 +475,51 @@ savePlainTask : Model -> PlainUpdate -> TaskId -> Int -> Cmd Msg
 savePlainTask model plainUpdate taskId pos =
     Mutation.updatePlainTask
         { taskKey =
-            { projectId = { uuid = model.project.id }
+            { projectId = { uuid = model.project.id |> ProjectId.uuid }
             , taskId = { uuid = TaskId.uuid taskId }
             }
         , plainUpdate = plainUpdate
         }
-        (SelectionSet.map6
-            (\id name taskKind unit progress weight ->
-                { id = id
-                , name = name
-                , taskKind = taskKind
-                , unit = unit
-                , progress = progress
-                , weight = weight
-                }
-            )
-            (SelectionSet.map TaskId (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid))
-            LondoGQL.Object.Plain.name
-            LondoGQL.Object.Plain.taskKind
-            LondoGQL.Object.Plain.unit
-            (LondoGQL.Object.Plain.progress
-                (SelectionSet.map2
-                    (\reached reachable ->
-                        { reached = reached
-                        , reachable = reachable
-                        }
-                    )
-                    LondoGQL.Object.Progress.reached
-                    LondoGQL.Object.Progress.reachable
-                )
-            )
-            LondoGQL.Object.Plain.weight
-        )
+        plainTaskSelection
         |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
         |> Graphql.Http.withHeader Constants.userToken model.token
         |> Graphql.Http.send (RemoteData.fromResult >> GotSavePlainTaskResponse pos)
+
+
+fetchPlainTasks : Model -> Cmd Msg
+fetchPlainTasks model =
+    Query.fetchProject { projectId = { uuid = model.project.id |> ProjectId.uuid } }
+        (LondoGQL.Object.Project.plainTasks plainTaskSelection)
+        |> Graphql.Http.queryRequest model.configuration.graphQLEndpoint
+        |> Graphql.Http.withHeader Constants.userToken model.token
+        |> Graphql.Http.send (RemoteData.fromResult >> GotFetchPlainTasksResponse)
+
+
+plainTaskSelection : SelectionSet.SelectionSet PlainTask LondoGQL.Object.Plain
+plainTaskSelection =
+    SelectionSet.map6
+        (\id name taskKind unit progress weight ->
+            { id = id
+            , name = name
+            , taskKind = taskKind
+            , unit = unit
+            , progress = progress
+            , weight = weight
+            }
+        )
+        (SelectionSet.map TaskId (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid))
+        LondoGQL.Object.Plain.name
+        LondoGQL.Object.Plain.taskKind
+        LondoGQL.Object.Plain.unit
+        (LondoGQL.Object.Plain.progress
+            (SelectionSet.map2
+                (\reached reachable ->
+                    { reached = reached
+                    , reachable = reachable
+                    }
+                )
+                LondoGQL.Object.Progress.reached
+                LondoGQL.Object.Progress.reachable
+            )
+        )
+        LondoGQL.Object.Plain.weight
