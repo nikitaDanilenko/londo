@@ -15,4 +15,5 @@ type alias SubFolders =
     , login : String
     , overview: String
     , newProject: String
+    , taskEditor: String
     }
