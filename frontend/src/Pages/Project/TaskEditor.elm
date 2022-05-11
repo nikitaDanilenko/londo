@@ -21,7 +21,7 @@ import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.Plain
 import LondoGQL.Object.Progress
 import LondoGQL.Object.TaskId
-import LondoGQL.Scalar exposing (Natural, Positive, Uuid(..))
+import LondoGQL.Scalar exposing (Natural, Positive(..), Uuid(..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
