@@ -10,6 +10,7 @@ import Maybe.Extra
 import Pages.Login.Login as Login
 import Pages.Overview.Overview as Overview
 import Pages.Project.NewProject as NewProject
+import Pages.Project.TaskEditor as TaskEditor
 import Pages.Register.CreateNewUser as CreateNewUser
 import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
 import Url exposing (Protocol(..), Url)
@@ -42,6 +43,7 @@ type Page
     | Login Login.Model
     | Overview Overview.Model
     | NewProject NewProject.Model
+    | TaskEditor TaskEditor.Model
     | NotFound
 
 
@@ -53,6 +55,7 @@ type Msg
     | LoginMsg Login.Msg
     | OverviewMsg Overview.Msg
     | NewProjectMsg NewProject.Msg
+    | TaskEditorMsg TaskEditor.Msg
 
 
 titleFor : Model -> String
@@ -87,6 +90,9 @@ view model =
         NewProject newProject ->
             Html.map NewProjectMsg (NewProject.view newProject)
 
+        TaskEditor taskEditor ->
+            Html.map TaskEditorMsg (TaskEditor.view taskEditor)
+
         NotFound ->
             div [] [ text "Page not found" ]
 
@@ -119,6 +125,9 @@ update msg model =
 
         ( NewProjectMsg newProjectMsg, NewProject newProject ) ->
             stepNewProject model (NewProject.update newProjectMsg newProject)
+
+        ( TaskEditorMsg taskEditorMsg, TaskEditor taskEditor ) ->
+            stepTaskEditor model (TaskEditor.update taskEditorMsg taskEditor)
 
         _ ->
             ( model, Cmd.none )
@@ -171,6 +180,11 @@ stepOverview model ( overview, cmd ) =
 stepNewProject : Model -> ( NewProject.Model, Cmd NewProject.Msg ) -> ( Model, Cmd Msg )
 stepNewProject model ( newProject, cmd ) =
     ( { model | page = NewProject newProject }, Cmd.map NewProjectMsg cmd )
+
+
+stepTaskEditor : Model -> ( TaskEditor.Model, Cmd TaskEditor.Msg ) -> ( Model, Cmd Msg )
+stepTaskEditor model ( taskEditor, cmd ) =
+    ( { model | page = TaskEditor taskEditor }, Cmd.map TaskEditorMsg cmd )
 
 
 type Route
@@ -228,17 +242,19 @@ routeParser configuration =
                         , configuration = configuration
                         }
                     )
+
         newProjectParser =
             (s configuration.subFolders.newProject
-            </> tokenParser
-            <?> languageParser)
-            |> Parser.map
-                                   (\token language ->
-                                       { token = token
-                                       , language = language
-                                       , configuration = configuration
-                                       }
-                                   )
+                </> tokenParser
+                <?> languageParser
+            )
+                |> Parser.map
+                    (\token language ->
+                        { token = token
+                        , language = language
+                        , configuration = configuration
+                        }
+                    )
     in
     Parser.oneOf
         [ route registrationTokenParser CreateRegistrationTokenRoute
