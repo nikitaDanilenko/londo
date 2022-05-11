@@ -13,6 +13,8 @@ import Pages.Project.NewProject as NewProject
 import Pages.Project.TaskEditor as TaskEditor
 import Pages.Register.CreateNewUser as CreateNewUser
 import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
+import Pages.Util.ParserUtil as ParserUtil
+import Types.ProjectId exposing (ProjectId(..))
 import Url exposing (Protocol(..), Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, s)
 import Url.Parser.Query as Query
@@ -153,6 +155,9 @@ stepTo url model =
                 NewProjectRoute flags ->
                     NewProject.init flags |> stepNewProject model
 
+                TaskEditorRoute flags ->
+                    TaskEditor.init flags |> stepTaskEditor model
+
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
 
@@ -193,6 +198,7 @@ type Route
     | LoginRoute Login.Flags
     | OverviewRoute Overview.Flags
     | NewProjectRoute NewProject.Flags
+    | TaskEditorRoute TaskEditor.Flags
 
 
 routeParser : Configuration -> Parser (Route -> a) a
@@ -255,6 +261,21 @@ routeParser configuration =
                         , configuration = configuration
                         }
                     )
+
+        taskEditorParser =
+            (s configuration.subFolders.taskEditor
+                </> ParserUtil.uuidParser
+                </> tokenParser
+                <?> languageParser
+            )
+                |> Parser.map
+                    (\uuid token language ->
+                        { projectId = ProjectId uuid
+                        , token = token
+                        , language = language
+                        , configuration = configuration
+                        }
+                    )
     in
     Parser.oneOf
         [ route registrationTokenParser CreateRegistrationTokenRoute
@@ -262,6 +283,7 @@ routeParser configuration =
         , route loginParser LoginRoute
         , route overviewParser OverviewRoute
         , route newProjectParser NewProjectRoute
+        , route taskEditorParser TaskEditorRoute
         ]
 
 
