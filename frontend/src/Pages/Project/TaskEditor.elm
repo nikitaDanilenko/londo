@@ -51,7 +51,7 @@ type alias Model =
     , plainTasks : List (Either PlainTask (Editing PlainTask PlainUpdateClientInput))
     }
 
-
+-- todo: Consider using taskIds in all message types
 type Msg
     = AddPlainTask
     | GotAddPlainTaskResponse (RequestUtil.GraphQLDataOrError Uuid)
