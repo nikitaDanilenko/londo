@@ -21,6 +21,7 @@ import LondoGQL.Object.Plain
 import LondoGQL.Object.Progress
 import LondoGQL.Object.Project
 import LondoGQL.Object.TaskId
+import LondoGQL.Object.UserId
 import LondoGQL.Query as Query
 import LondoGQL.Scalar exposing (Natural, Positive(..), Uuid(..))
 import Maybe.Extra
@@ -51,7 +52,11 @@ type alias Model =
     , plainTasks : List (Either PlainTask (Editing PlainTask PlainUpdateClientInput))
     }
 
+
+
 -- todo: Consider using taskIds in all message types
+
+
 type Msg
     = AddPlainTask
     | GotAddPlainTaskResponse (RequestUtil.GraphQLDataOrError Uuid)
@@ -63,6 +68,7 @@ type Msg
     | DeletePlainTaskAt Int
     | GotDeletePlainTaskResponse (RequestUtil.GraphQLDataOrError TaskId)
     | GotFetchPlainTasksResponse (RequestUtil.GraphQLDataOrError (List PlainTask))
+    | GotProjectInformationResponse (RequestUtil.GraphQLDataOrError Project)
 
 
 type alias Flags =
@@ -93,7 +99,7 @@ init flags =
             , plainTasks = []
             }
     in
-    ( model, fetchPlainTasks model )
+    ( model, Cmd.batch [ fetchProjectInformation model, fetchPlainTasks model ] )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -194,6 +200,15 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        GotProjectInformationResponse remoteData ->
+            case remoteData of
+                Success project ->
+                    ( model |> projectLens.set project, Cmd.none )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -208,8 +223,8 @@ view model =
         (div [ id "creatingProject" ]
             [ label [ for "projectName" ] [ text model.language.projectName ]
             , label
-                [ value model.project.name ]
                 []
+                [ text model.project.name ]
             ]
             :: viewEditPlainTasks model.plainTasks
         )
@@ -226,6 +241,11 @@ percentualIso =
                     }
         )
         ProgressClientInput.from
+
+
+projectLens : Lens Model Project
+projectLens =
+    Lens .project (\b a -> { a | project = b })
 
 
 plainTasksLens : Lens Model (List (Either PlainTask (Editing PlainTask PlainUpdateClientInput)))
@@ -498,6 +518,26 @@ fetchPlainTasks model =
     Query.fetchProject { projectId = { uuid = model.project.id |> ProjectId.uuid } }
         (LondoGQL.Object.Project.plainTasks plainTaskSelection)
         |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchPlainTasksResponse)
+
+
+fetchProjectInformation : Model -> Cmd Msg
+fetchProjectInformation model =
+    Query.fetchProject { projectId = { uuid = model.project.id |> ProjectId.uuid } }
+        (SelectionSet.map4
+            (\n d o f ->
+                { id = model.project.id
+                , name = n
+                , description = d
+                , ownerId = o
+                , flatIfSingleTask = f
+                }
+            )
+            LondoGQL.Object.Project.name
+            LondoGQL.Object.Project.description
+            (LondoGQL.Object.Project.ownerId LondoGQL.Object.UserId.uuid |> SelectionSet.map UserId)
+            LondoGQL.Object.Project.flatIfSingleTask
+        )
+        |> RequestUtil.queryWith (graphQLRequestParametersOf model GotProjectInformationResponse)
 
 
 deletePlainTask : Model -> Int -> Cmd Msg
