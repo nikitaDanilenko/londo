@@ -62,6 +62,7 @@ type Msg
     | EnterEditPlainTaskAt Int
     | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
+    | GotDeletePlainTaskResponse (RemoteData (Graphql.Http.Error TaskId) TaskId)
     | GotFetchPlainTasksResponse (RemoteData (Graphql.Http.Error (List PlainTask)) (List PlainTask))
 
 
@@ -167,17 +168,28 @@ update msg model =
         -- todo: The actual deletion in the backend is missing
         DeletePlainTaskAt pos ->
             ( model
-                |> plainTasksLens.set
-                    (model.plainTasks
-                        |> List.Extra.removeAt pos
-                    )
-            , Cmd.none
+            , deletePlainTask model pos
             )
 
         GotFetchPlainTasksResponse remoteData ->
             case remoteData of
                 Success plainTasks ->
                     ( model |> plainTasksLens.set (plainTasks |> List.map Left), Cmd.none )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
+
+        GotDeletePlainTaskResponse remoteData ->
+            case remoteData of
+                Success deletedId ->
+                    ( model
+                        |> plainTasksLens.set
+                            (model.plainTasks
+                                |> List.Extra.filterNot (Either.unpack (\t -> t.id == deletedId) (\t -> t.original.id == deletedId))
+                            )
+                    , Cmd.none
+                    )
 
                 -- todo: Handle error case
                 _ ->
@@ -493,6 +505,25 @@ fetchPlainTasks model =
         |> Graphql.Http.queryRequest model.configuration.graphQLEndpoint
         |> Graphql.Http.withHeader Constants.userToken model.token
         |> Graphql.Http.send (RemoteData.fromResult >> GotFetchPlainTasksResponse)
+
+
+deletePlainTask : Model -> Int -> Cmd Msg
+deletePlainTask model pos =
+    List.Extra.getAt pos model.plainTasks
+        |> Maybe.andThen Either.leftToMaybe
+        |> Maybe.Extra.unwrap Cmd.none
+            (\task ->
+                Mutation.removePlainTask
+                    { taskKey =
+                        { projectId = { uuid = model.project.id |> ProjectId.uuid }
+                        , taskId = { uuid = TaskId.uuid task.id }
+                        }
+                    }
+                    (SelectionSet.map TaskId (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid))
+                    |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
+                    |> Graphql.Http.withHeader Constants.userToken model.token
+                    |> Graphql.Http.send (RemoteData.fromResult >> GotDeletePlainTaskResponse)
+            )
 
 
 plainTaskSelection : SelectionSet.SelectionSet PlainTask LondoGQL.Object.Plain
