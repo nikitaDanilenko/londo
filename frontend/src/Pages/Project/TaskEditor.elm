@@ -4,12 +4,10 @@ import Basics.Extra exposing (flip)
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Configuration exposing (Configuration)
-import Constants
 import Either exposing (Either(..))
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
-import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
-import Graphql.SelectionSet as SelectionSet
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (checked, class, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -34,6 +32,7 @@ import Monocle.Optional as Optional
 import Pages.Project.PlainUpdateClientInput as PlainUpdateClientInput exposing (PlainUpdateClientInput)
 import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
+import Pages.Util.RequestUtil as RequestUtil
 import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData(..))
 import Types.PlainTask as PlainTask exposing (PlainTask)
@@ -55,15 +54,15 @@ type alias Model =
 
 type Msg
     = AddPlainTask
-    | GotAddPlainTaskResponse (RemoteData (Graphql.Http.Error Uuid) Uuid)
+    | GotAddPlainTaskResponse (RequestUtil.GraphQLDataOrError Uuid)
     | UpdatePlainTask Int PlainUpdateClientInput
     | SavePlainTaskEdit Int
-    | GotSavePlainTaskResponse Int (RemoteData (Graphql.Http.Error PlainTask) PlainTask)
+    | GotSavePlainTaskResponse Int (RequestUtil.GraphQLDataOrError PlainTask)
     | EnterEditPlainTaskAt Int
     | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
-    | GotDeletePlainTaskResponse (RemoteData (Graphql.Http.Error TaskId) TaskId)
-    | GotFetchPlainTasksResponse (RemoteData (Graphql.Http.Error (List PlainTask)) (List PlainTask))
+    | GotDeletePlainTaskResponse (RequestUtil.GraphQLDataOrError TaskId)
+    | GotFetchPlainTasksResponse (RequestUtil.GraphQLDataOrError (List PlainTask))
 
 
 type alias Flags =
@@ -478,9 +477,7 @@ addPlainTask model =
         , plainCreation = defaultPlainTaskCreation
         }
         (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid)
-        |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
-        |> Graphql.Http.withHeader Constants.userToken model.token
-        |> Graphql.Http.send (RemoteData.fromResult >> GotAddPlainTaskResponse)
+        |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotAddPlainTaskResponse)
 
 
 savePlainTask : Model -> PlainUpdate -> TaskId -> Int -> Cmd Msg
@@ -493,18 +490,14 @@ savePlainTask model plainUpdate taskId pos =
         , plainUpdate = plainUpdate
         }
         plainTaskSelection
-        |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
-        |> Graphql.Http.withHeader Constants.userToken model.token
-        |> Graphql.Http.send (RemoteData.fromResult >> GotSavePlainTaskResponse pos)
+        |> RequestUtil.mutateWith (graphQLRequestParametersOf model (GotSavePlainTaskResponse pos))
 
 
 fetchPlainTasks : Model -> Cmd Msg
 fetchPlainTasks model =
     Query.fetchProject { projectId = { uuid = model.project.id |> ProjectId.uuid } }
         (LondoGQL.Object.Project.plainTasks plainTaskSelection)
-        |> Graphql.Http.queryRequest model.configuration.graphQLEndpoint
-        |> Graphql.Http.withHeader Constants.userToken model.token
-        |> Graphql.Http.send (RemoteData.fromResult >> GotFetchPlainTasksResponse)
+        |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchPlainTasksResponse)
 
 
 deletePlainTask : Model -> Int -> Cmd Msg
@@ -520,9 +513,7 @@ deletePlainTask model pos =
                         }
                     }
                     (SelectionSet.map TaskId (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid))
-                    |> Graphql.Http.mutationRequest model.configuration.graphQLEndpoint
-                    |> Graphql.Http.withHeader Constants.userToken model.token
-                    |> Graphql.Http.send (RemoteData.fromResult >> GotDeletePlainTaskResponse)
+                    |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotDeletePlainTaskResponse)
             )
 
 
@@ -554,3 +545,11 @@ plainTaskSelection =
             )
         )
         LondoGQL.Object.Plain.weight
+
+
+graphQLRequestParametersOf : Model -> (RequestUtil.GraphQLDataOrError a -> Msg) -> RequestUtil.GraphQLRequestParameters a Msg
+graphQLRequestParametersOf model gotResponse =
+    { endpoint = model.configuration.graphQLEndpoint
+    , token = model.token
+    , gotResponse = gotResponse
+    }
