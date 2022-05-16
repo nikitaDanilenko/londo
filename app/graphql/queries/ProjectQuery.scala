@@ -1,6 +1,6 @@
 package graphql.queries
 
-import cats.data.EitherT
+import cats.data.{ EitherT, NonEmptySet }
 import cats.effect.IO
 import errors.ServerError
 import graphql.types.FromInternal.syntax._
@@ -8,6 +8,7 @@ import graphql.types.project.{ Project, ProjectId }
 import graphql.types.task.Progress
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
+import services.access.Accessors
 import services.project.ResolvedProject
 
 import scala.concurrent.Future
@@ -36,7 +37,7 @@ trait ProjectQuery extends HasGraphQLServices with HasLoggedInUser {
     validateProjectAccess(
       projectService = graphQLServices.projectService,
       projectId = projectId,
-      accessorsOf = _.readAccessors.accessors
+      accessorsOf = p => Accessors.allowUsers(p.readAccessors.accessors, NonEmptySet.of(p.ownerId))
     )(f)
   }
 
