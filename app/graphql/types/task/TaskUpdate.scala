@@ -3,14 +3,12 @@ package graphql.types.task
 import graphql.types.ToInternal
 import graphql.types.ToInternal.syntax._
 import graphql.types.project.ProjectId
+import graphql.types.util.Positive
 import io.circe.generic.JsonCodec
-import math.Positive
 import sangria.macros.derive.deriveInputObjectType
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
-import utils.json.CirceUtil.instances._
-import utils.graphql.SangriaUtil.instances._
 
 object TaskUpdate {
 
@@ -30,7 +28,7 @@ object TaskUpdate {
         name = plain.name,
         taskKind = plain.taskKind.toInternal,
         unit = plain.unit,
-        weight = plain.weight,
+        weight = plain.weight.toInternal,
         progressUpdate = plain.progressUpdate.toInternal
       )
 
@@ -54,7 +52,7 @@ object TaskUpdate {
       projectReference =>
         services.task.TaskUpdate.ProjectReference(
           projectReferenceId = projectReference.projectReferenceId.toInternal,
-          weight = projectReference.weight
+          weight = projectReference.weight.toInternal
         )
 
     implicit val taskUpdateProjectReferenceUpdateInputObjectType: InputObjectType[ProjectReferenceUpdate] =

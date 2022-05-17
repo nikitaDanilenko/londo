@@ -1,15 +1,14 @@
 package graphql.types.task
 
 import graphql.types.FromAndToInternal
+import graphql.types.FromInternal.syntax._
+import graphql.types.ToInternal.syntax._
+import graphql.types.util.{ Natural, Positive }
 import io.circe.generic.JsonCodec
-import math.Positive
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, OutputType }
-import spire.math.Natural
-import utils.json.CirceUtil.instances._
-import utils.graphql.SangriaUtil.instances._
 
 @JsonCodec
 case class Progress(
@@ -23,13 +22,13 @@ object Progress {
     FromAndToInternal.create(
       progress =>
         Progress(
-          reached = progress.reached,
-          reachable = progress.reachable
+          reached = progress.reached.fromInternal,
+          reachable = progress.reachable.fromInternal
         ),
       progress =>
         services.task.Progress.fraction(
-          reachable = progress.reachable,
-          reached = progress.reached
+          reachable = progress.reachable.toInternal,
+          reached = progress.reached.toInternal
         )
     )
 

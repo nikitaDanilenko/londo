@@ -10,11 +10,10 @@ import graphql.types.dashboard.{ Dashboard, DashboardCreation, DashboardId, Dash
 import graphql.types.project.ProjectId
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
-import spire.math.Natural
 import cats.syntax.traverse._
 import graphql.types.access.Accessors
 import graphql.types.user.UserId
-import graphql.types.util.NonEmptyList
+import graphql.types.util.{ Natural, NonEmptyList }
 import services.access
 
 import scala.concurrent.Future
@@ -99,7 +98,7 @@ trait DashboardMutation extends HasGraphQLServices with HasLoggedInUser {
             .addProject(
               dashboardId = dashboardId.toInternal,
               projectId = projectId.toInternal,
-              weight = weight
+              weight = weight.toInternal
             )
       }
     } yield dashboard.fromInternal[Dashboard]

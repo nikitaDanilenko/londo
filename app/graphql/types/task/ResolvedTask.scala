@@ -1,15 +1,13 @@
 package graphql.types.task
 
 import graphql.types.FromInternal
+import graphql.types.FromInternal.syntax._
 import graphql.types.project.ResolvedProject
+import graphql.types.util.Positive
 import io.circe.generic.JsonCodec
 import sangria.macros.derive
 import sangria.macros.derive.{ ObjectTypeName, deriveObjectType }
 import sangria.schema.{ ObjectType, OutputType }
-import utils.json.CirceUtil.instances._
-import utils.graphql.SangriaUtil.instances._
-import graphql.types.FromInternal.syntax._
-import math.Positive
 
 object ResolvedTask {
 
@@ -33,7 +31,7 @@ object ResolvedTask {
           taskKind = plain.taskKind.fromInternal,
           unit = plain.unit,
           progress = plain.progress.fromInternal,
-          weight = plain.weight
+          weight = plain.weight.fromInternal
         )
 
     implicit val plainObjectType: ObjectType[Unit, Plain] = deriveObjectType[Unit, Plain](
@@ -56,7 +54,7 @@ object ResolvedTask {
       ProjectReference(
         id = projectReference.id.fromInternal,
         project = projectReference.project.fromInternal,
-        weight = projectReference.weight
+        weight = projectReference.weight.fromInternal
       )
 
     implicit val projectReferenceOutputType: OutputType[ProjectReference] =

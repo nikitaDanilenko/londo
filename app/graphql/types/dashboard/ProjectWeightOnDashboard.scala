@@ -4,14 +4,12 @@ import graphql.types.FromAndToInternal
 import graphql.types.FromInternal.syntax._
 import graphql.types.ToInternal.syntax._
 import graphql.types.project.ProjectId
+import graphql.types.util.Natural
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
-import spire.math.Natural
-import utils.json.CirceUtil.instances._
-import utils.graphql.SangriaUtil.instances._
 
 @JsonCodec
 case class ProjectWeightOnDashboard(
@@ -27,12 +25,12 @@ object ProjectWeightOnDashboard {
       internal =>
         ProjectWeightOnDashboard(
           projectId = internal.projectId.fromInternal,
-          weight = internal.weight
+          weight = internal.weight.fromInternal
         ),
       projectWeightOnDashboard =>
         services.dashboard.ProjectWeightOnDashboard(
           projectId = projectWeightOnDashboard.projectId.toInternal,
-          weight = projectWeightOnDashboard.weight
+          weight = projectWeightOnDashboard.weight.toInternal
         )
     )
 
