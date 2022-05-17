@@ -257,6 +257,10 @@ plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
 
 
+
+--todo: Add tabular display to editor lines; possibly reuse implementation on project page
+
+
 editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> PlainTask -> Html Msg
 editOrDeletePlainTaskLine language pos plainTask =
     div [ id "editingPlainTask" ]
