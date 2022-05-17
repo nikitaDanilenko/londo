@@ -33,6 +33,8 @@ project object____ =
     Object.selectionForCompositeField "project" [] object____ Basics.identity
 
 
-weight : SelectionSet LondoGQL.ScalarCodecs.Positive LondoGQL.Object.ResolvedProjectReference
-weight =
-    Object.selectionForField "ScalarCodecs.Positive" "weight" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecPositive |> .decoder)
+weight :
+    SelectionSet decodesTo LondoGQL.Object.Positive
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedProjectReference
+weight object____ =
+    Object.selectionForCompositeField "weight" [] object____ Basics.identity

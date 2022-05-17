@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.Progress exposing (..)
+module LondoGQL.Object.Positive exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,15 +19,6 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-reached :
-    SelectionSet decodesTo LondoGQL.Object.Natural
-    -> SelectionSet decodesTo LondoGQL.Object.Progress
-reached object____ =
-    Object.selectionForCompositeField "reached" [] object____ Basics.identity
-
-
-reachable :
-    SelectionSet decodesTo LondoGQL.Object.Positive
-    -> SelectionSet decodesTo LondoGQL.Object.Progress
-reachable object____ =
-    Object.selectionForCompositeField "reachable" [] object____ Basics.identity
+positive : SelectionSet Int LondoGQL.Object.Positive
+positive =
+    Object.selectionForField "Int" "positive" [] Decode.int

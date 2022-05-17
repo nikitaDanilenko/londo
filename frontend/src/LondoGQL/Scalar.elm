@@ -2,21 +2,13 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Scalar exposing (Codecs, Natural(..), Positive(..), Unit(..), Uuid(..), defaultCodecs, defineCodecs, unwrapCodecs, unwrapEncoder)
+module LondoGQL.Scalar exposing (Codecs, Unit(..), Uuid(..), defaultCodecs, defineCodecs, unwrapCodecs, unwrapEncoder)
 
 import Graphql.Codec exposing (Codec)
 import Graphql.Internal.Builder.Object as Object
 import Graphql.Internal.Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
-
-
-type Natural
-    = Natural String
-
-
-type Positive
-    = Positive String
 
 
 type Unit
@@ -28,22 +20,18 @@ type Uuid
 
 
 defineCodecs :
-    { codecNatural : Codec valueNatural
-    , codecPositive : Codec valuePositive
-    , codecUnit : Codec valueUnit
+    { codecUnit : Codec valueUnit
     , codecUuid : Codec valueUuid
     }
-    -> Codecs valueNatural valuePositive valueUnit valueUuid
+    -> Codecs valueUnit valueUuid
 defineCodecs definitions =
     Codecs definitions
 
 
 unwrapCodecs :
-    Codecs valueNatural valuePositive valueUnit valueUuid
+    Codecs valueUnit valueUuid
     ->
-        { codecNatural : Codec valueNatural
-        , codecPositive : Codec valuePositive
-        , codecUnit : Codec valueUnit
+        { codecUnit : Codec valueUnit
         , codecUuid : Codec valueUuid
         }
 unwrapCodecs (Codecs unwrappedCodecs) =
@@ -51,37 +39,27 @@ unwrapCodecs (Codecs unwrappedCodecs) =
 
 
 unwrapEncoder :
-    (RawCodecs valueNatural valuePositive valueUnit valueUuid -> Codec getterValue)
-    -> Codecs valueNatural valuePositive valueUnit valueUuid
+    (RawCodecs valueUnit valueUuid -> Codec getterValue)
+    -> Codecs valueUnit valueUuid
     -> getterValue
     -> Graphql.Internal.Encode.Value
 unwrapEncoder getter (Codecs unwrappedCodecs) =
     (unwrappedCodecs |> getter |> .encoder) >> Graphql.Internal.Encode.fromJson
 
 
-type Codecs valueNatural valuePositive valueUnit valueUuid
-    = Codecs (RawCodecs valueNatural valuePositive valueUnit valueUuid)
+type Codecs valueUnit valueUuid
+    = Codecs (RawCodecs valueUnit valueUuid)
 
 
-type alias RawCodecs valueNatural valuePositive valueUnit valueUuid =
-    { codecNatural : Codec valueNatural
-    , codecPositive : Codec valuePositive
-    , codecUnit : Codec valueUnit
+type alias RawCodecs valueUnit valueUuid =
+    { codecUnit : Codec valueUnit
     , codecUuid : Codec valueUuid
     }
 
 
-defaultCodecs : RawCodecs Natural Positive Unit Uuid
+defaultCodecs : RawCodecs Unit Uuid
 defaultCodecs =
-    { codecNatural =
-        { encoder = \(Natural raw) -> Encode.string raw
-        , decoder = Object.scalarDecoder |> Decode.map Natural
-        }
-    , codecPositive =
-        { encoder = \(Positive raw) -> Encode.string raw
-        , decoder = Object.scalarDecoder |> Decode.map Positive
-        }
-    , codecUnit =
+    { codecUnit =
         { encoder = \(Unit raw) -> Encode.string raw
         , decoder = Object.scalarDecoder |> Decode.map Unit
         }

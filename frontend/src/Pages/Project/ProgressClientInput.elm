@@ -1,10 +1,10 @@
 module Pages.Project.ProgressClientInput exposing (..)
 
 import LondoGQL.InputObject exposing (ProgressInput)
-import LondoGQL.Scalar exposing (Natural, Positive)
 import Monocle.Lens exposing (Lens)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
-import Pages.Util.ScalarUtil as ScalarUtil
+import Types.Natural as Natural exposing (Natural)
+import Types.Positive as Positive exposing (Positive)
 import Types.Progress exposing (Progress)
 
 
@@ -26,11 +26,11 @@ from fi =
     { reachable =
         FromInput.positive
             |> FromInput.value.set fi.value.reachable
-            |> FromInput.text.set (ScalarUtil.positiveToString fi.value.reachable)
+            |> FromInput.text.set (Positive.toString fi.value.reachable)
     , reached =
         FromInput.natural
             |> FromInput.value.set fi.value.reached
-            |> FromInput.text.set (ScalarUtil.naturalToString fi.value.reached)
+            |> FromInput.text.set (Natural.toString fi.value.reached)
     }
 
 

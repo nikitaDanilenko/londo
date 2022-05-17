@@ -17,7 +17,7 @@ import LondoGQL.InputObject exposing (AccessorsInput, PlainCreation, ProgressInp
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object.Project
 import LondoGQL.Object.ProjectId
-import LondoGQL.Scalar exposing (Natural(..), Positive(..), Uuid(..))
+import LondoGQL.Scalar exposing (Uuid(..))
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
@@ -46,6 +46,7 @@ type Msg
 projectCreationLens : Lens Model ProjectCreation
 projectCreationLens =
     Lens .projectCreation (\b a -> { a | projectCreation = b })
+
 
 type alias Flags =
     { token : String

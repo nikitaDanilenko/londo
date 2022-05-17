@@ -17,13 +17,15 @@ import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate, ProgressInput)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Object
+import LondoGQL.Object.Natural
 import LondoGQL.Object.Plain
+import LondoGQL.Object.Positive
 import LondoGQL.Object.Progress
 import LondoGQL.Object.Project
 import LondoGQL.Object.TaskId
 import LondoGQL.Object.UserId
 import LondoGQL.Query as Query
-import LondoGQL.Scalar exposing (Natural, Positive(..), Uuid(..))
+import LondoGQL.Scalar exposing (Uuid(..))
 import Maybe.Extra
 import Monocle.Common exposing (list)
 import Monocle.Compose as Compose
@@ -34,9 +36,10 @@ import Pages.Project.PlainUpdateClientInput as PlainUpdateClientInput exposing (
 import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Pages.Util.RequestUtil as RequestUtil
-import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData(..))
+import Types.Natural as Natural exposing (Natural)
 import Types.PlainTask as PlainTask exposing (PlainTask)
+import Types.Positive as Positive exposing (Positive)
 import Types.Project exposing (Project)
 import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Types.TaskId as TaskId exposing (TaskId(..))
@@ -226,6 +229,7 @@ view model =
                 []
                 [ text model.project.name ]
             ]
+            :: div [ id "addPlainTask" ] [ button [ class "button", onClick AddPlainTask ] [ text model.language.newPlainTask ] ]
             :: viewEditPlainTasks model.plainTasks
         )
 
@@ -295,10 +299,10 @@ editPlainTaskLine language pos plainUpdateClientInput =
         adjustPercentual reached reachable =
             let
                 magnitudeOver =
-                    reachable |> ScalarUtil.positiveToString |> String.length |> (\l -> l - 3)
+                    reachable |> Positive.toString |> String.length |> (\l -> l - 3)
 
                 reachedString =
-                    ScalarUtil.naturalToString reached
+                    Natural.toString reached
 
                 reachedLength =
                     String.length reachedString
@@ -326,14 +330,14 @@ editPlainTaskLine language pos plainUpdateClientInput =
                 TaskKind.Discrete ->
                     let
                         reachableNatural =
-                            ScalarUtil.positiveToNatural plainUpdateClientInput.progress.reachable.value
+                            Positive.toNatural plainUpdateClientInput.progress.reachable.value
 
                         completed =
                             reachableNatural == plainUpdateClientInput.progress.reached.value
 
                         complement =
                             if completed then
-                                ScalarUtil.zeroNatural
+                                Natural.zero
 
                             else
                                 reachableNatural
@@ -380,7 +384,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                                 >> UpdatePlainTask pos
                             )
                         , plainUpdateClientInput.progress.reached.value
-                            |> ScalarUtil.naturalToString
+                            |> Natural.toString
                             |> value
                         ]
                         []
@@ -396,7 +400,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                                     n
                                     plainUpdateClientInput
                                     |> (\pci ->
-                                            ScalarUtil.stringToNatural n
+                                            Natural.fromString n
                                                 |> Maybe.withDefault ((progressReachedLens |> Compose.lensWithLens FromInput.value).get pci)
                                                 |> (\k ->
                                                         progressReachedLens.set
@@ -407,7 +411,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                                     |> UpdatePlainTask pos
                             )
                         , plainUpdateClientInput.progress.reachable.value
-                            |> ScalarUtil.positiveToString
+                            |> Positive.toString
                             |> value
                         ]
                         []
@@ -436,7 +440,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
             input
                 [ value
                     (plainUpdateClientInput.weight.value
-                        |> ScalarUtil.positiveToString
+                        |> Positive.toString
                     )
                 , onInput
                     (flip (FromInput.lift PlainUpdateClientInput.weight).set plainUpdateClientInput
@@ -486,7 +490,7 @@ defaultPlainTaskCreation =
     , taskKind = TaskKind.Percentual
     , unit = OptionalArgument.fromMaybe Nothing
     , progress = ProgressClientInput.to ProgressClientInput.default
-    , weight = Positive "1"
+    , weight = Positive.one
     }
 
 
@@ -580,11 +584,11 @@ plainTaskSelection =
                     , reachable = reachable
                     }
                 )
-                LondoGQL.Object.Progress.reached
-                LondoGQL.Object.Progress.reachable
+                (SelectionSet.map Natural (LondoGQL.Object.Progress.reached LondoGQL.Object.Natural.nonNegative))
+                (SelectionSet.map Positive (LondoGQL.Object.Progress.reachable LondoGQL.Object.Positive.positive))
             )
         )
-        LondoGQL.Object.Plain.weight
+        (SelectionSet.map Positive (LondoGQL.Object.Plain.weight LondoGQL.Object.Positive.positive))
 
 
 graphQLRequestParametersOf : Model -> (RequestUtil.GraphQLDataOrError a -> Msg) -> RequestUtil.GraphQLRequestParameters a Msg

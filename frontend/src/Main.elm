@@ -214,8 +214,7 @@ routeParser configuration =
             (s configuration.subFolders.register
                 </> s "email"
                 </> Parser.string
-                </> s "token"
-                </> Parser.string
+                </> tokenParser
                 <?> languageParser
             )
                 |> Parser.map

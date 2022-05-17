@@ -17,12 +17,20 @@ type DashboardId
     = DashboardId
 
 
+type Natural
+    = Natural
+
+
 type NonEmptyList
     = NonEmptyList
 
 
 type Plain
     = Plain
+
+
+type Positive
+    = Positive
 
 
 type Progress

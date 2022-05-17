@@ -327,7 +327,7 @@ deleteDashboard requiredArgs____ object____ =
 type alias AddProjectToDashboardRequiredArguments =
     { dashboardId : LondoGQL.InputObject.DashboardIdInput
     , projectId : LondoGQL.InputObject.ProjectIdInput
-    , weight : LondoGQL.ScalarCodecs.Natural
+    , weight : LondoGQL.InputObject.NaturalInput
     }
 
 
@@ -336,7 +336,7 @@ addProjectToDashboard :
     -> SelectionSet decodesTo LondoGQL.Object.Dashboard
     -> SelectionSet decodesTo RootMutation
 addProjectToDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "addProjectToDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "weight" requiredArgs____.weight (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecNatural) ] object____ Basics.identity
+    Object.selectionForCompositeField "addProjectToDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "weight" requiredArgs____.weight LondoGQL.InputObject.encodeNaturalInput ] object____ Basics.identity
 
 
 type alias AdjustWeightsOnDashboardRequiredArguments =

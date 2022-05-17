@@ -15,12 +15,12 @@ module Pages.Util.FromInput exposing
 import Basics.Extra exposing (flip)
 import Integer exposing (Integer)
 import List.Extra
-import LondoGQL.InputObject exposing (ProgressInput)
-import LondoGQL.Scalar exposing (Natural(..), Positive(..))
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 import Pages.Util.MathUtil as MathUtil
-import Pages.Util.ScalarUtil as ScalarUtil
+import Types.Natural as Natural exposing (Natural)
+import Types.Positive as Positive exposing (Positive)
+import Types.Progress exposing (Progress)
 
 
 type alias FromInput a =
@@ -101,13 +101,13 @@ natural : FromInput Natural
 natural =
     let
         zero =
-            ScalarUtil.zeroNatural
+            Natural.zero
 
         parseNatural : String -> Result String Natural
         parseNatural str =
             (if String.isEmpty str then
                 zero
-                    |> ScalarUtil.naturalToString
+                    |> Natural.toString
                     |> Ok
 
              else if String.all Char.isDigit str then
@@ -116,11 +116,12 @@ natural =
              else
                 Err "The string does not represent a natural number"
             )
-                |> Result.map
+                |> Result.andThen
                     (String.toList
                         >> List.Extra.dropWhile ((==) '0')
                         >> String.fromList
-                        >> Natural
+                        >> Natural.fromString
+                        >> Result.fromMaybe "Not a natural number"
                     )
     in
     emptyText
@@ -138,7 +139,7 @@ boundedNatural : Natural -> FromInput Natural
 boundedNatural n =
     let
         zero =
-            ScalarUtil.zeroNatural
+            Natural.zero
 
         parseNatural =
             boundedNaturalParser n
@@ -158,7 +159,7 @@ limitTo : Natural -> FromInput Natural -> FromInput Natural
 limitTo n fi =
     { fi
         | parse = boundedNaturalParser n
-        , value = ScalarUtil.minNatural fi.value n
+        , value = Natural.min fi.value n
     }
 
 
@@ -166,13 +167,13 @@ positive : FromInput Positive
 positive =
     let
         one =
-            Positive "1"
+            Positive.one
 
         parsePositive : String -> Result String Positive
         parsePositive str =
             (if String.isEmpty str then
                 one
-                    |> ScalarUtil.positiveToString
+                    |> Positive.toString
                     |> Ok
 
              else if String.all Char.isDigit str && String.any ((/=) '0') str then
@@ -181,11 +182,12 @@ positive =
              else
                 Err "The string does not represent a natural number"
             )
-                |> Result.map
+                |> Result.andThen
                     (String.toList
                         >> List.Extra.dropWhile ((==) '0')
                         >> String.fromList
-                        >> Positive
+                        >> Positive.fromString
+                        >> Result.fromMaybe "Not a positive number"
                     )
     in
     emptyText
@@ -199,11 +201,11 @@ positive =
         }
 
 
-percentualProgress : FromInput ProgressInput
+percentualProgress : FromInput Progress
 percentualProgress =
     let
         zero =
-            { reachable = ScalarUtil.positive100
+            { reachable = Positive.oneHundred
             , reached = natural.ifEmptyValue
             }
 
@@ -221,7 +223,7 @@ percentualProgress =
                 >> Result.toMaybe
                 >> Maybe.Extra.isJust
 
-        parseDecimal : String -> Result String ProgressInput
+        parseDecimal : String -> Result String Progress
         parseDecimal txt =
             let
                 decimalPoints =
@@ -234,12 +236,29 @@ percentualProgress =
                     MathUtil.numberOfDecimalPlaces txt
 
                 numberOfDecimalPlacesFuzzy =
-                    if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then 1 else numberOfDecimalPlacesStrict
+                    if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then
+                        1
+
+                    else
+                        numberOfDecimalPlacesStrict
             in
             if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlacesStrict && String.all Char.isDigit withoutDecimalPoint) || txt == "100") then
+                let
+                    intWithoutDecimalPoint =
+                        withoutDecimalPoint |> String.toInt |> Maybe.withDefault 0
+                in
                 Ok
-                    { reachable = "100" |> flip String.append (String.repeat numberOfDecimalPlacesFuzzy "0") |> Positive
-                    , reached = Natural (String.append withoutDecimalPoint (String.repeat (if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then 1 else 0) "0"))
+                    { reachable = 100 |> (*) (10 ^ numberOfDecimalPlacesFuzzy) |> Positive
+                    , reached =
+                        Natural
+                            (intWithoutDecimalPoint
+                                * (if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then
+                                    10
+
+                                   else
+                                    1
+                                  )
+                            )
                     }
 
             else
@@ -256,21 +275,18 @@ percentualProgress =
 boundedNaturalParser : Natural -> String -> Result String Natural
 boundedNaturalParser n =
     let
-        zero =
-            ScalarUtil.zeroNatural
-
         stringToInteger : String -> Integer
         stringToInteger =
             Integer.fromString >> Maybe.withDefault Integer.zero
 
         upperBound =
-            n |> ScalarUtil.naturalToString |> stringToInteger
+            n |> Natural.toString |> stringToInteger
 
         parseNatural : String -> Result String Natural
         parseNatural str =
             (if String.isEmpty str then
-                zero
-                    |> ScalarUtil.naturalToString
+                Natural.zero
+                    |> Natural.toString
                     |> Ok
 
              else if String.all Char.isDigit str && Integer.lte (stringToInteger str) upperBound then
@@ -279,11 +295,12 @@ boundedNaturalParser n =
              else
                 Err "The string does not represent a natural number"
             )
-                |> Result.map
+                |> Result.andThen
                     (String.toList
                         >> List.Extra.dropWhile ((==) '0')
                         >> String.fromList
-                        >> Natural
+                        >> Natural.fromString
+                        >> Result.fromMaybe ""
                     )
     in
     parseNatural

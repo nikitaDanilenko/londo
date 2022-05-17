@@ -4,8 +4,8 @@ import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.Enum.TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate)
-import LondoGQL.Scalar exposing (Positive)
 import Monocle.Lens exposing (Lens)
+import Types.Positive exposing (Positive)
 import Types.Progress exposing (Progress)
 import Types.TaskId exposing (TaskId)
 

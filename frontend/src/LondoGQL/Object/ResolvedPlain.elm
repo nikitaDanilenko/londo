@@ -49,6 +49,8 @@ progress object____ =
     Object.selectionForCompositeField "progress" [] object____ Basics.identity
 
 
-weight : SelectionSet LondoGQL.ScalarCodecs.Positive LondoGQL.Object.ResolvedPlain
-weight =
-    Object.selectionForField "ScalarCodecs.Positive" "weight" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecPositive |> .decoder)
+weight :
+    SelectionSet decodesTo LondoGQL.Object.Positive
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedPlain
+weight object____ =
+    Object.selectionForCompositeField "weight" [] object____ Basics.identity

@@ -164,6 +164,31 @@ encodeDashboardUpdate input____ =
         [ ( "header", Encode.string input____.header |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "userId", encodeUserIdInput input____.userId |> Just ), ( "flatIfSingleTask", Encode.bool input____.flatIfSingleTask |> Just ) ]
 
 
+buildNaturalInput :
+    NaturalInputRequiredFields
+    -> NaturalInput
+buildNaturalInput required____ =
+    { nonNegative = required____.nonNegative }
+
+
+type alias NaturalInputRequiredFields =
+    { nonNegative : Int }
+
+
+{-| Type for the NaturalInput input object.
+-}
+type alias NaturalInput =
+    { nonNegative : Int }
+
+
+{-| Encode a NaturalInput into a value that can be used as an argument.
+-}
+encodeNaturalInput : NaturalInput -> Value
+encodeNaturalInput input____ =
+    Encode.maybeObject
+        [ ( "nonNegative", Encode.int input____.nonNegative |> Just ) ]
+
+
 buildNonEmptyListOfUserIdInput :
     NonEmptyListOfUserIdInputRequiredFields
     -> NonEmptyListOfUserIdInput
@@ -210,7 +235,7 @@ type alias PlainCreationRequiredFields =
     { name : String
     , taskKind : LondoGQL.Enum.TaskKind.TaskKind
     , progress : ProgressInput
-    , weight : LondoGQL.ScalarCodecs.Positive
+    , weight : PositiveInput
     }
 
 
@@ -225,7 +250,7 @@ type alias PlainCreation =
     , taskKind : LondoGQL.Enum.TaskKind.TaskKind
     , unit : OptionalArgument String
     , progress : ProgressInput
-    , weight : LondoGQL.ScalarCodecs.Positive
+    , weight : PositiveInput
     }
 
 
@@ -234,7 +259,7 @@ type alias PlainCreation =
 encodePlainCreation : PlainCreation -> Value
 encodePlainCreation input____ =
     Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "progress", encodeProgressInput input____.progress |> Just ), ( "weight", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.weight |> Just ) ]
+        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "progress", encodeProgressInput input____.progress |> Just ), ( "weight", encodePositiveInput input____.weight |> Just ) ]
 
 
 buildPlainUpdate :
@@ -253,7 +278,7 @@ buildPlainUpdate required____ fillOptionals____ =
 type alias PlainUpdateRequiredFields =
     { name : String
     , taskKind : LondoGQL.Enum.TaskKind.TaskKind
-    , weight : LondoGQL.ScalarCodecs.Positive
+    , weight : PositiveInput
     , progressUpdate : ProgressUpdate
     }
 
@@ -268,7 +293,7 @@ type alias PlainUpdate =
     { name : String
     , taskKind : LondoGQL.Enum.TaskKind.TaskKind
     , unit : OptionalArgument String
-    , weight : LondoGQL.ScalarCodecs.Positive
+    , weight : PositiveInput
     , progressUpdate : ProgressUpdate
     }
 
@@ -278,7 +303,32 @@ type alias PlainUpdate =
 encodePlainUpdate : PlainUpdate -> Value
 encodePlainUpdate input____ =
     Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "weight", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.weight |> Just ), ( "progressUpdate", encodeProgressUpdate input____.progressUpdate |> Just ) ]
+        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "weight", encodePositiveInput input____.weight |> Just ), ( "progressUpdate", encodeProgressUpdate input____.progressUpdate |> Just ) ]
+
+
+buildPositiveInput :
+    PositiveInputRequiredFields
+    -> PositiveInput
+buildPositiveInput required____ =
+    { positive = required____.positive }
+
+
+type alias PositiveInputRequiredFields =
+    { positive : Int }
+
+
+{-| Type for the PositiveInput input object.
+-}
+type alias PositiveInput =
+    { positive : Int }
+
+
+{-| Encode a PositiveInput into a value that can be used as an argument.
+-}
+encodePositiveInput : PositiveInput -> Value
+encodePositiveInput input____ =
+    Encode.maybeObject
+        [ ( "positive", Encode.int input____.positive |> Just ) ]
 
 
 buildProgressInput :
@@ -289,16 +339,16 @@ buildProgressInput required____ =
 
 
 type alias ProgressInputRequiredFields =
-    { reached : LondoGQL.ScalarCodecs.Natural
-    , reachable : LondoGQL.ScalarCodecs.Positive
+    { reached : NaturalInput
+    , reachable : PositiveInput
     }
 
 
 {-| Type for the ProgressInput input object.
 -}
 type alias ProgressInput =
-    { reached : LondoGQL.ScalarCodecs.Natural
-    , reachable : LondoGQL.ScalarCodecs.Positive
+    { reached : NaturalInput
+    , reachable : PositiveInput
     }
 
 
@@ -307,7 +357,7 @@ type alias ProgressInput =
 encodeProgressInput : ProgressInput -> Value
 encodeProgressInput input____ =
     Encode.maybeObject
-        [ ( "reached", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecNatural) input____.reached |> Just ), ( "reachable", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.reachable |> Just ) ]
+        [ ( "reached", encodeNaturalInput input____.reached |> Just ), ( "reachable", encodePositiveInput input____.reachable |> Just ) ]
 
 
 buildProgressUpdate :
@@ -318,16 +368,16 @@ buildProgressUpdate required____ =
 
 
 type alias ProgressUpdateRequiredFields =
-    { reached : LondoGQL.ScalarCodecs.Natural
-    , reachable : LondoGQL.ScalarCodecs.Positive
+    { reached : NaturalInput
+    , reachable : PositiveInput
     }
 
 
 {-| Type for the ProgressUpdate input object.
 -}
 type alias ProgressUpdate =
-    { reached : LondoGQL.ScalarCodecs.Natural
-    , reachable : LondoGQL.ScalarCodecs.Positive
+    { reached : NaturalInput
+    , reachable : PositiveInput
     }
 
 
@@ -336,7 +386,7 @@ type alias ProgressUpdate =
 encodeProgressUpdate : ProgressUpdate -> Value
 encodeProgressUpdate input____ =
     Encode.maybeObject
-        [ ( "reached", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecNatural) input____.reached |> Just ), ( "reachable", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.reachable |> Just ) ]
+        [ ( "reached", encodeNaturalInput input____.reached |> Just ), ( "reachable", encodePositiveInput input____.reachable |> Just ) ]
 
 
 buildProjectCreation :
@@ -416,7 +466,7 @@ buildProjectReferenceCreation required____ =
 
 
 type alias ProjectReferenceCreationRequiredFields =
-    { weight : LondoGQL.ScalarCodecs.Positive
+    { weight : PositiveInput
     , projectReferenceId : ProjectIdInput
     }
 
@@ -424,7 +474,7 @@ type alias ProjectReferenceCreationRequiredFields =
 {-| Type for the ProjectReferenceCreation input object.
 -}
 type alias ProjectReferenceCreation =
-    { weight : LondoGQL.ScalarCodecs.Positive
+    { weight : PositiveInput
     , projectReferenceId : ProjectIdInput
     }
 
@@ -434,7 +484,7 @@ type alias ProjectReferenceCreation =
 encodeProjectReferenceCreation : ProjectReferenceCreation -> Value
 encodeProjectReferenceCreation input____ =
     Encode.maybeObject
-        [ ( "weight", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.weight |> Just ), ( "projectReferenceId", encodeProjectIdInput input____.projectReferenceId |> Just ) ]
+        [ ( "weight", encodePositiveInput input____.weight |> Just ), ( "projectReferenceId", encodeProjectIdInput input____.projectReferenceId |> Just ) ]
 
 
 buildProjectReferenceUpdate :
@@ -446,7 +496,7 @@ buildProjectReferenceUpdate required____ =
 
 type alias ProjectReferenceUpdateRequiredFields =
     { projectReferenceId : ProjectIdInput
-    , weight : LondoGQL.ScalarCodecs.Positive
+    , weight : PositiveInput
     }
 
 
@@ -454,7 +504,7 @@ type alias ProjectReferenceUpdateRequiredFields =
 -}
 type alias ProjectReferenceUpdate =
     { projectReferenceId : ProjectIdInput
-    , weight : LondoGQL.ScalarCodecs.Positive
+    , weight : PositiveInput
     }
 
 
@@ -463,7 +513,7 @@ type alias ProjectReferenceUpdate =
 encodeProjectReferenceUpdate : ProjectReferenceUpdate -> Value
 encodeProjectReferenceUpdate input____ =
     Encode.maybeObject
-        [ ( "projectReferenceId", encodeProjectIdInput input____.projectReferenceId |> Just ), ( "weight", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecPositive) input____.weight |> Just ) ]
+        [ ( "projectReferenceId", encodeProjectIdInput input____.projectReferenceId |> Just ), ( "weight", encodePositiveInput input____.weight |> Just ) ]
 
 
 buildProjectUpdate :
@@ -517,7 +567,7 @@ buildProjectWeightOnDashboardInput required____ =
 
 type alias ProjectWeightOnDashboardInputRequiredFields =
     { projectId : ProjectIdInput
-    , weight : LondoGQL.ScalarCodecs.Natural
+    , weight : NaturalInput
     }
 
 
@@ -525,7 +575,7 @@ type alias ProjectWeightOnDashboardInputRequiredFields =
 -}
 type alias ProjectWeightOnDashboardInput =
     { projectId : ProjectIdInput
-    , weight : LondoGQL.ScalarCodecs.Natural
+    , weight : NaturalInput
     }
 
 
@@ -534,7 +584,7 @@ type alias ProjectWeightOnDashboardInput =
 encodeProjectWeightOnDashboardInput : ProjectWeightOnDashboardInput -> Value
 encodeProjectWeightOnDashboardInput input____ =
     Encode.maybeObject
-        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "weight", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecNatural) input____.weight |> Just ) ]
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "weight", encodeNaturalInput input____.weight |> Just ) ]
 
 
 buildTaskIdInput :

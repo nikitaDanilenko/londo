@@ -4,11 +4,11 @@ import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument exposing (OptionalArgument)
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (PlainCreation, PlainUpdate, ProgressInput)
-import LondoGQL.Scalar exposing (Natural, Positive)
 import Monocle.Lens exposing (Lens)
 import Pages.Project.ProgressClientInput as ProgressClientInput exposing (ProgressClientInput)
 import Pages.Util.FromInput as FromInput exposing (FromInput)
 import Types.PlainTask exposing (PlainTask)
+import Types.Positive exposing (Positive)
 
 
 type alias PlainUpdateClientInput =

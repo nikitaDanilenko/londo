@@ -1,7 +1,8 @@
 module Types.Progress exposing (..)
 
-import LondoGQL.Scalar exposing (Natural, Positive)
 import Monocle.Lens exposing (Lens)
+import Types.Natural exposing (Natural)
+import Types.Positive exposing (Positive)
 
 
 type alias Progress =
