@@ -9,18 +9,18 @@ import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 
 sealed abstract case class Positive(
-    positive: BigInt
+    positive: Int
 )
 
 object Positive {
 
-  private def apply(positive: BigInt): Positive = new Positive(positive) {}
+  private def apply(positive: Int): Positive = new Positive(positive) {}
 
   implicit val positiveCodec: Codec[Positive] =
     deriveCodec[Positive].iemap(p => Right(p).filterOrElse(_.positive > 0, "Not a positive natural number"))(identity)
 
   implicit val positiveFromInternal: FromAndToInternal[Positive, math.Positive] = FromAndToInternal.create(
-    fromInternal = p => Positive(p.natural.toBigInt),
+    fromInternal = p => Positive(p.natural.intValue),
     toInternal = p => math.Positive.nextOf(spire.math.Natural(p.positive - 1))
   )
 
