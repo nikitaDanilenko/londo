@@ -156,7 +156,7 @@ update msg model =
             case remoteData of
                 Success plainTask ->
                     ( model
-                        |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.mapBoth (always plainTask) identity)
+                        |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.andThenRight (always (Left plainTask)))
                     , Cmd.none
                     )
 
@@ -261,7 +261,7 @@ editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> Html Msg
 editOrDeletePlainTaskLine language pos =
     div [ id "editingPlainTask" ]
         [ button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ]
-        , button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.cancel ]
+        , button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.remove ]
         ]
 
 
