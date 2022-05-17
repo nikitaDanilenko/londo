@@ -36,7 +36,7 @@ class ProjectReferenceTaskDAO @Inject() (
   private def findAction(key: ProjectReferenceTaskDAO.Key) =
     quote {
       PublicSchema.ProjectReferenceTaskDao.query.filter(a =>
-        a.id == lift(key.projectId.uuid) && a.projectId == lift(key.uuid)
+        a.projectId == lift(key.projectId.uuid) && a.id == lift(key.uuid)
       )
     }
 
@@ -61,7 +61,7 @@ class ProjectReferenceTaskDAO @Inject() (
     quote {
       PublicSchema.ProjectReferenceTaskDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.id, _.projectId)(
+        .onConflictUpdate(_.projectId, _.id)(
           (t, e) => t.id -> e.id,
           (t, e) => t.projectId -> e.projectId,
           (t, e) => t.projectReferenceId -> e.projectReferenceId,

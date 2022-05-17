@@ -191,11 +191,11 @@ object DaoGenerator {
     daoGeneratorParameters[PlainTask](
       keyDescription = KeyDescription.column2(
         Column.uuid(
-          name = "id",
+          name = "projectId",
           mandatory = true
         ),
         Column.uuid(
-          name = "projectId",
+          name = "id",
           mandatory = true
         ),
         keyCaseClass2 = KeyCaseClass2.fromNames("TaskId")("projectId", "uuid")("uuid")
@@ -214,11 +214,11 @@ object DaoGenerator {
     daoGeneratorParameters[ProjectReferenceTask](
       keyDescription = KeyDescription.column2(
         Column.uuid(
-          name = "id",
+          name = "projectId",
           mandatory = true
         ),
         Column.uuid(
-          name = "projectId",
+          name = "id",
           mandatory = true
         ),
         keyCaseClass2 = KeyCaseClass2.fromNames("TaskId")("projectId", "uuid")("uuid")

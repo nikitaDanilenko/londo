@@ -27,7 +27,7 @@ class PlainTaskDAO @Inject() (dbContext: DbContext, override protected val dbTra
 
   private def findAction(key: PlainTaskDAO.Key) =
     quote {
-      PublicSchema.PlainTaskDao.query.filter(a => a.id == lift(key.projectId.uuid) && a.projectId == lift(key.uuid))
+      PublicSchema.PlainTaskDao.query.filter(a => a.projectId == lift(key.projectId.uuid) && a.id == lift(key.uuid))
     }
 
   private def insertAction(row: PlainTask): Quoted[ActionReturning[PlainTask, PlainTask]] =
@@ -49,7 +49,7 @@ class PlainTaskDAO @Inject() (dbContext: DbContext, override protected val dbTra
     quote {
       PublicSchema.PlainTaskDao.query
         .insert(lift(row))
-        .onConflictUpdate(_.id, _.projectId)(
+        .onConflictUpdate(_.projectId, _.id)(
           (t, e) => t.id -> e.id,
           (t, e) => t.projectId -> e.projectId,
           (t, e) => t.name -> e.name,
