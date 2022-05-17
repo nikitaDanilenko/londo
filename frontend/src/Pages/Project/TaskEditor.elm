@@ -219,7 +219,7 @@ view model =
         viewEditPlainTasks =
             List.indexedMap
                 (\i ->
-                    Either.unwrap (editOrDeletePlainTaskLine model.language i) (.update >> editPlainTaskLine model.language i)
+                    Either.unpack (editOrDeletePlainTaskLine model.language i) (.update >> editPlainTaskLine model.language i)
                 )
     in
     div [ id "creatingProjectView" ]
@@ -257,10 +257,11 @@ plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
 
 
-editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> Html Msg
-editOrDeletePlainTaskLine language pos =
+editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> PlainTask -> Html Msg
+editOrDeletePlainTaskLine language pos plainTask =
     div [ id "editingPlainTask" ]
-        [ button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ]
+        [ label [] [ text plainTask.name ]
+        , button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ]
         , button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.remove ]
         ]
 
