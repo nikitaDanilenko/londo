@@ -41,8 +41,8 @@ import Types.Natural as Natural exposing (Natural)
 import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Positive as Positive exposing (Positive)
 import Types.Progress as Progress exposing (Progress)
-import Types.Project exposing (Project)
 import Types.ProjectId as ProjectId exposing (ProjectId(..))
+import Types.ProjectInformation exposing (ProjectInformation)
 import Types.TaskId as TaskId exposing (TaskId(..))
 import Types.UserId exposing (UserId(..))
 import Util.Editing as Editing exposing (Editing)
@@ -52,7 +52,7 @@ type alias Model =
     { token : String
     , configuration : Configuration
     , language : Language.TaskEditor
-    , project : Project
+    , projectInformation : ProjectInformation
     , plainTasks : List (Either PlainTask (Editing PlainTask PlainUpdateClientInput))
     }
 
@@ -71,8 +71,7 @@ type Msg
     | ExitEditPlainTaskAt Int
     | DeletePlainTaskAt Int
     | GotDeletePlainTaskResponse (RequestUtil.GraphQLDataOrError TaskId)
-    | GotFetchPlainTasksResponse (RequestUtil.GraphQLDataOrError (List PlainTask))
-    | GotProjectInformationResponse (RequestUtil.GraphQLDataOrError Project)
+    | GotFetchProjectDataResponse (RequestUtil.GraphQLDataOrError ProjectData)
 
 
 type alias Flags =
@@ -80,6 +79,12 @@ type alias Flags =
     , token : String
     , configuration : Configuration
     , language : Language
+    }
+
+
+type alias ProjectData =
+    { projectInformation : ProjectInformation
+    , plainTasks : List PlainTask
     }
 
 
@@ -93,7 +98,7 @@ init flags =
             { token = flags.token
             , configuration = flags.configuration
             , language = flags.language.taskEditor
-            , project =
+            , projectInformation =
                 { id = flags.projectId
                 , name = ""
                 , description = Nothing
@@ -103,7 +108,7 @@ init flags =
             , plainTasks = []
             }
     in
-    ( model, Cmd.batch [ fetchProjectInformation model, fetchPlainTasks model ] )
+    ( model, fetchProjectData model )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -179,10 +184,14 @@ update msg model =
             , deletePlainTask model pos
             )
 
-        GotFetchPlainTasksResponse remoteData ->
+        GotFetchProjectDataResponse remoteData ->
             case remoteData of
-                Success plainTasks ->
-                    ( model |> plainTasksLens.set (plainTasks |> List.map Left), Cmd.none )
+                Success projectData ->
+                    ( model
+                        |> plainTasksLens.set (projectData.plainTasks |> List.map Left)
+                        |> projectInformationLens.set projectData.projectInformation
+                    , Cmd.none
+                    )
 
                 -- todo: Handle error case
                 _ ->
@@ -203,15 +212,6 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        GotProjectInformationResponse remoteData ->
-            case remoteData of
-                Success project ->
-                    ( model |> projectLens.set project, Cmd.none )
-
-                -- todo: Handle error case
-                _ ->
-                    ( model, Cmd.none )
-
 
 view : Model -> Html Msg
 view model =
@@ -227,7 +227,7 @@ view model =
             [ label [ for "projectName" ] [ text model.language.projectName ]
             , label
                 []
-                [ text model.project.name ]
+                [ text model.projectInformation.name ]
             ]
             :: div [ id "addPlainTask" ] [ button [ class "button", onClick AddPlainTask ] [ text model.language.newPlainTask ] ]
             :: thead []
@@ -256,9 +256,9 @@ percentualIso =
         ProgressClientInput.from
 
 
-projectLens : Lens Model Project
-projectLens =
-    Lens .project (\b a -> { a | project = b })
+projectInformationLens : Lens Model ProjectInformation
+projectInformationLens =
+    Lens .projectInformation (\b a -> { a | projectInformation = b })
 
 
 plainTasksLens : Lens Model (List (Either PlainTask (Editing PlainTask PlainUpdateClientInput)))
@@ -511,7 +511,7 @@ defaultPlainTaskCreation =
 addPlainTask : Model -> Cmd Msg
 addPlainTask model =
     Mutation.addPlainTask
-        { projectId = { uuid = model.project.id |> ProjectId.uuid }
+        { projectId = { uuid = model.projectInformation.id |> ProjectId.uuid }
         , plainCreation = defaultPlainTaskCreation
         }
         (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid)
@@ -522,7 +522,7 @@ savePlainTask : Model -> PlainUpdate -> TaskId -> Int -> Cmd Msg
 savePlainTask model plainUpdate taskId pos =
     Mutation.updatePlainTask
         { taskKey =
-            { projectId = { uuid = model.project.id |> ProjectId.uuid }
+            { projectId = { uuid = model.projectInformation.id |> ProjectId.uuid }
             , taskId = { uuid = TaskId.uuid taskId }
             }
         , plainUpdate = plainUpdate
@@ -531,31 +531,28 @@ savePlainTask model plainUpdate taskId pos =
         |> RequestUtil.mutateWith (graphQLRequestParametersOf model (GotSavePlainTaskResponse pos))
 
 
-fetchPlainTasks : Model -> Cmd Msg
-fetchPlainTasks model =
-    Query.fetchProject { projectId = { uuid = model.project.id |> ProjectId.uuid } }
-        (LondoGQL.Object.Project.plainTasks plainTaskSelection)
-        |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchPlainTasksResponse)
-
-
-fetchProjectInformation : Model -> Cmd Msg
-fetchProjectInformation model =
-    Query.fetchProject { projectId = { uuid = model.project.id |> ProjectId.uuid } }
-        (SelectionSet.map4
-            (\n d o f ->
-                { id = model.project.id
-                , name = n
-                , description = d
-                , ownerId = o
-                , flatIfSingleTask = f
-                }
+fetchProjectData : Model -> Cmd Msg
+fetchProjectData model =
+    Query.fetchProject { projectId = { uuid = model.projectInformation.id |> ProjectId.uuid } }
+        (SelectionSet.map2
+            ProjectData
+            (SelectionSet.map4
+                (\n d o f ->
+                    { id = model.projectInformation.id
+                    , name = n
+                    , description = d
+                    , ownerId = o
+                    , flatIfSingleTask = f
+                    }
+                )
+                LondoGQL.Object.Project.name
+                LondoGQL.Object.Project.description
+                (LondoGQL.Object.Project.ownerId LondoGQL.Object.UserId.uuid |> SelectionSet.map UserId)
+                LondoGQL.Object.Project.flatIfSingleTask
             )
-            LondoGQL.Object.Project.name
-            LondoGQL.Object.Project.description
-            (LondoGQL.Object.Project.ownerId LondoGQL.Object.UserId.uuid |> SelectionSet.map UserId)
-            LondoGQL.Object.Project.flatIfSingleTask
+            (LondoGQL.Object.Project.plainTasks plainTaskSelection)
         )
-        |> RequestUtil.queryWith (graphQLRequestParametersOf model GotProjectInformationResponse)
+        |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchProjectDataResponse)
 
 
 deletePlainTask : Model -> Int -> Cmd Msg
@@ -566,7 +563,7 @@ deletePlainTask model pos =
             (\task ->
                 Mutation.removePlainTask
                     { taskKey =
-                        { projectId = { uuid = model.project.id |> ProjectId.uuid }
+                        { projectId = { uuid = model.projectInformation.id |> ProjectId.uuid }
                         , taskId = { uuid = TaskId.uuid task.id }
                         }
                     }

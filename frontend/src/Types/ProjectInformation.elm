@@ -1,4 +1,4 @@
-module Types.Project exposing (..)
+module Types.ProjectInformation exposing (..)
 
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject exposing (ProjectUpdate)
@@ -6,7 +6,7 @@ import Types.ProjectId exposing (ProjectId)
 import Types.UserId as UserId exposing (UserId)
 
 
-type alias Project =
+type alias ProjectInformation =
     { id : ProjectId
     , name : String
     , description : Maybe String
@@ -15,7 +15,7 @@ type alias Project =
     }
 
 
-toUpdate : Project -> ProjectUpdate
+toUpdate : ProjectInformation -> ProjectUpdate
 toUpdate p =
     { name = p.name
     , description = OptionalArgument.fromMaybe p.description
