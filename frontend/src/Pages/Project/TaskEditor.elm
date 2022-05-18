@@ -174,7 +174,6 @@ update msg model =
         ExitEditPlainTaskAt pos ->
             ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack identity .original >> Left), Cmd.none )
 
-        -- todo: The actual deletion in the backend is missing
         DeletePlainTaskAt pos ->
             ( model
             , deletePlainTask model pos
@@ -265,10 +264,6 @@ projectLens =
 plainTasksLens : Lens Model (List (Either PlainTask (Editing PlainTask PlainUpdateClientInput)))
 plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
-
-
-
---todo: Add tabular display to editor lines; possibly reuse implementation on project page
 
 
 editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> PlainTask -> Html Msg
@@ -436,6 +431,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                         []
                     ]
 
+        -- todo: Units make sense only for fractional task kind
         viewUnit : List (Html Msg)
         viewUnit =
             [ input
@@ -453,7 +449,6 @@ editPlainTaskLine language pos plainUpdateClientInput =
                 []
             ]
 
-        -- todo: Units make sense only for fractional task kind
         viewWeight : Html Msg
         viewWeight =
             input
