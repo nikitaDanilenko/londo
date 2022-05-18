@@ -8,7 +8,7 @@ import Either exposing (Either(..))
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import Graphql.OptionalArgument as OptionalArgument
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Html exposing (Html, button, div, input, label, text)
+import Html exposing (Html, button, div, input, label, td, text, thead, tr)
 import Html.Attributes exposing (checked, class, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Language.Language as Language exposing (Language)
@@ -40,6 +40,7 @@ import RemoteData exposing (RemoteData(..))
 import Types.Natural as Natural exposing (Natural)
 import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Positive as Positive exposing (Positive)
+import Types.Progress as Progress exposing (Progress)
 import Types.Project exposing (Project)
 import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Types.TaskId as TaskId exposing (TaskId(..))
@@ -230,6 +231,15 @@ view model =
                 [ text model.project.name ]
             ]
             :: div [ id "addPlainTask" ] [ button [ class "button", onClick AddPlainTask ] [ text model.language.newPlainTask ] ]
+            :: thead []
+                [ tr []
+                    [ td [] [ label [] [ text model.language.plainTaskName ] ]
+                    , td [] [ label [] [ text model.language.taskKind ] ]
+                    , td [] [ label [] [ text model.language.progress ] ]
+                    , td [] [ label [] [ text model.language.unit ] ]
+                    , td [] [ label [] [ text model.language.weight ] ]
+                    ]
+                ]
             :: viewEditPlainTasks model.plainTasks
         )
 
@@ -263,10 +273,14 @@ plainTasksLens =
 
 editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> PlainTask -> Html Msg
 editOrDeletePlainTaskLine language pos plainTask =
-    div [ id "editingPlainTask" ]
-        [ label [] [ text plainTask.name ]
-        , button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ]
-        , button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.remove ]
+    tr [ id "editingPlainTask" ]
+        [ td [] [ label [] [ text plainTask.name ] ]
+        , td [] [ label [] [ plainTask.taskKind |> TaskKind.toString |> text ] ]
+        , td [] [ label [] [ Progress.display plainTask.taskKind plainTask.progress |> text ] ]
+        , td [] [ label [] [ plainTask.unit |> Maybe.withDefault "" |> text ] ]
+        , td [] [ label [] [ plainTask.weight |> Positive.toString |> text ] ]
+        , td [] [ button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ] ]
+        , td [] [ button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.remove ] ]
         ]
 
 
