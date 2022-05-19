@@ -4,17 +4,21 @@ import Configuration exposing (Configuration)
 import Either exposing (Either(..))
 import Graphql.OptionalArgument as OptionalArgument
 import Language.Language as Language exposing (Language)
+import List.Extra
 import LondoGQL.InputObject exposing (ProjectCreation, ProjectUpdate)
 import LondoGQL.Mutation as Mutation
 import LondoGQL.Query as Query
+import Maybe.Extra
+import Monocle.Compose as Compose
 import Monocle.Lens as Lens exposing (Lens)
+import Monocle.Optional as Optional exposing (Optional)
 import Pages.Project.ProjectInformation as ProjectInformation exposing (ProjectInformation)
 import Pages.Project.ProjectUpdateClientInput as ProjectUpdateClientInput exposing (ProjectUpdateClientInput)
 import Pages.Util.AccessorUtil as AccessorsUtil
 import Pages.Util.RequestUtil as RequestUtil
 import RemoteData exposing (RemoteData(..))
-import Types.ProjectId exposing (ProjectId)
-import Util.Editing exposing (Editing)
+import Types.ProjectId as ProjectId exposing (ProjectId)
+import Util.Editing as Editing exposing (Editing)
 
 
 type alias Model =
@@ -39,7 +43,7 @@ writeAccessProjectsLens =
 type Msg
     = CreateProject
     | GotCreateProjectResponse (RequestUtil.GraphQLDataOrError ProjectInformation)
-    | UpdateProject ProjectId ProjectUpdate
+    | UpdateProject ProjectId ProjectUpdateClientInput
     | SaveProjectEdit ProjectId
     | GotSaveProjectResponse ProjectId (RequestUtil.GraphQLDataOrError ProjectInformation)
     | EnterEditProjectAt ProjectId
@@ -98,11 +102,26 @@ update msg model =
                     -- todo: Handle error case
                     ( model, Cmd.none )
 
-        UpdateProject projectId projectUpdate ->
-            ( model, Cmd.none )
+        UpdateProject projectId projectUpdateClientInput ->
+            ( model
+                |> Optional.modify
+                    (ownProjectsLens
+                        |> Compose.lensWithOptional
+                            (projectIdIs projectId |> firstSuch)
+                    )
+                    (Either.mapRight (Editing.updateLens.set projectUpdateClientInput))
+            , Cmd.none
+            )
 
         SaveProjectEdit projectId ->
-            ( model, Cmd.none )
+            let
+                cmd =
+                    Maybe.Extra.unwrap
+                        Cmd.none
+                        (Either.unwrap Cmd.none (\editing -> saveProject model (ProjectUpdateClientInput.to projectId editing.original.ownerId editing.update) editing.original.id projectId))
+                        (List.Extra.find (projectIdIs projectId) model.ownProjects)
+            in
+            ( model, cmd )
 
         GotSaveProjectResponse projectId graphQLDataOrError ->
             ( model, Cmd.none )
@@ -136,6 +155,19 @@ update msg model =
                 -- todo: Handle error case
                 _ ->
                     ( model, Cmd.none )
+
+
+firstSuch : (a -> Bool) -> Optional (List a) a
+firstSuch p =
+    { getOption = List.Extra.find p
+    , set = List.Extra.setIf p
+    }
+
+
+projectIdIs : ProjectId -> Either ProjectInformation (Editing ProjectInformation ProjectUpdateClientInput) -> Bool
+projectIdIs projectId =
+    Either.unpack (\p -> p.id == projectId)
+        (\p -> p.original.id == projectId)
 
 
 fetchOwnProjects : Model -> Cmd Msg
@@ -177,3 +209,13 @@ createProject model =
         }
         ProjectInformation.selection
         |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotCreateProjectResponse)
+
+
+saveProject : Model -> ProjectUpdate -> ProjectId -> Cmd Msg
+saveProject model projectUpdate projectId =
+    Mutation.updateProject
+        { projectId = projectId |> ProjectId.uuid |> LondoGQL.InputObject.ProjectIdInput
+        , projectUpdate = projectUpdate
+        }
+        ProjectInformation.selection
+        |> RequestUtil.mutateWith (graphQLRequestParametersOf model (GotSaveProjectResponse projectId))
