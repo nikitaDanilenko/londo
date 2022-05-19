@@ -5,6 +5,7 @@ import cats.effect.{ Async, ContextShift }
 import cats.syntax.contravariantSemigroupal._
 import cats.syntax.traverse._
 import db.generated.daos._
+import db.keys.{ ProjectReadAccessId, ProjectWriteAccessId }
 import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
 import db.{ DAOFunctions, Transactionally }
 import doobie.ConnectionIO
@@ -123,6 +124,46 @@ class ProjectService @Inject() (
       )
       .value
   }
+
+  def fetchOwn[F[_]: Async: ContextShift](ownerId: UserId): F[Seq[Project]] =
+    transactionally(fetchOwnC(ownerId))
+
+  // TODO: This construction is potentially very expensive, if there are many projects.
+  // It may be more sensible to deliver the project rows as a new ProjectBase or similar,
+  // and then make the caller call the project construction function explicitly.
+  def fetchOwnC(ownerId: UserId): ConnectionIO[Seq[Project]] =
+    projectDAO
+      .findByOwnerIdC(ownerId.uuid)
+      .flatMap(
+        _.traverse(p => fetchC(ProjectId(p.id)))
+          .map(_.collect { case Right(project) => project })
+      )
+
+  def fetchWithReadAccess[F[_]: Async: ContextShift](userId: UserId): F[Seq[Project]] =
+    transactionally(fetchWithReadAccessC(userId))
+
+  // TODO: This construction is potentially very expensive, if there are many projects.
+  // It may be more sensible to deliver the project rows as a new ProjectBase or similar,
+  // and then make the caller call the project construction function explicitly.
+  def fetchWithReadAccessC(userId: UserId): ConnectionIO[Seq[Project]] =
+    fetchWithAccessC[ProjectReadAccessEntry, ProjectReadAccess](
+      userId => projectReadAccessEntryDAO.findByUserIdC(userId.uuid),
+      a => projectReadAccessDAO.findC(ProjectReadAccessId(a.projectReadAccessId)),
+      readAccess => ProjectId(readAccess.projectId)
+    )(userId)
+
+  def fetchWithWriteAccess[F[_]: Async: ContextShift](userId: UserId): F[Seq[Project]] =
+    transactionally(fetchWithWriteAccessC(userId))
+
+  // TODO: This construction is potentially very expensive, if there are many projects.
+  // It may be more sensible to deliver the project rows as a new ProjectBase or similar,
+  // and then make the caller call the project construction function explicitly.
+  def fetchWithWriteAccessC(userId: UserId): ConnectionIO[Seq[Project]] =
+    fetchWithAccessC[ProjectWriteAccessEntry, ProjectWriteAccess](
+      userId => projectWriteAccessEntryDAO.findByUserIdC(userId.uuid),
+      a => projectWriteAccessDAO.findC(ProjectWriteAccessId(a.projectWriteAccessId)),
+      writeAccess => ProjectId(writeAccess.projectId)
+    )(userId)
 
   def allowReadUsers[F[_]: Async: ContextShift](
       projectId: ProjectId,
@@ -289,6 +330,23 @@ class ProjectService @Inject() (
     }
     transformer.value
   }
+
+  private def fetchWithAccessC[AEntry, Access](
+      findEntries: UserId => ConnectionIO[List[AEntry]],
+      findAccess: AEntry => ConnectionIO[Option[Access]],
+      projectIdOf: Access => ProjectId
+  )(userId: UserId): ConnectionIO[Seq[Project]] =
+    for {
+      entries <- findEntries(userId)
+      accesses <-
+        entries
+          .traverse(findAccess)
+          .map(_.collect { case Some(access) => access })
+      projects <-
+        accesses
+          .traverse(a => fetchC(projectIdOf(a)))
+          .map(_.collect { case Right(project) => project })
+    } yield projects
 
   private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
       dbComponentsC: ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
