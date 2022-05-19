@@ -55,6 +55,27 @@ projectProgress requiredArgs____ object____ =
     Object.selectionForCompositeField "projectProgress" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput ] object____ (Basics.identity >> Decode.nullable)
 
 
+fetchOwn :
+    SelectionSet decodesTo LondoGQL.Object.Project
+    -> SelectionSet (List decodesTo) RootQuery
+fetchOwn object____ =
+    Object.selectionForCompositeField "fetchOwn" [] object____ (Basics.identity >> Decode.list)
+
+
+fetchWithReadAccess :
+    SelectionSet decodesTo LondoGQL.Object.Project
+    -> SelectionSet (List decodesTo) RootQuery
+fetchWithReadAccess object____ =
+    Object.selectionForCompositeField "fetchWithReadAccess" [] object____ (Basics.identity >> Decode.list)
+
+
+fetchWithWriteAccess :
+    SelectionSet decodesTo LondoGQL.Object.Project
+    -> SelectionSet (List decodesTo) RootQuery
+fetchWithWriteAccess object____ =
+    Object.selectionForCompositeField "fetchWithWriteAccess" [] object____ (Basics.identity >> Decode.list)
+
+
 type alias FetchDashboardRequiredArguments =
     { dashboardId : LondoGQL.InputObject.DashboardIdInput }
 
