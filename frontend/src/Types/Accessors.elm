@@ -1,6 +1,6 @@
 module Types.Accessors exposing (..)
 
-import List.Nonempty exposing (Nonempty)
+import List.Nonempty as NE exposing (Nonempty)
 import Maybe.Extra
 import Types.UserId exposing (UserId)
 
@@ -29,3 +29,29 @@ from r =
            )
 
 
+everybody : Representation
+everybody =
+    { isAllowList = False
+    , userIds = Nothing
+    }
+
+
+nobody : Representation
+nobody =
+    { isAllowList = True
+    , userIds = Nothing
+    }
+
+
+only : NE.Nonempty UserId -> Representation
+only us =
+    { isAllowList = True
+    , userIds = Just us
+    }
+
+
+except : NE.Nonempty UserId -> Representation
+except us =
+    { isAllowList = False
+    , userIds = Just us
+    }

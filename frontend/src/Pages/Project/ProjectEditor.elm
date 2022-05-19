@@ -2,24 +2,18 @@ module Pages.Project.ProjectEditor exposing (..)
 
 import Configuration exposing (Configuration)
 import Either exposing (Either(..))
-import Graphql.SelectionSet as SelectionSet exposing (SelectionSet(..))
+import Graphql.OptionalArgument as OptionalArgument
 import Language.Language as Language exposing (Language)
-import List.Nonempty
-import LondoGQL.InputObject exposing (ProjectUpdate)
-import LondoGQL.Object
-import LondoGQL.Object.Accessors
-import LondoGQL.Object.NonEmptyList
-import LondoGQL.Object.Project
-import LondoGQL.Object.ProjectId
-import LondoGQL.Object.UserId
+import LondoGQL.InputObject exposing (ProjectCreation, ProjectUpdate)
+import LondoGQL.Mutation as Mutation
 import LondoGQL.Query as Query
-import LondoGQL.Scalar exposing (Uuid)
-import Monocle.Lens exposing (Lens)
+import Monocle.Lens as Lens exposing (Lens)
+import Pages.Project.ProjectInformation as ProjectInformation exposing (ProjectInformation)
+import Pages.Project.ProjectUpdateClientInput as ProjectUpdateClientInput exposing (ProjectUpdateClientInput)
+import Pages.Util.AccessorUtil as AccessorsUtil
 import Pages.Util.RequestUtil as RequestUtil
 import RemoteData exposing (RemoteData(..))
-import Types.Accessors as Accessors exposing (Accessors)
-import Types.ProjectId as ProjectId exposing (ProjectId)
-import Types.UserId exposing (UserId)
+import Types.ProjectId exposing (ProjectId)
 import Util.Editing exposing (Editing)
 
 
@@ -27,35 +21,24 @@ type alias Model =
     { token : String
     , configuration : Configuration
     , language : Language.ProjectEditor
-    , ownProjects : List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate))
-    , writeAccessProjects : List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate))
+    , ownProjects : List (Either ProjectInformation (Editing ProjectInformation ProjectUpdateClientInput))
+    , writeAccessProjects : List (Either ProjectInformation (Editing ProjectInformation ProjectUpdateClientInput))
     }
 
 
-ownProjectsLens : Lens Model (List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate)))
+ownProjectsLens : Lens Model (List (Either ProjectInformation (Editing ProjectInformation ProjectUpdateClientInput)))
 ownProjectsLens =
     Lens .ownProjects (\b a -> { a | ownProjects = b })
 
 
-writeAccessProjectsLens : Lens Model (List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate)))
+writeAccessProjectsLens : Lens Model (List (Either ProjectInformation (Editing ProjectInformation ProjectUpdateClientInput)))
 writeAccessProjectsLens =
     Lens .writeAccessProjects (\b a -> { a | writeAccessProjects = b })
 
 
-type alias ProjectInformation =
-    { id : ProjectId
-    , name : String
-    , description : Maybe String
-    , ownerId : UserId
-    , flatIfSingleTask : Bool
-    , readAccessors : Accessors
-    , writeAccessors : Accessors
-    }
-
-
 type Msg
-    = AddProject
-    | GotAddProjectResponse (RequestUtil.GraphQLDataOrError Uuid)
+    = CreateProject
+    | GotCreateProjectResponse (RequestUtil.GraphQLDataOrError ProjectInformation)
     | UpdateProject ProjectId ProjectUpdate
     | SaveProjectEdit ProjectId
     | GotSaveProjectResponse ProjectId (RequestUtil.GraphQLDataOrError ProjectInformation)
@@ -91,11 +74,29 @@ init flags =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        AddProject ->
-            ( model, Cmd.none )
+        CreateProject ->
+            ( model, createProject model )
 
-        GotAddProjectResponse graphQLDataOrError ->
-            ( model, Cmd.none )
+        GotCreateProjectResponse graphQLDataOrError ->
+            case graphQLDataOrError of
+                Success projectInformation ->
+                    let
+                        newModel =
+                            Lens.modify ownProjectsLens
+                                (\ts ->
+                                    Right
+                                        { original = projectInformation
+                                        , update = ProjectUpdateClientInput.from projectInformation
+                                        }
+                                        :: ts
+                                )
+                                model
+                    in
+                    ( newModel, Cmd.none )
+
+                _ ->
+                    -- todo: Handle error case
+                    ( model, Cmd.none )
 
         UpdateProject projectId projectUpdate ->
             ( model, Cmd.none )
@@ -140,42 +141,15 @@ update msg model =
 fetchOwnProjects : Model -> Cmd Msg
 fetchOwnProjects model =
     Query.fetchOwn
-        projectInformationSelection
+        ProjectInformation.selection
         |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchOwnProjectsResponse)
 
 
 fetchWriteAccessProjects : Model -> Cmd Msg
 fetchWriteAccessProjects model =
     Query.fetchWithWriteAccess
-        projectInformationSelection
+        ProjectInformation.selection
         |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchWriteAccessProjectsResponse)
-
-
-projectInformationSelection : SelectionSet ProjectInformation LondoGQL.Object.Project
-projectInformationSelection =
-    SelectionSet.map7 ProjectInformation
-        (LondoGQL.Object.Project.id LondoGQL.Object.ProjectId.uuid |> SelectionSet.map ProjectId)
-        LondoGQL.Object.Project.name
-        LondoGQL.Object.Project.description
-        (LondoGQL.Object.Project.ownerId LondoGQL.Object.UserId.uuid |> SelectionSet.map UserId)
-        LondoGQL.Object.Project.flatIfSingleTask
-        (SelectionSet.map2 (\isAllowList userIds -> Accessors.from { isAllowList = isAllowList, userIds = userIds })
-            (LondoGQL.Object.Project.readAccessors LondoGQL.Object.Accessors.isAllowList)
-            (LondoGQL.Object.Project.readAccessors userIdsSelection)
-        )
-        (SelectionSet.map2 (\isAllowList userIds -> Accessors.from { isAllowList = isAllowList, userIds = userIds })
-            (LondoGQL.Object.Project.writeAccessors LondoGQL.Object.Accessors.isAllowList)
-            (LondoGQL.Object.Project.writeAccessors userIdsSelection)
-        )
-
-
-userIdsSelection : SelectionSet (Maybe (List.Nonempty.Nonempty UserId)) LondoGQL.Object.Accessors
-userIdsSelection =
-    LondoGQL.Object.Accessors.userIds
-        (SelectionSet.map2 List.Nonempty.Nonempty
-            (LondoGQL.Object.NonEmptyList.head LondoGQL.Object.UserId.uuid |> SelectionSet.map UserId)
-            (LondoGQL.Object.NonEmptyList.tail LondoGQL.Object.UserId.uuid |> SelectionSet.map (List.map UserId))
-        )
 
 
 graphQLRequestParametersOf : Model -> (RequestUtil.GraphQLDataOrError a -> Msg) -> RequestUtil.GraphQLRequestParameters a Msg
@@ -184,3 +158,22 @@ graphQLRequestParametersOf model gotResponse =
     , token = model.token
     , gotResponse = gotResponse
     }
+
+
+defaultProjectCreation : ProjectCreation
+defaultProjectCreation =
+    { name = ""
+    , description = Nothing |> OptionalArgument.fromMaybe
+    , flatIfSingleTask = True
+    , readAccessors = AccessorsUtil.nobody
+    , writeAccessors = AccessorsUtil.nobody
+    }
+
+
+createProject : Model -> Cmd Msg
+createProject model =
+    Mutation.createProject
+        { projectCreation = defaultProjectCreation
+        }
+        ProjectInformation.selection
+        |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotCreateProjectResponse)

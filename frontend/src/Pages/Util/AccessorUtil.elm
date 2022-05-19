@@ -6,7 +6,7 @@ import LondoGQL.InputObject exposing (AccessorsInput, NonEmptyListOfUserIdInput,
 import LondoGQL.Scalar exposing (Uuid)
 import Pages.Util.NonEmptyUtil as NonEmptyUtil
 
-
+-- todo: It is likely that either this module or the module Accessors will become obsolete after #18 has been implemented.
 everybody : AccessorsInput
 everybody =
     { isAllowList = False
@@ -37,6 +37,6 @@ except us =
 
 usersInputList : NE.Nonempty Uuid -> OptionalArgument NonEmptyListOfUserIdInput
 usersInputList =
-    NE.map (\uid -> { uuid = uid })
+    NE.map UserIdInput
         >> NonEmptyUtil.nonEmptyToGraphQL
         >> OptionalArgument.Present
