@@ -1,7 +1,7 @@
 module Pages.Project.ProjectEditor exposing (..)
 
 import Configuration exposing (Configuration)
-import Either exposing (Either)
+import Either exposing (Either(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet(..))
 import Language.Language as Language exposing (Language)
 import List.Nonempty
@@ -14,7 +14,9 @@ import LondoGQL.Object.ProjectId
 import LondoGQL.Object.UserId
 import LondoGQL.Query as Query
 import LondoGQL.Scalar exposing (Uuid)
+import Monocle.Lens exposing (Lens)
 import Pages.Util.RequestUtil as RequestUtil
+import RemoteData exposing (RemoteData(..))
 import Types.Accessors as Accessors exposing (Accessors)
 import Types.ProjectId as ProjectId exposing (ProjectId)
 import Types.UserId exposing (UserId)
@@ -28,6 +30,16 @@ type alias Model =
     , ownProjects : List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate))
     , writeAccessProjects : List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate))
     }
+
+
+ownProjectsLens : Lens Model (List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate)))
+ownProjectsLens =
+    Lens .ownProjects (\b a -> { a | ownProjects = b })
+
+
+writeAccessProjectsLens : Lens Model (List (Either ProjectInformation (Editing ProjectInformation ProjectUpdate)))
+writeAccessProjectsLens =
+    Lens .writeAccessProjects (\b a -> { a | writeAccessProjects = b })
 
 
 type alias ProjectInformation =
@@ -76,6 +88,55 @@ init flags =
     ( model, Cmd.batch [ fetchOwnProjects model, fetchWriteAccessProjects model ] )
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        AddProject ->
+            ( model, Cmd.none )
+
+        GotAddProjectResponse graphQLDataOrError ->
+            ( model, Cmd.none )
+
+        UpdateProject projectId projectUpdate ->
+            ( model, Cmd.none )
+
+        SaveProjectEdit projectId ->
+            ( model, Cmd.none )
+
+        GotSaveProjectResponse projectId graphQLDataOrError ->
+            ( model, Cmd.none )
+
+        EnterEditProjectAt projectId ->
+            ( model, Cmd.none )
+
+        ExitEditProjectAt projectId ->
+            ( model, Cmd.none )
+
+        DeleteProject projectId ->
+            ( model, Cmd.none )
+
+        GotDeleteProjectResponse graphQLDataOrError ->
+            ( model, Cmd.none )
+
+        GotFetchOwnProjectsResponse graphQLDataOrError ->
+            case graphQLDataOrError of
+                Success ownProjects ->
+                    ( model |> ownProjectsLens.set (ownProjects |> List.map Left), Cmd.none )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
+
+        GotFetchWriteAccessProjectsResponse graphQLDataOrError ->
+            case graphQLDataOrError of
+                Success writeAccessProjects ->
+                    ( model |> writeAccessProjectsLens.set (writeAccessProjects |> List.map Left), Cmd.none )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
+
+
 fetchOwnProjects : Model -> Cmd Msg
 fetchOwnProjects model =
     Query.fetchOwn
@@ -85,7 +146,8 @@ fetchOwnProjects model =
 
 fetchWriteAccessProjects : Model -> Cmd Msg
 fetchWriteAccessProjects model =
-    Query.fetchWithWriteAccess projectInformationSelection
+    Query.fetchWithWriteAccess
+        projectInformationSelection
         |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchWriteAccessProjectsResponse)
 
 
