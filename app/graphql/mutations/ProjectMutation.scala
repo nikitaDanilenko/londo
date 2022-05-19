@@ -33,6 +33,7 @@ trait ProjectMutation extends HasGraphQLServices with HasLoggedInUser {
       .handleServerError
   }
 
+  // TODO #18: Add functionality for handling all kinds of accessors, including Everyone and Nobody
   @GraphQLField
   def allowReadUsersProject(
       projectId: ProjectId,
