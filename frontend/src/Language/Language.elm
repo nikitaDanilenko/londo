@@ -9,7 +9,7 @@ type alias Language =
     , projectOverview : ProjectOverview
     , newProject : NewProject
     , taskEditor : TaskEditor
-    , editProject : EditProject
+    , projectEditor : ProjectEditor
     , searchProject : SearchProject
     }
 
@@ -97,12 +97,14 @@ type alias TaskEditor =
     , create : String
     , edit : String
     , cancel : String
-    , save: String
+    , save : String
     }
 
 
-type alias EditProject =
-    {}
+type alias ProjectEditor =
+    { newProject : String
+    , remove : String
+    }
 
 
 type alias SearchProject =
@@ -185,7 +187,10 @@ english =
         , cancel = "Cancel"
         , save = "Save"
         }
-    , editProject = {}
+    , projectEditor =
+        { newProject = "New project"
+        , remove = "Remove"
+        }
     , searchProject = {}
     }
 
