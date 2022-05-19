@@ -31,7 +31,7 @@ trait ProjectQuery extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def ownProjects: Future[Seq[Project]] =
+  def fetchOwn: Future[Seq[Project]] =
     withUser(userId =>
       graphQLServices.projectService
         .fetchOwn(userId.toInternal)
