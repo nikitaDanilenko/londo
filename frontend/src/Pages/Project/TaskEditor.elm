@@ -42,7 +42,6 @@ import Types.PlainTask as PlainTask exposing (PlainTask)
 import Types.Positive as Positive exposing (Positive)
 import Types.Progress as Progress exposing (Progress)
 import Types.ProjectId as ProjectId exposing (ProjectId(..))
-import Types.ProjectInformation exposing (ProjectInformation)
 import Types.TaskId as TaskId exposing (TaskId(..))
 import Types.UserId exposing (UserId(..))
 import Util.Editing as Editing exposing (Editing)
@@ -56,6 +55,13 @@ type alias Model =
     , plainTasks : List (Either PlainTask (Editing PlainTask PlainUpdateClientInput))
     }
 
+type alias ProjectInformation =
+    { id : ProjectId
+    , name : String
+    , description : Maybe String
+    , ownerId : UserId
+    , flatIfSingleTask : Bool
+    }
 
 
 -- todo: Consider using taskIds in all message types
