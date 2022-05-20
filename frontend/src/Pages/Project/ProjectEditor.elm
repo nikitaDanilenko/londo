@@ -3,10 +3,13 @@ module Pages.Project.ProjectEditor exposing (..)
 import Configuration exposing (Configuration)
 import Either exposing (Either(..))
 import Graphql.OptionalArgument as OptionalArgument
+import Graphql.SelectionSet as SelectionSet
 import Language.Language as Language exposing (Language)
 import List.Extra
 import LondoGQL.InputObject exposing (ProjectCreation, ProjectUpdate)
 import LondoGQL.Mutation as Mutation
+import LondoGQL.Object.Project
+import LondoGQL.Object.ProjectId
 import LondoGQL.Query as Query
 import Maybe.Extra
 import Monocle.Compose as Compose
@@ -130,19 +133,54 @@ update msg model =
             ( model, cmd )
 
         GotSaveProjectResponse projectId graphQLDataOrError ->
-            ( model, Cmd.none )
+            case graphQLDataOrError of
+                Success project ->
+                    ( model
+                        |> Optional.modify
+                            (ownProjectsLens
+                                |> Compose.lensWithOptional (projectIdIs projectId |> firstSuch)
+                            )
+                            (Either.andThenRight (always (Left project)))
+                    , Cmd.none
+                    )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
 
         EnterEditProjectAt projectId ->
-            ( model, Cmd.none )
+            ( model
+                |> Optional.modify (ownProjectsLens |> Compose.lensWithOptional (projectIdIs projectId |> firstSuch))
+                    (Either.unpack (\project -> { original = project, update = ProjectUpdateClientInput.from project }) identity >> Right)
+            , Cmd.none
+            )
 
         ExitEditProjectAt projectId ->
-            ( model, Cmd.none )
+            ( model |> Optional.modify (ownProjectsLens |> Compose.lensWithOptional (projectIdIs projectId |> firstSuch)) (Either.unpack identity .original >> Left), Cmd.none )
 
         DeleteProject projectId ->
-            ( model, Cmd.none )
+            ( model
+            , deleteProject model projectId
+            )
 
         GotDeleteProjectResponse graphQLDataOrError ->
-            ( model, Cmd.none )
+            case graphQLDataOrError of
+                Success deletedId ->
+                    ( model
+                        |> ownProjectsLens.set
+                            (model.ownProjects
+                                |> List.Extra.filterNot
+                                    (Either.unpack
+                                        (\t -> t.id == deletedId)
+                                        (\t -> t.original.id == deletedId)
+                                    )
+                            )
+                    , Cmd.none
+                    )
+
+                -- todo: Handle error case
+                _ ->
+                    ( model, Cmd.none )
 
         GotFetchOwnProjectsResponse graphQLDataOrError ->
             case graphQLDataOrError of
@@ -220,8 +258,17 @@ createProject model =
 saveProject : Model -> ProjectUpdate -> ProjectId -> Cmd Msg
 saveProject model projectUpdate projectId =
     Mutation.updateProject
-        { projectId = projectId |> ProjectId.uuid |> LondoGQL.InputObject.ProjectIdInput
+        { projectId = projectId |> ProjectId.toInput
         , projectUpdate = projectUpdate
         }
         ProjectInformation.selection
         |> RequestUtil.mutateWith (graphQLRequestParametersOf model (GotSaveProjectResponse projectId))
+
+
+deleteProject : Model -> ProjectId -> Cmd Msg
+deleteProject model projectId =
+    Mutation.deleteProject
+        { projectId = projectId |> ProjectId.toInput
+        }
+        (SelectionSet.map ProjectId (LondoGQL.Object.Project.id LondoGQL.Object.ProjectId.uuid))
+        |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotDeleteProjectResponse)
