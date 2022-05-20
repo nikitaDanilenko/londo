@@ -22,6 +22,7 @@ import Pages.Util.RequestUtil as RequestUtil
 import RemoteData exposing (RemoteData(..))
 import Types.ProjectId as ProjectId exposing (ProjectId)
 import Util.Editing as Editing exposing (Editing)
+import Util.LensUtil as LensUtil
 
 
 type alias Model =
@@ -110,7 +111,7 @@ update msg model =
                 |> Optional.modify
                     (ownProjectsLens
                         |> Compose.lensWithOptional
-                            (projectIdIs projectId |> firstSuch)
+                            (projectIdIs projectId |> LensUtil.firstSuch)
                     )
                     (Either.mapRight (Editing.updateLens.set projectUpdateClientInput))
             , Cmd.none
@@ -138,7 +139,7 @@ update msg model =
                     ( model
                         |> Optional.modify
                             (ownProjectsLens
-                                |> Compose.lensWithOptional (projectIdIs projectId |> firstSuch)
+                                |> Compose.lensWithOptional (projectIdIs projectId |> LensUtil.firstSuch)
                             )
                             (Either.andThenRight (always (Left project)))
                     , Cmd.none
@@ -150,13 +151,13 @@ update msg model =
 
         EnterEditProjectAt projectId ->
             ( model
-                |> Optional.modify (ownProjectsLens |> Compose.lensWithOptional (projectIdIs projectId |> firstSuch))
+                |> Optional.modify (ownProjectsLens |> Compose.lensWithOptional (projectIdIs projectId |> LensUtil.firstSuch))
                     (Either.unpack (\project -> { original = project, update = ProjectUpdateClientInput.from project }) identity >> Right)
             , Cmd.none
             )
 
         ExitEditProjectAt projectId ->
-            ( model |> Optional.modify (ownProjectsLens |> Compose.lensWithOptional (projectIdIs projectId |> firstSuch)) (Either.unpack identity .original >> Left), Cmd.none )
+            ( model |> Optional.modify (ownProjectsLens |> Compose.lensWithOptional (projectIdIs projectId |> LensUtil.firstSuch)) (Either.unpack identity .original >> Left), Cmd.none )
 
         DeleteProject projectId ->
             ( model
@@ -201,17 +202,11 @@ update msg model =
                     ( model, Cmd.none )
 
 
-firstSuch : (a -> Bool) -> Optional (List a) a
-firstSuch p =
-    { getOption = List.Extra.find p
-    , set = List.Extra.setIf p
-    }
-
-
 projectIdIs : ProjectId -> Either ProjectInformation (Editing ProjectInformation ProjectUpdateClientInput) -> Bool
 projectIdIs projectId =
-    Either.unpack (\p -> p.id == projectId)
-        (\p -> p.original.id == projectId)
+    Either.unpack
+        (\p -> p.id == projectId)
+        (\e -> e.original.id == projectId)
 
 
 fetchOwnProjects : Model -> Cmd Msg
