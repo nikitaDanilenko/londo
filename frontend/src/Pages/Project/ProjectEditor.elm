@@ -118,7 +118,13 @@ update msg model =
                 cmd =
                     Maybe.Extra.unwrap
                         Cmd.none
-                        (Either.unwrap Cmd.none (\editing -> saveProject model (ProjectUpdateClientInput.to projectId editing.original.ownerId editing.update) editing.original.id projectId))
+                        (Either.unwrap Cmd.none
+                            (\editing ->
+                                saveProject model
+                                    (ProjectUpdateClientInput.to projectId editing.original.ownerId editing.update |> ProjectInformation.toUpdate)
+                                    editing.original.id
+                            )
+                        )
                         (List.Extra.find (projectIdIs projectId) model.ownProjects)
             in
             ( model, cmd )

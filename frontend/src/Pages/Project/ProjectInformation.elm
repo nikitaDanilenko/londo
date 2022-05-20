@@ -1,7 +1,9 @@
 module Pages.Project.ProjectInformation exposing (..)
 
+import Graphql.OptionalArgument as OptionalArgument
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Nonempty
+import LondoGQL.InputObject exposing (ProjectUpdate)
 import LondoGQL.Object
 import LondoGQL.Object.Accessors
 import LondoGQL.Object.NonEmptyList
@@ -10,7 +12,7 @@ import LondoGQL.Object.ProjectId
 import LondoGQL.Object.UserId
 import Types.Accessors as Accessors exposing (Accessors)
 import Types.ProjectId exposing (ProjectId)
-import Types.UserId exposing (UserId)
+import Types.UserId as UserId exposing (UserId)
 
 
 type alias ProjectInformation =
@@ -49,3 +51,12 @@ userIdsSelection =
             (LondoGQL.Object.NonEmptyList.head LondoGQL.Object.UserId.uuid |> SelectionSet.map UserId)
             (LondoGQL.Object.NonEmptyList.tail LondoGQL.Object.UserId.uuid |> SelectionSet.map (List.map UserId))
         )
+
+
+toUpdate : ProjectInformation -> ProjectUpdate
+toUpdate projectInformation =
+    { name = projectInformation.name
+    , description = OptionalArgument.fromMaybe projectInformation.description
+    , ownerId = projectInformation.ownerId |> UserId.uuid |> LondoGQL.InputObject.UserIdInput
+    , flatIfSingleTask = projectInformation.flatIfSingleTask
+    }
