@@ -45,6 +45,7 @@ import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Types.TaskId as TaskId exposing (TaskId(..))
 import Types.UserId exposing (UserId(..))
 import Util.Editing as Editing exposing (Editing)
+import Util.LensUtil as LensUtil
 
 
 type alias Model =
@@ -55,6 +56,7 @@ type alias Model =
     , plainTasks : List (Either PlainTask (Editing PlainTask PlainUpdateClientInput))
     }
 
+
 type alias ProjectInformation =
     { id : ProjectId
     , name : String
@@ -64,18 +66,15 @@ type alias ProjectInformation =
     }
 
 
--- todo: Consider using taskIds in all message types
-
-
 type Msg
     = AddPlainTask
     | GotAddPlainTaskResponse (RequestUtil.GraphQLDataOrError Uuid)
-    | UpdatePlainTask Int PlainUpdateClientInput
-    | SavePlainTaskEdit Int
-    | GotSavePlainTaskResponse Int (RequestUtil.GraphQLDataOrError PlainTask)
-    | EnterEditPlainTaskAt Int
-    | ExitEditPlainTaskAt Int
-    | DeletePlainTaskAt Int
+    | UpdatePlainTask TaskId PlainUpdateClientInput
+    | SavePlainTaskEdit TaskId
+    | GotSavePlainTaskResponse TaskId (RequestUtil.GraphQLDataOrError PlainTask)
+    | EnterEditPlainTaskAt TaskId
+    | ExitEditPlainTaskAt TaskId
+    | DeletePlainTaskAt TaskId
     | GotDeletePlainTaskResponse (RequestUtil.GraphQLDataOrError TaskId)
     | GotFetchProjectDataResponse (RequestUtil.GraphQLDataOrError ProjectData)
 
@@ -148,27 +147,35 @@ update msg model =
                     -- todo: Handle error case
                     ( model, Cmd.none )
 
-        UpdatePlainTask pos plainUpdateClientInput ->
+        UpdatePlainTask taskId plainUpdateClientInput ->
             ( model
-                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.mapRight (Editing.updateLens.set plainUpdateClientInput))
+                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (LensUtil.firstSuch (taskIdIs taskId))) (Either.mapRight (Editing.updateLens.set plainUpdateClientInput))
             , Cmd.none
             )
 
-        SavePlainTaskEdit pos ->
+        SavePlainTaskEdit taskId ->
             let
                 cmd =
                     Maybe.Extra.unwrap
                         Cmd.none
-                        (Either.unwrap Cmd.none (\editing -> savePlainTask model (PlainUpdateClientInput.to editing.update) editing.original.id pos))
-                        (List.Extra.getAt pos model.plainTasks)
+                        (Either.unwrap
+                            Cmd.none
+                            (\editing ->
+                                savePlainTask
+                                    model
+                                    (PlainUpdateClientInput.to editing.update)
+                                    editing.original.id
+                            )
+                        )
+                        (List.Extra.find (taskIdIs taskId) model.plainTasks)
             in
             ( model, cmd )
 
-        GotSavePlainTaskResponse pos remoteData ->
+        GotSavePlainTaskResponse taskId remoteData ->
             case remoteData of
                 Success plainTask ->
                     ( model
-                        |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.andThenRight (always (Left plainTask)))
+                        |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (LensUtil.firstSuch (taskIdIs taskId))) (Either.andThenRight (always (Left plainTask)))
                     , Cmd.none
                     )
 
@@ -176,18 +183,18 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        EnterEditPlainTaskAt pos ->
+        EnterEditPlainTaskAt taskId ->
             ( model
-                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack (\pt -> { original = pt, update = PlainUpdateClientInput.from pt }) identity >> Right)
+                |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (LensUtil.firstSuch (taskIdIs taskId))) (Either.unpack (\pt -> { original = pt, update = PlainUpdateClientInput.from pt }) identity >> Right)
             , Cmd.none
             )
 
-        ExitEditPlainTaskAt pos ->
-            ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (list pos)) (Either.unpack identity .original >> Left), Cmd.none )
+        ExitEditPlainTaskAt taskId ->
+            ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (LensUtil.firstSuch (taskIdIs taskId))) (Either.unpack identity .original >> Left), Cmd.none )
 
-        DeletePlainTaskAt pos ->
+        DeletePlainTaskAt taskId ->
             ( model
-            , deletePlainTask model pos
+            , deletePlainTask model taskId
             )
 
         GotFetchProjectDataResponse remoteData ->
@@ -223,9 +230,10 @@ view : Model -> Html Msg
 view model =
     let
         viewEditPlainTasks =
-            List.indexedMap
-                (\i ->
-                    Either.unpack (editOrDeletePlainTaskLine model.language i) (.update >> editPlainTaskLine model.language i)
+            List.map
+                (Either.unpack
+                    (editOrDeletePlainTaskLine model.language)
+                    (\e -> e.update |> editPlainTaskLine model.language e.original.id)
                 )
     in
     div [ id "creatingProjectView" ]
@@ -272,21 +280,21 @@ plainTasksLens =
     Lens .plainTasks (\b a -> { a | plainTasks = b })
 
 
-editOrDeletePlainTaskLine : Language.TaskEditor -> Int -> PlainTask -> Html Msg
-editOrDeletePlainTaskLine language pos plainTask =
+editOrDeletePlainTaskLine : Language.TaskEditor -> PlainTask -> Html Msg
+editOrDeletePlainTaskLine language plainTask =
     tr [ id "editingPlainTask" ]
         [ td [] [ label [] [ text plainTask.name ] ]
         , td [] [ label [] [ plainTask.taskKind |> TaskKind.toString |> text ] ]
         , td [] [ label [] [ Progress.display plainTask.taskKind plainTask.progress |> text ] ]
         , td [] [ label [] [ plainTask.unit |> Maybe.withDefault "" |> text ] ]
         , td [] [ label [] [ plainTask.weight |> Positive.toString |> text ] ]
-        , td [] [ button [ class "button", onClick (EnterEditPlainTaskAt pos) ] [ text language.edit ] ]
-        , td [] [ button [ class "button", onClick (DeletePlainTaskAt pos) ] [ text language.remove ] ]
+        , td [] [ button [ class "button", onClick (EnterEditPlainTaskAt plainTask.id) ] [ text language.edit ] ]
+        , td [] [ button [ class "button", onClick (DeletePlainTaskAt plainTask.id) ] [ text language.remove ] ]
         ]
 
 
-editPlainTaskLine : Language.TaskEditor -> Int -> PlainUpdateClientInput -> Html Msg
-editPlainTaskLine language pos plainUpdateClientInput =
+editPlainTaskLine : Language.TaskEditor -> TaskId -> PlainUpdateClientInput -> Html Msg
+editPlainTaskLine language taskId plainUpdateClientInput =
     let
         progressClientInputByTaskKind : TaskKind -> ProgressClientInput
         progressClientInputByTaskKind taskKind =
@@ -305,7 +313,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     (plainUpdateClientInput
                         |> PlainUpdateClientInput.taskKind.set taskKind
                         |> PlainUpdateClientInput.progress.set (progressClientInputByTaskKind taskKind)
-                        |> UpdatePlainTask pos
+                        |> UpdatePlainTask taskId
                     )
                 ]
                 [ text description ]
@@ -371,7 +379,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                         , onClick
                             (plainUpdateClientInput
                                 |> progressReachedLens.set complementInput
-                                |> UpdatePlainTask pos
+                                |> UpdatePlainTask taskId
                             )
                         ]
                         []
@@ -388,7 +396,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     [ input
                         [ onInput
                             (flip (FromInput.lift (PlainUpdateClientInput.progress |> Compose.lensWithIso percentualIso)).set plainUpdateClientInput
-                                >> UpdatePlainTask pos
+                                >> UpdatePlainTask taskId
                             )
                         , adjustPercentual plainUpdateClientInput.progress.reached.value plainUpdateClientInput.progress.reachable.value
                             |> value
@@ -401,7 +409,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     [ input
                         [ onInput
                             (flip (FromInput.lift progressReachedLens).set plainUpdateClientInput
-                                >> UpdatePlainTask pos
+                                >> UpdatePlainTask taskId
                             )
                         , plainUpdateClientInput.progress.reached.value
                             |> Natural.toString
@@ -428,7 +436,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                                                             pci
                                                    )
                                        )
-                                    |> UpdatePlainTask pos
+                                    |> UpdatePlainTask taskId
                             )
                         , plainUpdateClientInput.progress.reachable.value
                             |> Positive.toString
@@ -445,7 +453,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     (Just
                         >> Maybe.Extra.filter (String.isEmpty >> not)
                         >> flip PlainUpdateClientInput.unit.set plainUpdateClientInput
-                        >> UpdatePlainTask pos
+                        >> UpdatePlainTask taskId
                     )
                 , plainUpdateClientInput.unit
                     |> OptionalArgumentUtil.toMaybe
@@ -464,7 +472,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
                     )
                 , onInput
                     (flip (FromInput.lift PlainUpdateClientInput.weight).set plainUpdateClientInput
-                        >> UpdatePlainTask pos
+                        >> UpdatePlainTask taskId
                     )
                 ]
                 []
@@ -474,7 +482,7 @@ editPlainTaskLine language pos plainUpdateClientInput =
             [ label [] [ text language.plainTaskName ]
             , input
                 [ value plainUpdateClientInput.name
-                , onInput (flip PlainUpdateClientInput.name.set plainUpdateClientInput >> UpdatePlainTask pos)
+                , onInput (flip PlainUpdateClientInput.name.set plainUpdateClientInput >> UpdatePlainTask taskId)
                 ]
                 []
             ]
@@ -497,11 +505,18 @@ editPlainTaskLine language pos plainUpdateClientInput =
             [ label [] [ text language.weight ]
             , div [ class "weight" ] [ viewWeight ]
             ]
-        , button [ class "button", onClick (SavePlainTaskEdit pos) ]
+        , button [ class "button", onClick (SavePlainTaskEdit taskId) ]
             [ text language.save ]
-        , button [ class "button", onClick (ExitEditPlainTaskAt pos) ]
+        , button [ class "button", onClick (ExitEditPlainTaskAt taskId) ]
             [ text language.cancel ]
         ]
+
+
+taskIdIs : TaskId -> Either PlainTask (Editing PlainTask PlainUpdateClientInput) -> Bool
+taskIdIs taskId =
+    Either.unpack
+        (\pt -> pt.id == taskId)
+        (\e -> e.original.id == taskId)
 
 
 defaultPlainTaskCreation : PlainCreation
@@ -524,8 +539,8 @@ addPlainTask model =
         |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotAddPlainTaskResponse)
 
 
-savePlainTask : Model -> PlainUpdate -> TaskId -> Int -> Cmd Msg
-savePlainTask model plainUpdate taskId pos =
+savePlainTask : Model -> PlainUpdate -> TaskId -> Cmd Msg
+savePlainTask model plainUpdate taskId =
     Mutation.updatePlainTask
         { taskKey =
             { projectId = { uuid = model.projectInformation.id |> ProjectId.uuid }
@@ -534,7 +549,7 @@ savePlainTask model plainUpdate taskId pos =
         , plainUpdate = plainUpdate
         }
         plainTaskSelection
-        |> RequestUtil.mutateWith (graphQLRequestParametersOf model (GotSavePlainTaskResponse pos))
+        |> RequestUtil.mutateWith (graphQLRequestParametersOf model (GotSavePlainTaskResponse taskId))
 
 
 fetchProjectData : Model -> Cmd Msg
@@ -561,21 +576,16 @@ fetchProjectData model =
         |> RequestUtil.queryWith (graphQLRequestParametersOf model GotFetchProjectDataResponse)
 
 
-deletePlainTask : Model -> Int -> Cmd Msg
-deletePlainTask model pos =
-    List.Extra.getAt pos model.plainTasks
-        |> Maybe.andThen Either.leftToMaybe
-        |> Maybe.Extra.unwrap Cmd.none
-            (\task ->
-                Mutation.removePlainTask
-                    { taskKey =
-                        { projectId = { uuid = model.projectInformation.id |> ProjectId.uuid }
-                        , taskId = { uuid = TaskId.uuid task.id }
-                        }
-                    }
-                    (SelectionSet.map TaskId (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid))
-                    |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotDeletePlainTaskResponse)
-            )
+deletePlainTask : Model -> TaskId -> Cmd Msg
+deletePlainTask model taskId =
+    Mutation.removePlainTask
+        { taskKey =
+            { projectId = { uuid = model.projectInformation.id |> ProjectId.uuid }
+            , taskId = { uuid = TaskId.uuid taskId }
+            }
+        }
+        (SelectionSet.map TaskId (LondoGQL.Object.Plain.id LondoGQL.Object.TaskId.uuid))
+        |> RequestUtil.mutateWith (graphQLRequestParametersOf model GotDeletePlainTaskResponse)
 
 
 plainTaskSelection : SelectionSet.SelectionSet PlainTask LondoGQL.Object.Plain
