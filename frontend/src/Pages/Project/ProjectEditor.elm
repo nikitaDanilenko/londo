@@ -1,9 +1,14 @@
 module Pages.Project.ProjectEditor exposing (..)
 
+import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Either exposing (Either(..))
 import Graphql.OptionalArgument as OptionalArgument
 import Graphql.SelectionSet as SelectionSet
+import Html exposing (Html, button, div, input, label, td, text, thead, tr)
+import Html.Attributes exposing (checked, class, for, id, type_, value)
+import Html.Events exposing (onClick, onInput)
+import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language exposing (Language)
 import List.Extra
 import LondoGQL.InputObject exposing (ProjectCreation, ProjectUpdate)
@@ -18,6 +23,7 @@ import Monocle.Optional as Optional exposing (Optional)
 import Pages.Project.ProjectInformation as ProjectInformation exposing (ProjectInformation)
 import Pages.Project.ProjectUpdateClientInput as ProjectUpdateClientInput exposing (ProjectUpdateClientInput)
 import Pages.Util.AccessorUtil as AccessorsUtil
+import Pages.Util.FromInput as FromInput
 import Pages.Util.RequestUtil as RequestUtil
 import RemoteData exposing (RemoteData(..))
 import Types.ProjectId as ProjectId exposing (ProjectId)
@@ -200,6 +206,102 @@ update msg model =
                 -- todo: Handle error case
                 _ ->
                     ( model, Cmd.none )
+
+
+view : Model -> Html Msg
+view model =
+    let
+        viewEditProjects =
+            List.map
+                (Either.unpack
+                    editOrDeleteProjectLine
+                    (\e -> e.update |> editProjectLine model.language e.original.id)
+                )
+    in
+    div [ id "addProjectView" ]
+        (div [ id "addProject" ]
+            [ label [ for "projectName" ] [ text model.language.newProject ] ]
+            :: div [ id "addProject" ] [ button [ class "button", onClick CreateProject ] [ text model.language.newProject ] ]
+            :: thead []
+                [ tr []
+                    [ td [] [ label [] [ text model.language.name ] ]
+                    , td [] [ label [] [ text model.language.description ] ]
+                    , td [] [ label [] [ text model.language.flatIfSingleTask ] ]
+                    ]
+                ]
+            :: viewEditProjects model.ownProjects
+        )
+
+
+editOrDeleteProjectLine : ProjectInformation -> Html Msg
+editOrDeleteProjectLine projectInformation =
+    tr [ id "editingProject" ]
+        [ td [] [ label [] [ text projectInformation.name ] ]
+        , td [] [ label [] [ projectInformation.description |> Maybe.withDefault "" |> text ] ]
+        , td []
+            [ input
+                [ type_ "checkbox"
+                , checked projectInformation.flatIfSingleTask
+                ]
+                []
+            ]
+        , td [] [ label [] [ text projectInformation.name ] ]
+        ]
+
+
+editProjectLine : Language.ProjectEditor -> ProjectId -> ProjectUpdateClientInput -> Html Msg
+editProjectLine language projectId projectUpdateClientInput =
+    let
+        createOnEnter =
+            onEnter (SaveProjectEdit projectId)
+    in
+    div [ class "plainTaskLine" ]
+        [ div [ class "plainName" ]
+            [ label [] [ text language.name ]
+            , input
+                [ value projectUpdateClientInput.name
+                , onInput (flip ProjectUpdateClientInput.name.set projectUpdateClientInput >> UpdateProject projectId)
+                , createOnEnter
+                ]
+                []
+            ]
+        , div [ class "projectDescriptionArea" ]
+            [ label [] [ text language.description ]
+            , div [ class "projectDescription" ]
+                [ input
+                    [ Maybe.withDefault "" projectUpdateClientInput.description |> value
+                    , onInput
+                        (flip
+                            (Just
+                                >> Maybe.Extra.filter (String.isEmpty >> not)
+                                >> ProjectUpdateClientInput.description.set
+                            )
+                            projectUpdateClientInput
+                            >> UpdateProject projectId
+                        )
+                    , createOnEnter
+                    ]
+                    []
+                ]
+            ]
+        , div [ id "flatIfSingleTaskArea" ]
+            [ label [ for "flatIfSingleTask" ] [ text language.flatIfSingleTask ]
+            , input
+                [ type_ "checkbox"
+                , checked projectUpdateClientInput.flatIfSingleTask
+                , onClick
+                    (ProjectUpdateClientInput.flatIfSingleTask.set (not projectUpdateClientInput.flatIfSingleTask)
+                        projectUpdateClientInput
+                        |> UpdateProject projectId
+                    )
+                ]
+                []
+            ]
+        , button [ class "button", onClick (SaveProjectEdit projectId) ]
+            [ text language.save ]
+        , button [ class "button", onClick (ExitEditProjectAt projectId) ]
+            [ text language.cancel ]
+        ]
 
 
 projectIdIs : ProjectId -> Either ProjectInformation (Editing ProjectInformation ProjectUpdateClientInput) -> Bool

@@ -104,6 +104,11 @@ type alias TaskEditor =
 type alias ProjectEditor =
     { newProject : String
     , remove : String
+    , name : String
+    , description : String
+    , flatIfSingleTask : String
+    , save : String
+    , cancel : String
     }
 
 
@@ -190,6 +195,11 @@ english =
     , projectEditor =
         { newProject = "New project"
         , remove = "Remove"
+        , name = "Project name"
+        , description = "Description"
+        , flatIfSingleTask = "Flatten if the project contains only a single task"
+        , save = "Save"
+        , cancel = "Cancel"
         }
     , searchProject = {}
     }
