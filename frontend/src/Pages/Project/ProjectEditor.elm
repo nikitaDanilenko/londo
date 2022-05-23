@@ -1,4 +1,4 @@
-module Pages.Project.ProjectEditor exposing (..)
+module Pages.Project.ProjectEditor exposing (Model, Msg, init, view, update)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
@@ -23,7 +23,6 @@ import Monocle.Optional as Optional exposing (Optional)
 import Pages.Project.ProjectInformation as ProjectInformation exposing (ProjectInformation)
 import Pages.Project.ProjectUpdateClientInput as ProjectUpdateClientInput exposing (ProjectUpdateClientInput)
 import Pages.Util.AccessorUtil as AccessorsUtil
-import Pages.Util.FromInput as FromInput
 import Pages.Util.RequestUtil as RequestUtil
 import RemoteData exposing (RemoteData(..))
 import Types.ProjectId as ProjectId exposing (ProjectId)
