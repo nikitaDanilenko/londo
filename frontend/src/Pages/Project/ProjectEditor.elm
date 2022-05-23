@@ -1,4 +1,4 @@
-module Pages.Project.ProjectEditor exposing (Model, Msg, init, view, update)
+module Pages.Project.ProjectEditor exposing (Model, Msg, init, update, view)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
@@ -55,7 +55,7 @@ type Msg
     | UpdateProject ProjectId ProjectUpdateClientInput
     | SaveProjectEdit ProjectId
     | GotSaveProjectResponse ProjectId (RequestUtil.GraphQLDataOrError ProjectInformation)
-    | EnterEditProjectAt ProjectId
+    | EnterEditProject ProjectId
     | ExitEditProjectAt ProjectId
     | DeleteProject ProjectId
     | GotDeleteProjectResponse (RequestUtil.GraphQLDataOrError ProjectId)
@@ -154,7 +154,7 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        EnterEditProjectAt projectId ->
+        EnterEditProject projectId ->
             ( model
                 |> Optional.modify (ownProjectsLens |> Compose.lensWithOptional (projectIdIs projectId |> LensUtil.firstSuch))
                     (Either.unpack (\project -> { original = project, update = ProjectUpdateClientInput.from project }) identity >> Right)
@@ -213,7 +213,7 @@ view model =
         viewEditProjects =
             List.map
                 (Either.unpack
-                    editOrDeleteProjectLine
+                    (editOrDeleteProjectLine model.language)
                     (\e -> e.update |> editProjectLine model.language e.original.id)
                 )
     in
@@ -232,8 +232,8 @@ view model =
         )
 
 
-editOrDeleteProjectLine : ProjectInformation -> Html Msg
-editOrDeleteProjectLine projectInformation =
+editOrDeleteProjectLine : Language.ProjectEditor -> ProjectInformation -> Html Msg
+editOrDeleteProjectLine language projectInformation =
     tr [ id "editingProject" ]
         [ td [] [ label [] [ text projectInformation.name ] ]
         , td [] [ label [] [ projectInformation.description |> Maybe.withDefault "" |> text ] ]
@@ -245,7 +245,8 @@ editOrDeleteProjectLine projectInformation =
                 ]
                 []
             ]
-        , td [] [ label [] [ text projectInformation.name ] ]
+        , td [] [ button [ class "button", onClick (EnterEditProject projectInformation.id) ] [ text language.edit ] ]
+        , td [] [ button [ class "button", onClick (DeleteProject projectInformation.id) ] [ text language.remove ] ]
         ]
 
 
@@ -257,7 +258,7 @@ editProjectLine language projectId projectUpdateClientInput =
     in
     -- todo: Check whether the update behaviour is correct. There is the implicit assumption that the update originates from the project.
     --       cf. name, description, and flatIfSingleTask
-    div [ class "plainTaskLine" ]
+    div [ class "projectLine" ]
         [ div [ class "plainName" ]
             [ label [] [ text language.name ]
             , input
