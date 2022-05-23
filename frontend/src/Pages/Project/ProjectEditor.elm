@@ -23,9 +23,12 @@ import Monocle.Optional as Optional exposing (Optional)
 import Pages.Project.ProjectInformation as ProjectInformation exposing (ProjectInformation)
 import Pages.Project.ProjectUpdateClientInput as ProjectUpdateClientInput exposing (ProjectUpdateClientInput)
 import Pages.Util.AccessorUtil as AccessorsUtil
+import Pages.Util.Links as Links
 import Pages.Util.RequestUtil as RequestUtil
+import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData(..))
 import Types.ProjectId as ProjectId exposing (ProjectId)
+import Url.Builder as UrlBuilder
 import Util.Editing as Editing exposing (Editing)
 import Util.LensUtil as LensUtil
 
@@ -213,7 +216,7 @@ view model =
         viewEditProjects =
             List.map
                 (Either.unpack
-                    (editOrDeleteProjectLine model.language)
+                    (editOrDeleteProjectLine model.language model.configuration)
                     (\e -> e.update |> editProjectLine model.language e.original.id)
                 )
     in
@@ -232,8 +235,8 @@ view model =
         )
 
 
-editOrDeleteProjectLine : Language.ProjectEditor -> ProjectInformation -> Html Msg
-editOrDeleteProjectLine language projectInformation =
+editOrDeleteProjectLine : Language.ProjectEditor -> Configuration -> ProjectInformation -> Html Msg
+editOrDeleteProjectLine language configuration projectInformation =
     tr [ id "editingProject" ]
         [ td [] [ label [] [ text projectInformation.name ] ]
         , td [] [ label [] [ projectInformation.description |> Maybe.withDefault "" |> text ] ]
@@ -246,6 +249,21 @@ editOrDeleteProjectLine language projectInformation =
                 []
             ]
         , td [] [ button [ class "button", onClick (EnterEditProject projectInformation.id) ] [ text language.edit ] ]
+        , td []
+            [ Links.linkButton
+                { url =
+                    UrlBuilder.relative
+                        [ configuration.mainPageURL
+                        , "#"
+                        , configuration.subFolders.taskEditor
+                        , projectInformation.id |> ProjectId.uuid |> ScalarUtil.uuidToString
+                        ]
+                        []
+                , attributes = [ class "button" ]
+                , children = [ text language.taskEditor ]
+                , isDisabled = False
+                }
+            ]
         , td [] [ button [ class "button", onClick (DeleteProject projectInformation.id) ] [ text language.remove ] ]
         ]
 
