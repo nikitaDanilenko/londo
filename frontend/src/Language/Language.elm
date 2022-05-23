@@ -104,6 +104,7 @@ type alias TaskEditor =
 type alias ProjectEditor =
     { newProject : String
     , remove : String
+    , edit: String
     , name : String
     , description : String
     , flatIfSingleTask : String
@@ -195,6 +196,7 @@ english =
     , projectEditor =
         { newProject = "New project"
         , remove = "Remove"
+        , edit = "Edit"
         , name = "Project name"
         , description = "Description"
         , flatIfSingleTask = "Flatten if the project contains only a single task"
