@@ -6,7 +6,7 @@ import Either exposing (Either(..))
 import Graphql.OptionalArgument as OptionalArgument
 import Graphql.SelectionSet as SelectionSet
 import Html exposing (Html, button, div, input, label, td, text, thead, tr)
-import Html.Attributes exposing (checked, class, for, id, type_, value)
+import Html.Attributes exposing (checked, class, disabled, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language exposing (Language)
@@ -241,6 +241,7 @@ editOrDeleteProjectLine projectInformation =
             [ input
                 [ type_ "checkbox"
                 , checked projectInformation.flatIfSingleTask
+                , disabled True
                 ]
                 []
             ]
