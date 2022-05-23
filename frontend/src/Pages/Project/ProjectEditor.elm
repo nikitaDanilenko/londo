@@ -255,6 +255,8 @@ editProjectLine language projectId projectUpdateClientInput =
         createOnEnter =
             onEnter (SaveProjectEdit projectId)
     in
+    -- todo: Check whether the update behaviour is correct. There is the implicit assumption that the update originates from the project.
+    --       cf. name, description, and flatIfSingleTask
     div [ class "plainTaskLine" ]
         [ div [ class "plainName" ]
             [ label [] [ text language.name ]
