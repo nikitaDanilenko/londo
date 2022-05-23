@@ -72,9 +72,9 @@ type Msg
     | UpdatePlainTask TaskId PlainUpdateClientInput
     | SavePlainTaskEdit TaskId
     | GotSavePlainTaskResponse TaskId (RequestUtil.GraphQLDataOrError PlainTask)
-    | EnterEditPlainTaskAt TaskId
-    | ExitEditPlainTaskAt TaskId
-    | DeletePlainTaskAt TaskId
+    | EnterEditPlainTask TaskId
+    | ExitEditPlainTask TaskId
+    | DeletePlainTask TaskId
     | GotDeletePlainTaskResponse (RequestUtil.GraphQLDataOrError TaskId)
     | GotFetchProjectDataResponse (RequestUtil.GraphQLDataOrError ProjectData)
 
@@ -183,16 +183,16 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        EnterEditPlainTaskAt taskId ->
+        EnterEditPlainTask taskId ->
             ( model
                 |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (LensUtil.firstSuch (taskIdIs taskId))) (Either.unpack (\pt -> { original = pt, update = PlainUpdateClientInput.from pt }) identity >> Right)
             , Cmd.none
             )
 
-        ExitEditPlainTaskAt taskId ->
+        ExitEditPlainTask taskId ->
             ( model |> Optional.modify (plainTasksLens |> Compose.lensWithOptional (LensUtil.firstSuch (taskIdIs taskId))) (Either.unpack identity .original >> Left), Cmd.none )
 
-        DeletePlainTaskAt taskId ->
+        DeletePlainTask taskId ->
             ( model
             , deletePlainTask model taskId
             )
@@ -288,8 +288,8 @@ editOrDeletePlainTaskLine language plainTask =
         , td [] [ label [] [ Progress.display plainTask.taskKind plainTask.progress |> text ] ]
         , td [] [ label [] [ plainTask.unit |> Maybe.withDefault "" |> text ] ]
         , td [] [ label [] [ plainTask.weight |> Positive.toString |> text ] ]
-        , td [] [ button [ class "button", onClick (EnterEditPlainTaskAt plainTask.id) ] [ text language.edit ] ]
-        , td [] [ button [ class "button", onClick (DeletePlainTaskAt plainTask.id) ] [ text language.remove ] ]
+        , td [] [ button [ class "button", onClick (EnterEditPlainTask plainTask.id) ] [ text language.edit ] ]
+        , td [] [ button [ class "button", onClick (DeletePlainTask plainTask.id) ] [ text language.remove ] ]
         ]
 
 
@@ -507,7 +507,7 @@ editPlainTaskLine language taskId plainUpdateClientInput =
             ]
         , button [ class "button", onClick (SavePlainTaskEdit taskId) ]
             [ text language.save ]
-        , button [ class "button", onClick (ExitEditPlainTaskAt taskId) ]
+        , button [ class "button", onClick (ExitEditPlainTask taskId) ]
             [ text language.cancel ]
         ]
 
