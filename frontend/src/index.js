@@ -9,7 +9,7 @@ Elm.Main.init({
       login: process.env.ELM_APP_LONDO_SUBFOLDER_LOGIN,
       register: process.env.ELM_APP_LONDO_SUBFOLDER_REGISTER,
       overview: process.env.ELM_APP_LONDO_SUBFOLDER_OVERVIEW,
-      newProject: process.env.ELM_APP_LONDO_SUBFOLDER_NEW_PROJECT,
+      projectEditor: process.env.ELM_APP_LONDO_SUBFOLDER_PROJECT_EDITOR,
       taskEditor: process.env.ELM_APP_LONDO_SUBFOLDER_TASK_EDITOR
     }
   }
