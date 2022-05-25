@@ -11,8 +11,8 @@ import LondoGQL.Object.Project
 import LondoGQL.Object.ProjectId
 import LondoGQL.Object.UserId
 import Types.Accessors as Accessors exposing (Accessors)
-import Types.ProjectId exposing (ProjectId)
-import Types.UserId as UserId exposing (UserId)
+import Types.ProjectId exposing (ProjectId (..))
+import Types.UserId as UserId exposing (UserId (..))
 
 
 type alias ProjectInformation =
