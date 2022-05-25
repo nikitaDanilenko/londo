@@ -216,7 +216,7 @@ view model =
         viewEditProjects =
             List.map
                 (Either.unpack
-                    (editOrDeleteProjectLine model.language model.configuration)
+                    (editOrDeleteProjectLine model.language model.configuration model.token)
                     (\e -> e.update |> editProjectLine model.language e.original.id)
                 )
     in
@@ -233,8 +233,8 @@ view model =
         )
 
 
-editOrDeleteProjectLine : Language.ProjectEditor -> Configuration -> ProjectInformation -> Html Msg
-editOrDeleteProjectLine language configuration projectInformation =
+editOrDeleteProjectLine : Language.ProjectEditor -> Configuration -> String -> ProjectInformation -> Html Msg
+editOrDeleteProjectLine language configuration token projectInformation =
     tr [ id "editingProject" ]
         [ td [] [ label [] [ text projectInformation.name ] ]
         , td [] [ label [] [ projectInformation.description |> Maybe.withDefault "" |> text ] ]
@@ -255,6 +255,9 @@ editOrDeleteProjectLine language configuration projectInformation =
                         , "#"
                         , configuration.subFolders.taskEditor
                         , projectInformation.id |> ProjectId.uuid |> ScalarUtil.uuidToString
+                        -- todo: Remove token
+                        , "token"
+                        , token
                         ]
                         []
                 , attributes = [ class "button" ]
