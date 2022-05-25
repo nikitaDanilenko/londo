@@ -1,4 +1,4 @@
-module Pages.Project.ProjectEditor exposing (Model, Msg, Flags, init, update, view)
+module Pages.Project.ProjectEditor exposing (Flags, Model, Msg, init, update, view)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
@@ -27,7 +27,7 @@ import Pages.Util.Links as Links
 import Pages.Util.RequestUtil as RequestUtil
 import Pages.Util.ScalarUtil as ScalarUtil
 import RemoteData exposing (RemoteData(..))
-import Types.ProjectId as ProjectId exposing (ProjectId (..))
+import Types.ProjectId as ProjectId exposing (ProjectId(..))
 import Url.Builder as UrlBuilder
 import Util.Editing as Editing exposing (Editing)
 import Util.LensUtil as LensUtil
@@ -221,9 +221,7 @@ view model =
                 )
     in
     div [ id "addProjectView" ]
-        (div [ id "addProject" ]
-            [ label [ for "projectName" ] [ text model.language.newProject ] ]
-            :: div [ id "addProject" ] [ button [ class "button", onClick CreateProject ] [ text model.language.newProject ] ]
+        (div [ id "addProject" ] [ button [ class "button", onClick CreateProject ] [ text model.language.newProject ] ]
             :: thead []
                 [ tr []
                     [ td [] [ label [] [ text model.language.name ] ]
