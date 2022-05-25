@@ -253,7 +253,7 @@ editOrDeleteProjectLine language configuration token projectInformation =
                     UrlBuilder.relative
                         [ configuration.mainPageURL
                         , "#"
-                        , configuration.subFolders.taskEditor
+                        , configuration.subFolders.tasks
                         , projectInformation.id |> ProjectId.uuid |> ScalarUtil.uuidToString
                         -- todo: Remove token
                         , "token"

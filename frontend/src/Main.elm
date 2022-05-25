@@ -249,7 +249,7 @@ routeParser configuration =
                     )
 
         projectEditorParser =
-            (s configuration.subFolders.projectEditor
+            (s configuration.subFolders.projects
                 </> tokenParser
                 <?> languageParser
             )
@@ -262,7 +262,7 @@ routeParser configuration =
                     )
 
         taskEditorParser =
-            (s configuration.subFolders.taskEditor
+            (s configuration.subFolders.tasks
                 </> ParserUtil.uuidParser
                 </> tokenParser
                 <?> languageParser
