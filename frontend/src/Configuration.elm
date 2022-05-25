@@ -13,7 +13,9 @@ type alias Configuration =
 type alias SubFolders =
     { register : String
     , login : String
-    , overview: String
-    , projectEditor: String
-    , taskEditor: String
+    , overview : String
+    , dashboards : String
+    , projects : String
+    , tasks : String
+    , settings : String
     }

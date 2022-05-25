@@ -9,8 +9,10 @@ Elm.Main.init({
       login: process.env.ELM_APP_LONDO_SUBFOLDER_LOGIN,
       register: process.env.ELM_APP_LONDO_SUBFOLDER_REGISTER,
       overview: process.env.ELM_APP_LONDO_SUBFOLDER_OVERVIEW,
-      projectEditor: process.env.ELM_APP_LONDO_SUBFOLDER_PROJECT_EDITOR,
-      taskEditor: process.env.ELM_APP_LONDO_SUBFOLDER_TASK_EDITOR
+      dashboards: process.env.ELM_APP_LONDO_SUBFOLDER_DASHBOARDS,
+      projects: process.env.ELM_APP_LONDO_SUBFOLDER_PROJECTS,
+      tasks: process.env.ELM_APP_LONDO_SUBFOLDER_TASKS,
+      settings: process.env.ELM_APP_LONDO_SUBFOLDER_SETTINGS
     }
   }
 });
