@@ -9,7 +9,7 @@ import Language.Language as Language exposing (Language)
 import Maybe.Extra
 import Pages.Login.Login as Login
 import Pages.Overview.Overview as Overview
-import Pages.Project.NewProject as NewProject
+import Pages.Project.ProjectEditor as ProjectEditor
 import Pages.Project.TaskEditor as TaskEditor
 import Pages.Register.CreateNewUser as CreateNewUser
 import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
@@ -44,7 +44,7 @@ type Page
     | CreateNewUser CreateNewUser.Model
     | Login Login.Model
     | Overview Overview.Model
-    | NewProject NewProject.Model
+    | ProjectEditor ProjectEditor.Model
     | TaskEditor TaskEditor.Model
     | NotFound
 
@@ -56,7 +56,7 @@ type Msg
     | CreateNewUserMsg CreateNewUser.Msg
     | LoginMsg Login.Msg
     | OverviewMsg Overview.Msg
-    | NewProjectMsg NewProject.Msg
+    | ProjectEditorMsg ProjectEditor.Msg
     | TaskEditorMsg TaskEditor.Msg
 
 
@@ -68,7 +68,7 @@ titleFor _ =
 init : Configuration -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init configuration url key =
     stepTo url
-        { page = NewProject ({ token = "", configuration = configuration, language = Language.default } |> NewProject.init |> Tuple.first)
+        { page = ProjectEditor ({ token = "", configuration = configuration, language = Language.default } |> ProjectEditor.init |> Tuple.first)
         , key = key
         , configuration = configuration
         }
@@ -89,8 +89,8 @@ view model =
         Overview overview ->
             Html.map OverviewMsg (Overview.view overview)
 
-        NewProject newProject ->
-            Html.map NewProjectMsg (NewProject.view newProject)
+        ProjectEditor projectEditor ->
+            Html.map ProjectEditorMsg (ProjectEditor.view projectEditor)
 
         TaskEditor taskEditor ->
             Html.map TaskEditorMsg (TaskEditor.view taskEditor)
@@ -125,8 +125,8 @@ update msg model =
         ( OverviewMsg overviewMsg, Overview overview ) ->
             stepOverview model (Overview.update overviewMsg overview)
 
-        ( NewProjectMsg newProjectMsg, NewProject newProject ) ->
-            stepNewProject model (NewProject.update newProjectMsg newProject)
+        ( ProjectEditorMsg projectEditorMsg, ProjectEditor projectEditor ) ->
+            stepProjectEditor model (ProjectEditor.update projectEditorMsg projectEditor)
 
         ( TaskEditorMsg taskEditorMsg, TaskEditor taskEditor ) ->
             stepTaskEditor model (TaskEditor.update taskEditorMsg taskEditor)
@@ -152,8 +152,8 @@ stepTo url model =
                 OverviewRoute flags ->
                     Overview.init flags |> stepOverview model
 
-                NewProjectRoute flags ->
-                    NewProject.init flags |> stepNewProject model
+                ProjectEditorRoute flags ->
+                    ProjectEditor.init flags |> stepProjectEditor model
 
                 TaskEditorRoute flags ->
                     TaskEditor.init flags |> stepTaskEditor model
@@ -182,9 +182,9 @@ stepOverview model ( overview, cmd ) =
     ( { model | page = Overview overview }, Cmd.map OverviewMsg cmd )
 
 
-stepNewProject : Model -> ( NewProject.Model, Cmd NewProject.Msg ) -> ( Model, Cmd Msg )
-stepNewProject model ( newProject, cmd ) =
-    ( { model | page = NewProject newProject }, Cmd.map NewProjectMsg cmd )
+stepProjectEditor : Model -> ( ProjectEditor.Model, Cmd ProjectEditor.Msg ) -> ( Model, Cmd Msg )
+stepProjectEditor model ( projectEditor, cmd ) =
+    ( { model | page = ProjectEditor projectEditor }, Cmd.map ProjectEditorMsg cmd )
 
 
 stepTaskEditor : Model -> ( TaskEditor.Model, Cmd TaskEditor.Msg ) -> ( Model, Cmd Msg )
@@ -197,7 +197,7 @@ type Route
     | CreateNewUserRoute CreateNewUser.Flags
     | LoginRoute Login.Flags
     | OverviewRoute Overview.Flags
-    | NewProjectRoute NewProject.Flags
+    | ProjectEditorRoute ProjectEditor.Flags
     | TaskEditorRoute TaskEditor.Flags
 
 
@@ -248,8 +248,8 @@ routeParser configuration =
                         }
                     )
 
-        newProjectParser =
-            (s configuration.subFolders.newProject
+        projectEditorParser =
+            (s configuration.subFolders.projectEditor
                 </> tokenParser
                 <?> languageParser
             )
@@ -281,7 +281,7 @@ routeParser configuration =
         , route createNewUserParser CreateNewUserRoute
         , route loginParser LoginRoute
         , route overviewParser OverviewRoute
-        , route newProjectParser NewProjectRoute
+        , route projectEditorParser ProjectEditorRoute
         , route taskEditorParser TaskEditorRoute
         ]
 
