@@ -1,15 +1,17 @@
-module Pages.Overview.Overview exposing (..)
+module Pages.Overview.Overview exposing (Flags, Model, Msg, init, update, view)
 
+import Browser.Navigation as Navigation
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class, id)
 import Html.Events exposing (onClick)
 import Language.Language as Language exposing (Language)
+import Url.Builder as UrlBuilder
 
 
 type alias Model =
     { token : String
-    , overviewLanguage : Language.Overview
+    , language : Language.Overview
     , configuration : Configuration
     }
 
@@ -30,7 +32,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { token = flags.token
-      , overviewLanguage = flags.language.overview
+      , language = flags.language.overview
       , configuration = flags.configuration
       }
     , Cmd.none
@@ -41,26 +43,36 @@ view : Model -> Html Msg
 view model =
     div [ id "overviewMain" ]
         [ div [ id "dashboardsButton" ]
-            [ button [ class "button", onClick Dashboards ] [ text model.overviewLanguage.dashboards ] ]
+            [ button [ class "button", onClick Dashboards ] [ text model.language.dashboards ] ]
         , div [ id "projectsButton" ]
-            [ button [ class "button", onClick Projects ] [ text model.overviewLanguage.projects ] ]
+            [ button [ class "button", onClick Projects ] [ text model.language.projects ] ]
         , div [ id "settingsButton" ]
-            [ button [ class "button", onClick Settings ] [ text model.overviewLanguage.settings ] ]
+            [ button [ class "button", onClick Settings ] [ text model.language.settings ] ]
         ]
-
-
-
--- todo: Implement actions, the current implementation is just a placeholder
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        Dashboards ->
-            ( model, Cmd.none )
+    let
+        subFolder =
+            case msg of
+                Dashboards ->
+                    model.configuration.subFolders.dashboards
 
-        Projects ->
-            ( model, Cmd.none )
+                Projects ->
+                    model.configuration.subFolders.projects
 
-        Settings ->
-            ( model, Cmd.none )
+                Settings ->
+                    model.configuration.subFolders.settings
+
+        link =
+            UrlBuilder.relative
+                [ model.configuration.mainPageURL
+                , "#"
+                , subFolder
+                , "token"
+                , model.token
+                ]
+                []
+    in
+    ( model, Navigation.load link )
