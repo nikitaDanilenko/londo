@@ -6,8 +6,6 @@ type alias Language =
     , userCreation : UserCreation
     , login : Login
     , overview : Overview
-    , projectOverview : ProjectOverview
-    , newProject : NewProject
     , taskEditor : TaskEditor
     , projectEditor : ProjectEditor
     , searchProject : SearchProject
@@ -52,29 +50,6 @@ type alias Overview =
     { dashboards : String
     , projects : String
     , settings : String
-    }
-
-
-type alias ProjectOverview =
-    { myProjects : String
-    , details : String
-    , newProject : String
-    , searchProject : String
-    }
-
-
-type alias NewProject =
-    { name : String
-    , description : String
-    , create : String
-    , cancel : String
-    , everybody : String
-    , readableBy : String
-    , writableBy : String
-    , nobody : String
-    , onlyUsers : String
-    , exceptUsers : String
-    , flatIfSingleTask : String
     }
 
 
@@ -153,25 +128,6 @@ english =
         { dashboards = "Dashboards"
         , projects = "Projects"
         , settings = "Settings"
-        }
-    , projectOverview =
-        { myProjects = "My projects"
-        , details = "Details"
-        , newProject = "New project"
-        , searchProject = "Search project"
-        }
-    , newProject =
-        { name = "Name"
-        , description = "Description"
-        , create = "Create"
-        , cancel = "Cancel"
-        , everybody = "Everybody"
-        , readableBy = "Readable by"
-        , writableBy = "Editable by"
-        , nobody = "Nobody"
-        , onlyUsers = "Nobody, except the following people"
-        , exceptUsers = "Everybody, except the following people"
-        , flatIfSingleTask = "Flatten if the project contains only a single task"
         }
     , taskEditor =
         { plainTasks = "Plain tasks"
