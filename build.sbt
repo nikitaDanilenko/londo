@@ -27,7 +27,6 @@ lazy val root = (project in file("."))
       "com.typesafe.slick"         %% "slick-codegen"        % slickVersion,
       "org.typelevel"              %% "cats-core"            % "2.9.0",
       "org.scalameta"              %% "scalafmt-dynamic"     % "3.7.2",
-      "com.github.pathikrit"       %% "better-files"         % "3.9.2",
       "org.scalameta"              %% "scalameta"            % "4.7.6",
       "ch.qos.logback"              % "logback-classic"      % "1.4.6",
       "io.circe"                   %% "circe-core"           % circeVersion,
