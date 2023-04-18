@@ -73,8 +73,6 @@ alter table plain_task
     add constraint plain_task_pk primary key (id, project_id),
     add constraint plain_task_project_id
         foreign key (project_id) references project(id) on delete cascade,
-    add constraint plain_task_kind_id_fk
-        foreign key (kind_id) references task_kind(id) on delete cascade,
     add constraint reached_non_negative check (reached >= 0),
     add constraint reachable_larger_than_reached check (reachable >= reached),
     add constraint kind_enumeration
