@@ -2,6 +2,7 @@ package security.jwt
 
 import play.api.Configuration
 
+// TODO: Use pureconfig
 sealed abstract case class JwtConfiguration(
     signaturePublicKey: String,
     signaturePrivateKey: String,
