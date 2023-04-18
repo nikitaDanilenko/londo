@@ -1,6 +1,6 @@
-name := "londo"
+name         := "londo"
 organization := "io.danilenko"
-version := "0.1.0"
+version      := "0.1.0"
 
 lazy val root = project
   .in(file("."))
@@ -10,9 +10,9 @@ lazy val root = project
 scalaVersion := "2.13.10"
 
 val doobieVersion = "0.13.4"
-val circeVersion = "0.14.5"
-val jwtVersion = "9.2.0"
-val quillVersion = "3.6.0-RC1"
+val circeVersion  = "0.14.5"
+val jwtVersion    = "9.2.0"
+val quillVersion  = "3.6.0-RC1"
 
 libraryDependencies ++= Seq(
   guice,
@@ -25,6 +25,7 @@ libraryDependencies ++= Seq(
   "org.scalameta"              %% "scalafmt-dynamic"     % "3.7.2",
   "com.github.pathikrit"       %% "better-files"         % "3.9.2",
   "org.scalameta"              %% "scalameta"            % "4.7.6",
+  "ch.qos.logback"              % "logback-classic"      % "1.4.6",
   "org.tpolecat"               %% "doobie-core"          % doobieVersion,
   "org.tpolecat"               %% "doobie-hikari"        % doobieVersion,
   "org.tpolecat"               %% "doobie-postgres"      % doobieVersion,
@@ -66,13 +67,13 @@ lazy val daoGenerate = Command.command("daoGenerate") { state =>
 
 commands += daoGenerate
 
-Docker / maintainer := "nikita.danilenko.is@gmail.com"
-Docker / packageName := "londo"
-Docker / version := sys.env.getOrElse("BUILD_NUMBER", "0")
+Docker / maintainer    := "nikita.danilenko.is@gmail.com"
+Docker / packageName   := "londo"
+Docker / version       := sys.env.getOrElse("BUILD_NUMBER", "0")
 Docker / daemonUserUid := None
-Docker / daemonUser := "daemon"
-dockerBaseImage := "adoptopenjdk/openjdk11:latest"
-dockerUpdateLatest := true
+Docker / daemonUser    := "daemon"
+dockerBaseImage        := "adoptopenjdk/openjdk11:latest"
+dockerUpdateLatest     := true
 
 // Patches and workarounds
 
