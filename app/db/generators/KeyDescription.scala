@@ -21,7 +21,7 @@ object KeyDescription {
           mandatory = column.mandatory
         )
 
-      override val keyType: Type = keyCaseClass1.tpe
+      override val keyType: Type          = keyCaseClass1.tpe
       override val keyColumns: List[Term] = List(q"_.${column.nameTerm}")
     }
 
@@ -37,18 +37,20 @@ object KeyDescription {
             mandatory = column1.mandatory
           ),
           op = Term.Name("&&"),
-          targs = List.empty,
-          args = List(
-            TermUtils.equality(
-              arg = arg,
-              columnName = column2.name,
-              keyTerm = TermUtils.fieldTerms(key, keyCaseClass2.field2),
-              mandatory = column2.mandatory
+          targClause = Type.ArgClause(List.empty),
+          argClause = Term.ArgClause(
+            List(
+              TermUtils.equality(
+                arg = arg,
+                columnName = column2.name,
+                keyTerm = TermUtils.fieldTerms(key, keyCaseClass2.field2),
+                mandatory = column2.mandatory
+              )
             )
           )
         )
 
-      override val keyType: Type = keyCaseClass2.tpe
+      override val keyType: Type          = keyCaseClass2.tpe
       override val keyColumns: List[Term] = List(q"_.${column1.nameTerm}", q"_.${column2.nameTerm}")
     }
 
