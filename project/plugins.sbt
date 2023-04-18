@@ -1,2 +1,3 @@
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.7")
-addSbtPlugin("au.com.onegeek"    % "sbt-dotenv" % "2.1.204")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.19")
+addSbtPlugin("nl.gn0s1s"            % "sbt-dotenv"        % "3.0.0")
+
