@@ -26,8 +26,8 @@ lazy val root = (project in file("."))
       "com.typesafe.slick"         %% "slick-hikaricp"       % slickVersion,
       "com.typesafe.slick"         %% "slick-codegen"        % slickVersion,
       "org.typelevel"              %% "cats-core"            % "2.9.0",
+      "org.typelevel"              %% "cats-effect"          % "3.4.8",
       "org.scalameta"              %% "scalafmt-dynamic"     % "3.7.2",
-      "org.scalameta"              %% "scalameta"            % "4.7.6",
       "ch.qos.logback"              % "logback-classic"      % "1.4.6",
       "io.circe"                   %% "circe-core"           % circeVersion,
       "io.circe"                   %% "circe-generic"        % circeVersion,
@@ -42,6 +42,9 @@ lazy val root = (project in file("."))
       "com.github.julien-truffaut" %% "monocle-core"         % "3.0.0-M5",
       "com.github.julien-truffaut" %% "monocle-macro"        % "3.0.0-M5",
       "io.circe"                   %% "circe-generic-extras" % "0.14.3",
+      "com.typesafe"                % "config"               % "1.4.2",
+      "io.scalaland"               %% "chimney"              % "0.7.2",
+      "com.github.pureconfig"      %% "pureconfig"           % "0.17.2",
       // Transitive dependency. Override added for proper version.
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2"
     ),
