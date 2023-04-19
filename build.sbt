@@ -34,6 +34,7 @@ lazy val root = (project in file("."))
       "io.circe"                   %% "circe-parser"         % circeVersion,
       "org.sangria-graphql"        %% "sangria"              % "3.5.3",
       "org.sangria-graphql"        %% "sangria-circe"        % "1.3.2",
+      "com.typesafe.play"          %% "play-slick"           % "5.1.0",
       "com.dripower"               %% "play-circe"           % "2814.2",
       "com.github.jwt-scala"       %% "jwt-core"             % jwtVersion,
       "com.github.jwt-scala"       %% "jwt-circe"            % jwtVersion,
