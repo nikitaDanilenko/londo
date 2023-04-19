@@ -24,4 +24,7 @@ package object db {
 
   type PlainTaskId = UUID @@ PlainTaskTag
 
+  sealed trait ProjectReferenceTaskTag
+
+  type ProjectReferenceTaskId = UUID @@ ProjectReferenceTaskTag
 }
