@@ -5,8 +5,7 @@ create table "user"
     email         text not null,
     password_salt text not null,
     password_hash text not null,
-    display_name  text,
-    description   text
+    display_name  text
 );
 
 alter table "user"
