@@ -1,9 +1,9 @@
-package services.task
+package services.task.plain
 
-import algebra.ring.{ AdditiveMonoid, AdditiveSemigroup }
+import algebra.ring.{AdditiveMonoid, AdditiveSemigroup}
 import math.Positive
-import spire.algebra.{ MultiplicativeSemigroup, Order }
-import spire.math.{ Natural, Rational }
+import spire.algebra.{MultiplicativeSemigroup, Order}
+import spire.math.{Natural, Rational}
 import spire.syntax.multiplicativeMonoid._
 import utils.math.NaturalUtil
 
