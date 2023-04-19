@@ -10,9 +10,11 @@ import javax.crypto.spec.PBEKeySpec
 
 object Hash {
 
-  private val hashAlgorithm: String = "PBKDF2WithHmacSHA256"
+  private val hashAlgorithm: String          = "PBKDF2WithHmacSHA256"
   private val signatureHashAlgorithm: String = "SHA-384"
-  private val keyLength: Int = 512
+  private val keyLength: Int                 = 512
+
+  val defaultIterations: Natural = Natural(120000)
 
   def fromPassword(password: String, salt: String, iterations: Natural): String = {
     SecretKeyFactory
