@@ -1,9 +1,10 @@
 package security.jwt
 
-import play.api.Configuration
+import pureconfig.generic.ProductHint
+import pureconfig.generic.auto._
+import pureconfig.{ CamelCase, ConfigFieldMapping, ConfigSource }
 
-// TODO: Use pureconfig
-sealed abstract case class JwtConfiguration(
+case class JwtConfiguration(
     signaturePublicKey: String,
     signaturePrivateKey: String,
     restrictedDurationInSeconds: Long
@@ -11,11 +12,10 @@ sealed abstract case class JwtConfiguration(
 
 object JwtConfiguration {
 
-  def apply(configuration: Configuration): JwtConfiguration =
-    new JwtConfiguration(
-      signaturePublicKey = configuration.get[String]("application.jwt.signaturePublicKey"),
-      signaturePrivateKey = configuration.get[String]("application.jwt.signaturePrivateKey"),
-      restrictedDurationInSeconds = configuration.get[Long]("application.jwt.restrictedDurationInSeconds")
-    ) {}
+  implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))
+
+  val default: JwtConfiguration = ConfigSource.default
+    .at("jwtConfiguration")
+    .loadOrThrow[JwtConfiguration]
 
 }
