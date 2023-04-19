@@ -44,17 +44,17 @@ alter table project
 delete
 cascade;
 
-create table dashboard_project_association
+create table dashboard_entry
 (
     dashboard_id uuid not null,
     project_id   uuid not null
 );
 
-alter table dashboard_project_association
-    add constraint dashboard_project_association_pk primary key (dashboard_id, project_id),
-    add constraint dashboard_project_association_dashboard_id_fk
+alter table dashboard_entry
+    add constraint dashboard_entry_pk primary key (dashboard_id, project_id),
+    add constraint dashboard_entry_dashboard_id_fk
         foreign key (dashboard_id) references dashboard(id) on delete cascade,
-    add constraint dashboard_project_association_project_id_fk
+    add constraint dashboard_entry_project_id_fk
         foreign key (project_id) references project(id) on delete cascade;
 
 
@@ -90,16 +90,16 @@ alter table project_reference_task
     add constraint project_reference_task_project_reference_id
         foreign key (project_id) references project(id) on delete cascade;
 
-create table session_key
+create table session
 (
     id         uuid not null,
     user_id    uuid not null,
     created_at date not null
 );
 
-alter table session_key
-    add constraint session_key_pk primary key (id),
-    add constraint session_key_user_id_fk
+alter table session
+    add constraint session_pk primary key (id),
+    add constraint session_user_id_fk
         foreign key (user_id) references "user"(id) on delete cascade;
 
 create table login_attempt

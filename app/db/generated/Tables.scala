@@ -21,7 +21,7 @@ trait Tables {
   /** DDL for all tables. Call .create to execute. */
   lazy val schema: profile.SchemaDescription = Array(
     Dashboard.schema,
-    DashboardProjectAssociation.schema,
+    DashboardEntry.schema,
     LoginAttempt.schema,
     PlainTask.schema,
     Project.schema,
@@ -144,32 +144,30 @@ trait Tables {
   /** Collection-like TableQuery object for table Dashboard */
   lazy val Dashboard = new TableQuery(tag => new Dashboard(tag))
 
-  /** Entity class storing rows of table DashboardProjectAssociation
+  /** Entity class storing rows of table DashboardEntry
     * @param dashboardId
     *   Database column dashboard_id SqlType(uuid)
     * @param projectId
     *   Database column project_id SqlType(uuid)
     */
-  case class DashboardProjectAssociationRow(dashboardId: java.util.UUID, projectId: java.util.UUID)
+  case class DashboardEntryRow(dashboardId: java.util.UUID, projectId: java.util.UUID)
 
-  /** GetResult implicit for fetching DashboardProjectAssociationRow objects using plain SQL queries */
-  implicit def GetResultDashboardProjectAssociationRow(implicit
+  /** GetResult implicit for fetching DashboardEntryRow objects using plain SQL queries */
+  implicit def GetResultDashboardEntryRow(implicit
       e0: GR[java.util.UUID]
-  ): GR[DashboardProjectAssociationRow] = GR { prs =>
+  ): GR[DashboardEntryRow] = GR { prs =>
     import prs._
-    DashboardProjectAssociationRow.tupled((<<[java.util.UUID], <<[java.util.UUID]))
+    DashboardEntryRow.tupled((<<[java.util.UUID], <<[java.util.UUID]))
   }
 
-  /** Table description of table dashboard_project_association. Objects of this class serve as prototypes for rows in
-    * queries.
+  /** Table description of table dashboard_entry. Objects of this class serve as prototypes for rows in queries.
     */
-  class DashboardProjectAssociation(_tableTag: Tag)
-      extends profile.api.Table[DashboardProjectAssociationRow](_tableTag, "dashboard_project_association") {
-    def * = (dashboardId, projectId) <> (DashboardProjectAssociationRow.tupled, DashboardProjectAssociationRow.unapply)
+  class DashboardEntry(_tableTag: Tag) extends profile.api.Table[DashboardEntryRow](_tableTag, "dashboard_entry") {
+    def * = (dashboardId, projectId) <> (DashboardEntryRow.tupled, DashboardEntryRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = ((Rep.Some(dashboardId), Rep.Some(projectId))).shaped.<>(
-      { r => import r._; _1.map(_ => DashboardProjectAssociationRow.tupled((_1.get, _2.get))) },
+      { r => import r._; _1.map(_ => DashboardEntryRow.tupled((_1.get, _2.get))) },
       (_: Any) => throw new Exception("Inserting into ? projection not supported.")
     )
 
@@ -179,18 +177,18 @@ trait Tables {
     /** Database column project_id SqlType(uuid) */
     val projectId: Rep[java.util.UUID] = column[java.util.UUID]("project_id")
 
-    /** Primary key of DashboardProjectAssociation (database name dashboard_project_association_pk) */
-    val pk = primaryKey("dashboard_project_association_pk", (dashboardId, projectId))
+    /** Primary key of DashboardEntry (database name dashboard_entry_pk) */
+    val pk = primaryKey("dashboard_entry_pk", (dashboardId, projectId))
 
-    /** Foreign key referencing Dashboard (database name dashboard_project_association_dashboard_id_fk) */
-    lazy val dashboardFk = foreignKey("dashboard_project_association_dashboard_id_fk", dashboardId, Dashboard)(
+    /** Foreign key referencing Dashboard (database name dashboard_entry_dashboard_id_fk) */
+    lazy val dashboardFk = foreignKey("dashboard_entry_dashboard_id_fk", dashboardId, Dashboard)(
       r => r.id,
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.Cascade
     )
 
-    /** Foreign key referencing Project (database name dashboard_project_association_project_id_fk) */
-    lazy val projectFk = foreignKey("dashboard_project_association_project_id_fk", projectId, Project)(
+    /** Foreign key referencing Project (database name dashboard_entry_project_id_fk) */
+    lazy val projectFk = foreignKey("dashboard_entry_project_id_fk", projectId, Project)(
       r => r.id,
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.Cascade
@@ -198,8 +196,8 @@ trait Tables {
 
   }
 
-  /** Collection-like TableQuery object for table DashboardProjectAssociation */
-  lazy val DashboardProjectAssociation = new TableQuery(tag => new DashboardProjectAssociation(tag))
+  /** Collection-like TableQuery object for table DashboardEntry */
+  lazy val DashboardEntry = new TableQuery(tag => new DashboardEntry(tag))
 
   /** Entity class storing rows of table LoginAttempt
     * @param userId
