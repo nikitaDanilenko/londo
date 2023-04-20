@@ -25,7 +25,7 @@ trait Tables {
     LoginAttempt.schema,
     PlainTask.schema,
     Project.schema,
-    ProjectReferenceTask.schema,
+    ReferenceTask.schema,
     Session.schema,
     User.schema
   ).reduceLeft(_ ++ _)
@@ -432,7 +432,7 @@ trait Tables {
   /** Collection-like TableQuery object for table Project */
   lazy val Project = new TableQuery(tag => new Project(tag))
 
-  /** Entity class storing rows of table ProjectReferenceTask
+  /** Entity class storing rows of table ReferenceTask
     * @param id
     *   Database column id SqlType(uuid)
     * @param projectId
@@ -440,24 +440,22 @@ trait Tables {
     * @param projectReferenceId
     *   Database column project_reference_id SqlType(uuid)
     */
-  case class ProjectReferenceTaskRow(id: java.util.UUID, projectId: java.util.UUID, projectReferenceId: java.util.UUID)
+  case class ReferenceTaskRow(id: java.util.UUID, projectId: java.util.UUID, projectReferenceId: java.util.UUID)
 
-  /** GetResult implicit for fetching ProjectReferenceTaskRow objects using plain SQL queries */
-  implicit def GetResultProjectReferenceTaskRow(implicit e0: GR[java.util.UUID]): GR[ProjectReferenceTaskRow] = GR {
-    prs =>
-      import prs._
-      ProjectReferenceTaskRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[java.util.UUID]))
+  /** GetResult implicit for fetching ReferenceTaskRow objects using plain SQL queries */
+  implicit def GetResultReferenceTaskRow(implicit e0: GR[java.util.UUID]): GR[ReferenceTaskRow] = GR { prs =>
+    import prs._
+    ReferenceTaskRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[java.util.UUID]))
   }
 
-  /** Table description of table project_reference_task. Objects of this class serve as prototypes for rows in queries.
+  /** Table description of table reference_task. Objects of this class serve as prototypes for rows in queries.
     */
-  class ProjectReferenceTask(_tableTag: Tag)
-      extends profile.api.Table[ProjectReferenceTaskRow](_tableTag, "project_reference_task") {
-    def * = (id, projectId, projectReferenceId) <> (ProjectReferenceTaskRow.tupled, ProjectReferenceTaskRow.unapply)
+  class ReferenceTask(_tableTag: Tag) extends profile.api.Table[ReferenceTaskRow](_tableTag, "reference_task") {
+    def * = (id, projectId, projectReferenceId) <> (ReferenceTaskRow.tupled, ReferenceTaskRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = ((Rep.Some(id), Rep.Some(projectId), Rep.Some(projectReferenceId))).shaped.<>(
-      { r => import r._; _1.map(_ => ProjectReferenceTaskRow.tupled((_1.get, _2.get, _3.get))) },
+      { r => import r._; _1.map(_ => ReferenceTaskRow.tupled((_1.get, _2.get, _3.get))) },
       (_: Any) => throw new Exception("Inserting into ? projection not supported.")
     )
 
@@ -470,11 +468,11 @@ trait Tables {
     /** Database column project_reference_id SqlType(uuid) */
     val projectReferenceId: Rep[java.util.UUID] = column[java.util.UUID]("project_reference_id")
 
-    /** Primary key of ProjectReferenceTask (database name project_reference_task_pk) */
-    val pk = primaryKey("project_reference_task_pk", (id, projectId))
+    /** Primary key of ReferenceTask (database name reference_task_pk) */
+    val pk = primaryKey("reference_task_pk", (id, projectId))
 
-    /** Foreign key referencing Project (database name project_reference_task_project_reference_id) */
-    lazy val projectFk = foreignKey("project_reference_task_project_reference_id", projectId, Project)(
+    /** Foreign key referencing Project (database name reference_task_project_reference_id) */
+    lazy val projectFk = foreignKey("reference_task_project_reference_id", projectId, Project)(
       r => r.id,
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.Cascade
@@ -482,8 +480,8 @@ trait Tables {
 
   }
 
-  /** Collection-like TableQuery object for table ProjectReferenceTask */
-  lazy val ProjectReferenceTask = new TableQuery(tag => new ProjectReferenceTask(tag))
+  /** Collection-like TableQuery object for table ReferenceTask */
+  lazy val ReferenceTask = new TableQuery(tag => new ReferenceTask(tag))
 
   /** Entity class storing rows of table Session
     * @param id
