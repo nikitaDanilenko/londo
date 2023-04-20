@@ -48,6 +48,9 @@ lazy val root = (project in file("."))
       "com.github.pureconfig"      %% "pureconfig"           % "0.17.2",
       "com.typesafe.play"          %% "play-mailer"          % "8.0.1",
       "com.typesafe.play"          %% "play-mailer-guice"    % "8.0.1",
+      "com.kubukoz"                %% "slick-effect"         % "0.5.0",
+      "com.kubukoz"                %% "slick-effect-catsio"  % "0.5.0",
+
       // Transitive dependency. Override added for proper version.
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2"
     ),
