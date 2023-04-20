@@ -66,7 +66,9 @@ create table plain_task
     kind       text   not null,
     reached    bigint not null,
     reachable  bigint not null,
-    counting   bool   not null
+    counting   bool   not null,
+    created_at date   not null,
+    updated_at date
 );
 
 alter table plain_task
@@ -82,7 +84,9 @@ create table reference_task
 (
     id                   uuid not null,
     project_id           uuid not null,
-    project_reference_id uuid not null
+    project_reference_id uuid not null,
+    created_at           date not null,
+    updated_at           date
 );
 
 alter table reference_task
