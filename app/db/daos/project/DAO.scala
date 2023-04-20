@@ -36,7 +36,7 @@ object DAO {
       override def allOf(userId: UserId, ids: Seq[ProjectId]): DBIO[Seq[Tables.ProjectRow]] = {
         val untypedIds = ids.distinct.map(_.transformInto[UUID])
         Tables.Project
-          .filter(recipe => recipe.ownerId === userId.transformInto[UUID] && recipe.id.inSetBind(untypedIds))
+          .filter(project => project.ownerId === userId.transformInto[UUID] && project.id.inSetBind(untypedIds))
           .result
       }
 
