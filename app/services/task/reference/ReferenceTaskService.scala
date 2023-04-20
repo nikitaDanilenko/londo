@@ -10,13 +10,13 @@ trait ReferenceTaskService {
 
   def all(userId: UserId, projectId: ProjectId): Future[Seq[ReferenceTask]]
 
-  def add(
+  def create(
       userId: UserId,
       projectId: ProjectId,
       referenceTaskCreation: ReferenceTaskCreation
   ): Future[ServerError.Or[ReferenceTask]]
 
-  def remove(userId: UserId, referenceTaskId: ReferenceTaskId): Future[Boolean]
+  def delete(userId: UserId, referenceTaskId: ReferenceTaskId): Future[Boolean]
 }
 
 object ReferenceTaskService {
@@ -33,7 +33,7 @@ object ReferenceTaskService {
         projectIds: Seq[ProjectId]
     )(implicit ec: ExecutionContext): DBIO[Map[ProjectId, Seq[ReferenceTask]]]
 
-    def add(
+    def create(
         userId: UserId,
         projectId: ProjectId,
         referenceTaskCreation: ReferenceTaskCreation
@@ -41,7 +41,7 @@ object ReferenceTaskService {
         ec: ExecutionContext
     ): DBIO[ReferenceTask]
 
-    def remove(
+    def delete(
         userId: UserId,
         id: ReferenceTaskId
     )(implicit ec: ExecutionContext): DBIO[Boolean]

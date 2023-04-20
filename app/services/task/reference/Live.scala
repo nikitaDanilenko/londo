@@ -31,19 +31,19 @@ class Live @Inject() (
   override def all(userId: UserId, projectId: ProjectId): Future[Seq[ReferenceTask]] =
     db.runTransactionally(companion.all(userId, projectId))
 
-  override def add(
+  override def create(
       userId: UserId,
       projectId: ProjectId,
       referenceTaskCreation: ReferenceTaskCreation
   ): Future[ServerError.Or[ReferenceTask]] =
-    db.runTransactionally(companion.add(userId, projectId, referenceTaskCreation))
+    db.runTransactionally(companion.create(userId, projectId, referenceTaskCreation))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Task.Reference.Create(error.getMessage).asServerError)
       }
 
-  override def remove(userId: UserId, referenceTaskId: ReferenceTaskId): Future[Boolean] =
-    db.runTransactionally(companion.remove(userId, referenceTaskId))
+  override def delete(userId: UserId, referenceTaskId: ReferenceTaskId): Future[Boolean] =
+    db.runTransactionally(companion.delete(userId, referenceTaskId))
       .recover { case _ =>
         false
       }
@@ -85,8 +85,8 @@ object Live {
           .toMap
       }
 
-    override def add(userId: UserId, projectId: ProjectId, referenceTaskCreation: ReferenceTaskCreation)(implicit
-        ec: ExecutionContext
+    override def create(userId: UserId, projectId: ProjectId, referenceTaskCreation: ReferenceTaskCreation)(implicit
+                                                                                                            ec: ExecutionContext
     ): DBIO[ReferenceTask] = ifProjectExists(userId, projectId) {
       for {
         referenceTask <- ReferenceTaskCreation.create(referenceTaskCreation).to[DBIO]
@@ -97,7 +97,7 @@ object Live {
       } yield inserted
     }
 
-    override def remove(userId: UserId, id: ReferenceTaskId)(implicit ec: ExecutionContext): DBIO[Boolean] =
+    override def delete(userId: UserId, id: ReferenceTaskId)(implicit ec: ExecutionContext): DBIO[Boolean] =
       OptionT(
         referenceTaskDao.find(id)
       ).map(_.projectId)

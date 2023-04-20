@@ -33,13 +33,13 @@ class Live @Inject() (
   override def all(userId: UserId, projectId: ProjectId): Future[List[PlainTask]] =
     db.runTransactionally(companion.all(userId, projectId))
 
-  override def add(
+  override def create(
       userId: UserId,
       projectId: ProjectId,
       plainTaskCreation: PlainTaskCreation
   ): Future[ServerError.Or[PlainTask]] =
     db.runTransactionally(
-      companion.add(userId, projectId, plainTaskCreation)
+      companion.create(userId, projectId, plainTaskCreation)
     ).map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Task.Plain.Create(error.getMessage).asServerError)
@@ -56,8 +56,8 @@ class Live @Inject() (
         Left(ErrorContext.Task.Plain.Update(error.getMessage).asServerError)
       }
 
-  override def remove(userId: UserId, plainTaskId: PlainTaskId): Future[Boolean] =
-    db.runTransactionally(companion.remove(userId, plainTaskId))
+  override def delete(userId: UserId, plainTaskId: PlainTaskId): Future[Boolean] =
+    db.runTransactionally(companion.delete(userId, plainTaskId))
       .recover { _ =>
         false
       }
@@ -105,7 +105,7 @@ object Live {
       }
     }
 
-    override def add(
+    override def create(
         userId: UserId,
         projectId: ProjectId,
         plainTaskCreation: PlainTaskCreation
@@ -148,7 +148,7 @@ object Live {
       } yield updatedPlainTaskRow.transformInto[PlainTask]
     }
 
-    override def remove(
+    override def delete(
         userId: UserId,
         id: PlainTaskId
     )(implicit ec: ExecutionContext): DBIO[Boolean] =

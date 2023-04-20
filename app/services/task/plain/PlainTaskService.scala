@@ -10,7 +10,7 @@ trait PlainTaskService {
 
   def all(userId: UserId, projectId: ProjectId): Future[List[PlainTask]]
 
-  def add(
+  def create(
       userId: UserId,
       projectId: ProjectId,
       plainTaskCreation: PlainTaskCreation
@@ -22,7 +22,7 @@ trait PlainTaskService {
       plainTaskUpdate: PlainTaskUpdate
   ): Future[ServerError.Or[PlainTask]]
 
-  def remove(userId: UserId, plainTaskId: PlainTaskId): Future[Boolean]
+  def delete(userId: UserId, plainTaskId: PlainTaskId): Future[Boolean]
 }
 
 object PlainTaskService {
@@ -39,7 +39,7 @@ object PlainTaskService {
         projectIds: Seq[ProjectId]
     )(implicit ec: ExecutionContext): DBIO[Map[ProjectId, List[PlainTask]]]
 
-    def add(
+    def create(
         userId: UserId,
         projectId: ProjectId,
         plainTaskCreation: PlainTaskCreation
@@ -55,7 +55,7 @@ object PlainTaskService {
         ec: ExecutionContext
     ): DBIO[PlainTask]
 
-    def remove(
+    def delete(
         userId: UserId,
         id: PlainTaskId
     )(implicit ec: ExecutionContext): DBIO[Boolean]

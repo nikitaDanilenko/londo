@@ -1,7 +1,9 @@
 package services.task.plain
 
+import cats.effect.IO
 import io.scalaland.chimney.dsl._
 import math.Positive
+import utils.date.DateUtil
 
 case class PlainTaskUpdate(
     name: String,
@@ -13,7 +15,11 @@ case class PlainTaskUpdate(
 
 object PlainTaskUpdate {
 
-  def update(plainTask: PlainTask, plainTaskUpdate: PlainTaskUpdate): PlainTask =
-    plainTask.patchUsing(plainTaskUpdate)
+  def update(plainTask: PlainTask, plainTaskUpdate: PlainTaskUpdate): IO[PlainTask] =
+    for {
+      now <- DateUtil.now
+    } yield plainTask
+      .patchUsing(plainTaskUpdate)
+      .copy(updatedAt = Some(now))
 
 }
