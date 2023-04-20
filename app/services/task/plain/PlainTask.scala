@@ -3,6 +3,7 @@ package services.task.plain
 import db.PlainTaskId
 import math.Positive
 
+import java.time.LocalDateTime
 import java.util.Date
 
 case class PlainTask(
@@ -12,8 +13,8 @@ case class PlainTask(
     unit: Option[String],
     progress: Progress,
     counting: Boolean,
-    createdAt: Date,
-    updatedAt: Option[Date]
+    createdAt: LocalDateTime,
+    updatedAt: Option[LocalDateTime]
 )
 
 object PlainTask {}

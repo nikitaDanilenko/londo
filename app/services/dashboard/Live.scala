@@ -49,10 +49,11 @@ class Live @Inject() (
         Left(ErrorContext.Dashboard.Update(error.getMessage).asServerError)
       }
 
-  override def delete(ownerId: UserId, id: DashboardId): Future[Boolean] =
+  override def delete(ownerId: UserId, id: DashboardId): Future[ServerError.Or[Boolean]] =
     db.runTransactionally(companion.delete(ownerId, id))
-      .recover { case _ =>
-        false
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.Dashboard.Delete(error.getMessage).asServerError)
       }
 
 }

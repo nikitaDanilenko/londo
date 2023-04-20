@@ -2,9 +2,9 @@ package services.dashboardEntry
 
 import db.daos.dashboardEntry.DashboardEntryKey
 
-import java.util.Date
+import java.time.LocalDateTime
 
 case class DashboardEntry(
     key: DashboardEntryKey,
-    createdAt: Date
+    createdAt: LocalDateTime
 )

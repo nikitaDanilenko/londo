@@ -13,7 +13,7 @@ trait ProjectService {
   def get(userId: UserId, id: ProjectId): Future[Option[Project]]
   def create(userId: UserId, projectCreation: ProjectCreation): Future[ServerError.Or[Project]]
   def update(userId: UserId, projectId: ProjectId, projectUpdate: ProjectUpdate): Future[ServerError.Or[Project]]
-  def delete(userId: UserId, id: ProjectId): Future[Boolean]
+  def delete(userId: UserId, id: ProjectId): Future[ServerError.Or[Boolean]]
 }
 
 object ProjectService {

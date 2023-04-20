@@ -26,7 +26,7 @@ trait DashboardService {
   def delete(
       ownerId: UserId,
       id: DashboardId
-  ): Future[Boolean]
+  ): Future[ServerError.Or[Boolean]]
 
 }
 

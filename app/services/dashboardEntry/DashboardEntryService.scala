@@ -17,7 +17,11 @@ trait DashboardEntryService {
       dashboardEntryCreation: DashboardEntryCreation
   ): Future[ServerError.Or[DashboardEntry]]
 
-  def delete(userId: UserId, key: DashboardEntryKey): Future[Boolean]
+  def delete(
+      userId: UserId,
+      key: DashboardEntryKey
+  ): Future[ServerError.Or[Boolean]]
+
 }
 
 object DashboardEntryService {

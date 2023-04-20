@@ -14,13 +14,13 @@ alter table "user"
 
 create table dashboard
 (
-    id               uuid not null,
-    owner_id         uuid not null,
-    header           text not null,
+    id               uuid                     not null,
+    owner_id         uuid                     not null,
+    header           text                     not null,
     description      text,
-    publicly_visible bool not null,
-    created_at       date not null,
-    updated_at       date
+    publicly_visible bool                     not null,
+    created_at       timestamp with time zone not null,
+    updated_at       timestamp with time zone
 );
 
 alter table dashboard
@@ -29,12 +29,12 @@ alter table dashboard
 
 create table project
 (
-    id               uuid not null,
-    owner_id         uuid not null,
-    name             text not null,
-    description      text,
-    created_at       date not null,
-    updated_at       date
+    id          uuid                     not null,
+    owner_id    uuid                     not null,
+    name        text                     not null,
+    description text,
+    created_at  timestamp with time zone not null,
+    updated_at  timestamp with time zone
 );
 
 alter table project
@@ -45,8 +45,9 @@ cascade;
 
 create table dashboard_entry
 (
-    dashboard_id uuid not null,
-    project_id   uuid not null
+    dashboard_id uuid                     not null,
+    project_id   uuid                     not null,
+    created_at   timestamp with time zone not null
 );
 
 alter table dashboard_entry
@@ -59,16 +60,16 @@ alter table dashboard_entry
 
 create table plain_task
 (
-    id         uuid   not null,
-    project_id uuid   not null,
-    name       text   not null,
+    id         uuid                     not null,
+    project_id uuid                     not null,
+    name       text                     not null,
     unit       text,
-    kind       text   not null,
-    reached    bigint not null,
-    reachable  bigint not null,
-    counting   bool   not null,
-    created_at date   not null,
-    updated_at date
+    kind       text                     not null,
+    reached    bigint                   not null,
+    reachable  bigint                   not null,
+    counting   bool                     not null,
+    created_at timestamp with time zone not null,
+    updated_at timestamp with time zone
 );
 
 alter table plain_task
@@ -82,10 +83,10 @@ alter table plain_task
 
 create table reference_task
 (
-    id                   uuid not null,
-    project_id           uuid not null,
-    project_reference_id uuid not null,
-    created_at           date not null
+    id                   uuid                     not null,
+    project_id           uuid                     not null,
+    project_reference_id uuid                     not null,
+    created_at           timestamp with time zone not null
 );
 
 alter table reference_task
@@ -95,9 +96,9 @@ alter table reference_task
 
 create table session
 (
-    id         uuid not null,
-    user_id    uuid not null,
-    created_at date not null
+    id         uuid                     not null,
+    user_id    uuid                     not null,
+    created_at timestamp with time zone not null
 );
 
 alter table session

@@ -2,7 +2,7 @@ package services.dashboard
 
 import db.{ DashboardId, UserId }
 
-import java.util.Date
+import java.time.LocalDateTime
 
 case class Dashboard(
     id: DashboardId,
@@ -10,6 +10,6 @@ case class Dashboard(
     description: Option[String],
     ownerId: UserId,
     publiclyVisible: Boolean,
-    createdAt: Date,
-    updatedAt: Option[Date]
+    createdAt: LocalDateTime,
+    updatedAt: Option[LocalDateTime]
 )

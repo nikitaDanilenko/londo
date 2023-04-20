@@ -1,18 +1,19 @@
 package services.session
 
+import cats.effect.unsafe.implicits.global
 import db.daos.session.SessionKey
 import db.generated.Tables
 import db.{ SessionId, UserId }
+import errors.{ ErrorContext, ServerError }
 import io.scalaland.chimney.dsl._
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import security.jwt.JwtConfiguration
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
-import utils.transformer.implicits._
+import slickeffect.catsio.implicits._
 
 import java.sql.Date
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -24,14 +25,26 @@ class Live @Inject() (
 ) extends SessionService
     with HasDatabaseConfigProvider[PostgresProfile] {
 
-  override def add(userId: UserId, sessionId: SessionId, createdAt: Date): Future[SessionId] =
-    db.run(companion.add(userId, sessionId, createdAt))
+  override def create(userId: UserId): Future[ServerError.Or[Session]] =
+    db.run(companion.create(userId))
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.Session.Create(error.getMessage).asServerError)
+      }
 
-  override def delete(userId: UserId, sessionId: SessionId): Future[Boolean] =
+  override def delete(userId: UserId, sessionId: SessionId): Future[ServerError.Or[Boolean]] =
     db.run(companion.delete(userId, sessionId))
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.Session.Delete(error.getMessage).asServerError)
+      }
 
-  override def deleteAll(userId: UserId): Future[Boolean] =
+  override def deleteAll(userId: UserId): Future[ServerError.Or[Boolean]] =
     db.run(companion.deleteAll(userId))
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.Session.Delete(error.getMessage).asServerError)
+      }
 
   override def exists(userId: UserId, sessionId: SessionId): Future[Boolean] =
     db.run(companion.exists(userId, sessionId))
@@ -49,27 +62,21 @@ object Live {
     private val allowedValidityInDays: Int =
       Math.ceil(jwtConfiguration.restrictedDurationInSeconds.toDouble / 86400).toInt
 
-    override def add(userId: UserId, sessionId: SessionId, createdAt: java.sql.Date)(implicit
+    override def create(userId: UserId)(implicit
         executionContext: ExecutionContext
-    ): DBIO[SessionId] = {
-      dao
-        .deleteAllBefore(
-          userId,
-          createdAt.toLocalDate
-            .minus(allowedValidityInDays, ChronoUnit.DAYS)
-            .transformInto[Date]
-        )
-        .andThen(
-          dao
-            .insert(
-              Tables.SessionRow(
-                id = sessionId.transformInto[UUID],
-                userId = userId.transformInto[UUID],
-                createdAt = createdAt
-              )
-            )
-            .map(_.id.transformInto[SessionId])
-        )
+    ): DBIO[Session] = {
+      for {
+        session <- SessionCreation.create.to[DBIO]
+        _ <- dao
+          .deleteAllBefore(
+            userId,
+            session.createdAt
+              .minus(allowedValidityInDays, ChronoUnit.DAYS)
+              .transformInto[Date]
+          )
+        inserted <- dao
+          .insert(session.transformInto[Tables.SessionRow])
+      } yield inserted.transformInto[Session]
     }
 
     override def delete(userId: UserId, sessionId: SessionId)(implicit
