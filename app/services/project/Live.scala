@@ -93,9 +93,21 @@ object Live {
       inserted <- dao.insert(projectRow)
     } yield inserted.transformInto[Project]
 
-    override def update(userId: UserId, projectId: ProjectId, projectUpdate: ProjectUpdate)(implicit
+    override def update(
+        userId: UserId,
+        projectId: ProjectId,
+        projectUpdate: ProjectUpdate
+    )(implicit
         ec: ExecutionContext
-    ): DBIO[Project] = ???
+    ): DBIO[Project] = {
+      val findAction = OptionT(get(userId, projectId)).getOrElseF(ProjectService.notFound)
+      for {
+        project        <- findAction
+        updated        <- ProjectUpdate.update(project, projectUpdate).to[DBIO]
+        _              <- dao.update(updated.transformInto[Tables.ProjectRow])
+        updatedProject <- findAction
+      } yield updatedProject
+    }
 
     override def delete(userId: UserId, id: ProjectId)(implicit ec: ExecutionContext): DBIO[Boolean] =
       dao
