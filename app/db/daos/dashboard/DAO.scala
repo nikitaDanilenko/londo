@@ -1,9 +1,10 @@
 package db.daos.dashboard
 
 import db.generated.Tables
-import db.{ DAOActions, DashboardId, UserId }
+import db.{ DAOActions, UserId }
 import io.scalaland.chimney.dsl._
 import slick.jdbc.PostgresProfile.api._
+import utils.transformer.implicits._
 
 import java.util.UUID
 
@@ -26,7 +27,7 @@ object DAO {
       override def findAllFor(ownerId: UserId): DBIO[Seq[Tables.DashboardRow]] = {
         Tables.Dashboard
           .filter(
-            _.ownerId === ownerId.transformInto[UUID]
+            _.userId === ownerId.transformInto[UUID]
           )
           .result
       }

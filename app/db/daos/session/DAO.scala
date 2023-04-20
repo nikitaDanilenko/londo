@@ -1,9 +1,10 @@
 package db.daos.session
 
 import db.generated.Tables
-import db.{DAOActions, UserId}
+import db.{ DAOActions, UserId }
 import io.scalaland.chimney.dsl._
 import slick.jdbc.PostgresProfile.api._
+import utils.transformer.implicits._
 
 import java.sql.Date
 import java.util.UUID

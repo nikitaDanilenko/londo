@@ -1,7 +1,7 @@
 package db.daos.project
 
-import db.{ DAOActions, ProjectId, UserId }
 import db.generated.Tables
+import db.{ DAOActions, ProjectId, UserId }
 import io.scalaland.chimney.dsl._
 import slick.jdbc.PostgresProfile.api._
 import utils.transformer.implicits._

@@ -1,7 +1,9 @@
 package db.daos.session
 
 import db.generated.Tables
-import db.{SessionId, UserId}
+import db.{ SessionId, UserId }
+import io.scalaland.chimney.dsl._
+import utils.transformer.implicits._
 
 case class SessionKey(
     userId: UserId,
