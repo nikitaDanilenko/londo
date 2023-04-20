@@ -135,14 +135,12 @@ object Live {
       for {
         plainTaskRow <- findAction
         _ <- ifProjectExists(userId, plainTaskRow.projectId.transformInto[ProjectId]) {
-          plainTaskDao.update(
-            (
-              PlainTaskUpdate
-                .update(plainTaskRow.transformInto[PlainTask], plainTaskUpdate),
-              plainTaskRow.projectId.transformInto[ProjectId]
-            )
-              .transformInto[Tables.PlainTaskRow]
-          )
+          for {
+            updated <- PlainTaskUpdate.update(plainTaskRow.transformInto[PlainTask], plainTaskUpdate).to[DBIO]
+            row = (plainTaskRow.projectId.transformInto[ProjectId], updated).transformInto[Tables.PlainTaskRow]
+            _ <- plainTaskDao.update(row)
+          } yield ()
+
         }
         updatedPlainTaskRow <- findAction
       } yield updatedPlainTaskRow.transformInto[PlainTask]
