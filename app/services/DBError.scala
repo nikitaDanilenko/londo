@@ -13,7 +13,7 @@ object DBError {
   object Project {
     case object NotFound extends DBError("No project with the given id for the given user found")
 
-    case object TaskNotFound extends DBError("No project ingredient with the given id found")
+    case object TaskNotFound extends DBError("No task with the given id found")
   }
 
   object User {
