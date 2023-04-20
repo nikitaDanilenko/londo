@@ -1,30 +1,33 @@
 package services.dashboard
 
 import cats.effect.IO
-import services.access.{ Access, AccessKind, Accessors }
-import services.user.UserId
+import db.{ DashboardId, UserId }
+import io.scalaland.chimney.dsl._
+import utils.date.DateUtil
 import utils.random.RandomGenerator
+import utils.transformer.implicits._
 
 case class DashboardCreation(
     header: String,
     description: Option[String],
-    readAccessors: Accessors.Representation,
-    writeAccessors: Accessors.Representation
+    publiclyVisible: Boolean
 )
 
 object DashboardCreation {
 
-  def create(userId: UserId, dashboardCreation: DashboardCreation): IO[Dashboard] =
-    RandomGenerator.randomUUID.map { uuid =>
-      Dashboard(
-        id = DashboardId(uuid),
-        projects = Vector.empty,
-        header = dashboardCreation.header,
-        description = dashboardCreation.description,
-        userId = userId,
-        readAccessors = Access[AccessKind.Read](Accessors.fromRepresentation(dashboardCreation.readAccessors)),
-        writeAccessors = Access[AccessKind.Write](Accessors.fromRepresentation(dashboardCreation.writeAccessors))
-      )
-    }
+  def create(ownerId: UserId, dashboardCreation: DashboardCreation): IO[Dashboard] = {
+    for {
+      id  <- RandomGenerator.randomUUID.map(_.transformInto[DashboardId])
+      now <- DateUtil.now
+    } yield Dashboard(
+      id = id,
+      header = dashboardCreation.header,
+      description = dashboardCreation.description,
+      ownerId = ownerId,
+      publiclyVisible = dashboardCreation.publiclyVisible,
+      createdAt = now,
+      updatedAt = None
+    )
+  }
 
 }

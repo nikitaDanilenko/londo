@@ -1,20 +1,23 @@
 package services.dashboard
 
-import services.user.UserId
+import cats.effect.IO
+import utils.date.DateUtil
+import io.scalaland.chimney.dsl._
 
 case class DashboardUpdate(
     header: String,
     description: Option[String],
-    userId: UserId
+    publiclyVisible: Boolean
 )
 
 object DashboardUpdate {
 
-  def applyToDashboard(dashboard: Dashboard, projectUpdate: DashboardUpdate): Dashboard =
-    dashboard.copy(
-      header = projectUpdate.header,
-      description = projectUpdate.description,
-      userId = projectUpdate.userId
-    )
+  def update(dashboard: Dashboard, dashboardUpdate: DashboardUpdate): IO[Dashboard] = {
+    for {
+      now <- DateUtil.now
+    } yield dashboard
+      .patchUsing(dashboardUpdate)
+      .copy(updatedAt = Some(now))
+  }
 
 }

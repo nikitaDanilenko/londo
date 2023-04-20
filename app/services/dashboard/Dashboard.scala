@@ -1,15 +1,15 @@
 package services.dashboard
 
-import services.access.{ Access, AccessKind }
-import services.project.WeightedProject
-import services.user.UserId
+import db.{ DashboardId, UserId }
+
+import java.util.Date
 
 case class Dashboard(
     id: DashboardId,
-    projects: Vector[WeightedProject],
     header: String,
     description: Option[String],
-    userId: UserId,
-    readAccessors: Access[AccessKind.Read],
-    writeAccessors: Access[AccessKind.Write]
+    ownerId: UserId,
+    publiclyVisible: Boolean,
+    createdAt: Date,
+    updatedAt: Option[Date]
 )
