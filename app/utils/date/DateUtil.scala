@@ -2,14 +2,12 @@ package utils.date
 
 import cats.effect.IO
 
-import java.time.Instant
-import java.util.Date
-import scala.util.chaining._
+import java.time.LocalDateTime
 
 object DateUtil {
 
-  def now: IO[Date] = IO {
-    Instant.now().pipe(Date.from)
+  def now: IO[LocalDateTime] = IO {
+    LocalDateTime.now()
   }
 
 }
