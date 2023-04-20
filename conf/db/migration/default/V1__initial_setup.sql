@@ -15,7 +15,7 @@ alter table "user"
 create table dashboard
 (
     id               uuid not null,
-    user_id          uuid not null,
+    owner_id         uuid not null,
     header           text not null,
     description      text,
     publicly_visible bool not null,
@@ -25,7 +25,7 @@ create table dashboard
 
 alter table dashboard
     add constraint dashboard_pk primary key (id),
-    add constraint dashboard_user_id_fk foreign key (user_id) references "user"(id);
+    add constraint dashboard_owner_id_fk foreign key (owner_id) references "user"(id);
 
 create table project
 (
