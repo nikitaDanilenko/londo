@@ -1,33 +1,32 @@
 package services.project
 
 import cats.effect.IO
-import services.access.{ Access, AccessKind, Accessors }
-import services.user.UserId
+import db.{ ProjectId, UserId }
+import io.scalaland.chimney.dsl._
+import utils.date.DateUtil
 import utils.random.RandomGenerator
+import utils.transformer.implicits._
 
 case class ProjectCreation(
     name: String,
-    description: Option[String],
-    flatIfSingleTask: Boolean,
-    readAccessors: Accessors.Representation,
-    writeAccessors: Accessors.Representation
+    description: Option[String]
 )
 
 object ProjectCreation {
 
-  def create(ownerId: UserId, projectCreation: ProjectCreation): IO[Project] =
-    RandomGenerator.randomUUID.map { uuid =>
-      Project(
-        id = ProjectId(uuid),
-        plainTasks = Vector.empty,
-        projectReferenceTasks = Vector.empty,
-        name = projectCreation.name,
-        description = projectCreation.description,
-        ownerId = ownerId,
-        flatIfSingleTask = projectCreation.flatIfSingleTask,
-        readAccessors = Access[AccessKind.Read](Accessors.fromRepresentation(projectCreation.readAccessors)),
-        writeAccessors = Access[AccessKind.Write](Accessors.fromRepresentation(projectCreation.writeAccessors))
-      )
-    }
+  def create(ownerId: UserId, projectCreation: ProjectCreation): IO[Project] = {
+    for {
+      id  <- RandomGenerator.randomUUID.map(_.transformInto[ProjectId])
+      now <- DateUtil.now
+    } yield Project(
+      id = id,
+      name = projectCreation.name,
+      description = projectCreation.description,
+      ownerId = ownerId,
+      createdAt = now,
+      updatedAt = None
+    )
+
+  }
 
 }

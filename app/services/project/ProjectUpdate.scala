@@ -1,22 +1,22 @@
 package services.project
 
-import services.user.UserId
+import cats.effect.IO
+import io.scalaland.chimney.dsl._
+import utils.date.DateUtil
 
 case class ProjectUpdate(
     name: String,
     description: Option[String],
-    ownerId: UserId,
     flatIfSingleTask: Boolean
 )
 
 object ProjectUpdate {
 
-  def applyToProject(project: Project, projectUpdate: ProjectUpdate): Project =
-    project.copy(
-      name = projectUpdate.name,
-      description = projectUpdate.description,
-      ownerId = projectUpdate.ownerId,
-      flatIfSingleTask = projectUpdate.flatIfSingleTask
-    )
+  def update(project: Project, projectUpdate: ProjectUpdate): IO[Project] =
+    for {
+      now <- DateUtil.now
+    } yield project
+      .patchUsing(projectUpdate)
+      .copy(updatedAt = Some(now))
 
 }

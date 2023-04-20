@@ -1,423 +1,59 @@
 package services.project
 
-import cats.data.{ EitherT, NonEmptySet }
-import cats.effect.{ Async, ContextShift }
-import cats.syntax.contravariantSemigroupal._
-import cats.syntax.traverse._
-import db.generated.daos._
-import db.keys.{ ProjectReadAccessId, ProjectWriteAccessId }
-import db.models.{ ProjectReadAccess, ProjectReadAccessEntry, ProjectWriteAccess, ProjectWriteAccessEntry }
-import db.{ DAOFunctions, Transactionally }
-import doobie.ConnectionIO
-import errors.{ ErrorContext, ServerError }
-import monocle.syntax.all._
-import services.access._
-import services.task.{ ResolvedTask, Task }
-import services.user.UserId
+import db.{ ProjectId, UserId }
+import errors.ServerError
+import services.DBError
+import slick.dbio.DBIO
 
-import javax.inject.Inject
+import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectService @Inject() (
-    projectDAO: ProjectDAO,
-    projectReadAccessDAO: ProjectReadAccessDAO,
-    projectReadAccessEntryDAO: ProjectReadAccessEntryDAO,
-    projectWriteAccessDAO: ProjectWriteAccessDAO,
-    projectWriteAccessEntryDAO: ProjectWriteAccessEntryDAO,
-    plainTaskDAO: PlainTaskDAO,
-    projectReferenceTaskDAO: ProjectReferenceTaskDAO,
-    transactionally: Transactionally
-) {
+trait ProjectService {
 
-  def create[F[_]: Async: ContextShift](
-      ownerId: UserId,
-      projectCreation: ProjectCreation
-  ): F[ServerError.Or[Project]] =
-    transactionally(createC(ownerId, projectCreation))
-
-  def createC(ownerId: UserId, projectCreation: ProjectCreation): ConnectionIO[ServerError.Or[Project]] = {
-    val transformer = for {
-      createdProject <- ServerError.liftC(Async[ConnectionIO].liftIO(ProjectCreation.create(ownerId, projectCreation)))
-      _ <- EitherT(projectDAO.insertC(ProjectService.toDbRepresentation(createdProject).project))
-        .leftMap(_ => ErrorContext.Project.Create.asServerError)
-      _ <- EitherT(setReadAccessC(createdProject.id, createdProject.readAccessors))
-      _ <- EitherT(setWriteAccessC(createdProject.id, createdProject.writeAccessors))
-      project <- fetchT(createdProject.id)
-    } yield project
-    transformer.value
-  }
-
-  def delete[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Or[Project]] =
-    transactionally(deleteC(projectId))
-
-  def deleteC(projectId: ProjectId): ConnectionIO[ServerError.Or[Project]] = {
-    val transformer = for {
-      project <- fetchT(projectId)
-      _ <- EitherT(projectDAO.deleteC(ProjectId.toDb(projectId)))
-        .leftMap(_ => ErrorContext.Project.Delete.asServerError)
-    } yield project
-
-    transformer.value
-  }
-
-  def update[F[_]: Async: ContextShift](
-      projectId: ProjectId,
-      projectUpdate: ProjectUpdate
-  ): F[ServerError.Or[Project]] =
-    transactionally(updateC(projectId, projectUpdate))
-
-  def updateC(projectId: ProjectId, projectUpdate: ProjectUpdate): ConnectionIO[ServerError.Or[Project]] = {
-    val transformer = for {
-      project <- fetchT(projectId)
-      updatedProject = ProjectUpdate.applyToProject(project, projectUpdate)
-      updatedRow = ProjectService.toDbRepresentation(updatedProject).project
-      _ <- EitherT(projectDAO.replaceC(updatedRow)).leftMap(_ => ErrorContext.Project.Replace.asServerError)
-      updatedWrittenProject <- fetchT(projectId)
-    } yield updatedWrittenProject
-    transformer.value
-  }
-
-  def fetch[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Or[Project]] =
-    transactionally(fetchC(projectId))
-
-  def fetchC(projectId: ProjectId): ConnectionIO[ServerError.Or[Project]] = {
-    val projectReadAccessId = projectId.asProjectReadAccessId
-    val projectWriteAccessId = projectId.asProjectWriteAccessId
-
-    val action = for {
-      projectRow <-
-        EitherT.fromOptionF(projectDAO.findC(ProjectId.toDb(projectId)), ErrorContext.Project.NotFound.asServerError)
-      plainTasks <- ServerError.liftC(plainTaskDAO.findByProjectIdC(projectId.uuid))
-      projectReferenceTasks <- ServerError.liftC(projectReferenceTaskDAO.findByProjectIdC(projectId.uuid))
-      readAccess <- EitherT.fromOptionF(
-        projectReadAccessDAO.findC(projectReadAccessId),
-        ErrorContext.Project.NoReadAccess.asServerError
-      )
-      readAccessEntries <-
-        ServerError.liftC(projectReadAccessEntryDAO.findByProjectReadAccessIdC(projectReadAccessId.uuid))
-      writeAccess <- EitherT.fromOptionF(
-        projectWriteAccessDAO.findC(projectWriteAccessId),
-        ErrorContext.Project.NoWriteAccess.asServerError
-      )
-      writeAccessEntries <-
-        ServerError.liftC(projectWriteAccessEntryDAO.findByProjectWriteAccessIdC(projectWriteAccessId.uuid))
-    } yield {
-      ProjectService.fromDbRepresentation(
-        ProjectService.DbRepresentation.Impl(
-          project = projectRow,
-          plainTasks = plainTasks,
-          projectReferenceTasks = projectReferenceTasks,
-          readAccess = Access.DbRepresentation.fromComponents(
-            access = readAccess,
-            accessEntries = readAccessEntries
-          ),
-          writeAccess = Access.DbRepresentation.fromComponents(
-            access = writeAccess,
-            accessEntries = writeAccessEntries
-          )
-        )
-      )
-    }
-    action
-      .subflatMap(
-        _.toEither.left
-          .map(ServerError.BulkError)
-      )
-      .value
-  }
-
-  def fetchOwn[F[_]: Async: ContextShift](ownerId: UserId): F[Seq[Project]] =
-    transactionally(fetchOwnC(ownerId))
-
-  // TODO: This construction is potentially very expensive, if there are many projects.
-  // It may be more sensible to deliver the project rows as a new ProjectBase or similar,
-  // and then make the caller call the project construction function explicitly.
-  def fetchOwnC(ownerId: UserId): ConnectionIO[Seq[Project]] =
-    projectDAO
-      .findByOwnerIdC(ownerId.uuid)
-      .flatMap(
-        _.traverse(p => fetchC(ProjectId(p.id)))
-          .map(_.collect { case Right(project) => project })
-      )
-
-  def fetchWithReadAccess[F[_]: Async: ContextShift](userId: UserId): F[Seq[Project]] =
-    transactionally(fetchWithReadAccessC(userId))
-
-  // TODO: This construction is potentially very expensive, if there are many projects.
-  // It may be more sensible to deliver the project rows as a new ProjectBase or similar,
-  // and then make the caller call the project construction function explicitly.
-  def fetchWithReadAccessC(userId: UserId): ConnectionIO[Seq[Project]] =
-    fetchWithAccessC[ProjectReadAccessEntry, ProjectReadAccess](
-      userId => projectReadAccessEntryDAO.findByUserIdC(userId.uuid),
-      a => projectReadAccessDAO.findC(ProjectReadAccessId(a.projectReadAccessId)),
-      readAccess => ProjectId(readAccess.projectId)
-    )(userId)
-
-  def fetchWithWriteAccess[F[_]: Async: ContextShift](userId: UserId): F[Seq[Project]] =
-    transactionally(fetchWithWriteAccessC(userId))
-
-  // TODO: This construction is potentially very expensive, if there are many projects.
-  // It may be more sensible to deliver the project rows as a new ProjectBase or similar,
-  // and then make the caller call the project construction function explicitly.
-  def fetchWithWriteAccessC(userId: UserId): ConnectionIO[Seq[Project]] =
-    fetchWithAccessC[ProjectWriteAccessEntry, ProjectWriteAccess](
-      userId => projectWriteAccessEntryDAO.findByUserIdC(userId.uuid),
-      a => projectWriteAccessDAO.findC(ProjectWriteAccessId(a.projectWriteAccessId)),
-      writeAccess => ProjectId(writeAccess.projectId)
-    )(userId)
-
-  def allowReadUsers[F[_]: Async: ContextShift](
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): F[ServerError.Or[Accessors]] =
-    transactionally(toAccessors(allowReadUsersC(projectId, userIds)))
-
-  def allowReadUsersC(
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.allowUsers, setReadAccessC)
-
-  def allowWriteUsers[F[_]: Async: ContextShift](
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): F[ServerError.Or[Accessors]] =
-    transactionally(toAccessors(allowWriteUsersC(projectId, userIds)))
-
-  def allowWriteUsersC(
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.allowUsers, setWriteAccessC)
-
-  def blockReadUsers[F[_]: Async: ContextShift](
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): F[ServerError.Or[Accessors]] =
-    transactionally(toAccessors(blockReadUsersC(projectId, userIds)))
-
-  def blockReadUsersC(
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.readAccessors, Accessors.blockUsers, setReadAccessC)
-
-  def blockWriteUsers[F[_]: Async: ContextShift](
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): F[ServerError.Or[Accessors]] =
-    transactionally(toAccessors(blockWriteUsersC(projectId, userIds)))
-
-  def blockWriteUsersC(
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
-    modifyUsersWithRights(projectId, userIds, _.writeAccessors, Accessors.blockUsers, setWriteAccessC)
-
-  def resolveProject[F[_]: Async: ContextShift](projectId: ProjectId): F[ServerError.Or[ResolvedProject]] =
-    transactionally(resolvedProjectC(projectId))
-
-  def resolvedProjectC(projectId: ProjectId): ConnectionIO[ServerError.Or[ResolvedProject]] =
-    resolveProjectT(projectId).value
-
-  private def resolveProjectT(
-      projectId: ProjectId
-  ): EitherT[ConnectionIO, ServerError, ResolvedProject] = {
-    for {
-      project <- fetchT(projectId)
-      resolvedProjectReferenceTasks <- project.projectReferenceTasks.traverse(reference =>
-        resolveProjectT(reference.projectReference).map(project =>
-          ResolvedTask.ProjectReference(
-            id = reference.id,
-            project = project,
-            weight = reference.weight
-          )
-        )
-      )
-    } yield {
-      val resolvedPlainTasks = project.plainTasks.map(plain =>
-        ResolvedTask.Plain(
-          id = plain.id,
-          name = plain.name,
-          taskKind = plain.taskKind,
-          unit = plain.unit,
-          progress = plain.progress,
-          weight = plain.weight
-        )
-      )
-      ResolvedProject(
-        id = project.id,
-        plainTasks = resolvedPlainTasks,
-        projectReferenceTasks = resolvedProjectReferenceTasks,
-        name = project.name,
-        description = project.description,
-        ownerId = project.ownerId,
-        flatIfSingleTask = project.flatIfSingleTask,
-        readAccessors = project.readAccessors,
-        writeAccessors = project.writeAccessors
-      )
-    }
-  }
-
-  private def modifyUsersWithRights[AK, DBAccessK, DBAccessEntry](
-      projectId: ProjectId,
-      userIds: NonEmptySet[UserId],
-      accessors: Project => Access[AK],
-      modifier: (Accessors, NonEmptySet[UserId]) => Accessors,
-      setAccess: (
-          ProjectId,
-          Access[AK]
-      ) => ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
-    val transformer =
-      for {
-        project <- fetchT(projectId)
-        updatedAccess <- EitherT(
-          setAccess(
-            projectId,
-            accessors(project)
-              .focus(_.accessors)
-              .modify(modifier(_, userIds))
-          )
-        )
-      } yield updatedAccess
-
-    transformer.value
-  }
-
-  private def fetchT(projectId: ProjectId): EitherT[ConnectionIO, ServerError, Project] =
-    EitherT(fetchC(projectId))
-
-  private def setReadAccessC(
-      projectId: ProjectId,
-      projectAccess: Access[AccessKind.Read]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]]] =
-    setAccess(projectReadAccessDAO, projectReadAccessEntryDAO)(projectId, projectAccess)
-
-  private def setWriteAccessC(
-      projectId: ProjectId,
-      projectAccess: Access[AccessKind.Write]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]]] =
-    setAccess(projectWriteAccessDAO, projectWriteAccessEntryDAO)(projectId, projectAccess)
-
-  private def setAccess[AccessK, DBAccessK, DBAccessKey, DBAccessEntry, DBAccessEntryKey](
-      daoFunctionsDBAccessK: DAOFunctions[DBAccessK, DBAccessKey],
-      daoFunctionsDBAccessEntry: DAOFunctions[DBAccessEntry, DBAccessEntryKey]
-  )(
-      projectId: ProjectId,
-      projectAccess: Access[AccessK]
-  )(implicit
-      accessToDB: AccessToDB[ProjectId, AccessK, DBAccessK, DBAccessEntry],
-      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]] = {
-    val components = Access.DbRepresentation(projectId, projectAccess)
-    val transformer = for {
-      access <- EitherT(daoFunctionsDBAccessK.insertC(components.access)).leftMap(_ =>
-        ErrorContext.Project.AccessDbError.asServerError
-      )
-      entries <- EitherT(daoFunctionsDBAccessEntry.insertAllC(components.accessEntries)).leftMap(_ =>
-        ErrorContext.Project.AccessEntryDbError.asServerError
-      )
-    } yield {
-      Access.DbRepresentation[ProjectId, AccessK, DBAccessK, DBAccessEntry](
-        id = accessFromDB.id(access),
-        access = Access.fromDb(
-          Access.DbRepresentation.fromComponents(
-            access = access,
-            accessEntries = entries
-          )
-        )
-      )
-    }
-    transformer.value
-  }
-
-  private def fetchWithAccessC[AEntry, Access](
-      findEntries: UserId => ConnectionIO[List[AEntry]],
-      findAccess: AEntry => ConnectionIO[Option[Access]],
-      projectIdOf: Access => ProjectId
-  )(userId: UserId): ConnectionIO[Seq[Project]] =
-    for {
-      entries <- findEntries(userId)
-      accesses <-
-        entries
-          .traverse(findAccess)
-          .map(_.collect { case Some(access) => access })
-      projects <-
-        accesses
-          .traverse(a => fetchC(projectIdOf(a)))
-          .map(_.collect { case Right(project) => project })
-    } yield projects
-
-  private def toAccessors[AccessK, DBAccessK, DBAccessEntry](
-      dbComponentsC: ConnectionIO[ServerError.Or[Access.DbRepresentation[DBAccessK, DBAccessEntry]]]
-  )(implicit
-      accessFromDB: AccessFromDB[ProjectId, AccessK, DBAccessK, DBAccessEntry]
-  ): ConnectionIO[ServerError.Or[Accessors]] = dbComponentsC.map(_.map(Access.fromDb(_).accessors))
-
+  def all(userId: UserId): Future[Seq[Project]]
+  def get(userId: UserId, id: ProjectId): Future[Option[Project]]
+  def create(userId: UserId, projectCreation: ProjectCreation): Future[ServerError.Or[Project]]
+  def update(userId: UserId, projectId: ProjectId, projectUpdate: ProjectUpdate): Future[ServerError.Or[Project]]
+  def delete(userId: UserId, id: ProjectId): Future[Boolean]
 }
 
 object ProjectService {
 
-  def toDbRepresentation(project: Project): DbRepresentation =
-    DbRepresentation(project)
+  trait Companion {
 
-  def fromDbRepresentation(
-      dbComponents: DbRepresentation
-  ): ServerError.Valid[Project] =
-    (
-      dbComponents.plainTasks.traverse(Task.Plain.fromRow),
-      dbComponents.projectReferenceTasks.traverse(Task.ProjectReference.fromRow)
-    )
-      .mapN { (plainTasks, projectReferenceTasks) =>
-        Project(
-          id = ProjectId(dbComponents.project.id),
-          plainTasks = plainTasks.toVector,
-          projectReferenceTasks = projectReferenceTasks.toVector,
-          name = dbComponents.project.name,
-          description = dbComponents.project.description,
-          ownerId = UserId(dbComponents.project.ownerId),
-          flatIfSingleTask = dbComponents.project.flatIfSingleTask,
-          readAccessors = Access.fromDb(dbComponents.readAccess),
-          writeAccessors = Access.fromDb(dbComponents.writeAccess)
-        )
-      }
+    def all(userId: UserId)(implicit ec: ExecutionContext): DBIO[Seq[Project]]
 
-  sealed trait DbRepresentation {
-    def project: db.models.Project
-    def plainTasks: Seq[db.models.PlainTask]
-    def projectReferenceTasks: Seq[db.models.ProjectReferenceTask]
-    def readAccess: Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry]
-    def writeAccess: Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
-  }
+    def get(
+        userId: UserId,
+        id: ProjectId
+    )(implicit ec: ExecutionContext): DBIO[Option[Project]]
 
-  object DbRepresentation {
+    def allOf(
+        userId: UserId,
+        ids: Seq[ProjectId]
+    )(implicit ec: ExecutionContext): DBIO[Seq[Project]]
 
-    private[ProjectService] case class Impl(
-        override val project: db.models.Project,
-        override val plainTasks: Seq[db.models.PlainTask],
-        override val projectReferenceTasks: Seq[db.models.ProjectReferenceTask],
-        override val readAccess: Access.DbRepresentation[ProjectReadAccess, ProjectReadAccessEntry],
-        override val writeAccess: Access.DbRepresentation[ProjectWriteAccess, ProjectWriteAccessEntry]
-    ) extends DbRepresentation
+    def create(
+        ownerIds: UserId,
+        projectCreation: ProjectCreation
+    )(implicit
+        ec: ExecutionContext
+    ): DBIO[Project]
 
-    def apply(project: Project): DbRepresentation = {
-      val plainTasks = project.plainTasks.map(Task.Plain.toRow(project.id, _))
-      val projectReferenceTasks = project.projectReferenceTasks.map(Task.ProjectReference.toRow(project.id, _))
-      Impl(
-        project = db.models.Project(
-          id = project.id.uuid,
-          ownerId = project.ownerId.uuid,
-          name = project.name,
-          description = project.description,
-          flatIfSingleTask = project.flatIfSingleTask
-        ),
-        plainTasks = plainTasks,
-        projectReferenceTasks = projectReferenceTasks,
-        readAccess = Access.toDb(project.id, project.readAccessors),
-        writeAccess = Access.toDb(project.id, project.writeAccessors)
-      )
-    }
+    def update(
+        userId: UserId,
+        projectId: ProjectId,
+        projectUpdate: ProjectUpdate
+    )(implicit
+        ec: ExecutionContext
+    ): DBIO[Project]
+
+    def delete(
+        userId: UserId,
+        id: ProjectId
+    )(implicit ec: ExecutionContext): DBIO[Boolean]
 
   }
+
+  def notFound[A]: DBIO[A] = DBIO.failed(DBError.Project.NotFound)
 
 }
