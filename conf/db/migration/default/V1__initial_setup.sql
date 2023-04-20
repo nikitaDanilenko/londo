@@ -85,8 +85,7 @@ create table reference_task
     id                   uuid not null,
     project_id           uuid not null,
     project_reference_id uuid not null,
-    created_at           date not null,
-    updated_at           date
+    created_at           date not null
 );
 
 alter table reference_task
