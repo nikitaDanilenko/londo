@@ -8,7 +8,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 trait PlainTaskService {
 
-  def all(userId: UserId, projectId: ProjectId): Future[List[PlainTask]]
+  def all(userId: UserId, projectId: ProjectId): Future[Seq[PlainTask]]
 
   def create(
       userId: UserId,
@@ -32,12 +32,12 @@ object PlainTaskService {
     def all(
         userId: UserId,
         projectId: ProjectId
-    )(implicit ec: ExecutionContext): DBIO[List[PlainTask]]
+    )(implicit ec: ExecutionContext): DBIO[Seq[PlainTask]]
 
     def allFor(
         userId: UserId,
         projectIds: Seq[ProjectId]
-    )(implicit ec: ExecutionContext): DBIO[Map[ProjectId, List[PlainTask]]]
+    )(implicit ec: ExecutionContext): DBIO[Map[ProjectId, Seq[PlainTask]]]
 
     def create(
         userId: UserId,

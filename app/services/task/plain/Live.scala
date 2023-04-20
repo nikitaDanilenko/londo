@@ -30,7 +30,7 @@ class Live @Inject() (
 ) extends PlainTaskService
     with HasDatabaseConfigProvider[PostgresProfile] {
 
-  override def all(userId: UserId, projectId: ProjectId): Future[List[PlainTask]] =
+  override def all(userId: UserId, projectId: ProjectId): Future[Seq[PlainTask]] =
     db.runTransactionally(companion.all(userId, projectId))
 
   override def create(
@@ -76,20 +76,20 @@ object Live {
         projectId: ProjectId
     )(implicit
         ec: ExecutionContext
-    ): DBIO[List[PlainTask]] =
+    ): DBIO[Seq[PlainTask]] =
       for {
         exists <- projectDao.exists(ProjectKey(userId, projectId))
         plainTasks <-
           if (exists)
             plainTaskDao
               .findAllFor(Seq(projectId))
-              .map(_.map(_.transformInto[PlainTask]).toList)
-          else Applicative[DBIO].pure(List.empty)
+              .map(_.map(_.transformInto[PlainTask]))
+          else Applicative[DBIO].pure(Seq.empty)
       } yield plainTasks
 
     override def allFor(userId: UserId, projectIds: Seq[ProjectId])(implicit
         ec: ExecutionContext
-    ): DBIO[Map[ProjectId, List[PlainTask]]] = {
+    ): DBIO[Map[ProjectId, Seq[PlainTask]]] = {
       for {
         matchingProjects <- projectDao.allOf(userId, projectIds)
         typedIds = matchingProjects.map(_.id.transformInto[ProjectId])
@@ -100,7 +100,7 @@ object Live {
         MapUtil
           .unionWith(preMap, typedIds.map(_ -> Seq.empty).toMap)((x, _) => x)
           .view
-          .mapValues(_.map(_.transformInto[PlainTask]).toList)
+          .mapValues(_.map(_.transformInto[PlainTask]))
           .toMap
       }
     }
