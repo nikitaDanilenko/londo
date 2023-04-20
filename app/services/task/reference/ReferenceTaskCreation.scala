@@ -20,8 +20,7 @@ object ReferenceTaskCreation {
     } yield ReferenceTask(
       id = id,
       projectReferenceId = referenceTaskCreation.projectReferenceId,
-      createdAt = now,
-      updatedAt = None
+      createdAt = now
     )
 
 }
