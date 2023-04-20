@@ -11,7 +11,7 @@ trait DAO extends DAOActions[Tables.DashboardRow, DashboardKey] {
 
   override val keyOf: Tables.DashboardRow => DashboardKey = DashboardKey.of
 
-  def allOf(userId: UserId, dashboardIds: Seq[DashboardId]): DBIO[Seq[Tables.DashboardRow]]
+  def findAllFor(ownerId: UserId): DBIO[Seq[Tables.DashboardRow]]
 }
 
 object DAO {
@@ -23,10 +23,11 @@ object DAO {
         table.userId === key.userId.transformInto[UUID] && table.id === key.dashboardId.transformInto[UUID]
     ) with DAO {
 
-      override def allOf(userId: UserId, dashboardIds: Seq[DashboardId]): DBIO[Seq[Tables.DashboardRow]] = {
-        val untypedIds = dashboardIds.distinct.map(_.transformInto[UUID])
+      override def findAllFor(ownerId: UserId): DBIO[Seq[Tables.DashboardRow]] = {
         Tables.Dashboard
-          .filter(dashboard => dashboard.userId === userId.transformInto[UUID] && dashboard.id.inSetBind(untypedIds))
+          .filter(
+            _.ownerId === ownerId.transformInto[UUID]
+          )
           .result
       }
 
