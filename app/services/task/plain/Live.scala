@@ -91,8 +91,8 @@ object Live {
         ec: ExecutionContext
     ): DBIO[Map[ProjectId, List[PlainTask]]] = {
       for {
-        matchingRecipes <- projectDao.allOf(userId, projectIds)
-        typedIds = matchingRecipes.map(_.id.transformInto[ProjectId])
+        matchingProjects <- projectDao.allOf(userId, projectIds)
+        typedIds = matchingProjects.map(_.id.transformInto[ProjectId])
         allPlainTasks <- plainTaskDao.findAllFor(typedIds)
       } yield {
         // GroupBy skips projects with no entries, hence they are added manually afterwards.
@@ -151,7 +151,7 @@ object Live {
     override def remove(
         userId: UserId,
         id: PlainTaskId
-    )(implicit ec: ExecutionContext): DBIO[Boolean] = {
+    )(implicit ec: ExecutionContext): DBIO[Boolean] =
       OptionT(
         plainTaskDao.find(id)
       ).map(_.projectId)
@@ -163,7 +163,6 @@ object Live {
           }
         )
         .getOrElse(false)
-    }
 
     private def ifProjectExists[A](
         userId: UserId,

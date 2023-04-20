@@ -4,6 +4,7 @@ import math.Positive
 import services.task.Task
 import spire.math.Natural
 
+// TODO: Check use
 case class ProgressUpdate(
     reached: Natural,
     reachable: Positive

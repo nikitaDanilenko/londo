@@ -12,3 +12,7 @@ case class PlainTask(
     progress: Progress,
     weight: Positive
 )
+
+object PlainTask {
+
+}
