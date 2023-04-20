@@ -114,14 +114,17 @@ object ErrorContext {
   }
 
   object Dashboard {
-    case object NotFound           extends ServerErrorInstance("No dashboard with the given id found")
-    case object NoReadAccess       extends ServerErrorInstance("No read access for dashboard")
-    case object NoWriteAccess      extends ServerErrorInstance("No write access for dashboard")
-    case object AccessDbError      extends ServerErrorInstance("Error writing dashboard access")
-    case object AccessEntryDbError extends ServerErrorInstance("Error writing dashboard access")
-    case object Delete             extends ServerErrorInstance("Error while deleting a dashboard")
-    case object Replace            extends ServerErrorInstance("Error while replacing a dashboard")
-    case object Create             extends ServerErrorInstance("Error while creating a dashboard")
+    case object NotFound extends ServerErrorInstance("No dashboard with the given id found")
+
+    case class Delete(errorMessage: String)
+        extends ServerErrorInstance(s"Error while deleting a dashboard: $errorMessage")
+
+    case class Update(errorMessage: String)
+        extends ServerErrorInstance(s"Error while updating a dashboard: $errorMessage")
+
+    case class Create(errorMessage: String)
+        extends ServerErrorInstance(s"Error while creating a dashboard: $errorMessage")
+
   }
 
 }
