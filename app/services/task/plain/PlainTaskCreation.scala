@@ -4,7 +4,6 @@ import cats.effect.IO
 import db.PlainTaskId
 import io.scalaland.chimney.dsl._
 import math.Positive
-import services.task.TaskKind
 import utils.random.RandomGenerator
 import utils.transformer.implicits._
 

@@ -2,7 +2,6 @@ package services.task.plain
 
 import io.scalaland.chimney.dsl._
 import math.Positive
-import services.task.TaskKind
 
 case class PlainTaskUpdate(
     name: String,

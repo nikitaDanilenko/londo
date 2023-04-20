@@ -1,7 +1,6 @@
 package services.task.plain
 
 import math.Positive
-import services.task.Task
 import spire.math.Natural
 
 // TODO: Check use

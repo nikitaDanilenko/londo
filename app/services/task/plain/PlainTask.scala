@@ -2,7 +2,6 @@ package services.task.plain
 
 import db.PlainTaskId
 import math.Positive
-import services.task.TaskKind
 
 case class PlainTask(
     id: PlainTaskId,
