@@ -11,7 +11,7 @@ case class PlainTask(
     taskKind: TaskKind,
     unit: Option[String],
     progress: Progress,
-    weight: Positive,
+    counting: Boolean,
     createdAt: Date,
     updatedAt: Option[Date]
 )
