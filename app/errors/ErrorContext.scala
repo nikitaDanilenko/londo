@@ -35,20 +35,6 @@ object ErrorContext {
     case object Replace  extends ServerErrorInstance("Error while replacing a user")
     case object Create   extends ServerErrorInstance("Error while creating a user")
 
-    object Settings {
-      case object NotFound extends ServerErrorInstance("No user settings for the given user found")
-      case object Delete   extends ServerErrorInstance("Error deleting user settings")
-      case object Replace  extends ServerErrorInstance("Error replacing user settings")
-      case object Create   extends ServerErrorInstance("Error creating user settings")
-    }
-
-    object Details {
-      case object NotFound extends ServerErrorInstance("No user details for the given user found")
-      case object Delete   extends ServerErrorInstance("Error deleting user details")
-      case object Replace  extends ServerErrorInstance("Error replacing user details")
-      case object Create   extends ServerErrorInstance("Error creating user details")
-    }
-
   }
 
   object Registration {
@@ -124,6 +110,27 @@ object ErrorContext {
 
     case class Create(errorMessage: String)
         extends ServerErrorInstance(s"Error while creating a dashboard: $errorMessage")
+
+  }
+
+  object DashboardEntry {
+    case object NotFound extends ServerErrorInstance("No dashboard with the given key found")
+
+    case class Delete(errorMessage: String)
+        extends ServerErrorInstance(s"Error while deleting a dashboard entry: $errorMessage")
+
+    case class Create(errorMessage: String)
+        extends ServerErrorInstance(s"Error while creating a dashboard entry: $errorMessage")
+
+  }
+
+  object Session {
+
+    case class Delete(errorMessage: String)
+      extends ServerErrorInstance(s"Error while deleting a dashboard entry: $errorMessage")
+
+    case class Create(errorMessage: String)
+      extends ServerErrorInstance(s"Error while creating a dashboard entry: $errorMessage")
 
   }
 
