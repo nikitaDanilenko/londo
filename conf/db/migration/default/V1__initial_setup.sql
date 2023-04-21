@@ -14,18 +14,19 @@ alter table "user"
 
 create table dashboard
 (
-    id               uuid                     not null,
-    owner_id         uuid                     not null,
-    header           text                     not null,
-    description      text,
-    publicly_visible bool                     not null,
-    created_at       timestamp with time zone not null,
-    updated_at       timestamp with time zone
+    id          uuid                     not null,
+    owner_id    uuid                     not null,
+    header      text                     not null,
+    description text,
+    visibility  text                     not null,
+    created_at  timestamp with time zone not null,
+    updated_at  timestamp with time zone
 );
 
 alter table dashboard
     add constraint dashboard_pk primary key (id),
-    add constraint dashboard_owner_id_fk foreign key (owner_id) references "user"(id);
+    add constraint dashboard_owner_id_fk foreign key (owner_id) references "user"(id),
+    add constraint dashboard_visibility_enumeration (visibility = 'Public' or visibility = 'Private');
 
 create table project
 (
