@@ -37,7 +37,7 @@ class Live @Inject() (
       .map(_ => true)
       .recover { case _ => false }
 
-  override def update(userId: UserId, userUpdate: UserUpdate): Future[User] =
+  override def update(userId: UserId, userUpdate: Update): Future[User] =
     db.runTransactionally(companion.update(userId, userUpdate))
 
   override def updatePassword(userId: UserId, password: String): Future[Boolean] =
@@ -75,8 +75,8 @@ object Live {
         .insert(user.transformInto[Tables.UserRow])
         .map(_ => ())
 
-    override def update(userId: UserId, userUpdate: UserUpdate)(implicit
-        executionContext: ExecutionContext
+    override def update(userId: UserId, userUpdate: Update)(implicit
+                                                            executionContext: ExecutionContext
     ): DBIO[User] = {
       val findAction = OptionT(get(userId))
         .getOrElseF(DBIO.failed(DBError.User.NotFound))
@@ -84,7 +84,7 @@ object Live {
       for {
         user <- findAction
         _ <- userDao.update(
-          UserUpdate
+          Update
             .update(user, userUpdate)
             .transformInto[Tables.UserRow]
         )

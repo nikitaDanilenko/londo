@@ -14,7 +14,7 @@ case class Creation(
 
 object Creation {
 
-  def create(ownerId: UserId, creation: Creation): IO[Project] = {
+  def create(creation: Creation): IO[Project] = {
     for {
       id  <- RandomGenerator.randomUUID.map(_.transformInto[ProjectId])
       now <- DateUtil.now
@@ -22,7 +22,6 @@ object Creation {
       id = id,
       name = creation.name,
       description = creation.description,
-      ownerId = ownerId,
       createdAt = now,
       updatedAt = None
     )

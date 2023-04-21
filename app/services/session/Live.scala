@@ -11,8 +11,9 @@ import security.jwt.JwtConfiguration
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
 import slickeffect.catsio.implicits._
+import utils.transformer.implicits._
 
-import java.sql.Date
+import java.sql.Timestamp
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
@@ -66,13 +67,13 @@ object Live {
         executionContext: ExecutionContext
     ): DBIO[Session] = {
       for {
-        session <- SessionCreation.create.to[DBIO]
+        session <- Creation.create.to[DBIO]
         _ <- dao
           .deleteAllBefore(
             userId,
             session.createdAt
               .minus(allowedValidityInDays, ChronoUnit.DAYS)
-              .transformInto[Date]
+              .transformInto[Timestamp]
           )
         inserted <- dao
           .insert(session.transformInto[Tables.SessionRow])

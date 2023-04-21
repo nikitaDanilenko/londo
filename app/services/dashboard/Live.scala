@@ -83,7 +83,7 @@ object Live {
     override def create(ownerId: UserId, creation: Creation)(implicit
         ec: ExecutionContext
     ): DBIO[Dashboard] = for {
-      dashboard <- Creation.create(ownerId, creation).to[DBIO]
+      dashboard <- Creation.create(creation).to[DBIO]
       dashboardRow = (dashboard, ownerId).transformInto[Tables.DashboardRow]
       inserted <- dao.insert(dashboardRow)
     } yield inserted.transformInto[Dashboard]
@@ -93,9 +93,10 @@ object Live {
     ): DBIO[Dashboard] = {
       val findAction = OptionT(get(ownerId, id)).getOrElseF(DashboardService.notFound)
       for {
-        dashboard        <- findAction
-        updated          <- Update.update(dashboard, update).to[DBIO]
-        _                <- dao.update(updated.transformInto[Tables.DashboardRow])
+        dashboard <- findAction
+        updated   <- Update.update(dashboard, update).to[DBIO]
+        updatedRow = (updated, ownerId).transformInto[Tables.DashboardRow]
+        _                <- dao.update(updatedRow)
         updatedDashboard <- findAction
       } yield updatedDashboard
     }

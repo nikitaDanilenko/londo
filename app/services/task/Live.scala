@@ -138,8 +138,8 @@ object Live {
         _ <- ifProjectExists(userId, taskRow.projectId.transformInto[ProjectId]) {
           for {
             updated <- Update.update(taskRow.transformInto[Task], update).to[DBIO]
-            row = (taskRow.projectId.transformInto[ProjectId], updated).transformInto[Tables.TaskRow]
-            _ <- taskDao.update(row)
+            updatedRow = (updated, taskRow.projectId.transformInto[ProjectId]).transformInto[Tables.TaskRow]
+            _ <- taskDao.update(updatedRow)
           } yield ()
 
         }

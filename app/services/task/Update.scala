@@ -1,7 +1,6 @@
 package services.task
 
 import cats.effect.IO
-import io.scalaland.chimney.dsl._
 import utils.date.DateUtil
 
 case class Update(
@@ -14,11 +13,17 @@ case class Update(
 
 object Update {
 
-  def update(plainTask: Task, plainTaskUpdate: Update): IO[Task] =
+  def update(task: Task, update: Update): IO[Task] =
     for {
       now <- DateUtil.now
-    } yield plainTask
-      .patchUsing(plainTaskUpdate)
-      .copy(updatedAt = Some(now))
+    } yield ProgressUpdate
+      .update(task, update.progressUpdate)
+      .copy(
+        name = update.name,
+        taskKind = update.taskKind,
+        unit = update.unit,
+        counting = update.counting,
+        updatedAt = Some(now)
+      )
 
 }

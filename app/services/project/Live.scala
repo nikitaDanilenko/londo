@@ -89,7 +89,7 @@ object Live {
     )(implicit
         ec: ExecutionContext
     ): DBIO[Project] = for {
-      project <- Creation.create(ownerId, creation).to[DBIO]
+      project <- Creation.create(creation).to[DBIO]
       projectRow = (project, ownerId).transformInto[Tables.ProjectRow]
       inserted <- dao.insert(projectRow)
     } yield inserted.transformInto[Project]
@@ -103,9 +103,10 @@ object Live {
     ): DBIO[Project] = {
       val findAction = OptionT(get(userId, projectId)).getOrElseF(ProjectService.notFound)
       for {
-        project        <- findAction
-        updated        <- Update.update(project, update).to[DBIO]
-        _              <- dao.update(updated.transformInto[Tables.ProjectRow])
+        project <- findAction
+        updated <- Update.update(project, update).to[DBIO]
+        updatedRow = (updated, userId).transformInto[Tables.ProjectRow]
+        _              <- dao.update(updatedRow)
         updatedProject <- findAction
       } yield updatedProject
     }

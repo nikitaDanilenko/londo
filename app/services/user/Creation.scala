@@ -8,18 +8,19 @@ import spire.math.Natural
 import utils.random.RandomGenerator
 import utils.transformer.implicits._
 
-case class UserCreation(
+case class Creation(
     nickname: String,
     password: String,
     displayName: Option[String],
+    description: Option[String],
     email: String
 )
 
-object UserCreation {
+object Creation {
 
   private val saltLength: Natural = Natural(40)
 
-  def create(userCreation: UserCreation): IO[User] =
+  def create(userCreation: Creation): IO[User] =
     for {
       id   <- RandomGenerator.randomUUID
       salt <- RandomGenerator.randomString(saltLength)
@@ -27,6 +28,7 @@ object UserCreation {
       id = id.transformInto[UserId],
       nickname = userCreation.nickname,
       displayName = userCreation.displayName,
+      description = userCreation.description,
       email = userCreation.email,
       salt = salt,
       hash = Hash.fromPassword(

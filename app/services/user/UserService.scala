@@ -14,7 +14,7 @@ trait UserService {
 
   def add(user: User): Future[Boolean]
 
-  def update(userId: UserId, userUpdate: UserUpdate): Future[User]
+  def update(userId: UserId, userUpdate: Update): Future[User]
 
   def updatePassword(userId: UserId, password: String): Future[Boolean]
   def delete(userId: UserId): Future[Boolean]
@@ -27,7 +27,7 @@ object UserService {
     def getByNickname(nickname: String)(implicit executionContext: ExecutionContext): DBIO[Option[User]]
     def getByIdentifier(string: String)(implicit executionContext: ExecutionContext): DBIO[Seq[User]]
     def add(user: User)(implicit executionContext: ExecutionContext): DBIO[Unit]
-    def update(userId: UserId, userUpdate: UserUpdate)(implicit executionContext: ExecutionContext): DBIO[User]
+    def update(userId: UserId, userUpdate: Update)(implicit executionContext: ExecutionContext): DBIO[User]
     def updatePassword(userId: UserId, password: String)(implicit executionContext: ExecutionContext): DBIO[Boolean]
     def delete(userId: UserId)(implicit executionContext: ExecutionContext): DBIO[Boolean]
 

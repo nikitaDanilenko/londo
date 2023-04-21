@@ -2,6 +2,8 @@ package services.user
 
 import play.api.Configuration
 
+// TODO: Use pureconfig, and move
+
 sealed abstract case class FrontendConfiguration(
     url: String,
     emailPlaceholder: String,
