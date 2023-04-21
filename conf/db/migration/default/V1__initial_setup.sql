@@ -3,8 +3,8 @@ create table "user"
     id            uuid not null,
     nickname      text not null,
     email         text not null,
-    password_salt text not null,
-    password_hash text not null,
+    salt          text not null,
+    hash          text not null,
     display_name  text
 );
 

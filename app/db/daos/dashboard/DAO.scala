@@ -21,13 +21,13 @@ object DAO {
     new DAOActions.Instance[Tables.DashboardRow, Tables.Dashboard, DashboardKey](
       Tables.Dashboard,
       (table, key) =>
-        table.userId === key.userId.transformInto[UUID] && table.id === key.dashboardId.transformInto[UUID]
+        table.ownerId === key.ownerId.transformInto[UUID] && table.id === key.dashboardId.transformInto[UUID]
     ) with DAO {
 
       override def findAllFor(ownerId: UserId): DBIO[Seq[Tables.DashboardRow]] = {
         Tables.Dashboard
           .filter(
-            _.userId === ownerId.transformInto[UUID]
+            _.ownerId === ownerId.transformInto[UUID]
           )
           .result
       }
