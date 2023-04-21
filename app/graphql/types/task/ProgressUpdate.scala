@@ -1,13 +1,13 @@
 package graphql.types.task
 
-import graphql.types.ToInternal
-import graphql.types.ToInternal.syntax._
 import graphql.types.util.{ Natural, Positive }
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
+import services.task
 
 @JsonCodec
 case class ProgressUpdate(
@@ -17,11 +17,10 @@ case class ProgressUpdate(
 
 object ProgressUpdate {
 
-  implicit val progressUpdateToInternal: ToInternal[ProgressUpdate, services.task.ProgressUpdate] = progressUpdate =>
-    services.task.ProgressUpdate(
-      reached = progressUpdate.reached.toInternal,
-      reachable = progressUpdate.reachable.toInternal
-    )
+  implicit val toInternal: Transformer[ProgressUpdate, task.ProgressUpdate] =
+    Transformer
+      .define[ProgressUpdate, task.ProgressUpdate]
+      .buildTransformer
 
   implicit val progressUpdateInputType: InputObjectType[ProgressUpdate] = deriveInputObjectType[ProgressUpdate]()
 

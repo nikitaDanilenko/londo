@@ -1,8 +1,8 @@
 package graphql.types.user
 
-import graphql.types.FromAndToInternal
 import graphql.types.util.NonEmptyList
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
@@ -10,23 +10,20 @@ import sangria.schema.{ InputObjectType, ObjectType }
 import utils.graphql.SangriaUtil.instances._
 
 import java.util.UUID
+import io.scalaland.chimney.dsl._
+import utils.transformer.implicits._
 
+// TODO: It's likely that this type is unnecessary
 @JsonCodec
 case class SessionId(uuid: UUID)
 
 object SessionId {
 
-  implicit val sessionIdFromAndToInternal: FromAndToInternal[SessionId, services.user.SessionId] =
-    FromAndToInternal.create(
-      fromInternal = sessionId =>
-        SessionId(
-          uuid = sessionId.uuid
-        ),
-      toInternal = sessionId =>
-        services.user.SessionId(
-          uuid = sessionId.uuid
-        )
-    )
+  implicit val toInternal: Transformer[SessionId, db.SessionId] =
+    _.uuid.transformInto[db.SessionId]
+
+  implicit val fromInternal: Transformer[db.SessionId, SessionId] =
+    SessionId(_)
 
   implicit val sessionIdObjectType: ObjectType[Unit, SessionId] = deriveObjectType[Unit, SessionId]()
 

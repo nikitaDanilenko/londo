@@ -1,36 +1,27 @@
 package graphql.types.dashboard
 
-import graphql.types.FromInternal
-import graphql.types.FromInternal.syntax._
-import graphql.types.access.Accessors
-import graphql.types.project.WeightedProject
-import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
+import io.scalaland.chimney.dsl._
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 
 @JsonCodec
 case class Dashboard(
     id: DashboardId,
-    projects: Vector[WeightedProject],
     header: String,
     description: Option[String],
-    userId: UserId,
-    readAccessors: Accessors,
-    writeAccessors: Accessors
+    visibility: Visibility
 )
 
 object Dashboard {
 
-  implicit val projectFromInternal: FromInternal[Dashboard, services.dashboard.Dashboard] = { dashboard =>
+  implicit val fromInternal: Transformer[services.dashboard.Dashboard, Dashboard] = { dashboard =>
     Dashboard(
-      id = dashboard.id.fromInternal,
-      projects = dashboard.projects.map(_.fromInternal),
+      id = dashboard.id.transformInto[DashboardId],
       header = dashboard.header,
       description = dashboard.description,
-      userId = dashboard.userId.fromInternal,
-      readAccessors = Accessors.fromInternalAccess(dashboard.readAccessors),
-      writeAccessors = Accessors.fromInternalAccess(dashboard.writeAccessors)
+      visibility = dashboard.visibility.transformInto[Visibility]
     )
   }
 

@@ -1,63 +1,30 @@
 package graphql.types.task
 
-import graphql.types.FromInternal
-import graphql.types.FromInternal.syntax._
 import graphql.types.project.ProjectId
-import graphql.types.util.Positive
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive
 import sangria.macros.derive.deriveObjectType
-import sangria.schema.{ ObjectType, OutputType }
+import sangria.schema.{ObjectType, OutputType}
+import services.task.Task
+
+@JsonCodec
+case class Task(
+                 id: TaskId,
+                 name: String,
+                 taskKind: TaskKind,
+                 unit: Option[String],
+                 progress: Progress,
+                 counting: Boolean
+)
 
 object Task {
 
-  @JsonCodec
-  case class Plain(
-      id: TaskId,
-      name: String,
-      taskKind: TaskKind,
-      unit: Option[String],
-      progress: Progress,
-      weight: Positive
-  )
+  implicit val fromInternal: Transformer[Task, Task] =
+    Transformer
+      .define[Task, Task]
+      .buildTransformer
 
-  object Plain {
-
-    implicit val plainFromInternal: FromInternal[Plain, services.task.Task.Plain] =
-      plain =>
-        Plain(
-          id = plain.id.fromInternal,
-          name = plain.name,
-          taskKind = plain.taskKind.fromInternal,
-          unit = plain.unit,
-          progress = plain.progress.fromInternal,
-          weight = plain.weight.fromInternal
-        )
-
-    implicit val plainObjectType: ObjectType[Unit, Plain] = deriveObjectType[Unit, Plain]()
-
-  }
-
-  @JsonCodec
-  case class ProjectReference(
-      id: TaskId,
-      projectReference: ProjectId,
-      weight: Positive
-  )
-
-  object ProjectReference {
-
-    implicit lazy val projectReferenceFromInternal
-        : FromInternal[ProjectReference, services.task.Task.ProjectReference] = projectReference =>
-      ProjectReference(
-        id = projectReference.id.fromInternal,
-        projectReference = projectReference.projectReference.fromInternal,
-        weight = projectReference.weight.fromInternal
-      )
-
-    implicit val projectReferenceOutputType: OutputType[ProjectReference] =
-      derive.deriveObjectType[Unit, ProjectReference]()
-
-  }
+  implicit val plainObjectType: ObjectType[Unit, Task] = deriveObjectType[Unit, Task]()
 
 }

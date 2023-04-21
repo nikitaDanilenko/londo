@@ -8,27 +8,28 @@ import sangria.macros.derive.deriveEnumType
 import sangria.marshalling.ToInput
 import sangria.marshalling.circe.circeEncoderToInput
 import sangria.schema.EnumType
+import services.task
 
 sealed trait TaskKind extends EnumEntry
 
 object TaskKind extends Enum[TaskKind] {
-  case object Discrete extends TaskKind
+  case object Discrete   extends TaskKind
   case object Percentual extends TaskKind
   case object Fractional extends TaskKind
 
   override lazy val values: IndexedSeq[TaskKind] = findValues
 
-  implicit val taskKindFromAndToInternal: FromAndToInternal[TaskKind, services.task.TaskKind] =
+  implicit val taskKindFromAndToInternal: FromAndToInternal[TaskKind, task.TaskKind] =
     FromAndToInternal.create(
       fromInternal = {
-        case services.task.TaskKind.Discrete   => Discrete
-        case services.task.TaskKind.Percentual => Percentual
-        case services.task.TaskKind.Fractional => Fractional
+        case task.TaskKind.Discrete   => Discrete
+        case task.TaskKind.Percentual => Percentual
+        case task.TaskKind.Fractional => Fractional
       },
       toInternal = {
-        case Discrete   => services.task.TaskKind.Discrete
-        case Percentual => services.task.TaskKind.Percentual
-        case Fractional => services.task.TaskKind.Fractional
+        case Discrete   => task.TaskKind.Discrete
+        case Percentual => task.TaskKind.Percentual
+        case Fractional => task.TaskKind.Fractional
       }
     )
 

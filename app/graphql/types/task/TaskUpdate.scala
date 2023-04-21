@@ -1,66 +1,31 @@
 package graphql.types.task
 
-import graphql.types.ToInternal
-import graphql.types.ToInternal.syntax._
-import graphql.types.project.ProjectId
-import graphql.types.util.Positive
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
 
+@JsonCodec
+case class TaskUpdate(
+    name: String,
+    taskKind: TaskKind,
+    unit: Option[String],
+    counting: Boolean,
+    progressUpdate: ProgressUpdate
+)
+
 object TaskUpdate {
 
-  @JsonCodec
-  case class PlainUpdate(
-      name: String,
-      taskKind: TaskKind,
-      unit: Option[String],
-      weight: Positive,
-      progressUpdate: ProgressUpdate
-  )
+  implicit val toInternal: Transformer[TaskUpdate, services.task.Update] =
+    Transformer
+      .define[TaskUpdate, services.task.Update]
+      .buildTransformer
 
-  object PlainUpdate {
+  implicit val taskUpdatePlainUpdateInputObjectType: InputObjectType[TaskUpdate] =
+    deriveInputObjectType[TaskUpdate]()
 
-    implicit val taskUpdatePlainUpdateToInternal: ToInternal[PlainUpdate, services.task.TaskUpdate.Plain] = plain =>
-      services.task.TaskUpdate.Plain(
-        name = plain.name,
-        taskKind = plain.taskKind.toInternal,
-        unit = plain.unit,
-        weight = plain.weight.toInternal,
-        progressUpdate = plain.progressUpdate.toInternal
-      )
-
-    implicit val taskUpdatePlainUpdateInputObjectType: InputObjectType[PlainUpdate] =
-      deriveInputObjectType[PlainUpdate]()
-
-    implicit lazy val taskUpdatePlainUpdateFromInput: FromInput[PlainUpdate] = circeDecoderFromInput[PlainUpdate]
-
-  }
-
-  @JsonCodec
-  case class ProjectReferenceUpdate(
-      projectReferenceId: ProjectId,
-      weight: Positive
-  )
-
-  object ProjectReferenceUpdate {
-
-    implicit val taskUpdateProjectReferenceUpdateToInternal
-        : ToInternal[ProjectReferenceUpdate, services.task.TaskUpdate.ProjectReference] =
-      projectReference =>
-        services.task.TaskUpdate.ProjectReference(
-          projectReferenceId = projectReference.projectReferenceId.toInternal,
-          weight = projectReference.weight.toInternal
-        )
-
-    implicit val taskUpdateProjectReferenceUpdateInputObjectType: InputObjectType[ProjectReferenceUpdate] =
-      deriveInputObjectType[ProjectReferenceUpdate]()
-
-    implicit lazy val taskUpdateProjectReferenceUpdateFromInput: FromInput[ProjectReferenceUpdate] =
-      circeDecoderFromInput[ProjectReferenceUpdate]
-
-  }
+  implicit lazy val taskUpdatePlainUpdateFromInput: FromInput[TaskUpdate] = circeDecoderFromInput[TaskUpdate]
 
 }

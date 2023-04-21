@@ -1,9 +1,7 @@
 package graphql.types.dashboard
 
-import graphql.types.ToInternal
-import graphql.types.ToInternal.syntax._
-import graphql.types.access.Accessors
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
@@ -13,20 +11,15 @@ import sangria.schema.InputObjectType
 case class DashboardCreation(
     header: String,
     description: Option[String],
-    readAccessors: Accessors,
-    writeAccessors: Accessors
+    visibility: Visibility
 )
 
 object DashboardCreation {
 
-  implicit val projectCreationToInternal: ToInternal[DashboardCreation, services.dashboard.DashboardCreation] =
-    projectCreation =>
-      services.dashboard.DashboardCreation(
-        header = projectCreation.header,
-        description = projectCreation.description,
-        readAccessors = projectCreation.readAccessors.toInternal,
-        writeAccessors = projectCreation.writeAccessors.toInternal
-      )
+  implicit val toInternal: Transformer[DashboardCreation, services.dashboard.Creation] =
+    Transformer
+      .define[DashboardCreation, services.dashboard.Creation]
+      .buildTransformer
 
   implicit val projectCreationInputObjectType: InputObjectType[DashboardCreation] =
     deriveInputObjectType[DashboardCreation]()

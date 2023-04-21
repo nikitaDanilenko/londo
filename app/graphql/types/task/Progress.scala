@@ -1,14 +1,13 @@
 package graphql.types.task
 
-import graphql.types.FromAndToInternal
-import graphql.types.FromInternal.syntax._
-import graphql.types.ToInternal.syntax._
 import graphql.types.util.{ Natural, Positive }
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, OutputType }
+import io.scalaland.chimney.dsl._
 
 @JsonCodec
 case class Progress(
@@ -18,18 +17,16 @@ case class Progress(
 
 object Progress {
 
-  implicit lazy val progressFromAndToInternal: FromAndToInternal[Progress, services.task.Progress] =
-    FromAndToInternal.create(
-      progress =>
-        Progress(
-          reached = progress.reached.fromInternal,
-          reachable = progress.reachable.fromInternal
-        ),
-      progress =>
-        services.task.Progress.fraction(
-          reachable = progress.reachable.toInternal,
-          reached = progress.reached.toInternal
-        )
+  implicit val toInternal: Transformer[Progress, services.task.Progress] = progress =>
+    services.task.Progress.fraction(
+      reachable = progress.reachable.transformInto[math.Positive],
+      reached = progress.reached.transformInto[spire.math.Natural]
+    )
+
+  implicit val fromInternal: Transformer[services.task.Progress, Progress] = progress =>
+    Progress(
+      reached = progress.reached.transformInto[Natural],
+      reachable = progress.reachable.transformInto[Positive]
     )
 
   implicit lazy val progressOutputType: OutputType[Progress] = deriveObjectType[Unit, Progress]()

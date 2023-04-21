@@ -3,11 +3,14 @@ package graphql.types.user
 import graphql.types.FromAndToInternal
 import graphql.types.util.NonEmptyList
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 import utils.graphql.SangriaUtil.instances._
+import io.scalaland.chimney.dsl._
+import utils.transformer.implicits._
 
 import java.util.UUID
 
@@ -16,16 +19,11 @@ case class UserId(uuid: UUID)
 
 object UserId {
 
-  implicit val userIdFromAndToInternal: FromAndToInternal[UserId, services.user.UserId] = FromAndToInternal.create(
-    fromInternal = userId =>
-      UserId(
-        uuid = userId.uuid
-      ),
-    toInternal = userId =>
-      services.user.UserId(
-        uuid = userId.uuid
-      )
-  )
+  implicit val toInternal: Transformer[UserId, db.UserId] =
+    _.uuid.transformInto[db.UserId]
+
+  implicit val fromInternal: Transformer[db.UserId, UserId] =
+    UserId(_)
 
   implicit val userIdObjectType: ObjectType[Unit, UserId] = deriveObjectType[Unit, UserId]()
 
@@ -34,16 +32,5 @@ object UserId {
   )
 
   implicit lazy val userIdFromInput: FromInput[UserId] = circeDecoderFromInput[UserId]
-
-  implicit lazy val nonEmptyListOfUserIdInputType: InputObjectType[NonEmptyList[UserId]] =
-    deriveInputObjectType[NonEmptyList[UserId]](
-      InputObjectTypeName("NonEmptyListOfUserIdInput")
-    )
-
-  implicit lazy val nonEmptyListOfUserIdFromInput: FromInput[NonEmptyList[UserId]] =
-    circeDecoderFromInput[NonEmptyList[UserId]]
-
-  implicit lazy val nonEmptyListOfUserIdOutputType: ObjectType[Unit, NonEmptyList[UserId]] =
-    deriveObjectType[Unit, NonEmptyList[UserId]]()
 
 }

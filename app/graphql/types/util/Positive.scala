@@ -1,8 +1,8 @@
 package graphql.types.util
 
-import graphql.types.FromAndToInternal
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
@@ -19,10 +19,10 @@ object Positive {
   implicit val positiveCodec: Codec[Positive] =
     deriveCodec[Positive].iemap(p => Right(p).filterOrElse(_.positive > 0, "Not a positive natural number"))(identity)
 
-  implicit val positiveFromInternal: FromAndToInternal[Positive, math.Positive] = FromAndToInternal.create(
-    fromInternal = p => Positive(p.natural.intValue),
-    toInternal = p => math.Positive.nextOf(spire.math.Natural(p.positive - 1))
-  )
+  implicit val toInternal: Transformer[Positive, math.Positive] = positive =>
+    math.Positive.nextOf(spire.math.Natural(positive.positive - 1))
+
+  implicit val fromInternal: Transformer[math.Positive, Positive] = positive => Positive(positive.natural.intValue)
 
   implicit val positiveObjectType: ObjectType[Unit, Positive] = deriveObjectType[Unit, Positive]()
 
