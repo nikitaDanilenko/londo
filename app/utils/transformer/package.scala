@@ -4,7 +4,7 @@ import io.scalaland.chimney.Transformer
 import shapeless.tag
 import shapeless.tag.@@
 
-import java.time.{ LocalDate, LocalTime }
+import java.time.{ LocalDate, LocalDateTime, LocalTime }
 
 package object transformer {
 
@@ -13,18 +13,11 @@ package object transformer {
 
     implicit def toUntagged[A, Tag]: Transformer[A @@ Tag, A] = id => id: A
 
-    // TODO: Check necessity
-    implicit val localDateToSqlDate: Transformer[LocalDate, java.sql.Date] =
-      java.sql.Date.valueOf
+    implicit val localDateTimeToSqlTimestamp: Transformer[LocalDateTime, java.sql.Timestamp] =
+      java.sql.Timestamp.valueOf
 
-    implicit val sqlDateToLocalDate: Transformer[java.sql.Date, LocalDate] =
-      _.toLocalDate
-
-    implicit val localTimeToSqlTime: Transformer[LocalTime, java.sql.Time] =
-      java.sql.Time.valueOf
-
-    implicit val sqlTimeToLocalTime: Transformer[java.sql.Time, LocalTime] =
-      _.toLocalTime
+    implicit val sqlTimestampToLocalDateTime: Transformer[java.sql.Timestamp, LocalDateTime] =
+      _.toLocalDateTime
 
   }
 
