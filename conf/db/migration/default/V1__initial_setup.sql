@@ -58,7 +58,7 @@ alter table dashboard_entry
         foreign key (project_id) references project(id) on delete cascade;
 
 
-create table plain_task
+create table task
 (
     id         uuid                     not null,
     project_id uuid                     not null,
@@ -72,9 +72,9 @@ create table plain_task
     updated_at timestamp with time zone
 );
 
-alter table plain_task
-    add constraint plain_task_pk primary key (id, project_id),
-    add constraint plain_task_project_id
+alter table task
+    add constraint task_pk primary key (id, project_id),
+    add constraint task_project_id
         foreign key (project_id) references project(id) on delete cascade,
     add constraint reached_non_negative check (reached >= 0),
     add constraint reachable_larger_than_reached check (reachable >= reached),

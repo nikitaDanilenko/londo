@@ -23,7 +23,7 @@ trait Tables {
     Dashboard.schema,
     DashboardEntry.schema,
     LoginAttempt.schema,
-    PlainTask.schema,
+    Task.schema,
     Project.schema,
     ReferenceTask.schema,
     Session.schema,
@@ -260,7 +260,7 @@ trait Tables {
   /** Collection-like TableQuery object for table LoginAttempt */
   lazy val LoginAttempt = new TableQuery(tag => new LoginAttempt(tag))
 
-  /** Entity class storing rows of table PlainTask
+  /** Entity class storing rows of table Task
     * @param id
     *   Database column id SqlType(uuid)
     * @param projectId
@@ -276,7 +276,7 @@ trait Tables {
     * @param reachable
     *   Database column reachable SqlType(int8)
     */
-  case class PlainTaskRow(
+  case class TaskRow(
       id: java.util.UUID,
       projectId: java.util.UUID,
       name: String,
@@ -286,22 +286,22 @@ trait Tables {
       reachable: Long
   )
 
-  /** GetResult implicit for fetching PlainTaskRow objects using plain SQL queries */
-  implicit def GetResultPlainTaskRow(implicit
+  /** GetResult implicit for fetching TaskRow objects using plain SQL queries */
+  implicit def GetResultTaskRow(implicit
       e0: GR[java.util.UUID],
       e1: GR[String],
       e2: GR[Option[String]],
       e3: GR[Long]
-  ): GR[PlainTaskRow] = GR { prs =>
+  ): GR[TaskRow] = GR { prs =>
     import prs._
-    PlainTaskRow.tupled(
+    TaskRow.tupled(
       (<<[java.util.UUID], <<[java.util.UUID], <<[String], <<?[String], <<[String], <<[Long], <<[Long])
     )
   }
 
-  /** Table description of table plain_task. Objects of this class serve as prototypes for rows in queries. */
-  class PlainTask(_tableTag: Tag) extends profile.api.Table[PlainTaskRow](_tableTag, "plain_task") {
-    def * = (id, projectId, name, unit, kind, reached, reachable) <> (PlainTaskRow.tupled, PlainTaskRow.unapply)
+  /** Table description of table task. Objects of this class serve as prototypes for rows in queries. */
+  class Task(_tableTag: Tag) extends profile.api.Table[TaskRow](_tableTag, "task") {
+    def * = (id, projectId, name, unit, kind, reached, reachable) <> (TaskRow.tupled, TaskRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (
@@ -315,7 +315,7 @@ trait Tables {
         Rep.Some(reachable)
       )
     ).shaped.<>(
-      { r => import r._; _1.map(_ => PlainTaskRow.tupled((_1.get, _2.get, _3.get, _4, _5.get, _6.get, _7.get))) },
+      { r => import r._; _1.map(_ => TaskRow.tupled((_1.get, _2.get, _3.get, _4, _5.get, _6.get, _7.get))) },
       (_: Any) => throw new Exception("Inserting into ? projection not supported.")
     )
 
@@ -340,11 +340,11 @@ trait Tables {
     /** Database column reachable SqlType(int8) */
     val reachable: Rep[Long] = column[Long]("reachable")
 
-    /** Primary key of PlainTask (database name plain_task_pk) */
-    val pk = primaryKey("plain_task_pk", (id, projectId))
+    /** Primary key of Task (database name task_pk) */
+    val pk = primaryKey("task_pk", (id, projectId))
 
-    /** Foreign key referencing Project (database name plain_task_project_id) */
-    lazy val projectFk = foreignKey("plain_task_project_id", projectId, Project)(
+    /** Foreign key referencing Project (database name task_project_id) */
+    lazy val projectFk = foreignKey("task_project_id", projectId, Project)(
       r => r.id,
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.Cascade
@@ -352,8 +352,8 @@ trait Tables {
 
   }
 
-  /** Collection-like TableQuery object for table PlainTask */
-  lazy val PlainTask = new TableQuery(tag => new PlainTask(tag))
+  /** Collection-like TableQuery object for table Task */
+  lazy val Task = new TableQuery(tag => new Task(tag))
 
   /** Entity class storing rows of table Project
     * @param id
