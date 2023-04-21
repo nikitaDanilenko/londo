@@ -76,7 +76,7 @@ object Live {
               .transformInto[Timestamp]
           )
         inserted <- dao
-          .insert(session.transformInto[Tables.SessionRow])
+          .insert((session, userId).transformInto[Tables.SessionRow])
       } yield inserted.transformInto[Session]
     }
 
