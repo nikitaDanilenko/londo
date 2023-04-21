@@ -11,8 +11,8 @@ trait ProjectService {
 
   def all(userId: UserId): Future[Seq[Project]]
   def get(userId: UserId, id: ProjectId): Future[Option[Project]]
-  def create(userId: UserId, projectCreation: ProjectCreation): Future[ServerError.Or[Project]]
-  def update(userId: UserId, projectId: ProjectId, projectUpdate: ProjectUpdate): Future[ServerError.Or[Project]]
+  def create(userId: UserId, creation: Creation): Future[ServerError.Or[Project]]
+  def update(userId: UserId, projectId: ProjectId, update: Update): Future[ServerError.Or[Project]]
   def delete(userId: UserId, id: ProjectId): Future[ServerError.Or[Boolean]]
 }
 
@@ -34,7 +34,7 @@ object ProjectService {
 
     def create(
         ownerIds: UserId,
-        projectCreation: ProjectCreation
+        creation: Creation
     )(implicit
         ec: ExecutionContext
     ): DBIO[Project]
@@ -42,7 +42,7 @@ object ProjectService {
     def update(
         userId: UserId,
         projectId: ProjectId,
-        projectUpdate: ProjectUpdate
+        update: Update
     )(implicit
         ec: ExecutionContext
     ): DBIO[Project]

@@ -31,8 +31,8 @@ class Live @Inject() (
   override def get(userId: UserId, id: ProjectId): Future[Option[Project]] =
     db.runTransactionally(companion.get(userId, id))
 
-  override def create(userId: UserId, projectCreation: ProjectCreation): Future[ServerError.Or[Project]] =
-    db.runTransactionally(companion.create(userId, projectCreation))
+  override def create(userId: UserId, creation: Creation): Future[ServerError.Or[Project]] =
+    db.runTransactionally(companion.create(userId, creation))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Project.Create(error.getMessage).asServerError)
@@ -41,9 +41,9 @@ class Live @Inject() (
   override def update(
       userId: UserId,
       projectId: ProjectId,
-      projectUpdate: ProjectUpdate
+      update: Update
   ): Future[ServerError.Or[Project]] =
-    db.runTransactionally(companion.update(userId, projectId, projectUpdate))
+    db.runTransactionally(companion.update(userId, projectId, update))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Project.Update(error.getMessage).asServerError)
@@ -85,11 +85,11 @@ object Live {
 
     override def create(
         ownerId: UserId,
-        projectCreation: ProjectCreation
+        creation: Creation
     )(implicit
         ec: ExecutionContext
     ): DBIO[Project] = for {
-      project <- ProjectCreation.create(ownerId, projectCreation).to[DBIO]
+      project <- Creation.create(ownerId, creation).to[DBIO]
       projectRow = (project, ownerId).transformInto[Tables.ProjectRow]
       inserted <- dao.insert(projectRow)
     } yield inserted.transformInto[Project]
@@ -97,14 +97,14 @@ object Live {
     override def update(
         userId: UserId,
         projectId: ProjectId,
-        projectUpdate: ProjectUpdate
+        update: Update
     )(implicit
         ec: ExecutionContext
     ): DBIO[Project] = {
       val findAction = OptionT(get(userId, projectId)).getOrElseF(ProjectService.notFound)
       for {
         project        <- findAction
-        updated        <- ProjectUpdate.update(project, projectUpdate).to[DBIO]
+        updated        <- Update.update(project, update).to[DBIO]
         _              <- dao.update(updated.transformInto[Tables.ProjectRow])
         updatedProject <- findAction
       } yield updatedProject

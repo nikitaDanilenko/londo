@@ -7,21 +7,21 @@ import utils.date.DateUtil
 import utils.random.RandomGenerator
 import utils.transformer.implicits._
 
-case class ProjectCreation(
+case class Creation(
     name: String,
     description: Option[String]
 )
 
-object ProjectCreation {
+object Creation {
 
-  def create(ownerId: UserId, projectCreation: ProjectCreation): IO[Project] = {
+  def create(ownerId: UserId, creation: Creation): IO[Project] = {
     for {
       id  <- RandomGenerator.randomUUID.map(_.transformInto[ProjectId])
       now <- DateUtil.now
     } yield Project(
       id = id,
-      name = projectCreation.name,
-      description = projectCreation.description,
+      name = creation.name,
+      description = creation.description,
       ownerId = ownerId,
       createdAt = now,
       updatedAt = None
