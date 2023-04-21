@@ -31,8 +31,8 @@ class Live @Inject() (
   override def get(ownerId: UserId, id: DashboardId): Future[Option[Dashboard]] =
     db.runTransactionally(companion.get(ownerId, id))
 
-  override def create(ownerId: UserId, dashboardCreation: DashboardCreation): Future[ServerError.Or[Dashboard]] =
-    db.runTransactionally(companion.create(ownerId, dashboardCreation))
+  override def create(ownerId: UserId, creation: Creation): Future[ServerError.Or[Dashboard]] =
+    db.runTransactionally(companion.create(ownerId, creation))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Dashboard.Create(error.getMessage).asServerError)
@@ -41,9 +41,9 @@ class Live @Inject() (
   override def update(
       ownerId: UserId,
       id: DashboardId,
-      dashboardUpdate: DashboardUpdate
+      update: Update
   ): Future[ServerError.Or[Dashboard]] =
-    db.runTransactionally(companion.update(ownerId, id, dashboardUpdate))
+    db.runTransactionally(companion.update(ownerId, id, update))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Dashboard.Update(error.getMessage).asServerError)
@@ -80,21 +80,21 @@ object Live {
         .map(_.transformInto[Dashboard])
         .value
 
-    override def create(ownerId: UserId, dashboardCreation: DashboardCreation)(implicit
+    override def create(ownerId: UserId, creation: Creation)(implicit
         ec: ExecutionContext
     ): DBIO[Dashboard] = for {
-      dashboard <- DashboardCreation.create(ownerId, dashboardCreation).to[DBIO]
+      dashboard <- Creation.create(ownerId, creation).to[DBIO]
       dashboardRow = (dashboard, ownerId).transformInto[Tables.DashboardRow]
       inserted <- dao.insert(dashboardRow)
     } yield inserted.transformInto[Dashboard]
 
-    override def update(ownerId: UserId, id: DashboardId, dashboardUpdate: DashboardUpdate)(implicit
+    override def update(ownerId: UserId, id: DashboardId, update: Update)(implicit
         ec: ExecutionContext
     ): DBIO[Dashboard] = {
       val findAction = OptionT(get(ownerId, id)).getOrElseF(DashboardService.notFound)
       for {
         dashboard        <- findAction
-        updated          <- DashboardUpdate.update(dashboard, dashboardUpdate).to[DBIO]
+        updated          <- Update.update(dashboard, update).to[DBIO]
         _                <- dao.update(updated.transformInto[Tables.DashboardRow])
         updatedDashboard <- findAction
       } yield updatedDashboard

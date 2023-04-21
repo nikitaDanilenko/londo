@@ -7,24 +7,24 @@ import utils.date.DateUtil
 import utils.random.RandomGenerator
 import utils.transformer.implicits._
 
-case class DashboardCreation(
+case class Creation(
     header: String,
     description: Option[String],
-    publiclyVisible: Boolean
+    visibility: Visibility
 )
 
-object DashboardCreation {
+object Creation {
 
-  def create(ownerId: UserId, dashboardCreation: DashboardCreation): IO[Dashboard] = {
+  def create(ownerId: UserId, creation: Creation): IO[Dashboard] = {
     for {
       id  <- RandomGenerator.randomUUID.map(_.transformInto[DashboardId])
       now <- DateUtil.now
     } yield Dashboard(
       id = id,
-      header = dashboardCreation.header,
-      description = dashboardCreation.description,
+      header = creation.header,
+      description = creation.description,
       ownerId = ownerId,
-      publiclyVisible = dashboardCreation.publiclyVisible,
+      visibility = creation.visibility,
       createdAt = now,
       updatedAt = None
     )

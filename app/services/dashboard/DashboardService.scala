@@ -14,13 +14,13 @@ trait DashboardService {
 
   def create(
       ownerId: UserId,
-      dashboardCreation: DashboardCreation
+      creation: Creation
   ): Future[ServerError.Or[Dashboard]]
 
   def update(
       ownerId: UserId,
       id: DashboardId,
-      dashboardUpdate: DashboardUpdate
+      update: Update
   ): Future[ServerError.Or[Dashboard]]
 
   def delete(
@@ -42,13 +42,13 @@ object DashboardService {
 
     def create(
         ownerId: UserId,
-        dashboardCreation: DashboardCreation
+        creation: Creation
     )(implicit ec: ExecutionContext): DBIO[Dashboard]
 
     def update(
         ownerId: UserId,
         id: DashboardId,
-        dashboardUpdate: DashboardUpdate
+        update: Update
     )(implicit ec: ExecutionContext): DBIO[Dashboard]
 
     def delete(

@@ -4,19 +4,19 @@ import cats.effect.IO
 import utils.date.DateUtil
 import io.scalaland.chimney.dsl._
 
-case class DashboardUpdate(
+case class Update(
     header: String,
     description: Option[String],
-    publiclyVisible: Boolean
+    visibility: Visibility
 )
 
-object DashboardUpdate {
+object Update {
 
-  def update(dashboard: Dashboard, dashboardUpdate: DashboardUpdate): IO[Dashboard] = {
+  def update(dashboard: Dashboard, update: Update): IO[Dashboard] = {
     for {
       now <- DateUtil.now
     } yield dashboard
-      .patchUsing(dashboardUpdate)
+      .patchUsing(update)
       .copy(updatedAt = Some(now))
   }
 

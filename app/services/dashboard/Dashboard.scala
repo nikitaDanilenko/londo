@@ -9,7 +9,7 @@ case class Dashboard(
     header: String,
     description: Option[String],
     ownerId: UserId,
-    publiclyVisible: Boolean,
+    visibility: Visibility,
     createdAt: LocalDateTime,
     updatedAt: Option[LocalDateTime]
 )
