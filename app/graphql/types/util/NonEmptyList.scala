@@ -1,10 +1,9 @@
 package graphql.types.util
 
 import cats.Functor
-import graphql.types.FromInternal.syntax._
-import graphql.types.ToInternal.syntax._
-import graphql.types.{ FromInternal, ToInternal }
 import io.circe.generic.JsonCodec
+import io.scalaland.chimney.Transformer
+import io.scalaland.chimney.dsl._
 
 @JsonCodec
 case class NonEmptyList[A](
@@ -26,23 +25,23 @@ object NonEmptyList {
 
   }
 
-  implicit def nonEmptyListFromInternal[G, InternalA](implicit
-      fromInternal: FromInternal[G, InternalA]
-  ): FromInternal[NonEmptyList[G], cats.data.NonEmptyList[InternalA]] = { nonEmptyList =>
-    val mapped = nonEmptyList.map(_.fromInternal)
+  implicit def fromInternal[Internal, A](implicit
+      transformer: Transformer[Internal, A]
+  ): Transformer[cats.data.NonEmptyList[Internal], NonEmptyList[A]] = { nonEmptyList =>
+    val mapped = nonEmptyList.map(_.transformInto[A])
     NonEmptyList(
       head = mapped.head,
       tail = mapped.tail
     )
   }
 
-  implicit def nonEmptyListToInternal[A, InternalA](implicit
-      toInternal: ToInternal[A, InternalA]
-  ): ToInternal[NonEmptyList[A], cats.data.NonEmptyList[InternalA]] =
+  implicit def toInternal[A, Internal](implicit
+      transformer: Transformer[A, Internal]
+  ): Transformer[NonEmptyList[A], cats.data.NonEmptyList[Internal]] =
     nonEmptyList =>
       cats.data.NonEmptyList(
-        head = nonEmptyList.head.toInternal,
-        tail = nonEmptyList.tail.toList.map(_.toInternal)
+        head = nonEmptyList.head.transformInto[Internal],
+        tail = nonEmptyList.tail.toList.map(_.transformInto[Internal])
       )
 
 }

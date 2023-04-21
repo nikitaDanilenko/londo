@@ -1,14 +1,13 @@
 package graphql.types.task
 
 import enumeratum.{ Enum, EnumEntry }
-import graphql.types.FromAndToInternal
 import io.circe.generic.extras.semiauto.deriveEnumerationCodec
 import io.circe.{ Codec, Json }
+import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveEnumType
 import sangria.marshalling.ToInput
 import sangria.marshalling.circe.circeEncoderToInput
 import sangria.schema.EnumType
-import services.task
 
 sealed trait TaskKind extends EnumEntry
 
@@ -19,19 +18,17 @@ object TaskKind extends Enum[TaskKind] {
 
   override lazy val values: IndexedSeq[TaskKind] = findValues
 
-  implicit val taskKindFromAndToInternal: FromAndToInternal[TaskKind, task.TaskKind] =
-    FromAndToInternal.create(
-      fromInternal = {
-        case task.TaskKind.Discrete   => Discrete
-        case task.TaskKind.Percentual => Percentual
-        case task.TaskKind.Fractional => Fractional
-      },
-      toInternal = {
-        case Discrete   => task.TaskKind.Discrete
-        case Percentual => task.TaskKind.Percentual
-        case Fractional => task.TaskKind.Fractional
-      }
-    )
+  implicit val fromInternal: Transformer[services.task.TaskKind, TaskKind] = {
+    case services.task.TaskKind.Discrete   => Discrete
+    case services.task.TaskKind.Percentual => Percentual
+    case services.task.TaskKind.Fractional => Fractional
+  }
+
+  implicit val toInternal: Transformer[TaskKind, services.task.TaskKind] = {
+    case Discrete   => services.task.TaskKind.Discrete
+    case Percentual => services.task.TaskKind.Percentual
+    case Fractional => services.task.TaskKind.Fractional
+  }
 
   implicit val taskKindCodec: Codec[TaskKind] = deriveEnumerationCodec[TaskKind]
 

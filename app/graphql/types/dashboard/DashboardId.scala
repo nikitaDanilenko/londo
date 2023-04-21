@@ -1,6 +1,5 @@
 package graphql.types.dashboard
 
-import graphql.types.FromAndToInternal
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }

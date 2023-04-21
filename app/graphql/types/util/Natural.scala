@@ -1,14 +1,14 @@
 package graphql.types.util
 
-import graphql.types.FromAndToInternal
-import io.circe.generic.semiauto.{ deriveCodec, deriveDecoder }
-import io.circe.{ Codec, Decoder }
+import io.circe.Codec
+import io.circe.generic.semiauto.deriveCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
-import util.chaining._
+
+import scala.util.chaining._
 
 sealed abstract case class Natural(
     nonNegative: Int
