@@ -1,11 +1,11 @@
-package services.task.plain
+package services.task
 
 import cats.Applicative
 import cats.data.OptionT
 import cats.effect.unsafe.implicits.global
 import db.daos.project.ProjectKey
 import db.generated.Tables
-import db.{ PlainTaskId, ProjectId, UserId }
+import db.{ ProjectId, TaskId, UserId }
 import errors.{ ErrorContext, ServerError }
 import io.scalaland.chimney.dsl._
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
@@ -24,22 +24,22 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class Live @Inject() (
     override protected val dbConfigProvider: DatabaseConfigProvider,
-    companion: PlainTaskService.Companion
+    companion: TaskService.Companion
 )(implicit
     executionContext: ExecutionContext
-) extends PlainTaskService
+) extends TaskService
     with HasDatabaseConfigProvider[PostgresProfile] {
 
-  override def all(userId: UserId, projectId: ProjectId): Future[Seq[PlainTask]] =
+  override def all(userId: UserId, projectId: ProjectId): Future[Seq[Task]] =
     db.runTransactionally(companion.all(userId, projectId))
 
   override def create(
       userId: UserId,
       projectId: ProjectId,
-      plainTaskCreation: PlainTaskCreation
-  ): Future[ServerError.Or[PlainTask]] =
+      creation: Creation
+  ): Future[ServerError.Or[Task]] =
     db.runTransactionally(
-      companion.create(userId, projectId, plainTaskCreation)
+      companion.create(userId, projectId, creation)
     ).map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Task.Plain.Create(error.getMessage).asServerError)
@@ -47,17 +47,17 @@ class Live @Inject() (
 
   override def update(
       userId: UserId,
-      plainTaskId: PlainTaskId,
-      plainTaskUpdate: PlainTaskUpdate
-  ): Future[ServerError.Or[PlainTask]] =
-    db.runTransactionally(companion.update(userId, plainTaskId, plainTaskUpdate))
+      taskId: TaskId,
+      update: Update
+  ): Future[ServerError.Or[Task]] =
+    db.runTransactionally(companion.update(userId, taskId, update))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Task.Plain.Update(error.getMessage).asServerError)
       }
 
-  override def delete(userId: UserId, plainTaskId: PlainTaskId): Future[Boolean] =
-    db.runTransactionally(companion.delete(userId, plainTaskId))
+  override def delete(userId: UserId, taskId: TaskId): Future[Boolean] =
+    db.runTransactionally(companion.delete(userId, taskId))
       .recover { _ =>
         false
       }
@@ -69,27 +69,27 @@ object Live {
   class Companion @Inject() (
       plainTaskDao: db.daos.task.plain.DAO,
       projectDao: db.daos.project.DAO
-  ) extends PlainTaskService.Companion {
+  ) extends TaskService.Companion {
 
     override def all(
         userId: UserId,
         projectId: ProjectId
     )(implicit
         ec: ExecutionContext
-    ): DBIO[Seq[PlainTask]] =
+    ): DBIO[Seq[Task]] =
       for {
         exists <- projectDao.exists(ProjectKey(userId, projectId))
         plainTasks <-
           if (exists)
             plainTaskDao
               .findAllFor(Seq(projectId))
-              .map(_.map(_.transformInto[PlainTask]))
+              .map(_.map(_.transformInto[Task]))
           else Applicative[DBIO].pure(Seq.empty)
       } yield plainTasks
 
     override def allFor(userId: UserId, projectIds: Seq[ProjectId])(implicit
         ec: ExecutionContext
-    ): DBIO[Map[ProjectId, Seq[PlainTask]]] = {
+    ): DBIO[Map[ProjectId, Seq[Task]]] = {
       for {
         matchingProjects <- projectDao.allOf(userId, projectIds)
         typedIds = matchingProjects.map(_.id.transformInto[ProjectId])
@@ -100,7 +100,7 @@ object Live {
         MapUtil
           .unionWith(preMap, typedIds.map(_ -> Seq.empty).toMap)((x, _) => x)
           .view
-          .mapValues(_.map(_.transformInto[PlainTask]))
+          .mapValues(_.map(_.transformInto[Task]))
           .toMap
       }
     }
@@ -108,55 +108,55 @@ object Live {
     override def create(
         userId: UserId,
         projectId: ProjectId,
-        plainTaskCreation: PlainTaskCreation
+        creation: Creation
     )(implicit
         ec: ExecutionContext
-    ): DBIO[PlainTask] =
+    ): DBIO[Task] =
       ifProjectExists(userId, projectId) {
         for {
-          plainTask <- PlainTaskCreation.create(plainTaskCreation).to[DBIO]
+          plainTask <- Creation.create(creation).to[DBIO]
           plainTaskRow = (plainTask, projectId).transformInto[Tables.PlainTaskRow]
           inserted <- plainTaskDao
             .insert(plainTaskRow)
-            .map(_.transformInto[PlainTask])
+            .map(_.transformInto[Task])
         } yield inserted
       }
 
     override def update(
         userId: UserId,
-        plainTaskId: PlainTaskId,
-        plainTaskUpdate: PlainTaskUpdate
+        taskId: TaskId,
+        update: Update
     )(implicit
         ec: ExecutionContext
-    ): DBIO[PlainTask] = {
+    ): DBIO[Task] = {
       val findAction =
-        OptionT(plainTaskDao.find(plainTaskId))
+        OptionT(plainTaskDao.find(taskId))
           .getOrElseF(DBIO.failed(DBError.Project.TaskNotFound))
       for {
         plainTaskRow <- findAction
         _ <- ifProjectExists(userId, plainTaskRow.projectId.transformInto[ProjectId]) {
           for {
-            updated <- PlainTaskUpdate.update(plainTaskRow.transformInto[PlainTask], plainTaskUpdate).to[DBIO]
+            updated <- Update.update(plainTaskRow.transformInto[Task], update).to[DBIO]
             row = (plainTaskRow.projectId.transformInto[ProjectId], updated).transformInto[Tables.PlainTaskRow]
             _ <- plainTaskDao.update(row)
           } yield ()
 
         }
         updatedPlainTaskRow <- findAction
-      } yield updatedPlainTaskRow.transformInto[PlainTask]
+      } yield updatedPlainTaskRow.transformInto[Task]
     }
 
     override def delete(
         userId: UserId,
-        id: PlainTaskId
+        taskId: TaskId
     )(implicit ec: ExecutionContext): DBIO[Boolean] =
       OptionT(
-        plainTaskDao.find(id)
+        plainTaskDao.find(taskId)
       ).map(_.projectId)
         .semiflatMap(projectId =>
           ifProjectExists(userId, projectId.transformInto[ProjectId]) {
             plainTaskDao
-              .delete(id)
+              .delete(taskId)
               .map(_ > 0)
           }
         )

@@ -1,21 +1,20 @@
-package services.task.plain
+package services.task
 
 import cats.effect.IO
 import io.scalaland.chimney.dsl._
-import math.Positive
 import utils.date.DateUtil
 
-case class PlainTaskUpdate(
+case class Update(
     name: String,
     taskKind: TaskKind,
     unit: Option[String],
-    weight: Positive,
+    counting: Boolean,
     progressUpdate: ProgressUpdate
 )
 
-object PlainTaskUpdate {
+object Update {
 
-  def update(plainTask: PlainTask, plainTaskUpdate: PlainTaskUpdate): IO[PlainTask] =
+  def update(plainTask: Task, plainTaskUpdate: Update): IO[Task] =
     for {
       now <- DateUtil.now
     } yield plainTask

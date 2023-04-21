@@ -1,13 +1,11 @@
-package services.task.plain
+package services.task
 
-import db.PlainTaskId
-import math.Positive
+import db.TaskId
 
 import java.time.LocalDateTime
-import java.util.Date
 
-case class PlainTask(
-    id: PlainTaskId,
+case class Task(
+    id: TaskId,
     name: String,
     taskKind: TaskKind,
     unit: Option[String],
@@ -17,4 +15,4 @@ case class PlainTask(
     updatedAt: Option[LocalDateTime]
 )
 
-object PlainTask {}
+object Task {}

@@ -20,9 +20,9 @@ package object db {
 
   type SessionId = UUID @@ SessionTag
 
-  sealed trait PlainTaskTag
+  sealed trait TaskTag
 
-  type PlainTaskId = UUID @@ PlainTaskTag
+  type TaskId = UUID @@ TaskTag
 
   sealed trait ReferenceTaskTag
 

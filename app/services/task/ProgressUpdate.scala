@@ -1,4 +1,4 @@
-package services.task.plain
+package services.task
 
 import math.Positive
 import spire.math.Natural

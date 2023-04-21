@@ -1,4 +1,4 @@
-package services.task.plain
+package services.task
 
 import algebra.ring.{AdditiveMonoid, AdditiveSemigroup}
 import math.Positive

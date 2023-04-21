@@ -81,19 +81,6 @@ alter table plain_task
     add constraint kind_enumeration
         check (kind = 'Discrete' or kind = 'Percentual' or kind = 'Fractional');
 
-create table reference_task
-(
-    id                   uuid                     not null,
-    project_id           uuid                     not null,
-    project_reference_id uuid                     not null,
-    created_at           timestamp with time zone not null
-);
-
-alter table reference_task
-    add constraint reference_task_pk primary key (id, project_id),
-    add constraint reference_task_project_reference_id
-        foreign key (project_id) references project(id) on delete cascade;
-
 create table session
 (
     id         uuid                     not null,
