@@ -8,25 +8,25 @@ import utils.transformer.implicits._
 
 import java.util.UUID
 
-trait DAO extends DAOActions[Tables.PlainTaskRow, TaskId] {
+trait DAO extends DAOActions[Tables.TaskRow, TaskId] {
 
-  override val keyOf: Tables.PlainTaskRow => TaskId = _.id.transformInto[TaskId]
+  override val keyOf: Tables.TaskRow => TaskId = _.id.transformInto[TaskId]
 
-  def findAllFor(projectIds: Seq[ProjectId]): DBIO[Seq[Tables.PlainTaskRow]]
+  def findAllFor(projectIds: Seq[ProjectId]): DBIO[Seq[Tables.TaskRow]]
 
 }
 
 object DAO {
 
   val instance: DAO =
-    new DAOActions.Instance[Tables.PlainTaskRow, Tables.PlainTask, TaskId](
-      Tables.PlainTask,
+    new DAOActions.Instance[Tables.TaskRow, Tables.Task, TaskId](
+      Tables.Task,
       (table, key) => table.id === key.transformInto[UUID]
     ) with DAO {
 
-      override def findAllFor(projectIds: Seq[ProjectId]): DBIO[Seq[Tables.PlainTaskRow]] = {
+      override def findAllFor(projectIds: Seq[ProjectId]): DBIO[Seq[Tables.TaskRow]] = {
         val untypedIds = projectIds.distinct.map(_.transformInto[UUID])
-        Tables.PlainTask
+        Tables.Task
           .filter(_.projectId.inSetBind(untypedIds))
           .result
       }

@@ -4,6 +4,7 @@ import cats.Applicative
 import cats.data.OptionT
 import cats.effect.unsafe.implicits.global
 import db.daos.project.ProjectKey
+import db.daos.task.DAO
 import db.generated.Tables
 import db.{ ProjectId, TaskId, UserId }
 import errors.{ ErrorContext, ServerError }
@@ -67,7 +68,7 @@ class Live @Inject() (
 object Live {
 
   class Companion @Inject() (
-      plainTaskDao: db.daos.task.plain.DAO,
+      taskDao: DAO,
       projectDao: db.daos.project.DAO
   ) extends TaskService.Companion {
 
@@ -79,13 +80,13 @@ object Live {
     ): DBIO[Seq[Task]] =
       for {
         exists <- projectDao.exists(ProjectKey(userId, projectId))
-        plainTasks <-
+        tasks <-
           if (exists)
-            plainTaskDao
+            taskDao
               .findAllFor(Seq(projectId))
               .map(_.map(_.transformInto[Task]))
           else Applicative[DBIO].pure(Seq.empty)
-      } yield plainTasks
+      } yield tasks
 
     override def allFor(userId: UserId, projectIds: Seq[ProjectId])(implicit
         ec: ExecutionContext
@@ -93,7 +94,7 @@ object Live {
       for {
         matchingProjects <- projectDao.allOf(userId, projectIds)
         typedIds = matchingProjects.map(_.id.transformInto[ProjectId])
-        allPlainTasks <- plainTaskDao.findAllFor(typedIds)
+        allPlainTasks <- taskDao.findAllFor(typedIds)
       } yield {
         // GroupBy skips projects with no entries, hence they are added manually afterwards.
         val preMap = allPlainTasks.groupBy(_.projectId.transformInto[ProjectId])
@@ -114,10 +115,10 @@ object Live {
     ): DBIO[Task] =
       ifProjectExists(userId, projectId) {
         for {
-          plainTask <- Creation.create(creation).to[DBIO]
-          plainTaskRow = (plainTask, projectId).transformInto[Tables.PlainTaskRow]
-          inserted <- plainTaskDao
-            .insert(plainTaskRow)
+          task <- Creation.create(creation).to[DBIO]
+          taskRow = (task, projectId).transformInto[Tables.TaskRow]
+          inserted <- taskDao
+            .insert(taskRow)
             .map(_.transformInto[Task])
         } yield inserted
       }
@@ -130,15 +131,15 @@ object Live {
         ec: ExecutionContext
     ): DBIO[Task] = {
       val findAction =
-        OptionT(plainTaskDao.find(taskId))
+        OptionT(taskDao.find(taskId))
           .getOrElseF(DBIO.failed(DBError.Project.TaskNotFound))
       for {
-        plainTaskRow <- findAction
-        _ <- ifProjectExists(userId, plainTaskRow.projectId.transformInto[ProjectId]) {
+        taskRow <- findAction
+        _ <- ifProjectExists(userId, taskRow.projectId.transformInto[ProjectId]) {
           for {
-            updated <- Update.update(plainTaskRow.transformInto[Task], update).to[DBIO]
-            row = (plainTaskRow.projectId.transformInto[ProjectId], updated).transformInto[Tables.PlainTaskRow]
-            _ <- plainTaskDao.update(row)
+            updated <- Update.update(taskRow.transformInto[Task], update).to[DBIO]
+            row = (taskRow.projectId.transformInto[ProjectId], updated).transformInto[Tables.TaskRow]
+            _ <- taskDao.update(row)
           } yield ()
 
         }
@@ -151,11 +152,11 @@ object Live {
         taskId: TaskId
     )(implicit ec: ExecutionContext): DBIO[Boolean] =
       OptionT(
-        plainTaskDao.find(taskId)
+        taskDao.find(taskId)
       ).map(_.projectId)
         .semiflatMap(projectId =>
           ifProjectExists(userId, projectId.transformInto[ProjectId]) {
-            plainTaskDao
+            taskDao
               .delete(taskId)
               .map(_ > 0)
           }
