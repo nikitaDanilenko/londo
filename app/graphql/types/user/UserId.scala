@@ -1,7 +1,5 @@
 package graphql.types.user
 
-import graphql.types.FromAndToInternal
-import graphql.types.util.NonEmptyList
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }

@@ -12,7 +12,6 @@ case class Creation(
     nickname: String,
     password: String,
     displayName: Option[String],
-    description: Option[String],
     email: String
 )
 
@@ -28,7 +27,6 @@ object Creation {
       id = id.transformInto[UserId],
       nickname = userCreation.nickname,
       displayName = userCreation.displayName,
-      description = userCreation.description,
       email = userCreation.email,
       salt = salt,
       hash = Hash.fromPassword(

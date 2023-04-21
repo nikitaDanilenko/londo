@@ -1,6 +1,5 @@
 package graphql.types.project
 
-import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveObjectType
@@ -10,8 +9,7 @@ import sangria.schema.ObjectType
 case class Project(
     id: ProjectId,
     name: String,
-    description: Option[String],
-    ownerId: UserId
+    description: Option[String]
 )
 
 object Project {

@@ -9,7 +9,6 @@ case class User(
     id: UserId,
     nickname: String,
     displayName: Option[String],
-    description: Option[String],
     email: String,
     salt: String,
     hash: String

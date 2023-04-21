@@ -17,9 +17,9 @@ case class UserCreation(
 
 object UserCreation {
 
-  implicit val toInternal: Transformer[UserCreation, services.user.UserCreation] =
+  implicit val toInternal: Transformer[UserCreation, services.user.Creation] =
     Transformer
-      .define[UserCreation, services.user.UserCreation]
+      .define[UserCreation, services.user.Creation]
       .buildTransformer
 
   implicit val userCreationInputType: InputObjectType[UserCreation] =
