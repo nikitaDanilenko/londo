@@ -1,23 +1,29 @@
 package graphql.queries
 
-import cats.effect.IO
+import cats.data.EitherT
+import errors.ErrorContext
 import graphql.HasGraphQLServices.syntax._
-import graphql.types.FromInternal.syntax._
-import graphql.types.user.{ User, UserId }
+import graphql.types.user.User
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
+import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
 
 import scala.concurrent.Future
 
 trait UserQuery extends HasGraphQLServices with HasLoggedInUser {
-  import ioImplicits._
 
   @GraphQLField()
-  def fetchUser(userId: UserId): Future[User] =
-    validateAccess[IO](userId)
-      .flatMap(graphQLServices.userService.fetch[IO])
-      .map(_.fromInternal[User])
-      .unsafeToFuture()
-      .handleServerError
+  def fetchUser: Future[User] =
+    withUser { userId =>
+      EitherT
+        .fromOptionF(
+          graphQLServices.userService
+            .get(userId.transformInto[db.UserId]),
+          ErrorContext.User.NotFound.asServerError
+        )
+        .map(_.transformInto[User])
+        .value
+        .handleServerError
+    }
 
 }
