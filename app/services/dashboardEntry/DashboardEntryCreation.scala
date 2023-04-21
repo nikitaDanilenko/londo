@@ -6,7 +6,6 @@ import db.{ DashboardId, ProjectId }
 import utils.date.DateUtil
 
 case class DashboardEntryCreation(
-    dashboardId: DashboardId,
     projectId: ProjectId
 )
 
@@ -16,10 +15,7 @@ object DashboardEntryCreation {
     for {
       now <- DateUtil.now
     } yield DashboardEntry(
-      key = DashboardEntryKey(
-        dashboardId = dashboardEntryCreation.dashboardId,
-        projectId = dashboardEntryCreation.projectId
-      ),
+      projectId = dashboardEntryCreation.projectId,
       createdAt = now
     )
 
