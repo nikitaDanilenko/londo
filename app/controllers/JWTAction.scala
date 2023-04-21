@@ -18,12 +18,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class JWTAction @Inject() (
     override val parse: PlayBodyParsers,
-    sessionService: SessionService,
-    jwtConfiguration: JwtConfiguration
+    sessionService: SessionService
 )(implicit
     override val executionContext: ExecutionContext
 ) extends ActionBuilder[Request, AnyContent]
     with Circe {
+
+  private val jwtConfiguration = JwtConfiguration.default
 
   override def invokeBlock[A](
       request: Request[A],

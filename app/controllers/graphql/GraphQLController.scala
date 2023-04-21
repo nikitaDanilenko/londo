@@ -22,7 +22,6 @@ class GraphQLController @Inject() (
     override protected val controllerComponents: ControllerComponents,
     graphQLSchema: GraphQLSchema,
     graphQLServices: GraphQLServices,
-    jwtConfiguration: JwtConfiguration,
     jwtAction: JWTAction
 )(implicit
     executionContext: ExecutionContext
@@ -31,6 +30,7 @@ class GraphQLController @Inject() (
     with Logging { self =>
 
   private lazy val contextWithoutUser = GraphQLContext.withoutUser(graphQLServices)
+  private val jwtConfiguration        = JwtConfiguration.default
 
   def graphQL: Action[GraphQLRequest] =
     jwtAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
