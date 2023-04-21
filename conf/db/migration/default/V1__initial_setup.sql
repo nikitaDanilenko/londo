@@ -26,7 +26,7 @@ create table dashboard
 alter table dashboard
     add constraint dashboard_pk primary key (id),
     add constraint dashboard_owner_id_fk foreign key (owner_id) references "user"(id),
-    add constraint dashboard_visibility_enumeration (visibility = 'Public' or visibility = 'Private');
+    add constraint dashboard_visibility_enumeration check (visibility = 'Public' or visibility = 'Private');
 
 create table project
 (
