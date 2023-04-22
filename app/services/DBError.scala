@@ -20,4 +20,8 @@ object DBError {
     case object NotFound extends DBError("No user with the given id found")
   }
 
+  object Login {
+    case object NotFound extends DBError("No login for user with the given id found")
+  }
+
 }

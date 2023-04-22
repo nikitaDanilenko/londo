@@ -14,6 +14,11 @@ object ErrorContext {
 
   object Login {
     case object Failure extends ServerErrorInstance("Invalid combination of user name and password.")
+    case class Create(errorMessage: String) extends ServerErrorInstance(s"Error attempting to login: $errorMessage")
+
+    case class Update(errorMessage: String)
+        extends ServerErrorInstance(s"Error attempting to update login: $errorMessage")
+
   }
 
   object Authentication {
@@ -127,10 +132,10 @@ object ErrorContext {
   object Session {
 
     case class Delete(errorMessage: String)
-      extends ServerErrorInstance(s"Error while deleting a dashboard entry: $errorMessage")
+        extends ServerErrorInstance(s"Error while deleting a dashboard entry: $errorMessage")
 
     case class Create(errorMessage: String)
-      extends ServerErrorInstance(s"Error while creating a dashboard entry: $errorMessage")
+        extends ServerErrorInstance(s"Error while creating a dashboard entry: $errorMessage")
 
   }
 

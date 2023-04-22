@@ -96,12 +96,13 @@ alter table session
 
 create table login_attempt
 (
-    user_id                                     uuid not null,
-    failed_attempts_since_last_successful_login int  not null,
-    last_successful_login                       timestamp
+    user_id               uuid not null,
+    failed_attempts       int  not null,
+    last_successful_login timestamp
 );
 
 alter table login_attempt
     add constraint login_attempt_pk primary key (user_id),
     add constraint login_attempt_user_id_fk
-        foreign key (user_id) references "user"(id) on delete cascade;
+        foreign key (user_id) references "user"(id) on delete cascade
+    add constraint login_attempt_failed_attempts_non_negative check (failed_attempts >= 0);
