@@ -94,15 +94,15 @@ alter table session
     add constraint session_user_id_fk
         foreign key (user_id) references "user"(id) on delete cascade;
 
-create table login_attempt
+create table login_throttle
 (
-    user_id               uuid not null,
-    failed_attempts       int  not null,
-    last_successful_login timestamp
+    user_id         uuid      not null,
+    failed_attempts int       not null,
+    last_attempt_at timestamp not null
 );
 
-alter table login_attempt
-    add constraint login_attempt_pk primary key (user_id),
-    add constraint login_attempt_user_id_fk
-        foreign key (user_id) references "user"(id) on delete cascade
-    add constraint login_attempt_failed_attempts_non_negative check (failed_attempts >= 0);
+alter table login_throttle
+    add constraint login_throttle_pk primary key (user_id),
+    add constraint login_throttle_user_id_fk
+        foreign key (user_id) references "user"(id) on delete cascade,
+    add constraint login_throttle_failed_attempts_non_negative check (failed_attempts >= 0);

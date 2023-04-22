@@ -1,6 +1,7 @@
-package services.loginAttempt
+package services.loginThrottle
 
 import cats.data.OptionT
+import cats.effect.unsafe.implicits.global
 import db.UserId
 import db.generated.Tables
 import errors.{ ErrorContext, ServerError }
@@ -10,6 +11,7 @@ import services.DBError
 import services.common.Transactionally.syntax._
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
+import slickeffect.catsio.implicits._
 import utils.DBIOUtil.instances._
 
 import javax.inject.Inject
@@ -17,23 +19,23 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class Live @Inject() (
     override protected val dbConfigProvider: DatabaseConfigProvider,
-    companion: LoginAttemptService.Companion
+    companion: LoginThrottleService.Companion
 )(implicit
     executionContext: ExecutionContext
-) extends LoginAttemptService
+) extends LoginThrottleService
     with HasDatabaseConfigProvider[PostgresProfile] {
 
-  override def get(userId: UserId): Future[Option[LoginAttempt]] =
+  override def get(userId: UserId): Future[Option[LoginThrottle]] =
     db.runTransactionally(companion.get(userId))
 
-  override def create(userId: UserId): Future[ServerError.Or[LoginAttempt]] =
+  override def create(userId: UserId): Future[ServerError.Or[LoginThrottle]] =
     db.runTransactionally(companion.create(userId))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.Login.Create(error.getMessage).asServerError)
       }
 
-  override def update(userId: UserId, update: Update): Future[ServerError.Or[LoginAttempt]] =
+  override def update(userId: UserId, update: Update): Future[ServerError.Or[LoginThrottle]] =
     db.runTransactionally(companion.update(userId, update))
       .map(Right(_))
       .recover { case error =>
@@ -45,28 +47,28 @@ class Live @Inject() (
 object Live {
 
   class Companion @Inject() (
-      dao: db.daos.loginAttempt.DAO
-  ) extends LoginAttemptService.Companion {
+      dao: db.daos.loginThrottle.DAO
+  ) extends LoginThrottleService.Companion {
 
-    override def get(userId: UserId)(implicit ec: ExecutionContext): DBIO[Option[LoginAttempt]] =
+    override def get(userId: UserId)(implicit ec: ExecutionContext): DBIO[Option[LoginThrottle]] =
       dao
         .find(userId)
-        .map(_.map(_.transformInto[LoginAttempt]))
+        .map(_.map(_.transformInto[LoginThrottle]))
 
     override def create(
         userId: UserId
-    )(implicit ec: ExecutionContext): DBIO[LoginAttempt] = {
-      val attempt = Creation.create
-      val row     = (attempt, userId).transformInto[Tables.LoginAttemptRow]
+    )(implicit ec: ExecutionContext): DBIO[LoginThrottle] = {
       for {
+        loginThrottle <- Creation.create.to[DBIO]
+        row = (loginThrottle, userId).transformInto[Tables.LoginThrottleRow]
         inserted <- dao.insert(row)
-      } yield inserted.transformInto[LoginAttempt]
+      } yield inserted.transformInto[LoginThrottle]
     }
 
     override def update(
         userId: UserId,
         update: Update
-    )(implicit ec: ExecutionContext): DBIO[LoginAttempt] = {
+    )(implicit ec: ExecutionContext): DBIO[LoginThrottle] = {
       val findAction = OptionT(get(userId)).getOrElseF(DBIO.failed(DBError.Login.NotFound))
 
       for {
@@ -76,7 +78,7 @@ object Live {
             Update.update(attempt, update),
             userId
           )
-            .transformInto[Tables.LoginAttemptRow]
+            .transformInto[Tables.LoginThrottleRow]
         )
         updated <- findAction
       } yield updated

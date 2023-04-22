@@ -1,4 +1,4 @@
-package db.daos.loginAttempt
+package db.daos.loginThrottle
 
 import db.generated.Tables
 import db.{ DAOActions, UserId }
@@ -8,17 +8,17 @@ import utils.transformer.implicits._
 
 import java.util.UUID
 
-trait DAO extends DAOActions[Tables.LoginAttemptRow, UserId] {
+trait DAO extends DAOActions[Tables.LoginThrottleRow, UserId] {
 
-  override val keyOf: Tables.LoginAttemptRow => UserId = _.userId.transformInto[UserId]
+  override val keyOf: Tables.LoginThrottleRow => UserId = _.userId.transformInto[UserId]
 
 }
 
 object DAO {
 
   val instance: DAO =
-    new DAOActions.Instance[Tables.LoginAttemptRow, Tables.LoginAttempt, UserId](
-      Tables.LoginAttempt,
+    new DAOActions.Instance[Tables.LoginThrottleRow, Tables.LoginThrottle, UserId](
+      Tables.LoginThrottle,
       (table, key) => table.userId === key.transformInto[UUID]
     ) with DAO
 

@@ -4,6 +4,7 @@ import play.api.inject.Binding
 import play.api.{ Configuration, Environment }
 import services.dashboard.DashboardService
 import services.dashboardEntry.DashboardEntryService
+import services.loginThrottle.LoginThrottleService
 import services.project.ProjectService
 import services.session.SessionService
 import services.task.TaskService
@@ -15,6 +16,7 @@ class ApplicationModule extends play.api.inject.Module {
     val settings = Seq(
       bind[db.daos.dashboard.DAO].toInstance(db.daos.dashboard.DAO.instance),
       bind[db.daos.dashboardEntry.DAO].toInstance(db.daos.dashboardEntry.DAO.instance),
+      bind[db.daos.loginThrottle.DAO].toInstance(db.daos.loginThrottle.DAO.instance),
       bind[db.daos.project.DAO].toInstance(db.daos.project.DAO.instance),
       bind[db.daos.session.DAO].toInstance(db.daos.session.DAO.instance),
       bind[db.daos.task.DAO].toInstance(db.daos.task.DAO.instance),
@@ -23,6 +25,8 @@ class ApplicationModule extends play.api.inject.Module {
       bind[DashboardService].to[services.dashboard.Live],
       bind[DashboardEntryService.Companion].to[services.dashboardEntry.Live.Companion],
       bind[DashboardEntryService].to[services.dashboardEntry.Live],
+      bind[LoginThrottleService.Companion].to[services.loginThrottle.Live.Companion],
+      bind[LoginThrottleService].to[services.loginThrottle.Live],
       bind[ProjectService.Companion].to[services.project.Live.Companion],
       bind[ProjectService].to[services.project.Live],
       bind[SessionService.Companion].to[services.session.Live.Companion],

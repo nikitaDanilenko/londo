@@ -19,6 +19,7 @@ object ErrorContext {
     case class Update(errorMessage: String)
         extends ServerErrorInstance(s"Error attempting to update login: $errorMessage")
 
+    case class Limit(errorMessage: String) extends ServerErrorInstance(s"Too many failed logins: $errorMessage")
   }
 
   object Authentication {
