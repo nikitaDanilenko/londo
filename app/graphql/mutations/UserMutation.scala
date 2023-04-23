@@ -4,7 +4,7 @@ import cats.data.{ EitherT, OptionT }
 import errors.{ ErrorContext, ServerError }
 import cats.syntax.functor._
 import graphql.HasGraphQLServices.syntax._
-import graphql.types.user.{ SessionId, User, UserCreation, UserId }
+import graphql.types.user.{ LogoutMode, SessionId, User, UserCreation, UserId }
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
 import security.Hash
@@ -112,6 +112,22 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
     } yield jwt
 
     transformer.value.handleServerError
+  }
+
+  @GraphQLField()
+  def logout(logoutMode: graphql.types.user.LogoutMode): Future[Boolean] = {
+    withUser { loggedIn =>
+      val userId = loggedIn.userId.transformInto[db.UserId]
+      val action = logoutMode match {
+        case LogoutMode.ThisSession =>
+          graphQLServices.sessionService
+            .delete(userId, loggedIn.sessionId.transformInto[db.SessionId])
+        case LogoutMode.AllSessions =>
+          graphQLServices.sessionService
+            .deleteAll(userId)
+      }
+      action.handleServerError
+    }
   }
 
   @GraphQLField
