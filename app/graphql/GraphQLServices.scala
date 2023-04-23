@@ -1,6 +1,7 @@
 package graphql
 
 import services.dashboard.DashboardService
+import services.email.EmailService
 import services.loginThrottle.LoginThrottleService
 import services.project.ProjectService
 import services.session.SessionService
@@ -16,7 +17,8 @@ case class GraphQLServices @Inject() (
     taskService: TaskService,
     dashboardService: DashboardService,
     sessionService: SessionService,
-    loginThrottleService: LoginThrottleService
+    loginThrottleService: LoginThrottleService,
+    emailService: EmailService
 )(implicit
     val executionContext: ExecutionContext
 )
