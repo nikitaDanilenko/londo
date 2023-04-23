@@ -36,10 +36,10 @@ object ErrorContext {
   }
 
   object User {
-    case object NotFound extends ServerErrorInstance("No user with the given id found")
-    case object Delete   extends ServerErrorInstance("Error while deleting a user")
-    case object Replace  extends ServerErrorInstance("Error while replacing a user")
-    case object Create   extends ServerErrorInstance("Error while creating a user")
+    case object NotFound                    extends ServerErrorInstance("No user with the given id found")
+    case class Delete(errorMessage: String) extends ServerErrorInstance(s"Error while deleting a user: $errorMessage")
+    case class Update(errorMessage: String) extends ServerErrorInstance(s"Error while updating a user: $errorMessage")
+    case class Create(errorMessage: String) extends ServerErrorInstance(s"Error while creating a user: $errorMessage")
 
   }
 
