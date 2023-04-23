@@ -40,6 +40,7 @@ object ErrorContext {
     case class Delete(errorMessage: String) extends ServerErrorInstance(s"Error while deleting a user: $errorMessage")
     case class Update(errorMessage: String) extends ServerErrorInstance(s"Error while updating a user: $errorMessage")
     case class Create(errorMessage: String) extends ServerErrorInstance(s"Error while creating a user: $errorMessage")
+    case object Exists                      extends ServerErrorInstance("This nickname is already taken")
 
   }
 
@@ -138,6 +139,10 @@ object ErrorContext {
     case class Create(errorMessage: String)
         extends ServerErrorInstance(s"Error while creating a dashboard entry: $errorMessage")
 
+  }
+
+  object Mail {
+    case object SendingFailed extends ServerErrorInstance("Sending of message failed")
   }
 
 }

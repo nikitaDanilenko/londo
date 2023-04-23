@@ -1,6 +1,9 @@
 package services.email
 
+import cats.data.EitherT
+import errors.{ ErrorContext, ServerError }
 import play.api.libs.mailer.{ Email, MailerClient }
+import cats.syntax.functor._
 
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
@@ -14,7 +17,7 @@ class EmailService @Inject() (
 
   private val mailConfig = MailConfiguration.default
 
-  def sendEmail(emailParameters: EmailParameters): Future[Unit] = {
+  def sendEmail(emailParameters: EmailParameters): Future[ServerError.Or[Unit]] = {
     val email = Email(
       subject = emailParameters.subject,
       from = mailConfig.from,
@@ -22,9 +25,14 @@ class EmailService @Inject() (
       cc = emailParameters.cc,
       bodyText = Some(emailParameters.message)
     )
-    Future {
-      Try(mailerClient.send(email))
-    }.flatMap(_.fold(Future.failed, _ => Future.unit))
+
+    lazy val error = Left(ErrorContext.Mail.SendingFailed.asServerError)
+
+    EitherT(Future(Try(mailerClient.send(email)).toEither)).void
+      .fold(_ => error, Right(_))
+      .recover { case _ =>
+        error
+      }
   }
 
 }
