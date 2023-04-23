@@ -4,11 +4,11 @@ import cats.data.{ EitherT, OptionT }
 import errors.{ ErrorContext, ServerError }
 import cats.syntax.functor._
 import graphql.HasGraphQLServices.syntax._
-import graphql.types.user.{ LogoutMode, SessionId, User, UserCreation, UserId }
+import graphql.types.user.{ LogoutMode, SessionId, User, UserCreation, UserId, UserUpdate }
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
 import security.Hash
-import security.jwt.{ JwtConfiguration, LoggedIn, JwtExpiration }
+import security.jwt.{ JwtConfiguration, JwtExpiration, LoggedIn }
 import services.user.PasswordParameters
 import utils.jwt.JwtUtil
 import io.scalaland.chimney.dsl._
@@ -114,7 +114,7 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
     transformer.value.handleServerError
   }
 
-  @GraphQLField()
+  @GraphQLField
   def logout(logoutMode: graphql.types.user.LogoutMode): Future[Boolean] = {
     withUser { loggedIn =>
       val userId = loggedIn.userId.transformInto[db.UserId]
@@ -129,6 +129,21 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
       action.handleServerError
     }
   }
+
+  @GraphQLField
+  def update(userUpdate: UserUpdate): Future[User] =
+    withUser { loggedIn =>
+      EitherT(
+        graphQLServices.userService
+          .update(
+            loggedIn.userId.transformInto[db.UserId],
+            userUpdate.transformInto[services.user.Update]
+          )
+      )
+        .map(_.transformInto[User])
+        .value
+        .handleServerError
+    }
 
   @GraphQLField
   def requestCreate(email: String): Future[Unit] = ???
