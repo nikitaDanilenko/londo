@@ -139,6 +139,7 @@ object ErrorContext {
     case class Create(errorMessage: String)
         extends ServerErrorInstance(s"Error while creating a dashboard entry: $errorMessage")
 
+    case object NotFound extends ServerErrorInstance("User session not found.")
   }
 
   object Mail {
