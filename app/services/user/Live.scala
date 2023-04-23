@@ -3,13 +3,12 @@ package services.user
 import cats.data.OptionT
 import db.UserId
 import db.generated.Tables
+import errors.{ ErrorContext, ServerError }
 import io.scalaland.chimney.dsl._
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import security.Hash
-import security.jwt.JwtConfiguration
 import services.DBError
 import services.common.Transactionally.syntax._
-import services.session.SessionService
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
 import utils.DBIOUtil.instances._
@@ -32,18 +31,33 @@ class Live @Inject() (
   override def getByIdentifier(string: String): Future[Seq[User]] =
     db.runTransactionally(companion.getByIdentifier(string))
 
-  override def add(user: User): Future[Boolean] =
+  override def add(user: User): Future[ServerError.Or[User]] =
     db.runTransactionally(companion.add(user))
-      .map(_ => true)
-      .recover { case _ => false }
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.User.Create(error.getMessage).asServerError)
+      }
 
-  override def update(userId: UserId, userUpdate: Update): Future[User] =
+  override def update(userId: UserId, userUpdate: Update): Future[ServerError.Or[User]] =
     db.runTransactionally(companion.update(userId, userUpdate))
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.User.Update(error.getMessage).asServerError)
+      }
 
-  override def updatePassword(userId: UserId, password: String): Future[Boolean] =
+  override def updatePassword(userId: UserId, password: String): Future[ServerError.Or[Boolean]] =
     db.runTransactionally(companion.updatePassword(userId, password))
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.User.Update(error.getMessage).asServerError)
+      }
 
-  override def delete(userId: UserId): Future[Boolean] = db.runTransactionally(companion.delete(userId))
+  override def delete(userId: UserId): Future[ServerError.Or[Boolean]] =
+    db.runTransactionally(companion.delete(userId))
+      .map(Right(_))
+      .recover { case error =>
+        Left(ErrorContext.User.Delete(error.getMessage).asServerError)
+      }
 
 }
 
@@ -70,13 +84,13 @@ object Live {
         .findByIdentifier(string)
         .map(_.map(_.transformInto[User]))
 
-    override def add(user: User)(implicit executionContext: ExecutionContext): DBIO[Unit] =
+    override def add(user: User)(implicit executionContext: ExecutionContext): DBIO[User] =
       userDao
         .insert(user.transformInto[Tables.UserRow])
-        .map(_ => ())
+        .map(_.transformInto[User])
 
     override def update(userId: UserId, userUpdate: Update)(implicit
-                                                            executionContext: ExecutionContext
+        executionContext: ExecutionContext
     ): DBIO[User] = {
       val findAction = OptionT(get(userId))
         .getOrElseF(DBIO.failed(DBError.User.NotFound))
