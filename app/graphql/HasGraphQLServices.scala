@@ -7,6 +7,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait HasGraphQLServices {
   protected def graphQLServices: GraphQLServices
 
+  protected implicit lazy val executionContext: ExecutionContext = graphQLServices.executionContext
+
 }
 
 object HasGraphQLServices {

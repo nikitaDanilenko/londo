@@ -3,18 +3,17 @@ package graphql
 import cats.syntax.flatMap._
 import cats.{ ApplicativeThrow, MonadThrow }
 import errors.{ ErrorContext, ServerException }
-import graphql.types.user.UserId
-import security.jwt.JwtContent
+import security.jwt.LoggedIn
 
 trait HasLoggedInUser {
-  protected def loggedInJwtContent: Option[JwtContent]
+  protected def loggedIn: Option[LoggedIn]
 
-  final protected def withUser[F[_]: MonadThrow, A](create: UserId => F[A]): F[A] =
+  final protected def withUser[F[_]: MonadThrow, A](action: LoggedIn => F[A]): F[A] =
     ApplicativeThrow[F]
       .fromOption(
-        loggedInJwtContent,
+        loggedIn,
         ServerException(ErrorContext.Authentication.Token.Restricted.asServerError)
       )
-      .flatMap(jwtContent => create(jwtContent.userId))
+      .flatMap(action)
 
 }
