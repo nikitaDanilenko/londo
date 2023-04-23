@@ -4,7 +4,7 @@ import cats.data.{ EitherT, OptionT }
 import errors.{ ErrorContext, ServerError }
 import cats.syntax.functor._
 import graphql.HasGraphQLServices.syntax._
-import graphql.types.user.{ LogoutMode, SessionId, User, UserCreation, UserId, UserUpdate }
+import graphql.types.user.{ LogoutMode, SessionId, User, UserCreation, UserId, UserIdentifier, UserUpdate }
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
 import security.Hash
@@ -14,6 +14,8 @@ import utils.jwt.JwtUtil
 import io.scalaland.chimney.dsl._
 import utils.date.DateUtil
 import cats.effect.unsafe.implicits.global
+import graphql.mutations.user.UserConfiguration
+import io.circe.Encoder
 import services.loginThrottle.LoginThrottle
 
 import java.time.temporal.ChronoUnit
@@ -23,7 +25,8 @@ import util.chaining._
 
 trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
 
-  private val jwtConfiguration = JwtConfiguration.default
+  private val jwtConfiguration  = JwtConfiguration.default
+  private val userConfiguration = UserConfiguration.default
 
   private val maxLoginAttempts       = 5
   private val loginThrottleInMinutes = 1
@@ -155,7 +158,30 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def requestCreate(email: String): Future[Unit] = ???
+  def requestRegistration(
+      userIdentifier: UserIdentifier
+  ): Future[Unit] = {
+    val transformer = for {
+      _ <- EitherT.fromOptionF(
+        graphQLServices.userService
+          .getByNickname(userIdentifier.nickname)
+          .map(r => if (r.isDefined) None else Some(())),
+        ErrorContext.User.Exists.asServerError
+      )
+      registrationJwt = createJwt(userIdentifier)
+      _ <- EitherT(
+        graphQLServices.emailService
+          .sendEmail(
+            emailParameters = UserConfiguration.registrationEmail(
+              userConfiguration = userConfiguration,
+              userIdentifier = userIdentifier,
+              jwt = registrationJwt
+            )
+          )
+      )
+    } yield ()
+    transformer.value.handleServerError
+  }
 //    graphQLServices.userService
 //      .requestCreate(email)
 //      .unsafeToFuture()
@@ -168,5 +194,18 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
 //      .map(_.fromInternal[User])
 //      .unsafeToFuture()
 //      .handleServerError
+
+  private def createJwt[C: Encoder](
+      content: C,
+      expiration: JwtExpiration = JwtExpiration.Expiring(
+        start = System.currentTimeMillis() / 1000,
+        duration = userConfiguration.restrictedDurationInSeconds
+      )
+  ): String =
+    JwtUtil.createJwt(
+      content = content,
+      privateKey = jwtConfiguration.signaturePrivateKey,
+      expiration = expiration
+    )
 
 }
