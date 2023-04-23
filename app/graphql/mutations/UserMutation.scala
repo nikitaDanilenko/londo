@@ -146,6 +146,15 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
+  def updatePassword(password: String): Future[Boolean] =
+    withUser { loggedIn =>
+      EitherT(
+        graphQLServices.userService
+          .updatePassword(loggedIn.userId.transformInto[db.UserId], password)
+      ).value.handleServerError
+    }
+
+  @GraphQLField
   def requestCreate(email: String): Future[Unit] = ???
 //    graphQLServices.userService
 //      .requestCreate(email)
