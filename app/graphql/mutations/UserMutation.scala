@@ -8,7 +8,7 @@ import graphql.types.user.{ LogoutMode, SessionId, User, UserCreation, UserId }
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import sangria.macros.derive.GraphQLField
 import security.Hash
-import security.jwt.{ JwtConfiguration, JwtContent, JwtExpiration }
+import security.jwt.{ JwtConfiguration, LoggedIn, JwtExpiration }
 import services.user.PasswordParameters
 import utils.jwt.JwtUtil
 import io.scalaland.chimney.dsl._
@@ -93,7 +93,7 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
           for {
             session <- EitherT(graphQLServices.sessionService.create(user.id))
           } yield JwtUtil.createJwt(
-            content = JwtContent(
+            content = LoggedIn(
               userId = user.id.transformInto[UserId],
               sessionId = session.id.transformInto[SessionId]
             ),

@@ -5,13 +5,13 @@ import io.circe.Encoder
 import io.circe.syntax._
 import pdi.jwt.algorithms.JwtAsymmetricAlgorithm
 import pdi.jwt.{ JwtAlgorithm, JwtCirce, JwtClaim, JwtHeader }
-import security.jwt.{ JwtContent, JwtExpiration }
+import security.jwt.{ LoggedIn, JwtExpiration }
 
 object JwtUtil {
 
-  val signatureAlgorithm: JwtAsymmetricAlgorithm = JwtAlgorithm.RS256
+  private val signatureAlgorithm: JwtAsymmetricAlgorithm = JwtAlgorithm.RS256
 
-  def validateJwt(token: String, publicKey: String): ServerError.Or[JwtContent] =
+  def validateJwt(token: String, publicKey: String): ServerError.Or[LoggedIn] =
     JwtCirce
       .decode(token, publicKey, Seq(signatureAlgorithm))
       .toEither
@@ -19,7 +19,7 @@ object JwtUtil {
       .map(_ => ErrorContext.Authentication.Token.Decoding.asServerError)
       .flatMap { jwtClaim =>
         io.circe.parser
-          .decode[JwtContent](jwtClaim.content)
+          .decode[LoggedIn](jwtClaim.content)
           .left
           .map(_ => ErrorContext.Authentication.Token.Content.asServerError)
       }
