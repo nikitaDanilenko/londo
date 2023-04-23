@@ -110,11 +110,8 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
           EitherT.leftT[Future, String](ErrorContext.Login.Failure.asServerError)
         }
     } yield jwt
-    ???
-//    graphQLServices.userService
-//      .login(nickname, password, isValidityUnrestricted)
-//      .unsafeToFuture()
-//      .handleServerError
+
+    transformer.value.handleServerError
   }
 
   @GraphQLField
