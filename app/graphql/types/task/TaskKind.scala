@@ -1,8 +1,7 @@
 package graphql.types.task
 
-import enumeratum.{ Enum, EnumEntry }
-import io.circe.generic.extras.semiauto.deriveEnumerationCodec
-import io.circe.{ Codec, Json }
+import enumeratum.{ CirceEnum, Enum, EnumEntry }
+import io.circe.Json
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveEnumType
 import sangria.marshalling.ToInput
@@ -11,7 +10,7 @@ import sangria.schema.EnumType
 
 sealed trait TaskKind extends EnumEntry
 
-object TaskKind extends Enum[TaskKind] {
+object TaskKind extends Enum[TaskKind] with CirceEnum[TaskKind] {
   case object Discrete   extends TaskKind
   case object Percentual extends TaskKind
   case object Fractional extends TaskKind
@@ -29,8 +28,6 @@ object TaskKind extends Enum[TaskKind] {
     case Percentual => services.task.TaskKind.Percentual
     case Fractional => services.task.TaskKind.Fractional
   }
-
-  implicit val taskKindCodec: Codec[TaskKind] = deriveEnumerationCodec[TaskKind]
 
   implicit val taskKindToInput: ToInput[TaskKind, Json] = circeEncoderToInput[TaskKind]
 
