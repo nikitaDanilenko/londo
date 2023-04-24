@@ -3,14 +3,15 @@ package graphql.mutations.user
 import cats.data.EitherT
 import cats.effect.unsafe.implicits.global
 import cats.syntax.functor._
-import errors.{ ErrorContext, ServerError }
+import errors.{ErrorContext, ServerError}
 import graphql.HasGraphQLServices.syntax._
-import graphql.{ HasGraphQLServices, HasLoggedInUser }
+import graphql.types.user.UserId
+import graphql.{HasGraphQLServices, HasLoggedInUser}
 import io.circe.Encoder
 import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 import security.Hash
-import security.jwt.{ JwtConfiguration, JwtExpiration, LoggedIn }
+import security.jwt.{JwtConfiguration, JwtExpiration, LoggedIn}
 import services.loginThrottle.LoginThrottle
 import services.user.PasswordParameters
 import utils.date.DateUtil

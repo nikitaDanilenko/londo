@@ -1,5 +1,6 @@
 package graphql.mutations.user
 
+import graphql.types.user.UserId
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import io.scalaland.chimney.dsl._
