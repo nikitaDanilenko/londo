@@ -191,18 +191,30 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     } yield ()
     transformer.value.handleServerError
   }
-//    graphQLServices.userService
-//      .requestCreate(email)
-//      .unsafeToFuture()
-//      .handleServerError
 
   @GraphQLField
-  def createUser(userCreation: UserCreation): Future[User] = ???
-//    graphQLServices.userService
-//      .create(userCreation.toInternal)
-//      .map(_.fromInternal[User])
-//      .unsafeToFuture()
-//      .handleServerError
+  def confirmRegistration(
+      creationToken: String,
+      creationComplement: CreationComplement
+  ): Future[User] = {
+    val transformer = for {
+      registrationRequest <- EitherT.fromEither[Future](
+        JwtUtil.validateJwt[UserIdentifier](creationToken, jwtConfiguration.signaturePublicKey)
+      )
+      userCreation = services.user.Creation(
+        nickname = registrationRequest.nickname,
+        password = creationComplement.password,
+        displayName = creationComplement.displayName,
+        email = registrationRequest.email
+      )
+      user <- EitherT.liftF[Future, ServerError, services.user.User](
+        services.user.Creation.create(userCreation).unsafeToFuture()
+      )
+      response <- EitherT(graphQLServices.userService.add(user))
+    } yield response.transformInto[User]
+
+    transformer.value.handleServerError
+  }
 
   private def createJwt[C: Encoder](
       content: C,
