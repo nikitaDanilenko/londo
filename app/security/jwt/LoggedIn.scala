@@ -1,10 +1,11 @@
 package security.jwt
 
 import io.circe.generic.JsonCodec
-import graphql.types.user.{ SessionId, UserId }
+
+import java.util.UUID
 
 @JsonCodec
 case class LoggedIn(
-    userId: UserId,
-    sessionId: SessionId
+    userId: UUID,
+    sessionId: UUID
 )
