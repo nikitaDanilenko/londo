@@ -273,6 +273,54 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     transformer.value.handleServerError
   }
 
+  @GraphQLField
+  def requestDeletion: Future[Unit] = {
+    withUser { loggedIn =>
+      val userId = loggedIn.userId.transformInto[db.UserId]
+      val transformer = for {
+        user <- EitherT.fromOptionF(
+          graphQLServices.userService.get(userId),
+          ErrorContext.User.NotFound.asServerError
+        )
+        _ <- EitherT(
+          graphQLServices.emailService
+            .sendEmail(
+              emailParameters = UserHandlingConfiguration.deletionEmail(
+                userConfiguration,
+                userIdentifier = UserIdentifier.of(user),
+                jwt = createJwt(
+                  UserOperation(
+                    userId = userId,
+                    operation = UserOperation.Operation.Deletion
+                  )
+                )
+              )
+            )
+        )
+      } yield ()
+
+      transformer.value.handleServerError
+    }
+  }
+
+  @GraphQLField
+  def confirmDeletion(
+      deletionToken: String
+  ): Future[Boolean] = {
+    val transformer = for {
+      userDeletion <- EitherT.fromEither[Future](
+        JwtUtil
+          .validateJwt[UserOperation[UserOperation.Operation.Deletion]](
+            deletionToken,
+            jwtConfiguration.signaturePublicKey
+          )
+      )
+      response <- EitherT(graphQLServices.userService.delete(userDeletion.userId.transformInto[db.UserId]))
+    } yield response
+
+    transformer.value.handleServerError
+  }
+
   private def createJwt[C: Encoder](
       content: C,
       expiration: JwtExpiration = JwtExpiration.Expiring(
