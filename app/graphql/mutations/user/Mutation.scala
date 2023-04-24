@@ -216,6 +216,63 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     transformer.value.handleServerError
   }
 
+  @GraphQLField
+  def requestRecovery(
+      userId: UserId
+  ): Future[Unit] = {
+    val transformer = for {
+      user <- EitherT.fromOptionF(
+        graphQLServices.userService.get(userId.transformInto[db.UserId]),
+        ErrorContext.User.NotFound.asServerError
+      )
+      recoveryJwt = createJwt(
+        UserOperation(
+          userId = user.id,
+          operation = UserOperation.Operation.Recovery
+        )
+      )
+      _ <- EitherT(
+        graphQLServices.emailService
+          .sendEmail(
+            emailParameters = UserHandlingConfiguration.recoveryEmail(
+              userConfiguration,
+              userIdentifier = UserIdentifier.of(user),
+              jwt = recoveryJwt
+            )
+          )
+          .map(Right(_))
+          .recover { case _ =>
+            Left(ErrorContext.Mail.SendingFailed.asServerError)
+          }
+      )
+    } yield ()
+
+    transformer.value.handleServerError
+  }
+
+  @GraphQLField
+  def confirmRecovery(
+      recoveryToken: String,
+      password: String
+  ): Future[Boolean] = {
+    val transformer = for {
+      userRecovery <- EitherT.fromEither[Future](
+        JwtUtil
+          .validateJwt[UserOperation[UserOperation.Operation.Recovery]](
+            recoveryToken,
+            jwtConfiguration.signaturePublicKey
+          )
+      )
+      successful <-
+        EitherT(
+          graphQLServices.userService
+            .updatePassword(userRecovery.userId.transformInto[db.UserId], password)
+        )
+    } yield successful
+
+    transformer.value.handleServerError
+  }
+
   private def createJwt[C: Encoder](
       content: C,
       expiration: JwtExpiration = JwtExpiration.Expiring(
