@@ -1,8 +1,8 @@
-package graphql.mutations.user
+package graphql.mutations.user.inputs
 
-import enumeratum.{ CirceEnum, Enum, EnumEntry }
+import enumeratum.{CirceEnum, Enum, EnumEntry}
 import io.circe.generic.JsonCodec
-import io.circe.{ Decoder, Encoder }
+import io.circe.{Decoder, Encoder}
 
 import java.util.UUID
 

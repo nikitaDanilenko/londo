@@ -1,8 +1,9 @@
 package graphql.mutations.user
 
+import graphql.mutations.user.inputs.UserIdentifier
 import pureconfig.generic.ProductHint
 import pureconfig.generic.auto._
-import pureconfig.{ CamelCase, ConfigFieldMapping, ConfigSource }
+import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
 import services.email.EmailParameters
 
 case class UserHandlingConfiguration(

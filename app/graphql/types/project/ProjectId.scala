@@ -23,11 +23,11 @@ object ProjectId {
   implicit val fromInternal: Transformer[db.ProjectId, ProjectId] =
     ProjectId(_)
 
-  implicit val projectIdObjectType: ObjectType[Unit, ProjectId] = deriveObjectType[Unit, ProjectId]()
+  implicit val objectType: ObjectType[Unit, ProjectId] = deriveObjectType[Unit, ProjectId]()
 
-  implicit val projectIdInputObjectType: InputObjectType[ProjectId] = deriveInputObjectType[ProjectId](
+  implicit val inputObjectType: InputObjectType[ProjectId] = deriveInputObjectType[ProjectId](
     InputObjectTypeName("ProjectIdInput")
   )
 
-  implicit lazy val projectIdFromInput: FromInput[ProjectId] = circeDecoderFromInput[ProjectId]
+  implicit lazy val fromInput: FromInput[ProjectId] = circeDecoderFromInput[ProjectId]
 }

@@ -1,4 +1,4 @@
-package graphql.mutations.user
+package graphql.mutations.user.inputs
 
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType

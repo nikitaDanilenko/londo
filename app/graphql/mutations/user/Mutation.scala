@@ -3,15 +3,15 @@ package graphql.mutations.user
 import cats.data.EitherT
 import cats.effect.unsafe.implicits.global
 import cats.syntax.functor._
-import errors.{ErrorContext, ServerError}
+import errors.{ ErrorContext, ServerError }
 import graphql.HasGraphQLServices.syntax._
-import graphql.types.user.UserId
-import graphql.{HasGraphQLServices, HasLoggedInUser}
+import graphql.mutations.user.inputs._
+import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.circe.Encoder
 import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 import security.Hash
-import security.jwt.{JwtConfiguration, JwtExpiration, LoggedIn}
+import security.jwt.{ JwtConfiguration, JwtExpiration, LoggedIn }
 import services.loginThrottle.LoginThrottle
 import services.user.PasswordParameters
 import utils.date.DateUtil
@@ -32,9 +32,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
   def login(
-      nickname: String,
-      password: String,
-      isValidityUnrestricted: Boolean
+      input: LoginInput
   ): Future[String] = {
     // TODO: Reconsider style!
     def getOrCreateThrottle(userId: db.UserId): EitherT[Future, ServerError, LoginThrottle] =
@@ -87,7 +85,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
           ),
           privateKey = jwtConfiguration.signaturePrivateKey,
           expiration =
-            if (isValidityUnrestricted) JwtExpiration.Never
+            if (input.isValidityUnrestricted) JwtExpiration.Never
             else
               JwtExpiration.Expiring(
                 start = System.currentTimeMillis() / 1000,
@@ -99,12 +97,12 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
     val transformer = for {
       user <- EitherT.fromOptionF(
-        graphQLServices.userService.getByNickname(nickname),
+        graphQLServices.userService.getByNickname(input.nickname),
         ErrorContext.User.NotFound.asServerError
       )
       loginThrottle <- getOrCreateThrottle(user.id)
       passwordCorrect = Hash.verify(
-        password,
+        input.password,
         passwordParameters = PasswordParameters(
           user.hash,
           user.salt,
@@ -128,10 +126,10 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
   }
 
   @GraphQLField
-  def logout(logoutMode: LogoutMode): Future[Boolean] = {
+  def logout(input: LogoutInput): Future[Boolean] = {
     withUser { loggedIn =>
       val userId = loggedIn.userId.transformInto[db.UserId]
-      val action = logoutMode match {
+      val action = input.logoutMode match {
         case LogoutMode.ThisSession =>
           graphQLServices.sessionService
             .delete(userId, loggedIn.sessionId.transformInto[db.SessionId])
@@ -144,13 +142,13 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
   }
 
   @GraphQLField
-  def update(userUpdate: UserUpdate): Future[User] =
-    withUser { loggedIn =>
+  def updateUser(input: UpdateUserInput): Future[User] =
+    withUserId { userId =>
       EitherT(
         graphQLServices.userService
           .update(
-            loggedIn.userId.transformInto[db.UserId],
-            userUpdate.transformInto[services.user.Update]
+            userId = userId,
+            update = input.transformInto[services.user.Update]
           )
       )
         .map(_.transformInto[User])
@@ -159,32 +157,35 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def updatePassword(password: String): Future[Boolean] =
-    withUser { loggedIn =>
+  def updatePassword(input: UpdatePasswordInput): Future[Boolean] =
+    withUserId { userId =>
       EitherT(
         graphQLServices.userService
-          .updatePassword(loggedIn.userId.transformInto[db.UserId], password)
+          .updatePassword(
+            userId = userId,
+            password = input.password
+          )
       ).value.handleServerError
     }
 
   @GraphQLField
   def requestRegistration(
-      userIdentifier: UserIdentifier
+      input: RequestRegistrationInput
   ): Future[Unit] = {
     val transformer = for {
       _ <- EitherT.fromOptionF(
         graphQLServices.userService
-          .getByNickname(userIdentifier.nickname)
+          .getByNickname(input.userIdentifier.nickname)
           .map(r => if (r.isDefined) None else Some(())),
         ErrorContext.User.Exists.asServerError
       )
-      registrationJwt = createJwt(userIdentifier)
+      registrationJwt = createJwt(input.userIdentifier)
       _ <- EitherT(
         graphQLServices.emailService
           .sendEmail(
             emailParameters = UserHandlingConfiguration.registrationEmail(
               userConfiguration = userConfiguration,
-              userIdentifier = userIdentifier,
+              userIdentifier = input.userIdentifier,
               jwt = registrationJwt
             )
           )
@@ -195,17 +196,16 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
   def confirmRegistration(
-      creationToken: String,
-      creationComplement: CreationComplement
+      input: ConfirmRegistrationInput
   ): Future[User] = {
     val transformer = for {
       registrationRequest <- EitherT.fromEither[Future](
-        JwtUtil.validateJwt[UserIdentifier](creationToken, jwtConfiguration.signaturePublicKey)
+        JwtUtil.validateJwt[UserIdentifier](input.creationToken, jwtConfiguration.signaturePublicKey)
       )
       userCreation = services.user.Creation(
         nickname = registrationRequest.nickname,
-        password = creationComplement.password,
-        displayName = creationComplement.displayName,
+        password = input.creationComplement.password,
+        displayName = input.creationComplement.displayName,
         email = registrationRequest.email
       )
       user <- EitherT.liftF[Future, ServerError, services.user.User](
@@ -219,11 +219,11 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
   def requestRecovery(
-      userId: UserId
+      input: RequestRecoveryInput
   ): Future[Unit] = {
     val transformer = for {
       user <- EitherT.fromOptionF(
-        graphQLServices.userService.get(userId.transformInto[db.UserId]),
+        graphQLServices.userService.get(input.userId.transformInto[db.UserId]),
         ErrorContext.User.NotFound.asServerError
       )
       recoveryJwt = createJwt(
@@ -253,21 +253,23 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
   def confirmRecovery(
-      recoveryToken: String,
-      password: String
+      input: ConfirmRecoveryInput
   ): Future[Boolean] = {
     val transformer = for {
       userRecovery <- EitherT.fromEither[Future](
         JwtUtil
           .validateJwt[UserOperation[UserOperation.Operation.Recovery]](
-            recoveryToken,
+            input.recoveryToken,
             jwtConfiguration.signaturePublicKey
           )
       )
       successful <-
         EitherT(
           graphQLServices.userService
-            .updatePassword(userRecovery.userId.transformInto[db.UserId], password)
+            .updatePassword(
+              userId = userRecovery.userId.transformInto[db.UserId],
+              password = input.password
+            )
         )
     } yield successful
 
@@ -276,8 +278,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
   def requestDeletion: Future[Unit] = {
-    withUser { loggedIn =>
-      val userId = loggedIn.userId.transformInto[db.UserId]
+    withUserId { userId =>
       val transformer = for {
         user <- EitherT.fromOptionF(
           graphQLServices.userService.get(userId),
@@ -306,13 +307,13 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
   def confirmDeletion(
-      deletionToken: String
+      input: ConfirmDeletionInput
   ): Future[Boolean] = {
     val transformer = for {
       userDeletion <- EitherT.fromEither[Future](
         JwtUtil
           .validateJwt[UserOperation[UserOperation.Operation.Deletion]](
-            deletionToken,
+            input.deletionToken,
             jwtConfiguration.signaturePublicKey
           )
       )

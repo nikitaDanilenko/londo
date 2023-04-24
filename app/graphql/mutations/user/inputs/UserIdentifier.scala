@@ -1,4 +1,4 @@
-package graphql.mutations.user
+package graphql.mutations.user.inputs
 
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType
@@ -21,7 +21,7 @@ object UserIdentifier {
       email = user.email
     )
 
-  implicit val inputType: InputObjectType[UserIdentifier] =
+  implicit val inputObjectType: InputObjectType[UserIdentifier] =
     deriveInputObjectType[UserIdentifier]()
 
   implicit lazy val fromInput: FromInput[UserIdentifier] = circeDecoderFromInput[UserIdentifier]
