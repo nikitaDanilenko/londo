@@ -1,12 +1,11 @@
 package graphql.mutations.user
 
-import graphql.types.user.UserIdentifier
 import pureconfig.generic.ProductHint
 import pureconfig.generic.auto._
 import pureconfig.{ CamelCase, ConfigFieldMapping, ConfigSource }
 import services.email.EmailParameters
 
-case class UserConfiguration(
+case class UserHandlingConfiguration(
     restrictedDurationInSeconds: Int,
     subject: Subject,
     greeting: String,
@@ -17,15 +16,15 @@ case class UserConfiguration(
     frontend: String
 )
 
-object UserConfiguration {
+object UserHandlingConfiguration {
   implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))
 
-  val default: UserConfiguration = ConfigSource.default
-    .at("userConfiguration")
-    .loadOrThrow[UserConfiguration]
+  val default: UserHandlingConfiguration = ConfigSource.default
+    .at("userHandlingConfiguration")
+    .loadOrThrow[UserHandlingConfiguration]
 
   def registrationEmail(
-      userConfiguration: UserConfiguration,
+      userConfiguration: UserHandlingConfiguration,
       userIdentifier: UserIdentifier,
       jwt: String
   ): EmailParameters =
@@ -37,7 +36,7 @@ object UserConfiguration {
     )
 
   def recoveryEmail(
-      userConfiguration: UserConfiguration,
+      userConfiguration: UserHandlingConfiguration,
       userIdentifier: UserIdentifier,
       jwt: String
   ): EmailParameters =
@@ -49,7 +48,7 @@ object UserConfiguration {
     )
 
   def deletionEmail(
-      userConfiguration: UserConfiguration,
+      userConfiguration: UserHandlingConfiguration,
       userIdentifier: UserIdentifier,
       jwt: String
   ): EmailParameters =
@@ -73,7 +72,7 @@ object UserConfiguration {
       message: String
   )
 
-  private def emailComponents(userConfiguration: UserConfiguration): Map[Operation, AddressWithMessage] =
+  private def emailComponents(userConfiguration: UserHandlingConfiguration): Map[Operation, AddressWithMessage] =
     Map(
       Operation.Registration -> AddressWithMessage("confirm-registration", userConfiguration.registrationMessage),
       Operation.Recovery     -> AddressWithMessage("recover-account", userConfiguration.recoveryMessage),
@@ -88,7 +87,7 @@ object UserConfiguration {
     }
 
   private def emailWith(
-      userConfiguration: UserConfiguration,
+      userConfiguration: UserHandlingConfiguration,
       operation: Operation,
       userIdentifier: UserIdentifier,
       jwt: String

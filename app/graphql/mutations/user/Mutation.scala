@@ -1,32 +1,30 @@
-package graphql.mutations
+package graphql.mutations.user
 
-import cats.data.{ EitherT, OptionT }
-import errors.{ ErrorContext, ServerError }
+import cats.data.EitherT
+import cats.effect.unsafe.implicits.global
 import cats.syntax.functor._
+import errors.{ErrorContext, ServerError}
 import graphql.HasGraphQLServices.syntax._
-import graphql.types.user.{ LogoutMode, SessionId, User, UserCreation, UserId, UserIdentifier, UserUpdate }
-import graphql.{ HasGraphQLServices, HasLoggedInUser }
+import graphql.types.user._
+import graphql.{HasGraphQLServices, HasLoggedInUser}
+import io.circe.Encoder
+import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 import security.Hash
-import security.jwt.{ JwtConfiguration, JwtExpiration, LoggedIn }
-import services.user.PasswordParameters
-import utils.jwt.JwtUtil
-import io.scalaland.chimney.dsl._
-import utils.date.DateUtil
-import cats.effect.unsafe.implicits.global
-import graphql.mutations.user.UserConfiguration
-import io.circe.Encoder
+import security.jwt.{JwtConfiguration, JwtExpiration, LoggedIn}
 import services.loginThrottle.LoginThrottle
+import services.user.PasswordParameters
+import utils.date.DateUtil
+import utils.jwt.JwtUtil
 
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.time.{ LocalDate, LocalDateTime }
 import scala.concurrent.Future
-import util.chaining._
 
-trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
+trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   private val jwtConfiguration  = JwtConfiguration.default
-  private val userConfiguration = UserConfiguration.default
+  private val userConfiguration = UserHandlingConfiguration.default
 
   private val maxLoginAttempts       = 5
   private val loginThrottleInMinutes = 1
@@ -118,7 +116,7 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
   }
 
   @GraphQLField
-  def logout(logoutMode: graphql.types.user.LogoutMode): Future[Boolean] = {
+  def logout(logoutMode: LogoutMode): Future[Boolean] = {
     withUser { loggedIn =>
       val userId = loggedIn.userId.transformInto[db.UserId]
       val action = logoutMode match {
@@ -172,7 +170,7 @@ trait UserMutation extends HasGraphQLServices with HasLoggedInUser {
       _ <- EitherT(
         graphQLServices.emailService
           .sendEmail(
-            emailParameters = UserConfiguration.registrationEmail(
+            emailParameters = UserHandlingConfiguration.registrationEmail(
               userConfiguration = userConfiguration,
               userIdentifier = userIdentifier,
               jwt = registrationJwt

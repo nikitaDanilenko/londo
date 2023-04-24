@@ -1,4 +1,4 @@
-package graphql.types.user
+package graphql.mutations.user
 
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer

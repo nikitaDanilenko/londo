@@ -1,7 +1,6 @@
-package graphql.types.user
+package graphql.mutations.user
 
 import enumeratum.{ CirceEnum, Enum, EnumEntry }
-import graphql.types.task.TaskKind
 import io.circe.Json
 import sangria.macros.derive.deriveEnumType
 import sangria.marshalling.ToInput

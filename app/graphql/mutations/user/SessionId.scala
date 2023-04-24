@@ -1,19 +1,17 @@
-package graphql.types.user
+package graphql.mutations.user
 
 import graphql.types.util.NonEmptyList
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
+import io.scalaland.chimney.dsl._
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
-import utils.graphql.SangriaUtil.instances._
-
-import java.util.UUID
-import io.scalaland.chimney.dsl._
 import utils.transformer.implicits._
 
-// TODO: It's likely that this type is unnecessary
+import java.util.UUID
+
 @JsonCodec
 case class SessionId(uuid: UUID)
 

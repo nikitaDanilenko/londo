@@ -1,13 +1,12 @@
-package graphql.types.user
+package graphql.mutations.user
 
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
+import io.scalaland.chimney.dsl._
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
-import utils.graphql.SangriaUtil.instances._
-import io.scalaland.chimney.dsl._
 import utils.transformer.implicits._
 
 import java.util.UUID
