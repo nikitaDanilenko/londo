@@ -20,9 +20,9 @@ object UserUpdate {
       .define[UserUpdate, services.user.Update]
       .buildTransformer
 
-  implicit val userUpdateInputType: InputObjectType[UserUpdate] =
+  implicit val inputObjectType: InputObjectType[UserUpdate] =
     deriveInputObjectType[UserUpdate]()
 
-  implicit lazy val userUpdateFromInput: FromInput[UserUpdate] = circeDecoderFromInput[UserUpdate]
+  implicit lazy val fromInput: FromInput[UserUpdate] = circeDecoderFromInput[UserUpdate]
 
 }

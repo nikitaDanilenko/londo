@@ -10,5 +10,5 @@ case class FindUserResult(
 )
 
 object FindUserResult {
-  implicit val userIdObjectType: ObjectType[Unit, FindUserResult] = deriveObjectType[Unit, FindUserResult]()
+  implicit val objectType: ObjectType[Unit, FindUserResult] = deriveObjectType[Unit, FindUserResult]()
 }
