@@ -38,8 +38,8 @@ class Live @Inject() (
         Left(ErrorContext.User.Create(error.getMessage).asServerError)
       }
 
-  override def update(userId: UserId, userUpdate: Update): Future[ServerError.Or[User]] =
-    db.runTransactionally(companion.update(userId, userUpdate))
+  override def update(userId: UserId, update: Update): Future[ServerError.Or[User]] =
+    db.runTransactionally(companion.update(userId, update))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.User.Update(error.getMessage).asServerError)
@@ -89,8 +89,8 @@ object Live {
         .insert(user.transformInto[Tables.UserRow])
         .map(_.transformInto[User])
 
-    override def update(userId: UserId, userUpdate: Update)(implicit
-        executionContext: ExecutionContext
+    override def update(userId: UserId, update: Update)(implicit
+                                                        executionContext: ExecutionContext
     ): DBIO[User] = {
       val findAction = OptionT(get(userId))
         .getOrElseF(DBIO.failed(DBError.User.NotFound))
@@ -99,7 +99,7 @@ object Live {
         user <- findAction
         _ <- userDao.update(
           Update
-            .update(user, userUpdate)
+            .update(user, update)
             .transformInto[Tables.UserRow]
         )
         updatedUser <- findAction
