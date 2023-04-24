@@ -1,52 +1,60 @@
 package controllers
 
-import cats.data.EitherT
+import cats.data.{ EitherT, OptionT }
 import db.{ SessionId, UserId }
-import errors.{ ErrorContext, ServerError }
-import io.circe.syntax._
+import errors.ErrorContext
 import io.scalaland.chimney.dsl.TransformerOps
-import play.api.libs.circe.Circe
-import play.api.mvc.Results.BadRequest
 import play.api.mvc._
-import security.jwt.JwtConfiguration
+import security.jwt.{ JwtConfiguration, LoggedIn }
 import services.session.SessionService
 import utils.jwt.JwtUtil
 import utils.transformer.implicits._
 
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.chaining._
 
 class JWTAction @Inject() (
-    override val parse: PlayBodyParsers,
-    sessionService: SessionService
+    sessionService: SessionService,
+    override val parser: BodyParsers.Default
 )(implicit
     override val executionContext: ExecutionContext
-) extends ActionBuilder[Request, AnyContent]
-    with Circe {
+) extends ActionBuilder[LoggedInRequest, AnyContent]
+    with ActionRefiner[Request, LoggedInRequest] {
 
   private val jwtConfiguration = JwtConfiguration.default
 
-  override def invokeBlock[A](
-      request: Request[A],
-      block: Request[A] => Future[Result]
-  ): Future[Result] =
-    request.headers.get(RequestHeaders.userTokenHeader) match {
-      case Some(token) =>
+  override protected def refine[A](request: Request[A]): Future[Either[Result, LoggedInRequest[A]]] = {
+    OptionT
+      .fromOption[Future](request.headers.get(RequestHeaders.userToken))
+      .flatMapF { token =>
         val transformer = for {
-          jwtContent <- EitherT.fromEither[Future](JwtUtil.validateJwt(token, jwtConfiguration.signaturePublicKey))
+          loggedIn <- EitherT.fromEither[Future](
+            JwtUtil.validateJwt[LoggedIn](token, jwtConfiguration.signaturePublicKey)
+          )
+          userId    = loggedIn.userId.transformInto[UserId]
+          sessionId = loggedIn.sessionId.transformInto[SessionId]
           _ <- EitherT(
             sessionService
               .exists(
-                userId = jwtContent.userId.uuid.transformInto[UserId],
-                sessionId = jwtContent.sessionId.uuid.transformInto[SessionId]
+                userId = userId,
+                sessionId = sessionId
               )
-              .map(Either.cond(_, (), ErrorContext.Authentication.Token.MissingSessionKey.asServerError))
+              .map { exists =>
+                if (exists)
+                  Right(())
+                else Left(ErrorContext.Session.NotFound.asServerError)
+              }
           )
-          result <- EitherT.liftF[Future, ServerError, Result](block(request))
-        } yield result
-        transformer.valueOr(error => BadRequest(error.asJson))
-      case None => block(request)
-    }
+        } yield LoggedIn(
+          userId = userId,
+          sessionId = sessionId
+        )
 
-  override val parser: BodyParser[AnyContent] = new BodyParsers.Default(parse)
+        transformer.fold(_ => None, Some(_))
+      }
+      .value
+      .map(LoggedInRequest(request, _).pipe(Right(_)))
+  }
+
 }
