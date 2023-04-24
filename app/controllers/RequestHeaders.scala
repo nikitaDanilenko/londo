@@ -1,5 +1,5 @@
 package controllers
 
 object RequestHeaders {
-  val userTokenHeader: String = "User-Token"
+  val userToken: String = "User-Token"
 }
