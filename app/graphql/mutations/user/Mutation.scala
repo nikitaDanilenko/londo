@@ -3,14 +3,14 @@ package graphql.mutations.user
 import cats.data.EitherT
 import cats.effect.unsafe.implicits.global
 import cats.syntax.functor._
-import errors.{ErrorContext, ServerError}
+import errors.{ ErrorContext, ServerError }
 import graphql.HasGraphQLServices.syntax._
-import graphql.{HasGraphQLServices, HasLoggedInUser}
+import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.circe.Encoder
 import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 import security.Hash
-import security.jwt.{JwtConfiguration, JwtExpiration, LoggedIn}
+import security.jwt.{ JwtConfiguration, JwtExpiration, LoggedIn }
 import services.loginThrottle.LoginThrottle
 import services.user.PasswordParameters
 import utils.date.DateUtil
@@ -72,14 +72,37 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
       }
     }
 
+    def handleJWTGeneration(
+        passwordCorrect: Boolean,
+        userId: db.UserId
+    ): EitherT[Future, ServerError, String] =
+      if (passwordCorrect)
+        for {
+          session <- EitherT(graphQLServices.sessionService.create(userId))
+        } yield JwtUtil.createJwt(
+          content = LoggedIn(
+            userId = userId,
+            sessionId = session.id
+          ),
+          privateKey = jwtConfiguration.signaturePrivateKey,
+          expiration =
+            if (isValidityUnrestricted) JwtExpiration.Never
+            else
+              JwtExpiration.Expiring(
+                start = System.currentTimeMillis() / 1000,
+                duration = jwtConfiguration.restrictedDurationInSeconds
+              )
+        )
+      else
+        EitherT.leftT[Future, String](ErrorContext.Login.Failure.asServerError)
+
     val transformer = for {
       user <- EitherT.fromOptionF(
         graphQLServices.userService.getByNickname(nickname),
         ErrorContext.User.NotFound.asServerError
       )
-      userId = user.id
-      loginThrottle <- getOrCreateThrottle(userId)
-      valid = Hash.verify(
+      loginThrottle <- getOrCreateThrottle(user.id)
+      passwordCorrect = Hash.verify(
         password,
         passwordParameters = PasswordParameters(
           user.hash,
@@ -88,28 +111,16 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         )
       )
       now <- EitherT.liftF[Future, ServerError, LocalDateTime](DateUtil.now.unsafeToFuture())
-      _   <- handleThrottle(userId, loginThrottle, valid, now)
-      jwt <-
-        if (valid)
-          for {
-            session <- EitherT(graphQLServices.sessionService.create(user.id))
-          } yield JwtUtil.createJwt(
-            content = LoggedIn(
-              userId = user.id,
-              sessionId = session.id
-            ),
-            privateKey = jwtConfiguration.signaturePrivateKey,
-            expiration =
-              if (isValidityUnrestricted) JwtExpiration.Never
-              else
-                JwtExpiration.Expiring(
-                  start = System.currentTimeMillis() / 1000,
-                  duration = jwtConfiguration.restrictedDurationInSeconds
-                )
-          )
-        else {
-          EitherT.leftT[Future, String](ErrorContext.Login.Failure.asServerError)
-        }
+      _ <- handleThrottle(
+        userId = user.id,
+        throttle = loginThrottle,
+        passwordCorrect = passwordCorrect,
+        now = now
+      )
+      jwt <- handleJWTGeneration(
+        passwordCorrect = passwordCorrect,
+        userId = user.id
+      )
     } yield jwt
 
     transformer.value.handleServerError
