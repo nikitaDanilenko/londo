@@ -11,6 +11,8 @@ import sangria.schema.{ InputObjectType, ObjectType }
 import utils.transformer.implicits._
 
 import java.util.UUID
+import utils.graphql.SangriaUtil.instances._
+
 
 @JsonCodec
 case class SessionId(uuid: UUID)

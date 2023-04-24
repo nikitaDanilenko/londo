@@ -8,6 +8,8 @@ import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 import utils.transformer.implicits._
+import utils.graphql.SangriaUtil.instances._
+
 
 import java.util.UUID
 

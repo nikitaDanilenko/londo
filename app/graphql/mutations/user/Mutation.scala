@@ -5,7 +5,6 @@ import cats.effect.unsafe.implicits.global
 import cats.syntax.functor._
 import errors.{ErrorContext, ServerError}
 import graphql.HasGraphQLServices.syntax._
-import graphql.types.user._
 import graphql.{HasGraphQLServices, HasLoggedInUser}
 import io.circe.Encoder
 import io.scalaland.chimney.dsl._
@@ -16,6 +15,7 @@ import services.loginThrottle.LoginThrottle
 import services.user.PasswordParameters
 import utils.date.DateUtil
 import utils.jwt.JwtUtil
+import utils.transformer.implicits._
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -95,8 +95,8 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
             session <- EitherT(graphQLServices.sessionService.create(user.id))
           } yield JwtUtil.createJwt(
             content = LoggedIn(
-              userId = user.id.transformInto[UserId],
-              sessionId = session.id.transformInto[SessionId]
+              userId = user.id,
+              sessionId = session.id
             ),
             privateKey = jwtConfiguration.signaturePrivateKey,
             expiration =
