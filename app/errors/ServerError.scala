@@ -1,6 +1,5 @@
 package errors
 
-import cats.data.{ NonEmptyList, Validated, ValidatedNel }
 import io.circe.syntax._
 import io.circe.{ Encoder, Json }
 
@@ -10,8 +9,7 @@ sealed trait ServerError {
 
 object ServerError {
 
-  type Or[A]    = Either[ServerError, A]
-  type Valid[A] = ValidatedNel[ServerError, A]
+  type Or[A] = Either[ServerError, A]
 
   implicit val serverErrorEncoder: Encoder[ServerError] = Encoder.instance[ServerError] { serverError =>
     Json.obj(
@@ -23,9 +21,6 @@ object ServerError {
     new ServerError {
       override val message: String = errorContext.message
     }
-
-  def fromEither[A](either: Or[A]): Valid[A] =
-    Validated.fromEither[NonEmptyList[ServerError], A](either.left.map(NonEmptyList.of(_)))
 
   def fromOption[A](option: Option[A], errorCase: => ServerError): ServerError.Or[A] =
     option.toRight(errorCase)

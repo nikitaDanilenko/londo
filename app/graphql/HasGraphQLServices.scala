@@ -27,18 +27,6 @@ object HasGraphQLServices {
 
     }
 
-    implicit class ToServerValidException[A](val future: Future[ServerError.Valid[A]]) extends AnyVal {
-
-      def handleServerError(implicit executionContext: ExecutionContext): Future[A] =
-        future.flatMap(
-          _.fold(
-            errors => Future.failed(BulkServerException(errors)),
-            Future.successful
-          )
-        )
-
-    }
-
   }
 
 }
