@@ -1,6 +1,6 @@
-package graphql.types.task
+package graphql.mutations.project.inputs
 
-import graphql.types.util.{ Natural, Positive }
+import graphql.types.util.{Natural, Positive}
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType

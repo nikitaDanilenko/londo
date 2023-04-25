@@ -1,5 +1,6 @@
-package graphql.types.task
+package graphql.mutations.project.inputs
 
+import graphql.types.task.{ Progress, TaskKind }
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
@@ -18,15 +19,15 @@ case class TaskCreation(
 
 object TaskCreation {
 
-  implicit val ttoInternal: Transformer[TaskCreation, services.task.Creation] =
+  implicit val toInternal: Transformer[TaskCreation, services.task.Creation] =
     Transformer
       .define[TaskCreation, services.task.Creation]
       .buildTransformer
 
-  implicit val taskCreationPlainCreationInputObjectType: InputObjectType[TaskCreation] =
+  implicit val inputObjectType: InputObjectType[TaskCreation] =
     deriveInputObjectType[TaskCreation]()
 
-  implicit lazy val taskCreationPlainCreationFromInput: FromInput[TaskCreation] =
+  implicit lazy val fromInput: FromInput[TaskCreation] =
     circeDecoderFromInput[TaskCreation]
 
 }

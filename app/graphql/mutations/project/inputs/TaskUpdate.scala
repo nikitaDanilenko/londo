@@ -1,5 +1,6 @@
-package graphql.types.task
+package graphql.mutations.project.inputs
 
+import graphql.types.task.TaskKind
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
