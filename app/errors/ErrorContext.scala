@@ -58,17 +58,16 @@ object ErrorContext {
 
     object Plain {
 
-      case class Create(errorMessage: String)
-          extends ServerErrorInstance(s"Error while creating a plain task: $errorMessage")
+      case class Create(errorMessage: String) extends ServerErrorInstance(s"Error while creating a task: $errorMessage")
 
       case class Update(errorMessage: String)
-          extends ServerErrorInstance(s"Error while replacing a plain task: $errorMessage")
+          extends ServerErrorInstance(s"Error while replacing a task: $errorMessage")
 
-      case class Delete(errorMessage: String)
-          extends ServerErrorInstance(s"Error while deleting a plain task: $errorMessage")
+      case class Delete(errorMessage: String) extends ServerErrorInstance(s"Error while deleting a task: $errorMessage")
 
     }
 
+    // TODO: Remove references, clean up rest
     object Reference {
 
       case class Create(errorMessage: String)
