@@ -2,7 +2,7 @@ package graphql.mutations.project
 
 import cats.data.EitherT
 import graphql.HasGraphQLServices.syntax._
-import graphql.mutations.project.inputs.{ CreateProjectInput, DeleteProjectInput, UpdateProjectInput }
+import graphql.mutations.project.inputs._
 import graphql.types.project._
 import graphql.types.task._
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
@@ -65,49 +65,49 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
   def addTask(
-      projectId: ProjectId,
-      creation: TaskCreation
-  ): Future[Task] = ???
-//    validateProjectWriteAccess(projectId) { _ =>
-//      graphQLServices.taskService
-//        .createPlainTask(
-//          projectId.toInternal,
-//          plainCreation = plainCreation.toInternal
-//        )
-//        .map(_.fromInternal[Task.Plain])
-//    }
-
-  @GraphQLField
-  def removeTask(
-      projectId: ProjectId,
-      taskId: TaskId
-  ): Future[Task] = ???
-//    validateProjectWriteAccess(taskKey.projectId) { _ =>
-//      graphQLServices.taskService
-//        .removePlainTask(taskKey.toInternal)
-//        .map(_.fromInternal[Task.Plain])
-//    }
+      input: AddTaskInput
+  ): Future[Task] =
+    withUserId { userId =>
+      EitherT(
+        graphQLServices.taskService
+          .create(
+            userId = userId,
+            projectId = input.projectId.transformInto[db.ProjectId],
+            creation = input.taskCreation.transformInto[services.task.Creation]
+          )
+      ).map(_.transformInto[Task]).value.handleServerError
+    }
 
   @GraphQLField
   def updateTask(
-      projectId: ProjectId,
-      taskId: TaskId,
-      taskUpdate: TaskUpdate
-  ): Future[Task] = ???
-//    validateProjectWriteAccess(taskKey.projectId) { _ =>
-//      graphQLServices.taskService
-//        .updatePlainTask(taskKey.toInternal, plainUpdate.toInternal)
-//        .map(_.fromInternal[Task.Plain])
-//    }
+      input: UpdateTaskInput
+  ): Future[Task] =
+    withUserId { userId =>
+      EitherT(
+        graphQLServices.taskService
+          .update(
+            userId = userId,
+            taskId = input.taskId.transformInto[db.TaskId],
+            update = input.taskUpdate.transformInto[services.task.Update]
+          )
+      )
+        .map(_.transformInto[Task])
+        .value
+        .handleServerError
+    }
 
-  def updateTaskProgress(
-      projectId: ProjectId,
-      taskId: TaskId,
-      progressUpdate: ProgressUpdate
-  ): Future[Task] = ???
-//    validateProjectWriteAccess(taskKey.projectId) { _ =>
-//      graphQLServices.taskService
-//        .updateTaskProgress(taskKey.toInternal, progressUpdate.toInternal)
-//        .map(_.fromInternal[Task.Plain])
+  @GraphQLField
+  def deleteTask(
+      input: DeleteTaskInput
+  ): Future[Boolean] =
+    withUserId { userId =>
+      EitherT(
+        graphQLServices.taskService
+          .delete(
+            userId,
+            input.taskId.transformInto[db.TaskId]
+          )
+      ).value.handleServerError
+    }
 
 }
