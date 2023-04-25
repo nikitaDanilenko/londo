@@ -29,11 +29,11 @@ object Progress {
       reachable = progress.reachable.transformInto[Positive]
     )
 
-  implicit lazy val progressOutputType: OutputType[Progress] = deriveObjectType[Unit, Progress]()
+  implicit lazy val outputType: OutputType[Progress] = deriveObjectType[Unit, Progress]()
 
-  implicit val progressInputObjectType: InputObjectType[Progress] = deriveInputObjectType[Progress](
+  implicit val inputObjectType: InputObjectType[Progress] = deriveInputObjectType[Progress](
     InputObjectTypeName("ProgressInput")
   )
 
-  implicit lazy val progressFromInput: FromInput[Progress] = circeDecoderFromInput[Progress]
+  implicit lazy val fromInput: FromInput[Progress] = circeDecoderFromInput[Progress]
 }
