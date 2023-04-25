@@ -8,13 +8,13 @@ import sangria.marshalling.FromInput
 import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
 
-case class AddTaskInput(
+case class CreateTaskInput(
     projectId: ProjectId,
     taskCreation: TaskCreation
 )
 
-object AddTaskInput {
-  implicit val decoder: Decoder[AddTaskInput]           = deriveDecoder[AddTaskInput]
-  implicit val inputType: InputObjectType[AddTaskInput] = deriveInputObjectType[AddTaskInput]()
-  implicit lazy val fromInput: FromInput[AddTaskInput]  = circeDecoderFromInput[AddTaskInput]
+object CreateTaskInput {
+  implicit val decoder: Decoder[CreateTaskInput]           = deriveDecoder[CreateTaskInput]
+  implicit val inputType: InputObjectType[CreateTaskInput] = deriveInputObjectType[CreateTaskInput]()
+  implicit lazy val fromInput: FromInput[CreateTaskInput]  = circeDecoderFromInput[CreateTaskInput]
 }

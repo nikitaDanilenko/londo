@@ -64,8 +64,8 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def addTask(
-      input: AddTaskInput
+  def createTask(
+      input: CreateTaskInput
   ): Future[Task] =
     withUserId { userId =>
       EitherT(
