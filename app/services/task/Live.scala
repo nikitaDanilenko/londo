@@ -57,10 +57,11 @@ class Live @Inject() (
         Left(ErrorContext.Task.Plain.Update(error.getMessage).asServerError)
       }
 
-  override def delete(userId: UserId, taskId: TaskId): Future[Boolean] =
+  override def delete(userId: UserId, taskId: TaskId): Future[ServerError.Or[Boolean]] =
     db.runTransactionally(companion.delete(userId, taskId))
-      .recover { _ =>
-        false
+      .map(Right(_))
+      .recover { error =>
+        Left(ErrorContext.Task.Plain.Delete(error.getMessage).asServerError)
       }
 
 }

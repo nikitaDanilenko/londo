@@ -22,7 +22,7 @@ trait TaskService {
       update: Update
   ): Future[ServerError.Or[Task]]
 
-  def delete(userId: UserId, taskId: TaskId): Future[Boolean]
+  def delete(userId: UserId, taskId: TaskId): Future[ServerError.Or[Boolean]]
 }
 
 object TaskService {
