@@ -50,7 +50,7 @@ lazy val root = (project in file("."))
       "com.typesafe.play"          %% "play-mailer-guice"    % "8.0.1",
       "com.kubukoz"                %% "slick-effect"         % "0.5.0",
       "com.kubukoz"                %% "slick-effect-catsio"  % "0.5.0",
-
+      "com.lihaoyi"                %% "pprint"               % "0.8.1",
       // Transitive dependency. Override added for proper version.
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2"
     ),
