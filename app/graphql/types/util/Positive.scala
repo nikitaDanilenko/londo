@@ -4,8 +4,6 @@ import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 
 sealed abstract case class Positive(
@@ -24,11 +22,10 @@ object Positive {
 
   implicit val fromInternal: Transformer[math.Positive, Positive] = positive => Positive(positive.natural.intValue)
 
-  implicit val positiveObjectType: ObjectType[Unit, Positive] = deriveObjectType[Unit, Positive]()
+  implicit val objectType: ObjectType[Unit, Positive] = deriveObjectType[Unit, Positive]()
 
-  implicit val positiveInputObjectType: InputObjectType[Positive] = deriveInputObjectType[Positive](
+  implicit val inputObjectType: InputObjectType[Positive] = deriveInputObjectType[Positive](
     InputObjectTypeName("PositiveInput")
   )
 
-  implicit lazy val positiveFromInput: FromInput[Positive] = circeDecoderFromInput[Positive]
 }

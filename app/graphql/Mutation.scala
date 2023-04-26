@@ -1,9 +1,11 @@
 package graphql
 
-import graphql.mutations.DashboardMutation
 import security.jwt.LoggedIn
 
-trait Mutation extends graphql.mutations.user.Mutation with graphql.mutations.project.Mutation with DashboardMutation
+trait Mutation
+    extends graphql.mutations.user.Mutation
+    with graphql.mutations.project.Mutation
+    with graphql.mutations.dashboard.Mutation
 
 object Mutation {
 

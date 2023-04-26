@@ -5,8 +5,6 @@ import io.scalaland.chimney.Transformer
 import io.scalaland.chimney.dsl._
 import utils.transformer.implicits._
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 import utils.graphql.SangriaUtil.instances._
 
@@ -26,9 +24,7 @@ object TaskId {
   implicit val objectType: ObjectType[Unit, TaskId] = deriveObjectType[Unit, TaskId]()
 
   implicit val inputObjectType: InputObjectType[TaskId] = deriveInputObjectType[TaskId](
-    InputObjectTypeName("PlainTaskIdInput")
+    InputObjectTypeName("TaskIdInput")
   )
-
-  implicit lazy val fromInput: FromInput[TaskId] = circeDecoderFromInput[TaskId]
 
 }

@@ -4,8 +4,6 @@ import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 
 import scala.util.chaining._
@@ -29,11 +27,10 @@ object Natural {
   implicit val toInternal: Transformer[Natural, spire.math.Natural] =
     _.nonNegative.pipe(spire.math.Natural.apply(_))
 
-  implicit val naturalObjectType: ObjectType[Unit, Natural] = deriveObjectType[Unit, Natural]()
+  implicit val objectType: ObjectType[Unit, Natural] = deriveObjectType[Unit, Natural]()
 
-  implicit val naturalInputObjectType: InputObjectType[Natural] = deriveInputObjectType[Natural](
+  implicit val inputObjectType: InputObjectType[Natural] = deriveInputObjectType[Natural](
     InputObjectTypeName("NaturalInput")
   )
 
-  implicit lazy val naturalFromInput: FromInput[Natural] = circeDecoderFromInput[Natural]
 }

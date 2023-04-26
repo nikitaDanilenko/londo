@@ -3,8 +3,6 @@ package graphql.types.project
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, ObjectType }
 import utils.graphql.SangriaUtil.instances._
 import io.scalaland.chimney.dsl._
@@ -29,5 +27,4 @@ object ProjectId {
     InputObjectTypeName("ProjectIdInput")
   )
 
-  implicit lazy val fromInput: FromInput[ProjectId] = circeDecoderFromInput[ProjectId]
 }

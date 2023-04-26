@@ -3,8 +3,6 @@ package graphql.types.dashboard
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
 
 @JsonCodec
@@ -21,9 +19,7 @@ object DashboardUpdate {
       .define[DashboardUpdate, services.dashboard.Update]
       .buildTransformer
 
-  implicit val dashboardUpdateInputObjectType: InputObjectType[DashboardUpdate] =
+  implicit val inputObjectType: InputObjectType[DashboardUpdate] =
     deriveInputObjectType[DashboardUpdate]()
-
-  implicit lazy val dashboardUpdateFromInput: FromInput[DashboardUpdate] = circeDecoderFromInput[DashboardUpdate]
 
 }

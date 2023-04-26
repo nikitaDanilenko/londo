@@ -4,8 +4,6 @@ import graphql.types.util.{ Natural, Positive }
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.{ InputObjectType, OutputType }
 import io.scalaland.chimney.dsl._
 
@@ -35,5 +33,4 @@ object Progress {
     InputObjectTypeName("ProgressInput")
   )
 
-  implicit lazy val fromInput: FromInput[Progress] = circeDecoderFromInput[Progress]
 }
