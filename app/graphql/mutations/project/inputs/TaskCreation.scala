@@ -4,8 +4,6 @@ import graphql.types.task.{ Progress, TaskKind }
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
 
 @JsonCodec
@@ -26,8 +24,5 @@ object TaskCreation {
 
   implicit val inputObjectType: InputObjectType[TaskCreation] =
     deriveInputObjectType[TaskCreation]()
-
-  implicit lazy val fromInput: FromInput[TaskCreation] =
-    circeDecoderFromInput[TaskCreation]
 
 }

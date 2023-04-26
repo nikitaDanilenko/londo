@@ -3,8 +3,6 @@ package graphql.mutations.project.inputs
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
 
 @JsonCodec(decodeOnly = true)
@@ -22,7 +20,5 @@ object CreateProjectInput {
 
   implicit val inputObjectType: InputObjectType[CreateProjectInput] =
     deriveInputObjectType[CreateProjectInput]()
-
-  implicit lazy val fromInput: FromInput[CreateProjectInput] = circeDecoderFromInput[CreateProjectInput]
 
 }

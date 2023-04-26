@@ -21,6 +21,5 @@ object UpdateUserInput {
       .buildTransformer
 
   implicit val inputObjectType: InputObjectType[UpdateUserInput] = deriveInputObjectType[UpdateUserInput]()
-  implicit lazy val fromInput: FromInput[UpdateUserInput]        = circeDecoderFromInput[UpdateUserInput]
 
 }

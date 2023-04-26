@@ -4,8 +4,6 @@ import graphql.types.task.TaskKind
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
-import sangria.marshalling.FromInput
-import sangria.marshalling.circe.circeDecoderFromInput
 import sangria.schema.InputObjectType
 
 @JsonCodec
@@ -24,9 +22,7 @@ object TaskUpdate {
       .define[TaskUpdate, services.task.Update]
       .buildTransformer
 
-  implicit val taskUpdatePlainUpdateInputObjectType: InputObjectType[TaskUpdate] =
+  implicit val inputObjectType: InputObjectType[TaskUpdate] =
     deriveInputObjectType[TaskUpdate]()
-
-  implicit lazy val taskUpdatePlainUpdateFromInput: FromInput[TaskUpdate] = circeDecoderFromInput[TaskUpdate]
 
 }
