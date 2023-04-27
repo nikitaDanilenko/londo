@@ -4,9 +4,10 @@ import cats.data.EitherT
 import errors.ErrorContext
 import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
+import graphql.queries.project.inputs.{FetchProjectInput, FetchResolvedProjectInput}
 import graphql.types.project.Project
 import graphql.types.task.Task
-import graphql.{ HasGraphQLServices, HasLoggedInUser }
+import graphql.{HasGraphQLServices, HasLoggedInUser}
 import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 

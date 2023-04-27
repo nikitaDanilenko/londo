@@ -1,4 +1,4 @@
-package graphql.queries.user
+package graphql.queries.user.inputs
 
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType

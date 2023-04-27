@@ -1,4 +1,4 @@
-package graphql.queries.user
+package graphql.queries.user.inputs
 
 import graphql.types.user.UserId
 import sangria.macros.derive.deriveObjectType

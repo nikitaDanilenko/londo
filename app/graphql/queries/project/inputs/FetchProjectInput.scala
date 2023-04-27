@@ -1,4 +1,4 @@
-package graphql.queries.project
+package graphql.queries.project.inputs
 
 import graphql.types.project.ProjectId
 import io.circe.generic.JsonCodec

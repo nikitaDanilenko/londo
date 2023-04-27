@@ -4,8 +4,9 @@ import cats.data.EitherT
 import errors.ErrorContext
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.user.User
+import graphql.queries.user.inputs.{FindUserInput, FindUserResult}
 import graphql.types.user.UserId
-import graphql.{ HasGraphQLServices, HasLoggedInUser }
+import graphql.{HasGraphQLServices, HasLoggedInUser}
 import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
 import utils.transformer.implicits._
