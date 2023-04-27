@@ -1,10 +1,13 @@
 package graphql.mutations.dashboard
 
-import graphql.mutations.dashboard.inputs.CreateDashboardInput
-import graphql.types.dashboard.{ Dashboard, DashboardCreation, DashboardId, DashboardUpdate }
+import cats.data.EitherT
+import graphql.HasGraphQLServices.syntax._
+import graphql.mutations.dashboard.inputs.{ CreateDashboardInput, DeleteDashboardInput, UpdateDashboardInput }
+import graphql.types.dashboard.{ Dashboard, DashboardId }
 import graphql.types.project.ProjectId
 import graphql.types.util.Natural
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
+import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
 
 import scala.concurrent.Future
@@ -12,33 +15,46 @@ import scala.concurrent.Future
 trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
-  def createDashboard(input: CreateDashboardInput): Future[Dashboard] = ???
-//    withUser { userId =>
-//      graphQLServices.dashboardService
-//        .create(userId.toInternal, dashboardCreation.toInternal)
-//    }
-//      .map(_.fromInternal[Dashboard])
-//      .unsafeToFuture()
-//      .handleServerError
+  def createDashboard(input: CreateDashboardInput): Future[Dashboard] =
+    withUserId { userId =>
+      EitherT(
+        graphQLServices.dashboardService
+          .create(
+            ownerId = userId,
+            creation = input.dashboardCreation.transformInto[services.dashboard.Creation]
+          )
+      )
+        .map(_.transformInto[Dashboard])
+        .value
+        .handleServerError
+    }
 
   @GraphQLField
-  def updateDashboard(dashboardId: DashboardId, dashboardUpdate: DashboardUpdate): Future[Dashboard] = ???
-//    validateDashboardWriteAccess(dashboardId) { _ =>
-//      graphQLServices.dashboardService
-//        .update(
-//          id = dashboardId.toInternal,
-//          dashboardUpdate = dashboardUpdate.toInternal
-//        )
-//        .map(_.fromInternal[Dashboard])
-//    }
+  def updateDashboard(input: UpdateDashboardInput): Future[Dashboard] =
+    withUserId { userId =>
+      EitherT(
+        graphQLServices.dashboardService
+          .update(
+            ownerId = userId,
+            id = input.dashboardId.transformInto[db.DashboardId],
+            update = input.dashboardUpdate.transformInto[services.dashboard.Update]
+          )
+      )
+        .map(_.transformInto[Dashboard])
+        .value
+        .handleServerError
+    }
 
   @GraphQLField
-  def deleteDashboard(dashboardId: DashboardId): Future[Dashboard] = ???
-//    validateDashboardWriteAccess(dashboardId) { _ =>
-//      graphQLServices.dashboardService
-//        .delete(id = dashboardId.toInternal)
-//        .map(_.fromInternal[Dashboard])
-//    }
+  def deleteDashboard(input: DeleteDashboardInput): Future[Boolean] =
+    withUserId { userId =>
+      graphQLServices.dashboardService
+        .delete(
+          ownerId = userId,
+          id = input.dashboardId.transformInto[db.DashboardId]
+        )
+        .handleServerError
+    }
 
   @GraphQLField
   def addProjectToDashboard(dashboardId: DashboardId, projectId: ProjectId, weight: Natural): Future[Dashboard] = ???
