@@ -1,6 +1,5 @@
 package graphql.mutations.dashboard.inputs
 
-import graphql.types.dashboard.DashboardCreation
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType
 import sangria.schema.InputObjectType

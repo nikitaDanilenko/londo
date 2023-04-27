@@ -1,16 +1,20 @@
 package graphql.mutations.dashboard.inputs
 
 import graphql.types.dashboard.DashboardId
+import graphql.types.project.ProjectId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType
 import sangria.schema.InputObjectType
 
 @JsonCodec(decodeOnly = true)
-case class UpdateDashboardInput(
+case class DeleteDashboardEntryInput(
     dashboardId: DashboardId,
-    dashboardUpdate: DashboardUpdate
+    projectId: ProjectId
 )
 
-object UpdateDashboardInput {
-  implicit val inputType: InputObjectType[UpdateDashboardInput] = deriveInputObjectType[UpdateDashboardInput]()
+object DeleteDashboardEntryInput {
+
+  implicit val inputType: InputObjectType[DeleteDashboardEntryInput] =
+    deriveInputObjectType[DeleteDashboardEntryInput]()
+
 }

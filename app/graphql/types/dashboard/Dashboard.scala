@@ -25,6 +25,6 @@ object Dashboard {
     )
   }
 
-  implicit val dashboardObjectType: ObjectType[Unit, Dashboard] = deriveObjectType[Unit, Dashboard]()
+  implicit val objectType: ObjectType[Unit, Dashboard] = deriveObjectType[Unit, Dashboard]()
 
 }

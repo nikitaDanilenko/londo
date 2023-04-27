@@ -6,11 +6,14 @@ import sangria.macros.derive.deriveInputObjectType
 import sangria.schema.InputObjectType
 
 @JsonCodec(decodeOnly = true)
-case class UpdateDashboardInput(
+case class CreateDashboardEntryInput(
     dashboardId: DashboardId,
-    dashboardUpdate: DashboardUpdate
+    dashboardEntryCreation: DashboardEntryCreation
 )
 
-object UpdateDashboardInput {
-  implicit val inputType: InputObjectType[UpdateDashboardInput] = deriveInputObjectType[UpdateDashboardInput]()
+object CreateDashboardEntryInput {
+
+  implicit val inputType: InputObjectType[CreateDashboardEntryInput] =
+    deriveInputObjectType[CreateDashboardEntryInput]()
+
 }

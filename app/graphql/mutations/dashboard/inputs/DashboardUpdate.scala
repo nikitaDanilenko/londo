@@ -1,5 +1,6 @@
-package graphql.types.dashboard
+package graphql.mutations.dashboard.inputs
 
+import graphql.types.dashboard.Visibility
 import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
