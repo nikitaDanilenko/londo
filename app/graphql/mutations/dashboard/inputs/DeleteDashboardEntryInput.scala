@@ -14,7 +14,7 @@ case class DeleteDashboardEntryInput(
 
 object DeleteDashboardEntryInput {
 
-  implicit val inputType: InputObjectType[DeleteDashboardEntryInput] =
+  implicit val inputObjectType: InputObjectType[DeleteDashboardEntryInput] =
     deriveInputObjectType[DeleteDashboardEntryInput]()
 
 }

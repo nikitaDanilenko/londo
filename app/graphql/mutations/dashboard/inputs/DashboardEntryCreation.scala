@@ -18,5 +18,5 @@ object DashboardEntryCreation {
       .define[DashboardEntryCreation, services.dashboardEntry.Creation]
       .buildTransformer
 
-  implicit val inputType: InputObjectType[DashboardEntryCreation] = deriveInputObjectType[DashboardEntryCreation]()
+  implicit val inputObjectType: InputObjectType[DashboardEntryCreation] = deriveInputObjectType[DashboardEntryCreation]()
 }

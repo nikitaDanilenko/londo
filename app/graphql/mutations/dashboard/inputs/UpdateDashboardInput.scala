@@ -12,5 +12,5 @@ case class UpdateDashboardInput(
 )
 
 object UpdateDashboardInput {
-  implicit val inputType: InputObjectType[UpdateDashboardInput] = deriveInputObjectType[UpdateDashboardInput]()
+  implicit val inputObjectType: InputObjectType[UpdateDashboardInput] = deriveInputObjectType[UpdateDashboardInput]()
 }
