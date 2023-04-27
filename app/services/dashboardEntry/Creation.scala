@@ -5,13 +5,13 @@ import db.daos.dashboardEntry.DashboardEntryKey
 import db.{ DashboardId, ProjectId }
 import utils.date.DateUtil
 
-case class DashboardEntryCreation(
+case class Creation(
     projectId: ProjectId
 )
 
-object DashboardEntryCreation {
+object Creation {
 
-  def create(dashboardEntryCreation: DashboardEntryCreation): IO[DashboardEntry] =
+  def create(dashboardEntryCreation: Creation): IO[DashboardEntry] =
     for {
       now <- DateUtil.now
     } yield DashboardEntry(

@@ -35,9 +35,9 @@ class Live @Inject() (
   override def create(
       userId: UserId,
       dashboardId: DashboardId,
-      dashboardEntryCreation: DashboardEntryCreation
+      creation: Creation
   ): Future[ServerError.Or[DashboardEntry]] =
-    db.runTransactionally(companion.create(userId, dashboardId, dashboardEntryCreation))
+    db.runTransactionally(companion.create(userId, dashboardId, creation))
       .map(Right(_))
       .recover { case error =>
         Left(ErrorContext.DashboardEntry.Create(error.getMessage).asServerError)
@@ -76,10 +76,10 @@ object Live {
     override def create(
         userId: UserId,
         dashboardId: DashboardId,
-        dashboardEntryCreation: DashboardEntryCreation
+        creation: Creation
     )(implicit ec: ExecutionContext): DBIO[DashboardEntry] = ifDashboardExists(userId, dashboardId) {
       for {
-        dashboardEntry <- DashboardEntryCreation.create(dashboardEntryCreation).to[DBIO]
+        dashboardEntry <- Creation.create(creation).to[DBIO]
         dashboardEntryRow = (dashboardEntry, dashboardId).transformInto[Tables.DashboardEntryRow]
         inserted <- dashboardEntryDao
           .insert(dashboardEntryRow)

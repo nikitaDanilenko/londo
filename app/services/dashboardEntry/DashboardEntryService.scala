@@ -14,7 +14,7 @@ trait DashboardEntryService {
   def create(
       userId: UserId,
       dashboardId: DashboardId,
-      dashboardEntryCreation: DashboardEntryCreation
+      creation: Creation
   ): Future[ServerError.Or[DashboardEntry]]
 
   def delete(
@@ -36,7 +36,7 @@ object DashboardEntryService {
     def create(
         userId: UserId,
         dashboardId: DashboardId,
-        dashboardEntryCreation: DashboardEntryCreation
+        creation: Creation
     )(implicit ec: ExecutionContext): DBIO[DashboardEntry]
 
     def delete(
