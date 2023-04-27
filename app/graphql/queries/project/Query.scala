@@ -4,10 +4,10 @@ import cats.data.EitherT
 import errors.ErrorContext
 import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
-import graphql.queries.project.inputs.{FetchProjectInput, FetchResolvedProjectInput}
+import graphql.queries.project.inputs.{ FetchProjectInput, FetchResolvedProjectInput }
 import graphql.types.project.Project
 import graphql.types.task.Task
-import graphql.{HasGraphQLServices, HasLoggedInUser}
+import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 
@@ -54,7 +54,7 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
   }
 
   @GraphQLField
-  def fetchAll: Future[Seq[Project]] =
+  def fetchAllProjects: Future[Seq[Project]] =
     withUserId { userId =>
       graphQLServices.projectService
         .all(userId)
