@@ -22,6 +22,7 @@
             "elm-community/maybe-extra": "5.2.0",
             "krisajenkins/remotedata": "6.0.1",
             "mgold/elm-nonempty-list": "4.2.0",
+            "perzanko/elm-loading": "2.0.5",
             "rundis/elm-bootstrap": "5.2.0",
             "simonh1000/elm-jwt": "7.1.1",
             "toastal/either": "3.6.3"
@@ -40,6 +41,8 @@
             "elm/time": "1.0.0",
             "elm/virtual-dom": "1.0.2",
             "lukewestby/elm-string-interpolate": "1.0.4",
+            "robinheghan/murmur3": "1.0.0",
+            "rtfeldman/elm-css": "17.1.1",
             "rtfeldman/elm-hex": "1.0.0"
         }
     },
