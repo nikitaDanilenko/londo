@@ -43,17 +43,30 @@ confirmRecovery : AddressWithParser ( ( String, String ), JWT ) (UserIdentifier 
 confirmRecovery =
     confirm "recover-account"
 
+
 projects : AddressWithParser () a a
 projects =
     plain "projects"
+
+
+dashboards : AddressWithParser () a a
+dashboards =
+    plain "dashboards"
+
+
+userSettings : AddressWithParser () a a
+userSettings =
+    plain "user-settings"
+
 
 taskEditor : AddressWithParser ProjectId (ProjectId -> a) a
 taskEditor =
     with1
         { step1 = "task-editor"
-        , toString = ProjectId.uuid >> ScalarUtil.uuidToString  >> List.singleton
+        , toString = ProjectId.uuid >> ScalarUtil.uuidToString >> List.singleton
         , paramParser = ParserUtil.uuidParser |> Parser.map ProjectId
         }
+
 
 confirm : String -> AddressWithParser ( ( String, String ), JWT ) (UserIdentifier -> JWT -> a) a
 confirm step1 =
