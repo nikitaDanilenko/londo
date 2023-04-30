@@ -2,7 +2,7 @@ module Util.HttpUtil exposing (..)
 
 import Graphql.Http
 import Json.Decode
-import RemoteData exposing (RemoteData)
+import Types.Auxiliary exposing (JWT)
 
 
 type alias ErrorExplanation =
@@ -73,6 +73,22 @@ graphQLErrorToExplanation error =
 
         Graphql.Http.HttpError httpError ->
             errorToExplanation httpError
+
+
+userTokenHeader : String
+userTokenHeader =
+    "User-Token"
+
+
+sendWithJWT :
+    { jwt : JWT
+    , mkExpectMsg : GraphQLResult a -> msg
+    }
+    -> Graphql.Http.Request a
+    -> Cmd msg
+sendWithJWT ps =
+    Graphql.Http.withHeader userTokenHeader ps.jwt
+        >> Graphql.Http.send ps.mkExpectMsg
 
 
 type alias GraphQLResult a =
