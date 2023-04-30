@@ -26,20 +26,6 @@ id object____ =
     Object.selectionForCompositeField "id" [] object____ Basics.identity
 
 
-plainTasks :
-    SelectionSet decodesTo LondoGQL.Object.Plain
-    -> SelectionSet (List decodesTo) LondoGQL.Object.Project
-plainTasks object____ =
-    Object.selectionForCompositeField "plainTasks" [] object____ (Basics.identity >> Decode.list)
-
-
-projectReferenceTasks :
-    SelectionSet decodesTo LondoGQL.Object.ProjectReference
-    -> SelectionSet (List decodesTo) LondoGQL.Object.Project
-projectReferenceTasks object____ =
-    Object.selectionForCompositeField "projectReferenceTasks" [] object____ (Basics.identity >> Decode.list)
-
-
 name : SelectionSet String LondoGQL.Object.Project
 name =
     Object.selectionForField "String" "name" [] Decode.string
@@ -48,29 +34,3 @@ name =
 description : SelectionSet (Maybe String) LondoGQL.Object.Project
 description =
     Object.selectionForField "(Maybe String)" "description" [] (Decode.string |> Decode.nullable)
-
-
-ownerId :
-    SelectionSet decodesTo LondoGQL.Object.UserId
-    -> SelectionSet decodesTo LondoGQL.Object.Project
-ownerId object____ =
-    Object.selectionForCompositeField "ownerId" [] object____ Basics.identity
-
-
-flatIfSingleTask : SelectionSet Bool LondoGQL.Object.Project
-flatIfSingleTask =
-    Object.selectionForField "Bool" "flatIfSingleTask" [] Decode.bool
-
-
-readAccessors :
-    SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo LondoGQL.Object.Project
-readAccessors object____ =
-    Object.selectionForCompositeField "readAccessors" [] object____ Basics.identity
-
-
-writeAccessors :
-    SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo LondoGQL.Object.Project
-writeAccessors object____ =
-    Object.selectionForCompositeField "writeAccessors" [] object____ Basics.identity

@@ -10,7 +10,9 @@ import Graphql.Internal.Encode as Encode exposing (Value)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
+import LondoGQL.Enum.LogoutMode
 import LondoGQL.Enum.TaskKind
+import LondoGQL.Enum.Visibility
 import LondoGQL.Interface
 import LondoGQL.Object
 import LondoGQL.Scalar
@@ -18,41 +20,244 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-buildAccessorsInput :
-    AccessorsInputRequiredFields
-    -> (AccessorsInputOptionalFields -> AccessorsInputOptionalFields)
-    -> AccessorsInput
-buildAccessorsInput required____ fillOptionals____ =
-    let
-        optionals____ =
-            fillOptionals____
-                { userIds = Absent }
-    in
-    { isAllowList = required____.isAllowList, userIds = optionals____.userIds }
+buildConfirmDeletionInput :
+    ConfirmDeletionInputRequiredFields
+    -> ConfirmDeletionInput
+buildConfirmDeletionInput required____ =
+    { deletionToken = required____.deletionToken }
 
 
-type alias AccessorsInputRequiredFields =
-    { isAllowList : Bool }
+type alias ConfirmDeletionInputRequiredFields =
+    { deletionToken : String }
 
 
-type alias AccessorsInputOptionalFields =
-    { userIds : OptionalArgument NonEmptyListOfUserIdInput }
-
-
-{-| Type for the AccessorsInput input object.
+{-| Type for the ConfirmDeletionInput input object.
 -}
-type alias AccessorsInput =
-    { isAllowList : Bool
-    , userIds : OptionalArgument NonEmptyListOfUserIdInput
+type alias ConfirmDeletionInput =
+    { deletionToken : String }
+
+
+{-| Encode a ConfirmDeletionInput into a value that can be used as an argument.
+-}
+encodeConfirmDeletionInput : ConfirmDeletionInput -> Value
+encodeConfirmDeletionInput input____ =
+    Encode.maybeObject
+        [ ( "deletionToken", Encode.string input____.deletionToken |> Just ) ]
+
+
+buildConfirmRecoveryInput :
+    ConfirmRecoveryInputRequiredFields
+    -> ConfirmRecoveryInput
+buildConfirmRecoveryInput required____ =
+    { recoveryToken = required____.recoveryToken, password = required____.password }
+
+
+type alias ConfirmRecoveryInputRequiredFields =
+    { recoveryToken : String
+    , password : String
     }
 
 
-{-| Encode a AccessorsInput into a value that can be used as an argument.
+{-| Type for the ConfirmRecoveryInput input object.
 -}
-encodeAccessorsInput : AccessorsInput -> Value
-encodeAccessorsInput input____ =
+type alias ConfirmRecoveryInput =
+    { recoveryToken : String
+    , password : String
+    }
+
+
+{-| Encode a ConfirmRecoveryInput into a value that can be used as an argument.
+-}
+encodeConfirmRecoveryInput : ConfirmRecoveryInput -> Value
+encodeConfirmRecoveryInput input____ =
     Encode.maybeObject
-        [ ( "isAllowList", Encode.bool input____.isAllowList |> Just ), ( "userIds", encodeNonEmptyListOfUserIdInput |> Encode.optional input____.userIds ) ]
+        [ ( "recoveryToken", Encode.string input____.recoveryToken |> Just ), ( "password", Encode.string input____.password |> Just ) ]
+
+
+buildConfirmRegistrationInput :
+    ConfirmRegistrationInputRequiredFields
+    -> ConfirmRegistrationInput
+buildConfirmRegistrationInput required____ =
+    { creationToken = required____.creationToken, creationComplement = required____.creationComplement }
+
+
+type alias ConfirmRegistrationInputRequiredFields =
+    { creationToken : String
+    , creationComplement : CreationComplement
+    }
+
+
+{-| Type for the ConfirmRegistrationInput input object.
+-}
+type alias ConfirmRegistrationInput =
+    { creationToken : String
+    , creationComplement : CreationComplement
+    }
+
+
+{-| Encode a ConfirmRegistrationInput into a value that can be used as an argument.
+-}
+encodeConfirmRegistrationInput : ConfirmRegistrationInput -> Value
+encodeConfirmRegistrationInput input____ =
+    Encode.maybeObject
+        [ ( "creationToken", Encode.string input____.creationToken |> Just ), ( "creationComplement", encodeCreationComplement input____.creationComplement |> Just ) ]
+
+
+buildCreateDashboardEntryInput :
+    CreateDashboardEntryInputRequiredFields
+    -> CreateDashboardEntryInput
+buildCreateDashboardEntryInput required____ =
+    { dashboardId = required____.dashboardId, dashboardEntryCreation = required____.dashboardEntryCreation }
+
+
+type alias CreateDashboardEntryInputRequiredFields =
+    { dashboardId : DashboardIdInput
+    , dashboardEntryCreation : DashboardEntryCreation
+    }
+
+
+{-| Type for the CreateDashboardEntryInput input object.
+-}
+type alias CreateDashboardEntryInput =
+    { dashboardId : DashboardIdInput
+    , dashboardEntryCreation : DashboardEntryCreation
+    }
+
+
+{-| Encode a CreateDashboardEntryInput into a value that can be used as an argument.
+-}
+encodeCreateDashboardEntryInput : CreateDashboardEntryInput -> Value
+encodeCreateDashboardEntryInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "dashboardEntryCreation", encodeDashboardEntryCreation input____.dashboardEntryCreation |> Just ) ]
+
+
+buildCreateDashboardInput :
+    CreateDashboardInputRequiredFields
+    -> CreateDashboardInput
+buildCreateDashboardInput required____ =
+    { dashboardCreation = required____.dashboardCreation }
+
+
+type alias CreateDashboardInputRequiredFields =
+    { dashboardCreation : DashboardCreation }
+
+
+{-| Type for the CreateDashboardInput input object.
+-}
+type alias CreateDashboardInput =
+    { dashboardCreation : DashboardCreation }
+
+
+{-| Encode a CreateDashboardInput into a value that can be used as an argument.
+-}
+encodeCreateDashboardInput : CreateDashboardInput -> Value
+encodeCreateDashboardInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardCreation", encodeDashboardCreation input____.dashboardCreation |> Just ) ]
+
+
+buildCreateProjectInput :
+    CreateProjectInputRequiredFields
+    -> (CreateProjectInputOptionalFields -> CreateProjectInputOptionalFields)
+    -> CreateProjectInput
+buildCreateProjectInput required____ fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { description = Absent }
+    in
+    { name = required____.name, description = optionals____.description }
+
+
+type alias CreateProjectInputRequiredFields =
+    { name : String }
+
+
+type alias CreateProjectInputOptionalFields =
+    { description : OptionalArgument String }
+
+
+{-| Type for the CreateProjectInput input object.
+-}
+type alias CreateProjectInput =
+    { name : String
+    , description : OptionalArgument String
+    }
+
+
+{-| Encode a CreateProjectInput into a value that can be used as an argument.
+-}
+encodeCreateProjectInput : CreateProjectInput -> Value
+encodeCreateProjectInput input____ =
+    Encode.maybeObject
+        [ ( "name", Encode.string input____.name |> Just ), ( "description", Encode.string |> Encode.optional input____.description ) ]
+
+
+buildCreateTaskInput :
+    CreateTaskInputRequiredFields
+    -> CreateTaskInput
+buildCreateTaskInput required____ =
+    { projectId = required____.projectId, taskCreation = required____.taskCreation }
+
+
+type alias CreateTaskInputRequiredFields =
+    { projectId : ProjectIdInput
+    , taskCreation : TaskCreation
+    }
+
+
+{-| Type for the CreateTaskInput input object.
+-}
+type alias CreateTaskInput =
+    { projectId : ProjectIdInput
+    , taskCreation : TaskCreation
+    }
+
+
+{-| Encode a CreateTaskInput into a value that can be used as an argument.
+-}
+encodeCreateTaskInput : CreateTaskInput -> Value
+encodeCreateTaskInput input____ =
+    Encode.maybeObject
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "taskCreation", encodeTaskCreation input____.taskCreation |> Just ) ]
+
+
+buildCreationComplement :
+    CreationComplementRequiredFields
+    -> (CreationComplementOptionalFields -> CreationComplementOptionalFields)
+    -> CreationComplement
+buildCreationComplement required____ fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { displayName = Absent }
+    in
+    { displayName = optionals____.displayName, password = required____.password }
+
+
+type alias CreationComplementRequiredFields =
+    { password : String }
+
+
+type alias CreationComplementOptionalFields =
+    { displayName : OptionalArgument String }
+
+
+{-| Type for the CreationComplement input object.
+-}
+type alias CreationComplement =
+    { displayName : OptionalArgument String
+    , password : String
+    }
+
+
+{-| Encode a CreationComplement into a value that can be used as an argument.
+-}
+encodeCreationComplement : CreationComplement -> Value
+encodeCreationComplement input____ =
+    Encode.maybeObject
+        [ ( "displayName", Encode.string |> Encode.optional input____.displayName ), ( "password", Encode.string input____.password |> Just ) ]
 
 
 buildDashboardCreation :
@@ -65,13 +270,12 @@ buildDashboardCreation required____ fillOptionals____ =
             fillOptionals____
                 { description = Absent }
     in
-    { header = required____.header, description = optionals____.description, readAccessors = required____.readAccessors, writeAccessors = required____.writeAccessors }
+    { header = required____.header, description = optionals____.description, visibility = required____.visibility }
 
 
 type alias DashboardCreationRequiredFields =
     { header : String
-    , readAccessors : AccessorsInput
-    , writeAccessors : AccessorsInput
+    , visibility : LondoGQL.Enum.Visibility.Visibility
     }
 
 
@@ -84,8 +288,7 @@ type alias DashboardCreationOptionalFields =
 type alias DashboardCreation =
     { header : String
     , description : OptionalArgument String
-    , readAccessors : AccessorsInput
-    , writeAccessors : AccessorsInput
+    , visibility : LondoGQL.Enum.Visibility.Visibility
     }
 
 
@@ -94,7 +297,32 @@ type alias DashboardCreation =
 encodeDashboardCreation : DashboardCreation -> Value
 encodeDashboardCreation input____ =
     Encode.maybeObject
-        [ ( "header", Encode.string input____.header |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "readAccessors", encodeAccessorsInput input____.readAccessors |> Just ), ( "writeAccessors", encodeAccessorsInput input____.writeAccessors |> Just ) ]
+        [ ( "header", Encode.string input____.header |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "visibility", Encode.enum LondoGQL.Enum.Visibility.toString input____.visibility |> Just ) ]
+
+
+buildDashboardEntryCreation :
+    DashboardEntryCreationRequiredFields
+    -> DashboardEntryCreation
+buildDashboardEntryCreation required____ =
+    { projectId = required____.projectId }
+
+
+type alias DashboardEntryCreationRequiredFields =
+    { projectId : ProjectIdInput }
+
+
+{-| Type for the DashboardEntryCreation input object.
+-}
+type alias DashboardEntryCreation =
+    { projectId : ProjectIdInput }
+
+
+{-| Encode a DashboardEntryCreation into a value that can be used as an argument.
+-}
+encodeDashboardEntryCreation : DashboardEntryCreation -> Value
+encodeDashboardEntryCreation input____ =
+    Encode.maybeObject
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ) ]
 
 
 buildDashboardIdInput :
@@ -132,13 +360,12 @@ buildDashboardUpdate required____ fillOptionals____ =
             fillOptionals____
                 { description = Absent }
     in
-    { header = required____.header, description = optionals____.description, userId = required____.userId, flatIfSingleTask = required____.flatIfSingleTask }
+    { header = required____.header, description = optionals____.description, visibility = required____.visibility }
 
 
 type alias DashboardUpdateRequiredFields =
     { header : String
-    , userId : UserIdInput
-    , flatIfSingleTask : Bool
+    , visibility : LondoGQL.Enum.Visibility.Visibility
     }
 
 
@@ -151,8 +378,7 @@ type alias DashboardUpdateOptionalFields =
 type alias DashboardUpdate =
     { header : String
     , description : OptionalArgument String
-    , userId : UserIdInput
-    , flatIfSingleTask : Bool
+    , visibility : LondoGQL.Enum.Visibility.Visibility
     }
 
 
@@ -161,7 +387,296 @@ type alias DashboardUpdate =
 encodeDashboardUpdate : DashboardUpdate -> Value
 encodeDashboardUpdate input____ =
     Encode.maybeObject
-        [ ( "header", Encode.string input____.header |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "userId", encodeUserIdInput input____.userId |> Just ), ( "flatIfSingleTask", Encode.bool input____.flatIfSingleTask |> Just ) ]
+        [ ( "header", Encode.string input____.header |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "visibility", Encode.enum LondoGQL.Enum.Visibility.toString input____.visibility |> Just ) ]
+
+
+buildDeleteDashboardEntryInput :
+    DeleteDashboardEntryInputRequiredFields
+    -> DeleteDashboardEntryInput
+buildDeleteDashboardEntryInput required____ =
+    { dashboardId = required____.dashboardId, projectId = required____.projectId }
+
+
+type alias DeleteDashboardEntryInputRequiredFields =
+    { dashboardId : DashboardIdInput
+    , projectId : ProjectIdInput
+    }
+
+
+{-| Type for the DeleteDashboardEntryInput input object.
+-}
+type alias DeleteDashboardEntryInput =
+    { dashboardId : DashboardIdInput
+    , projectId : ProjectIdInput
+    }
+
+
+{-| Encode a DeleteDashboardEntryInput into a value that can be used as an argument.
+-}
+encodeDeleteDashboardEntryInput : DeleteDashboardEntryInput -> Value
+encodeDeleteDashboardEntryInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "projectId", encodeProjectIdInput input____.projectId |> Just ) ]
+
+
+buildDeleteDashboardInput :
+    DeleteDashboardInputRequiredFields
+    -> DeleteDashboardInput
+buildDeleteDashboardInput required____ =
+    { dashboardId = required____.dashboardId }
+
+
+type alias DeleteDashboardInputRequiredFields =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Type for the DeleteDashboardInput input object.
+-}
+type alias DeleteDashboardInput =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Encode a DeleteDashboardInput into a value that can be used as an argument.
+-}
+encodeDeleteDashboardInput : DeleteDashboardInput -> Value
+encodeDeleteDashboardInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
+
+
+buildDeleteProjectInput :
+    DeleteProjectInputRequiredFields
+    -> DeleteProjectInput
+buildDeleteProjectInput required____ =
+    { projectId = required____.projectId }
+
+
+type alias DeleteProjectInputRequiredFields =
+    { projectId : ProjectIdInput }
+
+
+{-| Type for the DeleteProjectInput input object.
+-}
+type alias DeleteProjectInput =
+    { projectId : ProjectIdInput }
+
+
+{-| Encode a DeleteProjectInput into a value that can be used as an argument.
+-}
+encodeDeleteProjectInput : DeleteProjectInput -> Value
+encodeDeleteProjectInput input____ =
+    Encode.maybeObject
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ) ]
+
+
+buildDeleteTaskInput :
+    DeleteTaskInputRequiredFields
+    -> DeleteTaskInput
+buildDeleteTaskInput required____ =
+    { projectId = required____.projectId, taskId = required____.taskId }
+
+
+type alias DeleteTaskInputRequiredFields =
+    { projectId : ProjectIdInput
+    , taskId : TaskIdInput
+    }
+
+
+{-| Type for the DeleteTaskInput input object.
+-}
+type alias DeleteTaskInput =
+    { projectId : ProjectIdInput
+    , taskId : TaskIdInput
+    }
+
+
+{-| Encode a DeleteTaskInput into a value that can be used as an argument.
+-}
+encodeDeleteTaskInput : DeleteTaskInput -> Value
+encodeDeleteTaskInput input____ =
+    Encode.maybeObject
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ) ]
+
+
+buildFetchDashboardInput :
+    FetchDashboardInputRequiredFields
+    -> FetchDashboardInput
+buildFetchDashboardInput required____ =
+    { dashboardId = required____.dashboardId }
+
+
+type alias FetchDashboardInputRequiredFields =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Type for the FetchDashboardInput input object.
+-}
+type alias FetchDashboardInput =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Encode a FetchDashboardInput into a value that can be used as an argument.
+-}
+encodeFetchDashboardInput : FetchDashboardInput -> Value
+encodeFetchDashboardInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
+
+
+buildFetchProjectInput :
+    FetchProjectInputRequiredFields
+    -> FetchProjectInput
+buildFetchProjectInput required____ =
+    { projectId = required____.projectId }
+
+
+type alias FetchProjectInputRequiredFields =
+    { projectId : ProjectIdInput }
+
+
+{-| Type for the FetchProjectInput input object.
+-}
+type alias FetchProjectInput =
+    { projectId : ProjectIdInput }
+
+
+{-| Encode a FetchProjectInput into a value that can be used as an argument.
+-}
+encodeFetchProjectInput : FetchProjectInput -> Value
+encodeFetchProjectInput input____ =
+    Encode.maybeObject
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ) ]
+
+
+buildFetchResolvedDashboardInput :
+    FetchResolvedDashboardInputRequiredFields
+    -> FetchResolvedDashboardInput
+buildFetchResolvedDashboardInput required____ =
+    { dashboardId = required____.dashboardId }
+
+
+type alias FetchResolvedDashboardInputRequiredFields =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Type for the FetchResolvedDashboardInput input object.
+-}
+type alias FetchResolvedDashboardInput =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Encode a FetchResolvedDashboardInput into a value that can be used as an argument.
+-}
+encodeFetchResolvedDashboardInput : FetchResolvedDashboardInput -> Value
+encodeFetchResolvedDashboardInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
+
+
+buildFetchResolvedProjectInput :
+    FetchResolvedProjectInputRequiredFields
+    -> FetchResolvedProjectInput
+buildFetchResolvedProjectInput required____ =
+    { projectId = required____.projectId }
+
+
+type alias FetchResolvedProjectInputRequiredFields =
+    { projectId : ProjectIdInput }
+
+
+{-| Type for the FetchResolvedProjectInput input object.
+-}
+type alias FetchResolvedProjectInput =
+    { projectId : ProjectIdInput }
+
+
+{-| Encode a FetchResolvedProjectInput into a value that can be used as an argument.
+-}
+encodeFetchResolvedProjectInput : FetchResolvedProjectInput -> Value
+encodeFetchResolvedProjectInput input____ =
+    Encode.maybeObject
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ) ]
+
+
+buildFindUserInput :
+    FindUserInputRequiredFields
+    -> FindUserInput
+buildFindUserInput required____ =
+    { searchString = required____.searchString }
+
+
+type alias FindUserInputRequiredFields =
+    { searchString : String }
+
+
+{-| Type for the FindUserInput input object.
+-}
+type alias FindUserInput =
+    { searchString : String }
+
+
+{-| Encode a FindUserInput into a value that can be used as an argument.
+-}
+encodeFindUserInput : FindUserInput -> Value
+encodeFindUserInput input____ =
+    Encode.maybeObject
+        [ ( "searchString", Encode.string input____.searchString |> Just ) ]
+
+
+buildLoginInput :
+    LoginInputRequiredFields
+    -> LoginInput
+buildLoginInput required____ =
+    { nickname = required____.nickname, password = required____.password, isValidityUnrestricted = required____.isValidityUnrestricted }
+
+
+type alias LoginInputRequiredFields =
+    { nickname : String
+    , password : String
+    , isValidityUnrestricted : Bool
+    }
+
+
+{-| Type for the LoginInput input object.
+-}
+type alias LoginInput =
+    { nickname : String
+    , password : String
+    , isValidityUnrestricted : Bool
+    }
+
+
+{-| Encode a LoginInput into a value that can be used as an argument.
+-}
+encodeLoginInput : LoginInput -> Value
+encodeLoginInput input____ =
+    Encode.maybeObject
+        [ ( "nickname", Encode.string input____.nickname |> Just ), ( "password", Encode.string input____.password |> Just ), ( "isValidityUnrestricted", Encode.bool input____.isValidityUnrestricted |> Just ) ]
+
+
+buildLogoutInput :
+    LogoutInputRequiredFields
+    -> LogoutInput
+buildLogoutInput required____ =
+    { logoutMode = required____.logoutMode }
+
+
+type alias LogoutInputRequiredFields =
+    { logoutMode : LondoGQL.Enum.LogoutMode.LogoutMode }
+
+
+{-| Type for the LogoutInput input object.
+-}
+type alias LogoutInput =
+    { logoutMode : LondoGQL.Enum.LogoutMode.LogoutMode }
+
+
+{-| Encode a LogoutInput into a value that can be used as an argument.
+-}
+encodeLogoutInput : LogoutInput -> Value
+encodeLogoutInput input____ =
+    Encode.maybeObject
+        [ ( "logoutMode", Encode.enum LondoGQL.Enum.LogoutMode.toString input____.logoutMode |> Just ) ]
 
 
 buildNaturalInput :
@@ -187,123 +702,6 @@ encodeNaturalInput : NaturalInput -> Value
 encodeNaturalInput input____ =
     Encode.maybeObject
         [ ( "nonNegative", Encode.int input____.nonNegative |> Just ) ]
-
-
-buildNonEmptyListOfUserIdInput :
-    NonEmptyListOfUserIdInputRequiredFields
-    -> NonEmptyListOfUserIdInput
-buildNonEmptyListOfUserIdInput required____ =
-    { head = required____.head, tail = required____.tail }
-
-
-type alias NonEmptyListOfUserIdInputRequiredFields =
-    { head : UserIdInput
-    , tail : List UserIdInput
-    }
-
-
-{-| Type for the NonEmptyListOfUserIdInput input object.
--}
-type alias NonEmptyListOfUserIdInput =
-    { head : UserIdInput
-    , tail : List UserIdInput
-    }
-
-
-{-| Encode a NonEmptyListOfUserIdInput into a value that can be used as an argument.
--}
-encodeNonEmptyListOfUserIdInput : NonEmptyListOfUserIdInput -> Value
-encodeNonEmptyListOfUserIdInput input____ =
-    Encode.maybeObject
-        [ ( "head", encodeUserIdInput input____.head |> Just ), ( "tail", (encodeUserIdInput |> Encode.list) input____.tail |> Just ) ]
-
-
-buildPlainCreation :
-    PlainCreationRequiredFields
-    -> (PlainCreationOptionalFields -> PlainCreationOptionalFields)
-    -> PlainCreation
-buildPlainCreation required____ fillOptionals____ =
-    let
-        optionals____ =
-            fillOptionals____
-                { unit = Absent }
-    in
-    { name = required____.name, taskKind = required____.taskKind, unit = optionals____.unit, progress = required____.progress, weight = required____.weight }
-
-
-type alias PlainCreationRequiredFields =
-    { name : String
-    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
-    , progress : ProgressInput
-    , weight : PositiveInput
-    }
-
-
-type alias PlainCreationOptionalFields =
-    { unit : OptionalArgument String }
-
-
-{-| Type for the PlainCreation input object.
--}
-type alias PlainCreation =
-    { name : String
-    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
-    , unit : OptionalArgument String
-    , progress : ProgressInput
-    , weight : PositiveInput
-    }
-
-
-{-| Encode a PlainCreation into a value that can be used as an argument.
--}
-encodePlainCreation : PlainCreation -> Value
-encodePlainCreation input____ =
-    Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "progress", encodeProgressInput input____.progress |> Just ), ( "weight", encodePositiveInput input____.weight |> Just ) ]
-
-
-buildPlainUpdate :
-    PlainUpdateRequiredFields
-    -> (PlainUpdateOptionalFields -> PlainUpdateOptionalFields)
-    -> PlainUpdate
-buildPlainUpdate required____ fillOptionals____ =
-    let
-        optionals____ =
-            fillOptionals____
-                { unit = Absent }
-    in
-    { name = required____.name, taskKind = required____.taskKind, unit = optionals____.unit, weight = required____.weight, progressUpdate = required____.progressUpdate }
-
-
-type alias PlainUpdateRequiredFields =
-    { name : String
-    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
-    , weight : PositiveInput
-    , progressUpdate : ProgressUpdate
-    }
-
-
-type alias PlainUpdateOptionalFields =
-    { unit : OptionalArgument String }
-
-
-{-| Type for the PlainUpdate input object.
--}
-type alias PlainUpdate =
-    { name : String
-    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
-    , unit : OptionalArgument String
-    , weight : PositiveInput
-    , progressUpdate : ProgressUpdate
-    }
-
-
-{-| Encode a PlainUpdate into a value that can be used as an argument.
--}
-encodePlainUpdate : PlainUpdate -> Value
-encodePlainUpdate input____ =
-    Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "weight", encodePositiveInput input____.weight |> Just ), ( "progressUpdate", encodeProgressUpdate input____.progressUpdate |> Just ) ]
 
 
 buildPositiveInput :
@@ -389,50 +787,6 @@ encodeProgressUpdate input____ =
         [ ( "reached", encodeNaturalInput input____.reached |> Just ), ( "reachable", encodePositiveInput input____.reachable |> Just ) ]
 
 
-buildProjectCreation :
-    ProjectCreationRequiredFields
-    -> (ProjectCreationOptionalFields -> ProjectCreationOptionalFields)
-    -> ProjectCreation
-buildProjectCreation required____ fillOptionals____ =
-    let
-        optionals____ =
-            fillOptionals____
-                { description = Absent }
-    in
-    { name = required____.name, description = optionals____.description, flatIfSingleTask = required____.flatIfSingleTask, readAccessors = required____.readAccessors, writeAccessors = required____.writeAccessors }
-
-
-type alias ProjectCreationRequiredFields =
-    { name : String
-    , flatIfSingleTask : Bool
-    , readAccessors : AccessorsInput
-    , writeAccessors : AccessorsInput
-    }
-
-
-type alias ProjectCreationOptionalFields =
-    { description : OptionalArgument String }
-
-
-{-| Type for the ProjectCreation input object.
--}
-type alias ProjectCreation =
-    { name : String
-    , description : OptionalArgument String
-    , flatIfSingleTask : Bool
-    , readAccessors : AccessorsInput
-    , writeAccessors : AccessorsInput
-    }
-
-
-{-| Encode a ProjectCreation into a value that can be used as an argument.
--}
-encodeProjectCreation : ProjectCreation -> Value
-encodeProjectCreation input____ =
-    Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "flatIfSingleTask", Encode.bool input____.flatIfSingleTask |> Just ), ( "readAccessors", encodeAccessorsInput input____.readAccessors |> Just ), ( "writeAccessors", encodeAccessorsInput input____.writeAccessors |> Just ) ]
-
-
 buildProjectIdInput :
     ProjectIdInputRequiredFields
     -> ProjectIdInput
@@ -458,133 +812,98 @@ encodeProjectIdInput input____ =
         [ ( "uuid", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecUuid) input____.uuid |> Just ) ]
 
 
-buildProjectReferenceCreation :
-    ProjectReferenceCreationRequiredFields
-    -> ProjectReferenceCreation
-buildProjectReferenceCreation required____ =
-    { weight = required____.weight, projectReferenceId = required____.projectReferenceId }
+buildRequestRecoveryInput :
+    RequestRecoveryInputRequiredFields
+    -> RequestRecoveryInput
+buildRequestRecoveryInput required____ =
+    { userId = required____.userId }
 
 
-type alias ProjectReferenceCreationRequiredFields =
-    { weight : PositiveInput
-    , projectReferenceId : ProjectIdInput
-    }
+type alias RequestRecoveryInputRequiredFields =
+    { userId : UserIdInput }
 
 
-{-| Type for the ProjectReferenceCreation input object.
+{-| Type for the RequestRecoveryInput input object.
 -}
-type alias ProjectReferenceCreation =
-    { weight : PositiveInput
-    , projectReferenceId : ProjectIdInput
-    }
+type alias RequestRecoveryInput =
+    { userId : UserIdInput }
 
 
-{-| Encode a ProjectReferenceCreation into a value that can be used as an argument.
+{-| Encode a RequestRecoveryInput into a value that can be used as an argument.
 -}
-encodeProjectReferenceCreation : ProjectReferenceCreation -> Value
-encodeProjectReferenceCreation input____ =
+encodeRequestRecoveryInput : RequestRecoveryInput -> Value
+encodeRequestRecoveryInput input____ =
     Encode.maybeObject
-        [ ( "weight", encodePositiveInput input____.weight |> Just ), ( "projectReferenceId", encodeProjectIdInput input____.projectReferenceId |> Just ) ]
+        [ ( "userId", encodeUserIdInput input____.userId |> Just ) ]
 
 
-buildProjectReferenceUpdate :
-    ProjectReferenceUpdateRequiredFields
-    -> ProjectReferenceUpdate
-buildProjectReferenceUpdate required____ =
-    { projectReferenceId = required____.projectReferenceId, weight = required____.weight }
+buildRequestRegistrationInput :
+    RequestRegistrationInputRequiredFields
+    -> RequestRegistrationInput
+buildRequestRegistrationInput required____ =
+    { userIdentifier = required____.userIdentifier }
 
 
-type alias ProjectReferenceUpdateRequiredFields =
-    { projectReferenceId : ProjectIdInput
-    , weight : PositiveInput
-    }
+type alias RequestRegistrationInputRequiredFields =
+    { userIdentifier : UserIdentifier }
 
 
-{-| Type for the ProjectReferenceUpdate input object.
+{-| Type for the RequestRegistrationInput input object.
 -}
-type alias ProjectReferenceUpdate =
-    { projectReferenceId : ProjectIdInput
-    , weight : PositiveInput
-    }
+type alias RequestRegistrationInput =
+    { userIdentifier : UserIdentifier }
 
 
-{-| Encode a ProjectReferenceUpdate into a value that can be used as an argument.
+{-| Encode a RequestRegistrationInput into a value that can be used as an argument.
 -}
-encodeProjectReferenceUpdate : ProjectReferenceUpdate -> Value
-encodeProjectReferenceUpdate input____ =
+encodeRequestRegistrationInput : RequestRegistrationInput -> Value
+encodeRequestRegistrationInput input____ =
     Encode.maybeObject
-        [ ( "projectReferenceId", encodeProjectIdInput input____.projectReferenceId |> Just ), ( "weight", encodePositiveInput input____.weight |> Just ) ]
+        [ ( "userIdentifier", encodeUserIdentifier input____.userIdentifier |> Just ) ]
 
 
-buildProjectUpdate :
-    ProjectUpdateRequiredFields
-    -> (ProjectUpdateOptionalFields -> ProjectUpdateOptionalFields)
-    -> ProjectUpdate
-buildProjectUpdate required____ fillOptionals____ =
+buildTaskCreation :
+    TaskCreationRequiredFields
+    -> (TaskCreationOptionalFields -> TaskCreationOptionalFields)
+    -> TaskCreation
+buildTaskCreation required____ fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
-                { description = Absent }
+                { unit = Absent }
     in
-    { name = required____.name, description = optionals____.description, ownerId = required____.ownerId, flatIfSingleTask = required____.flatIfSingleTask }
+    { name = required____.name, taskKind = required____.taskKind, unit = optionals____.unit, progress = required____.progress, counting = required____.counting }
 
 
-type alias ProjectUpdateRequiredFields =
+type alias TaskCreationRequiredFields =
     { name : String
-    , ownerId : UserIdInput
-    , flatIfSingleTask : Bool
+    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
+    , progress : ProgressInput
+    , counting : Bool
     }
 
 
-type alias ProjectUpdateOptionalFields =
-    { description : OptionalArgument String }
+type alias TaskCreationOptionalFields =
+    { unit : OptionalArgument String }
 
 
-{-| Type for the ProjectUpdate input object.
+{-| Type for the TaskCreation input object.
 -}
-type alias ProjectUpdate =
+type alias TaskCreation =
     { name : String
-    , description : OptionalArgument String
-    , ownerId : UserIdInput
-    , flatIfSingleTask : Bool
+    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
+    , unit : OptionalArgument String
+    , progress : ProgressInput
+    , counting : Bool
     }
 
 
-{-| Encode a ProjectUpdate into a value that can be used as an argument.
+{-| Encode a TaskCreation into a value that can be used as an argument.
 -}
-encodeProjectUpdate : ProjectUpdate -> Value
-encodeProjectUpdate input____ =
+encodeTaskCreation : TaskCreation -> Value
+encodeTaskCreation input____ =
     Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "ownerId", encodeUserIdInput input____.ownerId |> Just ), ( "flatIfSingleTask", Encode.bool input____.flatIfSingleTask |> Just ) ]
-
-
-buildProjectWeightOnDashboardInput :
-    ProjectWeightOnDashboardInputRequiredFields
-    -> ProjectWeightOnDashboardInput
-buildProjectWeightOnDashboardInput required____ =
-    { projectId = required____.projectId, weight = required____.weight }
-
-
-type alias ProjectWeightOnDashboardInputRequiredFields =
-    { projectId : ProjectIdInput
-    , weight : NaturalInput
-    }
-
-
-{-| Type for the ProjectWeightOnDashboardInput input object.
--}
-type alias ProjectWeightOnDashboardInput =
-    { projectId : ProjectIdInput
-    , weight : NaturalInput
-    }
-
-
-{-| Encode a ProjectWeightOnDashboardInput into a value that can be used as an argument.
--}
-encodeProjectWeightOnDashboardInput : ProjectWeightOnDashboardInput -> Value
-encodeProjectWeightOnDashboardInput input____ =
-    Encode.maybeObject
-        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "weight", encodeNaturalInput input____.weight |> Just ) ]
+        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "progress", encodeProgressInput input____.progress |> Just ), ( "counting", Encode.bool input____.counting |> Just ) ]
 
 
 buildTaskIdInput :
@@ -612,66 +931,210 @@ encodeTaskIdInput input____ =
         [ ( "uuid", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecUuid) input____.uuid |> Just ) ]
 
 
-buildTaskKeyInput :
-    TaskKeyInputRequiredFields
-    -> TaskKeyInput
-buildTaskKeyInput required____ =
-    { projectId = required____.projectId, taskId = required____.taskId }
+buildTaskUpdate :
+    TaskUpdateRequiredFields
+    -> (TaskUpdateOptionalFields -> TaskUpdateOptionalFields)
+    -> TaskUpdate
+buildTaskUpdate required____ fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { unit = Absent }
+    in
+    { name = required____.name, taskKind = required____.taskKind, unit = optionals____.unit, counting = required____.counting, progressUpdate = required____.progressUpdate }
 
 
-type alias TaskKeyInputRequiredFields =
+type alias TaskUpdateRequiredFields =
+    { name : String
+    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
+    , counting : Bool
+    , progressUpdate : ProgressUpdate
+    }
+
+
+type alias TaskUpdateOptionalFields =
+    { unit : OptionalArgument String }
+
+
+{-| Type for the TaskUpdate input object.
+-}
+type alias TaskUpdate =
+    { name : String
+    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
+    , unit : OptionalArgument String
+    , counting : Bool
+    , progressUpdate : ProgressUpdate
+    }
+
+
+{-| Encode a TaskUpdate into a value that can be used as an argument.
+-}
+encodeTaskUpdate : TaskUpdate -> Value
+encodeTaskUpdate input____ =
+    Encode.maybeObject
+        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "counting", Encode.bool input____.counting |> Just ), ( "progressUpdate", encodeProgressUpdate input____.progressUpdate |> Just ) ]
+
+
+buildUpdateDashboardInput :
+    UpdateDashboardInputRequiredFields
+    -> UpdateDashboardInput
+buildUpdateDashboardInput required____ =
+    { dashboardId = required____.dashboardId, dashboardUpdate = required____.dashboardUpdate }
+
+
+type alias UpdateDashboardInputRequiredFields =
+    { dashboardId : DashboardIdInput
+    , dashboardUpdate : DashboardUpdate
+    }
+
+
+{-| Type for the UpdateDashboardInput input object.
+-}
+type alias UpdateDashboardInput =
+    { dashboardId : DashboardIdInput
+    , dashboardUpdate : DashboardUpdate
+    }
+
+
+{-| Encode a UpdateDashboardInput into a value that can be used as an argument.
+-}
+encodeUpdateDashboardInput : UpdateDashboardInput -> Value
+encodeUpdateDashboardInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "dashboardUpdate", encodeDashboardUpdate input____.dashboardUpdate |> Just ) ]
+
+
+buildUpdatePasswordInput :
+    UpdatePasswordInputRequiredFields
+    -> UpdatePasswordInput
+buildUpdatePasswordInput required____ =
+    { password = required____.password }
+
+
+type alias UpdatePasswordInputRequiredFields =
+    { password : String }
+
+
+{-| Type for the UpdatePasswordInput input object.
+-}
+type alias UpdatePasswordInput =
+    { password : String }
+
+
+{-| Encode a UpdatePasswordInput into a value that can be used as an argument.
+-}
+encodeUpdatePasswordInput : UpdatePasswordInput -> Value
+encodeUpdatePasswordInput input____ =
+    Encode.maybeObject
+        [ ( "password", Encode.string input____.password |> Just ) ]
+
+
+buildUpdateProjectInput :
+    UpdateProjectInputRequiredFields
+    -> (UpdateProjectInputOptionalFields -> UpdateProjectInputOptionalFields)
+    -> UpdateProjectInput
+buildUpdateProjectInput required____ fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { description = Absent }
+    in
+    { projectId = required____.projectId, name = required____.name, description = optionals____.description }
+
+
+type alias UpdateProjectInputRequiredFields =
+    { projectId : ProjectIdInput
+    , name : String
+    }
+
+
+type alias UpdateProjectInputOptionalFields =
+    { description : OptionalArgument String }
+
+
+{-| Type for the UpdateProjectInput input object.
+-}
+type alias UpdateProjectInput =
+    { projectId : ProjectIdInput
+    , name : String
+    , description : OptionalArgument String
+    }
+
+
+{-| Encode a UpdateProjectInput into a value that can be used as an argument.
+-}
+encodeUpdateProjectInput : UpdateProjectInput -> Value
+encodeUpdateProjectInput input____ =
+    Encode.maybeObject
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "name", Encode.string input____.name |> Just ), ( "description", Encode.string |> Encode.optional input____.description ) ]
+
+
+buildUpdateTaskInput :
+    UpdateTaskInputRequiredFields
+    -> UpdateTaskInput
+buildUpdateTaskInput required____ =
+    { projectId = required____.projectId, taskId = required____.taskId, taskUpdate = required____.taskUpdate }
+
+
+type alias UpdateTaskInputRequiredFields =
     { projectId : ProjectIdInput
     , taskId : TaskIdInput
+    , taskUpdate : TaskUpdate
     }
 
 
-{-| Type for the TaskKeyInput input object.
+{-| Type for the UpdateTaskInput input object.
 -}
-type alias TaskKeyInput =
+type alias UpdateTaskInput =
     { projectId : ProjectIdInput
     , taskId : TaskIdInput
+    , taskUpdate : TaskUpdate
     }
 
 
-{-| Encode a TaskKeyInput into a value that can be used as an argument.
+{-| Encode a UpdateTaskInput into a value that can be used as an argument.
 -}
-encodeTaskKeyInput : TaskKeyInput -> Value
-encodeTaskKeyInput input____ =
+encodeUpdateTaskInput : UpdateTaskInput -> Value
+encodeUpdateTaskInput input____ =
     Encode.maybeObject
-        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ) ]
+        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ) ]
 
 
-buildUserCreation :
-    UserCreationRequiredFields
-    -> UserCreation
-buildUserCreation required____ =
-    { nickname = required____.nickname, email = required____.email, password = required____.password, token = required____.token }
+buildUpdateUserInput :
+    UpdateUserInputRequiredFields
+    -> (UpdateUserInputOptionalFields -> UpdateUserInputOptionalFields)
+    -> UpdateUserInput
+buildUpdateUserInput required____ fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { displayName = Absent }
+    in
+    { displayName = optionals____.displayName, email = required____.email }
 
 
-type alias UserCreationRequiredFields =
-    { nickname : String
+type alias UpdateUserInputRequiredFields =
+    { email : String }
+
+
+type alias UpdateUserInputOptionalFields =
+    { displayName : OptionalArgument String }
+
+
+{-| Type for the UpdateUserInput input object.
+-}
+type alias UpdateUserInput =
+    { displayName : OptionalArgument String
     , email : String
-    , password : String
-    , token : String
     }
 
 
-{-| Type for the UserCreation input object.
+{-| Encode a UpdateUserInput into a value that can be used as an argument.
 -}
-type alias UserCreation =
-    { nickname : String
-    , email : String
-    , password : String
-    , token : String
-    }
-
-
-{-| Encode a UserCreation into a value that can be used as an argument.
--}
-encodeUserCreation : UserCreation -> Value
-encodeUserCreation input____ =
+encodeUpdateUserInput : UpdateUserInput -> Value
+encodeUpdateUserInput input____ =
     Encode.maybeObject
-        [ ( "nickname", Encode.string input____.nickname |> Just ), ( "email", Encode.string input____.email |> Just ), ( "password", Encode.string input____.password |> Just ), ( "token", Encode.string input____.token |> Just ) ]
+        [ ( "displayName", Encode.string |> Encode.optional input____.displayName ), ( "email", Encode.string input____.email |> Just ) ]
 
 
 buildUserIdInput :
@@ -697,3 +1160,32 @@ encodeUserIdInput : UserIdInput -> Value
 encodeUserIdInput input____ =
     Encode.maybeObject
         [ ( "uuid", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecUuid) input____.uuid |> Just ) ]
+
+
+buildUserIdentifier :
+    UserIdentifierRequiredFields
+    -> UserIdentifier
+buildUserIdentifier required____ =
+    { nickname = required____.nickname, email = required____.email }
+
+
+type alias UserIdentifierRequiredFields =
+    { nickname : String
+    , email : String
+    }
+
+
+{-| Type for the UserIdentifier input object.
+-}
+type alias UserIdentifier =
+    { nickname : String
+    , email : String
+    }
+
+
+{-| Encode a UserIdentifier into a value that can be used as an argument.
+-}
+encodeUserIdentifier : UserIdentifier -> Value
+encodeUserIdentifier input____ =
+    Encode.maybeObject
+        [ ( "nickname", Encode.string input____.nickname |> Just ), ( "email", Encode.string input____.email |> Just ) ]

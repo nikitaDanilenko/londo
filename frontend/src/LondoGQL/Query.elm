@@ -19,20 +19,27 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-type alias FetchUserRequiredArguments =
-    { userId : LondoGQL.InputObject.UserIdInput }
-
-
 fetchUser :
-    FetchUserRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.User
+    SelectionSet decodesTo LondoGQL.Object.User
     -> SelectionSet decodesTo RootQuery
-fetchUser requiredArgs____ object____ =
-    Object.selectionForCompositeField "fetchUser" [ Argument.required "userId" requiredArgs____.userId LondoGQL.InputObject.encodeUserIdInput ] object____ Basics.identity
+fetchUser object____ =
+    Object.selectionForCompositeField "fetchUser" [] object____ Basics.identity
+
+
+type alias FindUserRequiredArguments =
+    { input : LondoGQL.InputObject.FindUserInput }
+
+
+findUser :
+    FindUserRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.FindUserResult
+    -> SelectionSet (List decodesTo) RootQuery
+findUser requiredArgs____ object____ =
+    Object.selectionForCompositeField "findUser" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFindUserInput ] object____ (Basics.identity >> Decode.list)
 
 
 type alias FetchProjectRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput }
+    { input : LondoGQL.InputObject.FetchProjectInput }
 
 
 fetchProject :
@@ -40,44 +47,30 @@ fetchProject :
     -> SelectionSet decodesTo LondoGQL.Object.Project
     -> SelectionSet decodesTo RootQuery
 fetchProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "fetchProject" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput ] object____ Basics.identity
+    Object.selectionForCompositeField "fetchProject" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchProjectInput ] object____ Basics.identity
 
 
-type alias ProjectProgressRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput }
+type alias FetchResolvedProjectRequiredArguments =
+    { input : LondoGQL.InputObject.FetchResolvedProjectInput }
 
 
-projectProgress :
-    ProjectProgressRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Progress
-    -> SelectionSet (Maybe decodesTo) RootQuery
-projectProgress requiredArgs____ object____ =
-    Object.selectionForCompositeField "projectProgress" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput ] object____ (Basics.identity >> Decode.nullable)
+fetchResolvedProject :
+    FetchResolvedProjectRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedProject
+    -> SelectionSet decodesTo RootQuery
+fetchResolvedProject requiredArgs____ object____ =
+    Object.selectionForCompositeField "fetchResolvedProject" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchResolvedProjectInput ] object____ Basics.identity
 
 
-fetchOwn :
+fetchAllProjects :
     SelectionSet decodesTo LondoGQL.Object.Project
     -> SelectionSet (List decodesTo) RootQuery
-fetchOwn object____ =
-    Object.selectionForCompositeField "fetchOwn" [] object____ (Basics.identity >> Decode.list)
-
-
-fetchWithReadAccess :
-    SelectionSet decodesTo LondoGQL.Object.Project
-    -> SelectionSet (List decodesTo) RootQuery
-fetchWithReadAccess object____ =
-    Object.selectionForCompositeField "fetchWithReadAccess" [] object____ (Basics.identity >> Decode.list)
-
-
-fetchWithWriteAccess :
-    SelectionSet decodesTo LondoGQL.Object.Project
-    -> SelectionSet (List decodesTo) RootQuery
-fetchWithWriteAccess object____ =
-    Object.selectionForCompositeField "fetchWithWriteAccess" [] object____ (Basics.identity >> Decode.list)
+fetchAllProjects object____ =
+    Object.selectionForCompositeField "fetchAllProjects" [] object____ (Basics.identity >> Decode.list)
 
 
 type alias FetchDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput }
+    { input : LondoGQL.InputObject.FetchDashboardInput }
 
 
 fetchDashboard :
@@ -85,16 +78,23 @@ fetchDashboard :
     -> SelectionSet decodesTo LondoGQL.Object.Dashboard
     -> SelectionSet decodesTo RootQuery
 fetchDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "fetchDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput ] object____ Basics.identity
+    Object.selectionForCompositeField "fetchDashboard" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchDashboardInput ] object____ Basics.identity
 
 
-type alias DashboardProgressRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput }
+type alias FetchResolvedDashboardRequiredArguments =
+    { input : LondoGQL.InputObject.FetchResolvedDashboardInput }
 
 
-dashboardProgress :
-    DashboardProgressRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Progress
-    -> SelectionSet (Maybe decodesTo) RootQuery
-dashboardProgress requiredArgs____ object____ =
-    Object.selectionForCompositeField "dashboardProgress" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput ] object____ (Basics.identity >> Decode.nullable)
+fetchResolvedDashboard :
+    FetchResolvedDashboardRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedDashboard
+    -> SelectionSet decodesTo RootQuery
+fetchResolvedDashboard requiredArgs____ object____ =
+    Object.selectionForCompositeField "fetchResolvedDashboard" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchResolvedDashboardInput ] object____ Basics.identity
+
+
+fetchAllDashboards :
+    SelectionSet decodesTo LondoGQL.Object.Dashboard
+    -> SelectionSet (List decodesTo) RootQuery
+fetchAllDashboards object____ =
+    Object.selectionForCompositeField "fetchAllDashboards" [] object____ (Basics.identity >> Decode.list)

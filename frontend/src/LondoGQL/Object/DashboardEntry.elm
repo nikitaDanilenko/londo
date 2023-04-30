@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.UserSettings exposing (..)
+module LondoGQL.Object.DashboardEntry exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,6 +19,8 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-darkMode : SelectionSet Bool LondoGQL.Object.UserSettings
-darkMode =
-    Object.selectionForField "Bool" "darkMode" [] Decode.bool
+projectId :
+    SelectionSet decodesTo LondoGQL.Object.ProjectId
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardEntry
+projectId object____ =
+    Object.selectionForCompositeField "projectId" [] object____ Basics.identity

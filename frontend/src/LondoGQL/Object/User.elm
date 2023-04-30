@@ -31,20 +31,11 @@ nickname =
     Object.selectionForField "String" "nickname" [] Decode.string
 
 
+displayName : SelectionSet (Maybe String) LondoGQL.Object.User
+displayName =
+    Object.selectionForField "(Maybe String)" "displayName" [] (Decode.string |> Decode.nullable)
+
+
 email : SelectionSet String LondoGQL.Object.User
 email =
     Object.selectionForField "String" "email" [] Decode.string
-
-
-settings :
-    SelectionSet decodesTo LondoGQL.Object.UserSettings
-    -> SelectionSet decodesTo LondoGQL.Object.User
-settings object____ =
-    Object.selectionForCompositeField "settings" [] object____ Basics.identity
-
-
-details :
-    SelectionSet decodesTo LondoGQL.Object.UserDetails
-    -> SelectionSet decodesTo LondoGQL.Object.User
-details object____ =
-    Object.selectionForCompositeField "details" [] object____ Basics.identity

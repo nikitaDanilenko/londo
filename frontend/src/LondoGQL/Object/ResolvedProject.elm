@@ -19,58 +19,15 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-id :
-    SelectionSet decodesTo LondoGQL.Object.ProjectId
+project :
+    SelectionSet decodesTo LondoGQL.Object.Project
     -> SelectionSet decodesTo LondoGQL.Object.ResolvedProject
-id object____ =
-    Object.selectionForCompositeField "id" [] object____ Basics.identity
+project object____ =
+    Object.selectionForCompositeField "project" [] object____ Basics.identity
 
 
-plainTasks :
-    SelectionSet decodesTo LondoGQL.Object.ResolvedPlain
+tasks :
+    SelectionSet decodesTo LondoGQL.Object.Task
     -> SelectionSet (List decodesTo) LondoGQL.Object.ResolvedProject
-plainTasks object____ =
-    Object.selectionForCompositeField "plainTasks" [] object____ (Basics.identity >> Decode.list)
-
-
-projectReferenceTasks :
-    SelectionSet decodesTo LondoGQL.Object.ResolvedProjectReference
-    -> SelectionSet (List decodesTo) LondoGQL.Object.ResolvedProject
-projectReferenceTasks object____ =
-    Object.selectionForCompositeField "projectReferenceTasks" [] object____ (Basics.identity >> Decode.list)
-
-
-name : SelectionSet String LondoGQL.Object.ResolvedProject
-name =
-    Object.selectionForField "String" "name" [] Decode.string
-
-
-description : SelectionSet (Maybe String) LondoGQL.Object.ResolvedProject
-description =
-    Object.selectionForField "(Maybe String)" "description" [] (Decode.string |> Decode.nullable)
-
-
-ownerId :
-    SelectionSet decodesTo LondoGQL.Object.UserId
-    -> SelectionSet decodesTo LondoGQL.Object.ResolvedProject
-ownerId object____ =
-    Object.selectionForCompositeField "ownerId" [] object____ Basics.identity
-
-
-flatIfSingleTask : SelectionSet Bool LondoGQL.Object.ResolvedProject
-flatIfSingleTask =
-    Object.selectionForField "Bool" "flatIfSingleTask" [] Decode.bool
-
-
-readAccessors :
-    SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo LondoGQL.Object.ResolvedProject
-readAccessors object____ =
-    Object.selectionForCompositeField "readAccessors" [] object____ Basics.identity
-
-
-writeAccessors :
-    SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo LondoGQL.Object.ResolvedProject
-writeAccessors object____ =
-    Object.selectionForCompositeField "writeAccessors" [] object____ Basics.identity
+tasks object____ =
+    Object.selectionForCompositeField "tasks" [] object____ (Basics.identity >> Decode.list)

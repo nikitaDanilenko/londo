@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.ResolvedPlain exposing (..)
+module LondoGQL.Object.Task exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -22,35 +22,33 @@ import LondoGQL.Union
 
 id :
     SelectionSet decodesTo LondoGQL.Object.TaskId
-    -> SelectionSet decodesTo LondoGQL.Object.ResolvedPlain
+    -> SelectionSet decodesTo LondoGQL.Object.Task
 id object____ =
     Object.selectionForCompositeField "id" [] object____ Basics.identity
 
 
-name : SelectionSet String LondoGQL.Object.ResolvedPlain
+name : SelectionSet String LondoGQL.Object.Task
 name =
     Object.selectionForField "String" "name" [] Decode.string
 
 
-taskKind : SelectionSet LondoGQL.Enum.TaskKind.TaskKind LondoGQL.Object.ResolvedPlain
+taskKind : SelectionSet LondoGQL.Enum.TaskKind.TaskKind LondoGQL.Object.Task
 taskKind =
     Object.selectionForField "Enum.TaskKind.TaskKind" "taskKind" [] LondoGQL.Enum.TaskKind.decoder
 
 
-unit : SelectionSet (Maybe String) LondoGQL.Object.ResolvedPlain
+unit : SelectionSet (Maybe String) LondoGQL.Object.Task
 unit =
     Object.selectionForField "(Maybe String)" "unit" [] (Decode.string |> Decode.nullable)
 
 
 progress :
     SelectionSet decodesTo LondoGQL.Object.Progress
-    -> SelectionSet decodesTo LondoGQL.Object.ResolvedPlain
+    -> SelectionSet decodesTo LondoGQL.Object.Task
 progress object____ =
     Object.selectionForCompositeField "progress" [] object____ Basics.identity
 
 
-weight :
-    SelectionSet decodesTo LondoGQL.Object.Positive
-    -> SelectionSet decodesTo LondoGQL.Object.ResolvedPlain
-weight object____ =
-    Object.selectionForCompositeField "weight" [] object____ Basics.identity
+counting : SelectionSet Bool LondoGQL.Object.Task
+counting =
+    Object.selectionForField "Bool" "counting" [] Decode.bool

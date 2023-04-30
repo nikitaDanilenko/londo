@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.Accessors exposing (..)
+module LondoGQL.Object.FindUserResult exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,13 +19,13 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-isAllowList : SelectionSet Bool LondoGQL.Object.Accessors
-isAllowList =
-    Object.selectionForField "Bool" "isAllowList" [] Decode.bool
+id :
+    SelectionSet decodesTo LondoGQL.Object.UserId
+    -> SelectionSet decodesTo LondoGQL.Object.FindUserResult
+id object____ =
+    Object.selectionForCompositeField "id" [] object____ Basics.identity
 
 
-userIds :
-    SelectionSet decodesTo LondoGQL.Object.NonEmptyList
-    -> SelectionSet (Maybe decodesTo) LondoGQL.Object.Accessors
-userIds object____ =
-    Object.selectionForCompositeField "userIds" [] object____ (Basics.identity >> Decode.nullable)
+nickname : SelectionSet String LondoGQL.Object.FindUserResult
+nickname =
+    Object.selectionForField "String" "nickname" [] Decode.string

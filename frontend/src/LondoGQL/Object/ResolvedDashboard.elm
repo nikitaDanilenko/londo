@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.WeightedProject exposing (..)
+module LondoGQL.Object.ResolvedDashboard exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,15 +19,15 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-resolvedProject :
-    SelectionSet decodesTo LondoGQL.Object.ResolvedProject
-    -> SelectionSet decodesTo LondoGQL.Object.WeightedProject
-resolvedProject object____ =
-    Object.selectionForCompositeField "resolvedProject" [] object____ Basics.identity
+dashboard :
+    SelectionSet decodesTo LondoGQL.Object.Dashboard
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedDashboard
+dashboard object____ =
+    Object.selectionForCompositeField "dashboard" [] object____ Basics.identity
 
 
-weight :
-    SelectionSet decodesTo LondoGQL.Object.Positive
-    -> SelectionSet decodesTo LondoGQL.Object.WeightedProject
-weight object____ =
-    Object.selectionForCompositeField "weight" [] object____ Basics.identity
+entries :
+    SelectionSet decodesTo LondoGQL.Object.DashboardEntry
+    -> SelectionSet (List decodesTo) LondoGQL.Object.ResolvedDashboard
+entries object____ =
+    Object.selectionForCompositeField "entries" [] object____ (Basics.identity >> Decode.list)
