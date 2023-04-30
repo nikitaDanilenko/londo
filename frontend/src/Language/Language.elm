@@ -2,7 +2,7 @@ module Language.Language exposing (..)
 
 
 type alias Language =
-    { createRegistrationToken : CreateRegistrationToken
+    { requestRegistration : RequestRegistration
     , userCreation : UserCreation
     , login : Login
     , overview : Overview
@@ -12,11 +12,13 @@ type alias Language =
     }
 
 
-type alias CreateRegistrationToken =
-    { enterEmailForRegistrationRequest : String
-    , requestTokenForRegistration : String
-    , tokenRequestSuccessful : String
-    , tokenRequestFailed : String
+type alias RequestRegistration =
+    { header : String
+    , nickname : String
+    , email : String
+    , register : String
+    , registrationSuccessful : String
+    , registrationFailed : String
     }
 
 
@@ -100,11 +102,13 @@ default =
 
 english : Language
 english =
-    { createRegistrationToken =
-        { enterEmailForRegistrationRequest = "Email for registration"
-        , requestTokenForRegistration = "Request registration"
-        , tokenRequestSuccessful = "Successfully requested token! Check your email to proceed!"
-        , tokenRequestFailed = "There was an error requesting the token. Please try again!"
+    { requestRegistration =
+        { header = "Registration"
+        , nickname = "Nickname"
+        , email = "Email for registration"
+        , register = "Request registration"
+        , registrationSuccessful = "Successfully requested token! Check your email to proceed!"
+        , registrationFailed = "There was an error requesting the token. Please try again!"
         }
     , userCreation =
         { nickname = "User name"
