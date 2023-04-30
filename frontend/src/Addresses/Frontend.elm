@@ -1,12 +1,10 @@
 module Addresses.Frontend exposing (..)
 
 import Addresses.ParserUtil as ParserUtil exposing (AddressWithParser, nicknameEmailParser, with1, with2)
-import LondoGQL.Scalar
 import Pages.Util.ScalarUtil as ScalarUtil
 import Types.Auxiliary exposing (JWT, UserIdentifier)
 import Types.ProjectId as ProjectId exposing (ProjectId)
 import Url.Parser as Parser exposing (s)
-import Uuid
 
 
 requestRegistration : AddressWithParser () a a
