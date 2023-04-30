@@ -2,6 +2,7 @@ module Util.HttpUtil exposing (..)
 
 import Graphql.Http
 import Json.Decode
+import RemoteData exposing (RemoteData)
 
 
 type alias ErrorExplanation =
@@ -56,7 +57,7 @@ errorToExplanation error =
             }
 
 
-graphQLErrorToExplanation : Graphql.Http.Error String -> ErrorExplanation
+graphQLErrorToExplanation : Graphql.Http.Error a -> ErrorExplanation
 graphQLErrorToExplanation error =
     case error of
         Graphql.Http.GraphqlError _ graphqlErrors ->
@@ -72,3 +73,7 @@ graphQLErrorToExplanation error =
 
         Graphql.Http.HttpError httpError ->
             errorToExplanation httpError
+
+
+type alias GraphQLResult a =
+    Result (Graphql.Http.Error a) a
