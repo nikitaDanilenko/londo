@@ -1,6 +1,6 @@
 module Types.UserId exposing (..)
 
-import LondoGQL.InputObject exposing (UserIdInput)
+import LondoGQL.InputObject
 import LondoGQL.Scalar exposing (Uuid)
 
 
@@ -13,7 +13,6 @@ uuid (UserId u) =
     u
 
 
-toInput : UserId -> UserIdInput
-toInput userId =
-    { uuid = uuid userId
-    }
+toInput : UserId -> LondoGQL.InputObject.UserIdInput
+toInput =
+    uuid >> LondoGQL.InputObject.UserIdInput

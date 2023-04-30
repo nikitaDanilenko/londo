@@ -12,5 +12,7 @@ uuid : ProjectId -> Uuid
 uuid (ProjectId u) =
     u
 
+
 toInput : ProjectId -> LondoGQL.InputObject.ProjectIdInput
-toInput = uuid >> LondoGQL.InputObject.ProjectIdInput
+toInput =
+    uuid >> LondoGQL.InputObject.ProjectIdInput
