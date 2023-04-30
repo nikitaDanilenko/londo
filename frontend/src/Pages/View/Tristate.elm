@@ -165,7 +165,7 @@ fromInitToMain with t =
         |> Maybe.Extra.unwrap t (Main >> Model t.configuration)
 
 
-toError : Model main initial -> Graphql.Http.Error String -> Model main initial
+toError : Model main initial -> Graphql.Http.Error a -> Model main initial
 toError model error =
     let
         errorExplanation =
