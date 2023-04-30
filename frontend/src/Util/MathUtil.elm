@@ -1,4 +1,4 @@
-module Pages.Util.MathUtil exposing (..)
+module Util.MathUtil exposing (..)
 
 import Basics.Extra exposing (flip)
 
