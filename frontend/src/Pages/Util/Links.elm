@@ -7,6 +7,7 @@ import Configuration exposing (Configuration)
 import Html exposing (Attribute, Html, text)
 import Html.Attributes exposing (href)
 import Loading
+import Pages.Util.Style as Style
 import Url.Builder
 
 
@@ -44,6 +45,17 @@ frontendPage configuration pathSteps =
         ++ pathSteps
         |> flip Url.Builder.relative []
 
+toLoginButton :
+    { configuration : Configuration
+    , buttonText : String
+    }
+    -> Html msg
+toLoginButton params =
+    toLoginButtonWith
+        { configuration = params.configuration
+        , buttonText = params.buttonText
+        , attributes = [ Style.classes.button.navigation ]
+        }
 
 toLoginButtonWith :
     { configuration : Configuration
