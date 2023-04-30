@@ -3,6 +3,7 @@ module Language.Language exposing (..)
 
 type alias Language =
     { requestRegistration : RequestRegistration
+    , confirmRegistration : ConfirmRegistration
     , userCreation : UserCreation
     , login : Login
     , overview : Overview
@@ -19,6 +20,20 @@ type alias RequestRegistration =
     , register : String
     , registrationSuccessful : String
     , registrationFailed : String
+    , mainPage : String
+    }
+
+
+type alias ConfirmRegistration =
+    { header : String
+    , nickname : String
+    , email : String
+    , displayName : String
+    , password : String
+    , passwordRepetition : String
+    , confirm : String
+    , successfullyCreatedUser: String
+    , mainPage : String
     }
 
 
@@ -109,6 +124,18 @@ english =
         , register = "Request registration"
         , registrationSuccessful = "Successfully requested token! Check your email to proceed!"
         , registrationFailed = "There was an error requesting the token. Please try again!"
+        , mainPage = "Main page"
+        }
+    , confirmRegistration =
+        { header = "Confirm registration"
+        , nickname = "Nickname"
+        , email = "Email"
+        , displayName = "Display name (optional)"
+        , password = "Password"
+        , passwordRepetition = "Password repetition"
+        , confirm = "Confirm"
+        , successfullyCreatedUser = "User creation successful"
+        , mainPage = "Main Page"
         }
     , userCreation =
         { nickname = "User name"

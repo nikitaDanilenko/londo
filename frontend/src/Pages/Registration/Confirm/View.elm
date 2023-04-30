@@ -6,6 +6,7 @@ import Html exposing (Html, button, div, input, label, table, tbody, td, text, t
 import Html.Attributes exposing (disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
+import Language.Language as Language
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Pages.Registration.Confirm.Page as Page
@@ -60,19 +61,19 @@ viewEditing main =
                 |> Compose.lensWithLens PasswordInput.lenses.password2
     in
     div [ Style.ids.confirmRegistration ]
-        [ div [] [ label [ Style.classes.info ] [ text "Confirm registration" ] ]
+        [ div [] [ label [ Style.classes.info ] [ text <| main.language.header ] ]
         , table []
             [ tbody []
                 [ tr []
-                    [ td [] [ label [] [ text "Nickname" ] ]
+                    [ td [] [ label [] [ text <| main.language.nickname ] ]
                     , td [] [ label [] [ text <| main.userIdentifier.nickname ] ]
                     ]
                 , tr []
-                    [ td [] [ label [] [ text "Email" ] ]
+                    [ td [] [ label [] [ text <| main.language.email ] ]
                     , td [] [ label [] [ text <| main.userIdentifier.email ] ]
                     ]
                 , tr []
-                    [ td [] [ label [] [ text "Display name (optional)" ] ]
+                    [ td [] [ label [] [ text <| main.language.displayName ] ]
                     , td []
                         [ input
                             ([ MaybeUtil.defined <|
@@ -92,7 +93,7 @@ viewEditing main =
                         ]
                     ]
                 , tr []
-                    [ td [] [ label [] [ text "Password" ] ]
+                    [ td [] [ label [] [ text <| main.language.password ] ]
                     , td []
                         [ input
                             ([ MaybeUtil.defined <|
@@ -111,7 +112,7 @@ viewEditing main =
                         ]
                     ]
                 , tr []
-                    [ td [] [ label [] [ text "Password repetition" ] ]
+                    [ td [] [ label [] [ text <| main.language.passwordRepetition ] ]
                     , td []
                         [ input
                             ([ MaybeUtil.defined <|
@@ -137,19 +138,19 @@ viewEditing main =
                 , Style.classes.button.confirm
                 , disabled <| not <| isValid
                 ]
-                [ text "Confirm" ]
+                [ text <| main.language.confirm ]
             ]
         ]
 
 
-viewConfirmed : Configuration -> Html Page.LogicMsg
-viewConfirmed configuration =
+viewConfirmed : Configuration -> Language.ConfirmRegistration -> Html Page.LogicMsg
+viewConfirmed configuration language =
     div [ Style.ids.confirmRegistration ]
-        [ div [] [ label [] [ text "User creation successful." ] ]
+        [ div [] [ label [] [ text <| language.successfullyCreatedUser ] ]
         , div []
             [ Links.toLoginButton
                 { configuration = configuration
-                , buttonText = "Main page"
+                , buttonText = language.mainPage
                 }
             ]
         ]

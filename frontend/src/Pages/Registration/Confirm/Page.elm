@@ -1,6 +1,7 @@
 module Pages.Registration.Confirm.Page exposing (..)
 
 import Configuration exposing (Configuration)
+import Language.Language as Language
 import LondoGQL.Scalar exposing (Unit)
 import Monocle.Lens exposing (Lens)
 import Pages.Util.ComplementInput as ComplementInput exposing (ComplementInput)
@@ -18,6 +19,7 @@ type alias Main =
     , complementInput : ComplementInput
     , registrationJWT : JWT
     , mode : Mode
+    , language: Language.ConfirmRegistration
     }
 
 
@@ -27,6 +29,7 @@ initial flags =
     , complementInput = ComplementInput.initial
     , registrationJWT = flags.registrationJWT
     , mode = Editing
+    , language = Language.default.confirmRegistration
     }
         |> Tristate.createMain flags.configuration
 

@@ -108,7 +108,7 @@ viewConfirmed configuration language =
         , div []
             [ Links.toLoginButton
                 { configuration = configuration
-                , buttonText = "Main page"
+                , buttonText = language.mainPage
                 }
             ]
         ]
