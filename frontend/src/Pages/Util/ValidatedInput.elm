@@ -1,11 +1,12 @@
-module Pages.Util.FromInput exposing
-    ( FromInput
+module Pages.Util.ValidatedInput exposing
+    ( ValidatedInput
     , boundedNatural
     , emptyText
     , isValid
     , lift
     , limitTo
     , natural
+    , nonEmptyString
     , percentualProgress
     , positive
     , text
@@ -23,7 +24,7 @@ import Types.Positive as Positive exposing (Positive)
 import Types.Progress exposing (Progress)
 
 
-type alias FromInput a =
+type alias ValidatedInput a =
     { value : a
     , ifEmptyValue : a
     , text : String
@@ -32,12 +33,12 @@ type alias FromInput a =
     }
 
 
-text : Lens (FromInput a) String
+text : Lens (ValidatedInput a) String
 text =
     Lens .text (\b a -> { a | text = b })
 
 
-value : Lens (FromInput a) a
+value : Lens (ValidatedInput a) a
 value =
     Lens .value (\b a -> { a | value = b })
 
@@ -48,7 +49,7 @@ emptyText :
     , parse : String -> Result String a
     , isPartial : String -> Bool
     }
-    -> FromInput a
+    -> ValidatedInput a
 emptyText params =
     { value = params.value
     , ifEmptyValue = params.ifEmptyValue
@@ -58,7 +59,7 @@ emptyText params =
     }
 
 
-isValid : FromInput a -> Bool
+isValid : ValidatedInput a -> Bool
 isValid fromInput =
     case fromInput.parse fromInput.text of
         Ok v ->
@@ -68,7 +69,7 @@ isValid fromInput =
             False
 
 
-setWithLens : Lens model (FromInput a) -> String -> model -> model
+setWithLens : Lens model (ValidatedInput a) -> String -> model -> model
 setWithLens lens txt model =
     let
         fromInput =
@@ -92,12 +93,12 @@ setWithLens lens txt model =
             lens.set possiblyValid model
 
 
-lift : Lens model (FromInput a) -> Lens model String
+lift : Lens model (ValidatedInput a) -> Lens model String
 lift lens =
     Lens (lens.get >> .text) (setWithLens lens)
 
 
-natural : FromInput Natural
+natural : ValidatedInput Natural
 natural =
     let
         zero =
@@ -135,7 +136,7 @@ natural =
         }
 
 
-boundedNatural : Natural -> FromInput Natural
+boundedNatural : Natural -> ValidatedInput Natural
 boundedNatural n =
     let
         zero =
@@ -155,7 +156,7 @@ boundedNatural n =
         }
 
 
-limitTo : Natural -> FromInput Natural -> FromInput Natural
+limitTo : Natural -> ValidatedInput Natural -> ValidatedInput Natural
 limitTo n fi =
     { fi
         | parse = boundedNaturalParser n
@@ -163,7 +164,7 @@ limitTo n fi =
     }
 
 
-positive : FromInput Positive
+positive : ValidatedInput Positive
 positive =
     let
         one =
@@ -201,7 +202,7 @@ positive =
         }
 
 
-percentualProgress : FromInput Progress
+percentualProgress : ValidatedInput Progress
 percentualProgress =
     let
         zero =
@@ -304,3 +305,16 @@ boundedNaturalParser n =
                     )
     in
     parseNatural
+
+
+nonEmptyString : ValidatedInput String
+nonEmptyString =
+    { value = ""
+    , ifEmptyValue = ""
+    , text = ""
+    , parse =
+        Just
+            >> Maybe.Extra.filter (String.isEmpty >> not)
+            >> Result.fromMaybe "Error: Empty string"
+    , partial = always True
+    }
