@@ -40,7 +40,7 @@ viewMain configuration main =
                 viewEditing main
 
             Page.Confirmed ->
-                viewConfirmed configuration
+                viewConfirmed configuration main.language
 
 
 viewEditing : Page.Main -> Html Page.LogicMsg
