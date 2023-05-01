@@ -8,7 +8,7 @@ module Addresses.ParserUtil exposing
     , with2
     )
 
-import LondoGQL.Scalar exposing (Uuid)
+import LondoGQL.Scalar exposing (Uuid(..))
 import Url.Parser as Parser exposing ((</>), Parser, s)
 import Uuid
 
