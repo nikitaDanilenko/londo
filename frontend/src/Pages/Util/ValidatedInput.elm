@@ -9,8 +9,7 @@ module Pages.Util.ValidatedInput exposing
     , nonEmptyString
     , percentualProgress
     , positive
-    , text
-    , value
+    , lenses
     )
 
 import Basics.Extra exposing (flip)
@@ -18,10 +17,10 @@ import Integer exposing (Integer)
 import List.Extra
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
-import Util.MathUtil as MathUtil
 import Types.Natural as Natural exposing (Natural)
 import Types.Positive as Positive exposing (Positive)
 import Types.Progress exposing (Progress)
+import Util.MathUtil as MathUtil
 
 
 type alias ValidatedInput a =
@@ -33,14 +32,16 @@ type alias ValidatedInput a =
     }
 
 
-text : Lens (ValidatedInput a) String
-text =
-    Lens .text (\b a -> { a | text = b })
-
-
-value : Lens (ValidatedInput a) a
-value =
-    Lens .value (\b a -> { a | value = b })
+lenses :
+    { text : Lens (ValidatedInput a) String
+    , value : Lens (ValidatedInput a) a
+    }
+lenses =
+    { text =
+        Lens .text (\b a -> { a | text = b })
+    , value =
+        Lens .value (\b a -> { a | value = b })
+    }
 
 
 emptyText :
@@ -78,7 +79,7 @@ setWithLens lens txt model =
         possiblyValid =
             if String.isEmpty txt || fromInput.partial txt then
                 fromInput
-                    |> text.set txt
+                    |> lenses.text.set txt
 
             else
                 fromInput
@@ -86,7 +87,7 @@ setWithLens lens txt model =
     case fromInput.parse txt of
         Ok v ->
             possiblyValid
-                |> value.set v
+                |> lenses.value.set v
                 |> flip lens.set model
 
         Err _ ->
