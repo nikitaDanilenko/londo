@@ -10,6 +10,9 @@ classes :
         { add : Attribute msg
         , cancel : Attribute msg
         , confirm : Attribute msg
+        , delete : Attribute msg
+        , edit : Attribute msg
+        , editor : Attribute msg
         , error : Attribute msg
         , menu : Attribute msg
         , navigation : Attribute msg
@@ -20,10 +23,12 @@ classes :
     , disabled : Attribute msg
     , editable : Attribute msg
     , editing : Attribute msg
+    , editLine : Attribute msg
     , elementsWithControlsTable : Attribute msg
     , ellipsis : Attribute msg
     , info : Attribute msg
     , pagination : Attribute msg
+    , projectEditTable : Attribute msg
     , search :
         { area : Attribute msg
         , field : Attribute msg
@@ -37,6 +42,9 @@ classes =
         { add = class "add-button"
         , cancel = class "cancel-button"
         , confirm = class "confirm-button"
+        , delete = class "delete-button"
+        , edit = class "edit-button"
+        , editor = class "editor-button"
         , error = class "error-button"
         , menu = class "menu-button"
         , navigation = class "navigation-button"
@@ -47,10 +55,12 @@ classes =
     , disabled = class "disabled"
     , editable = class "editable"
     , editing = class "editing"
+    , editLine = class "edit-line"
     , elementsWithControlsTable = class "elements-with-controls-table"
     , ellipsis = class "ellipsis"
     , info = class "info"
     , pagination = class "pagination"
+    , projectEditTable = class "project-edit-table"
     , search =
         { area = class "search-area"
         , field = class "search-field"
@@ -61,7 +71,8 @@ classes =
 
 
 ids :
-    { confirmRegistration : Attribute msg
+    { addProjectView : Attribute msg
+    , confirmRegistration : Attribute msg
     , error : Attribute msg
     , login : Attribute msg
     , navigation : Attribute msg
@@ -70,7 +81,8 @@ ids :
     , requestRegistration : Attribute msg
     }
 ids =
-    { confirmRegistration = id "confirm-registration"
+    { addProjectView = id "add-project-view"
+    , confirmRegistration = id "confirm-registration"
     , error = id "error"
     , login = id "login"
     , navigation = id "navigation"

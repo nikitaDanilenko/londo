@@ -23,23 +23,24 @@ viewParentsWith :
     , matchesSearchText : String -> parent -> Bool
     , sort : List (Editing parent update) -> List (Editing parent update)
     , tableHeader : Html msg
-    , viewLine : Configuration -> parent -> Bool -> List (Html msg)
-    , updateLine : parent -> update -> List (Html msg)
-    , deleteLine : parent -> List (Html msg)
+    , viewLine : language -> Configuration -> parent -> Bool -> List (Html msg)
+    , updateLine : language -> parent -> update -> List (Html msg)
+    , deleteLine : language -> parent -> List (Html msg)
     , create :
-        { ifCreating : creation -> List (Html msg)
+        { ifCreating : language -> creation -> List (Html msg)
         , default : creation
-        , label : String
+        , label : language -> String
         , update : Maybe creation -> msg
         }
     , setSearchString : String -> msg
     , setPagination : Pagination -> msg
     , styling : Attribute msg
     }
+    -> language
     -> Configuration
     -> Page.Main parentId parent creation update language
     -> Html msg
-viewParentsWith ps configuration main =
+viewParentsWith ps language configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
         , currentPage = Just ps.currentPage
@@ -49,9 +50,9 @@ viewParentsWith ps configuration main =
         let
             viewParent =
                 Editing.unpack
-                    { onView = ps.viewLine configuration
-                    , onUpdate = ps.updateLine
-                    , onDelete = ps.deleteLine
+                    { onView = ps.viewLine language configuration
+                    , onUpdate = ps.updateLine language
+                    , onDelete = ps.deleteLine language
                     }
 
             viewParents =
@@ -73,14 +74,14 @@ viewParentsWith ps configuration main =
                         ( [ div [ Style.classes.add ]
                                 [ creationButton
                                     { defaultCreation = ps.create.default
-                                    , label = ps.create.label
+                                    , label = ps.create.label language
                                     , updateCreationMsg = ps.create.update
                                     }
                                 ]
                           ]
                         , []
                         )
-                        (ps.create.ifCreating >> Tuple.pair [])
+                        (ps.create.ifCreating language >> Tuple.pair [])
         in
         div [ ps.styling ]
             (button
