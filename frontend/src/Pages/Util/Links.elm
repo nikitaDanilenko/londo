@@ -3,6 +3,7 @@ module Pages.Util.Links exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Bootstrap.Button
+import Browser.Navigation
 import Configuration exposing (Configuration)
 import Html exposing (Attribute, Html, text)
 import Html.Attributes exposing (href)
@@ -45,6 +46,12 @@ frontendPage configuration pathSteps =
         ++ pathSteps
         |> flip Url.Builder.relative []
 
+
+loadFrontendPage : Configuration -> List String -> Cmd msg
+loadFrontendPage configuration =
+    frontendPage configuration >> Browser.Navigation.load
+
+
 toLoginButton :
     { configuration : Configuration
     , buttonText : String
@@ -56,6 +63,7 @@ toLoginButton params =
         , buttonText = params.buttonText
         , attributes = [ Style.classes.button.navigation ]
         }
+
 
 toLoginButtonWith :
     { configuration : Configuration
