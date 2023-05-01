@@ -1,5 +1,6 @@
 module Pages.Projects.Page exposing (..)
 
+import Language.Language
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
@@ -30,13 +31,15 @@ type alias Creation =
 type alias Update =
     Types.Project.Update.ClientInput
 
+type alias Language =
+    Language.Language.ProjectEditor
 
 type alias Main =
-    Pages.Util.ParentEditor.Page.Main Id Project Creation Update
+    Pages.Util.ParentEditor.Page.Main Id Project Creation Update Language
 
 
 type alias Initial =
-    Pages.Util.ParentEditor.Page.Initial Id Project Update
+    Pages.Util.ParentEditor.Page.Initial Id Project Update Language
 
 
 type alias ProjectState =

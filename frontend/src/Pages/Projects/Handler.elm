@@ -1,6 +1,7 @@
 module Pages.Projects.Handler exposing (init, update)
 
 import Addresses.Frontend
+import Language.Language
 import Pages.Projects.Page as Page
 import Pages.Util.ParentEditor.Handler
 import Pages.Util.ParentEditor.Page
@@ -12,7 +13,7 @@ import Types.Project.Update
 
 init : Page.Flags -> ( Page.Model, Cmd Page.Msg )
 init flags =
-    ( Pages.Util.ParentEditor.Page.initial flags.authorizedAccess
+    ( Pages.Util.ParentEditor.Page.initial flags.authorizedAccess Language.Language.default.projectEditor
     , Types.Project.Project.fetchAllWith
         Pages.Util.ParentEditor.Page.GotFetchResponse
         flags.authorizedAccess
