@@ -4,7 +4,7 @@ import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (autocomplete, type_)
+import Html.Attributes exposing (autocomplete, colspan, type_)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Monocle.Lens as Lens
@@ -84,22 +84,29 @@ viewMain configuration main =
                                 []
                             ]
                         ]
+                    , tr []
+                        [ td [ colspan 2 ]
+                            [ button [ onClick Page.Login, Style.classes.button.confirm ] [ text <| main.language.login ]
+                            ]
+                        ]
+                    , tr []
+                        [ td [ colspan 2 ]
+                            [ Links.linkButton
+                                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRegistration.address ()
+                                , attributes = [ Style.classes.button.navigation ]
+                                , children = [ text <| main.language.createAccount ]
+                                }
+                            ]
+                        ]
+                    , tr []
+                        [ td [ colspan 2 ]
+                            [ Links.linkButton
+                                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRecovery.address ()
+                                , attributes = [ Style.classes.button.navigation ]
+                                , children = [ text <| main.language.recoverAccount ]
+                                }
+                            ]
+                        ]
                     ]
-                ]
-            , div []
-                [ button [ onClick Page.Login, Style.classes.button.confirm ] [ text <| main.language.login ] ]
-            , div []
-                [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.requestRegistration.address ()
-                    , attributes = [ Style.classes.button.navigation ]
-                    , children = [ text <| main.language.createAccount ]
-                    }
-                ]
-            , div []
-                [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.requestRecovery.address ()
-                    , attributes = [ Style.classes.button.navigation ]
-                    , children = [ text <| main.language.recoverAccount ]
-                    }
                 ]
             ]
