@@ -9,7 +9,7 @@ import LondoGQL.Object.ProjectId
 import LondoGQL.Query
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
-import Types.Project.ProjectId exposing (ProjectId)
+import Types.Project.ProjectId exposing (ProjectId(..))
 import Util.HttpUtil as HttpUtil
 
 
