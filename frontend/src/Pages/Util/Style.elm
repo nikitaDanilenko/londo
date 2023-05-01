@@ -9,6 +9,7 @@ classes :
         { confirm : Attribute msg
         , error : Attribute msg
         , navigation : Attribute msg
+        , overview : Attribute msg
         , pager : Attribute msg
         }
     , disabled : Attribute msg
@@ -21,6 +22,7 @@ classes =
         { confirm = class "confirm-button"
         , error = class "error-button"
         , navigation = class "navigation-button"
+        , overview = class "overview-button"
         , pager = class "pager-button"
         }
     , disabled = class "disabled"
@@ -35,6 +37,7 @@ ids :
     , error : Attribute msg
     , login : Attribute msg
     , navigation : Attribute msg
+    , overview : Attribute msg
     , registrationRequestSent : Attribute msg
     , requestRegistration : Attribute msg
     }
@@ -43,6 +46,7 @@ ids =
     , error = id "error"
     , login = id "login"
     , navigation = id "navigation"
+    , overview = id "overview"
     , registrationRequestSent = id "registration-request-sent"
     , requestRegistration = id "request-registration"
     }
