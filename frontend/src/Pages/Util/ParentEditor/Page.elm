@@ -10,34 +10,37 @@ import Util.Editing exposing (Editing)
 import Util.HttpUtil as HttpUtil
 
 
-type alias Model parentId parent creation update =
-    Tristate.Model (Main parentId parent creation update) (Initial parentId parent update)
+type alias Model parentId parent creation update language =
+    Tristate.Model (Main parentId parent creation update language) (Initial parentId parent update language)
 
 
-type alias Main parentId parent creation update =
+type alias Main parentId parent creation update language =
     { jwt : JWT
     , parents : DictList parentId (Editing parent update)
     , parentCreation : Maybe creation
     , searchString : String
     , pagination : Pagination
+    , language : language
     }
 
 
-type alias Initial parentId parent update =
+type alias Initial parentId parent update language =
     { jwt : JWT
     , parents : Maybe (DictList parentId (Editing parent update))
+    , language : language
     }
 
 
-initial : AuthorizedAccess -> Model parentId parent creation update
-initial authorizedAccess =
+initial : AuthorizedAccess -> language -> Model parentId parent creation update language
+initial authorizedAccess language =
     { parents = Nothing
     , jwt = authorizedAccess.jwt
+    , language = language
     }
         |> Tristate.createInitial authorizedAccess.configuration
 
 
-initialToMain : Initial parentId parent update -> Maybe (Main parentId parent creation update)
+initialToMain : Initial parentId parent update language -> Maybe (Main parentId parent creation update language)
 initialToMain i =
     i.parents
         |> Maybe.map
@@ -47,17 +50,18 @@ initialToMain i =
                 , parentCreation = Nothing
                 , searchString = ""
                 , pagination = Pagination.initial
+                , language = i.language
                 }
             )
 
 
 lenses :
-    { initial : { parents : Lens (Initial parentId parent update) (Maybe (DictList parentId (Editing parent update))) }
+    { initial : { parents : Lens (Initial parentId parent update language) (Maybe (DictList parentId (Editing parent update))) }
     , main :
-        { parents : Lens (Main parentId parent creation update) (DictList parentId (Editing parent update))
-        , parentCreation : Lens (Main parentId parent creation update) (Maybe creation)
-        , searchString : Lens (Main parentId parent creation update) String
-        , pagination : Lens (Main parentId parent creation update) Pagination
+        { parents : Lens (Main parentId parent creation update language) (DictList parentId (Editing parent update))
+        , parentCreation : Lens (Main parentId parent creation update language) (Maybe creation)
+        , searchString : Lens (Main parentId parent creation update language) String
+        , pagination : Lens (Main parentId parent creation update language) Pagination
         }
     }
 lenses =

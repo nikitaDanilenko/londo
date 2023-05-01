@@ -5,8 +5,10 @@ import Html.Attributes exposing (class, id)
 
 
 classes :
-    { button :
-        { cancel : Attribute msg
+    { add : Attribute msg
+    , button :
+        { add : Attribute msg
+        , cancel : Attribute msg
         , confirm : Attribute msg
         , error : Attribute msg
         , menu : Attribute msg
@@ -14,19 +16,26 @@ classes :
         , overview : Attribute msg
         , pager : Attribute msg
         }
+    , controls : Attribute msg
     , disabled : Attribute msg
     , editable : Attribute msg
+    , editing : Attribute msg
+    , elementsWithControlsTable : Attribute msg
     , ellipsis : Attribute msg
     , info : Attribute msg
+    , pagination : Attribute msg
     , search :
         { area : Attribute msg
         , field : Attribute msg
         }
+    , tableHeader : Attribute msg
     , toggle : Attribute msg
     }
 classes =
-    { button =
-        { cancel = class "cancel-button"
+    { add = class "add"
+    , button =
+        { add = class "add-button"
+        , cancel = class "cancel-button"
         , confirm = class "confirm-button"
         , error = class "error-button"
         , menu = class "menu-button"
@@ -34,14 +43,19 @@ classes =
         , overview = class "overview-button"
         , pager = class "pager-button"
         }
+    , controls = class "controls"
     , disabled = class "disabled"
     , editable = class "editable"
+    , editing = class "editing"
+    , elementsWithControlsTable = class "elements-with-controls-table"
     , ellipsis = class "ellipsis"
     , info = class "info"
+    , pagination = class "pagination"
     , search =
         { area = class "search-area"
         , field = class "search-field"
         }
+    , tableHeader = class "table-header"
     , toggle = class "toggle"
     }
 

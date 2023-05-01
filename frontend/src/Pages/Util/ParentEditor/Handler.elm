@@ -24,8 +24,8 @@ updateLogic :
     , delete : AuthorizedAccess -> parentId -> Cmd (Page.LogicMsg parentId parent creation update)
     }
     -> Page.LogicMsg parentId parent creation update
-    -> Page.Model parentId parent creation update
-    -> ( Page.Model parentId parent creation update, Cmd (Page.LogicMsg parentId parent creation update) )
+    -> Page.Model parentId parent creation update language
+    -> ( Page.Model parentId parent creation update language, Cmd (Page.LogicMsg parentId parent creation update) )
 updateLogic ps msg model =
     let
         gotFetchResponse result =
@@ -259,7 +259,11 @@ updateLogic ps msg model =
             setSearchString string
 
 
-mapParentStateById : parentId -> (Editing parent update -> Editing parent update) -> Page.Model parentId parent creation update -> Page.Model parentId parent creation update
+mapParentStateById :
+    parentId
+    -> (Editing parent update -> Editing parent update)
+    -> Page.Model parentId parent creation update language
+    -> Page.Model parentId parent creation update language
 mapParentStateById parentId =
     LensUtil.updateById parentId Page.lenses.main.parents
         >> Tristate.mapMain

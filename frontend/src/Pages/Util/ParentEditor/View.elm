@@ -37,16 +37,14 @@ viewParentsWith :
     , styling : Attribute msg
     }
     -> Configuration
-    -> Page.Main parentId parent creation update
+    -> Page.Main parentId parent creation update language
     -> Html msg
 viewParentsWith ps configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
-        , jwt = .jwt >> Just
         , currentPage = Just ps.currentPage
         , showNavigation = True
         }
-        main
     <|
         let
             viewParent =
@@ -72,7 +70,7 @@ viewParentsWith ps configuration main =
             ( button, creationLine ) =
                 main.parentCreation
                     |> Maybe.Extra.unwrap
-                        ( [ div [ Style.ids.add ]
+                        ( [ div [ Style.classes.add ]
                                 [ creationButton
                                     { defaultCreation = ps.create.default
                                     , label = ps.create.label
