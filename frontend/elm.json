@@ -6,6 +6,8 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "Gizra/elm-keyboard-event": "1.0.1",
+            "SwiftsNamesake/proper-keyboard": "4.0.0",
             "TSFoster/elm-uuid": "4.1.0",
             "arturopala/elm-monocle": "2.2.0",
             "chain-partners/elm-bignum": "1.0.1",
@@ -21,6 +23,7 @@
             "elm-community/list-extra": "8.3.1",
             "elm-community/maybe-extra": "5.2.0",
             "elm-community/result-extra": "2.4.0",
+            "icidasset/elm-material-icons": "11.0.0",
             "jschomay/elm-paginate": "3.1.2",
             "krisajenkins/remotedata": "6.0.1",
             "mgold/elm-nonempty-list": "4.2.0",
@@ -40,6 +43,7 @@
             "elm/http": "2.0.0",
             "elm/random": "1.0.0",
             "elm/regex": "1.0.0",
+            "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/virtual-dom": "1.0.2",
             "jschomay/elm-bounded-number": "2.1.2",
