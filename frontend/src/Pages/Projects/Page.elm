@@ -31,8 +31,10 @@ type alias Creation =
 type alias Update =
     Types.Project.Update.ClientInput
 
+
 type alias Language =
     Language.Language.ProjectEditor
+
 
 type alias Main =
     Pages.Util.ParentEditor.Page.Main Id Project Creation Update Language
