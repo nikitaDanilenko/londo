@@ -86,7 +86,7 @@ type LogicMsg parentId parent creation update
     | RequestDelete parentId
     | ConfirmDelete parentId
     | CancelDelete parentId
-    | GotDeleteResponse parentId (HttpUtil.GraphQLResult ())
+    | GotDeleteResponse parentId (HttpUtil.GraphQLResult Bool)
     | GotFetchResponse (HttpUtil.GraphQLResult (List parent))
     | SetPagination Pagination
     | SetSearchString String
