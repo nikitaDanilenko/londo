@@ -32,7 +32,7 @@ type alias ConfirmRegistration =
     , password : String
     , passwordRepetition : String
     , confirm : String
-    , successfullyCreatedUser: String
+    , successfullyCreatedUser : String
     , mainPage : String
     }
 
@@ -50,16 +50,13 @@ type alias UserCreation =
     }
 
 
-
---todo: Add password recovery parts
-
-
 type alias Login =
     { nickname : String
     , password : String
     , login : String
-    , wrongCombination : String
-    , tryAgain : String
+    , keepMeLoggedIn : String
+    , createAccount : String
+    , recoverAccount : String
     }
 
 
@@ -151,9 +148,10 @@ english =
     , login =
         { nickname = "User name"
         , password = "Password"
-        , login = "Log in"
-        , wrongCombination = "Wrong combination of user name and password"
-        , tryAgain = "Try again?"
+        , login = "Log In"
+        , keepMeLoggedIn = "Keep me logged in"
+        , createAccount = "Create account"
+        , recoverAccount = "Recover account"
         }
     , overview =
         { dashboards = "Dashboards"

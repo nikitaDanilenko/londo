@@ -33,6 +33,7 @@ classes =
 ids :
     { confirmRegistration : Attribute msg
     , error : Attribute msg
+    , login : Attribute msg
     , navigation : Attribute msg
     , registrationRequestSent : Attribute msg
     , requestRegistration : Attribute msg
@@ -40,6 +41,7 @@ ids :
 ids =
     { confirmRegistration = id "confirm-registration"
     , error = id "error"
+    , login = id "login"
     , navigation = id "navigation"
     , registrationRequestSent = id "registration-request-sent"
     , requestRegistration = id "request-registration"
