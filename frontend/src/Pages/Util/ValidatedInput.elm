@@ -18,7 +18,7 @@ import Integer exposing (Integer)
 import List.Extra
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
-import Pages.Util.MathUtil as MathUtil
+import Util.MathUtil as MathUtil
 import Types.Natural as Natural exposing (Natural)
 import Types.Positive as Positive exposing (Positive)
 import Types.Progress exposing (Progress)
