@@ -91,8 +91,10 @@ type alias TaskEditor =
 
 
 type alias ProjectEditor =
-    { newProject : String
-    , remove : String
+    { add : String
+    , newProject : String
+    , delete : String
+    , confirmDelete : String
     , edit : String
     , taskEditor : String
     , name : String
@@ -180,8 +182,10 @@ english =
         , save = "Save"
         }
     , projectEditor =
-        { newProject = "New project"
-        , remove = "Remove"
+        { add = "Add"
+        , newProject = "New project"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
         , edit = "Edit"
         , taskEditor = "Task editor"
         , name = "Project name"
