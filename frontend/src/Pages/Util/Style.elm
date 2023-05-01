@@ -6,8 +6,10 @@ import Html.Attributes exposing (class, id)
 
 classes :
     { button :
-        { confirm : Attribute msg
+        { cancel : Attribute msg
+        , confirm : Attribute msg
         , error : Attribute msg
+        , menu : Attribute msg
         , navigation : Attribute msg
         , overview : Attribute msg
         , pager : Attribute msg
@@ -16,11 +18,18 @@ classes :
     , editable : Attribute msg
     , ellipsis : Attribute msg
     , info : Attribute msg
+    , search :
+        { area : Attribute msg
+        , field : Attribute msg
+        }
+    , toggle : Attribute msg
     }
 classes =
     { button =
-        { confirm = class "confirm-button"
+        { cancel = class "cancel-button"
+        , confirm = class "confirm-button"
         , error = class "error-button"
+        , menu = class "menu-button"
         , navigation = class "navigation-button"
         , overview = class "overview-button"
         , pager = class "pager-button"
@@ -29,6 +38,11 @@ classes =
     , editable = class "editable"
     , ellipsis = class "ellipsis"
     , info = class "info"
+    , search =
+        { area = class "search-area"
+        , field = class "search-field"
+        }
+    , toggle = class "toggle"
     }
 
 
