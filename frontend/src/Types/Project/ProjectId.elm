@@ -1,4 +1,4 @@
-module Types.ProjectId exposing (..)
+module Types.Project.ProjectId exposing (..)
 
 import LondoGQL.InputObject
 import LondoGQL.Scalar exposing (Uuid)

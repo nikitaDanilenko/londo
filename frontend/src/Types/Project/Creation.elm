@@ -1,9 +1,14 @@
-module Pages.Projects.Creation exposing (..)
+module Types.Project.Creation exposing (..)
 
+import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject exposing (CreateProjectInput)
+import LondoGQL.Mutation
 import Monocle.Lens exposing (Lens)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
+import Types.Project.Project
+import Util.HttpUtil as HttpUtil
 
 
 type alias ClientInput =
@@ -34,3 +39,19 @@ toCreation input =
     { name = input.name.value
     , description = input.description |> OptionalArgument.fromMaybe
     }
+
+
+createWith :
+    (HttpUtil.GraphQLResult Types.Project.Project.Project -> msg)
+    -> AuthorizedAccess
+    -> ClientInput
+    -> Cmd msg
+createWith expect authorizedAccess creation =
+    LondoGQL.Mutation.createProject
+        { input = creation |> toCreation }
+        Types.Project.Project.selection
+        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
+        |> HttpUtil.sendWithJWT
+            { jwt = authorizedAccess.jwt
+            , expect = expect
+            }
