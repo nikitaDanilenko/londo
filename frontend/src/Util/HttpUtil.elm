@@ -82,13 +82,13 @@ userTokenHeader =
 
 sendWithJWT :
     { jwt : JWT
-    , mkExpectMsg : GraphQLResult a -> msg
+    , expect : GraphQLResult a -> msg
     }
     -> Graphql.Http.Request a
     -> Cmd msg
 sendWithJWT ps =
     Graphql.Http.withHeader userTokenHeader ps.jwt
-        >> Graphql.Http.send ps.mkExpectMsg
+        >> Graphql.Http.send ps.expect
 
 
 type alias GraphQLResult a =
