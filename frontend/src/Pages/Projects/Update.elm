@@ -1,4 +1,4 @@
-module Pages.Project.Update exposing (..)
+module Pages.Projects.Update exposing (..)
 
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject
