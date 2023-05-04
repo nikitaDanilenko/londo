@@ -1,10 +1,9 @@
-module Types.Task exposing (..)
+module Types.Task.Task exposing (..)
 
 import GraphQLFunctions.OptionalArgumentUtil as OptionalArgumentUtil
 import LondoGQL.Enum.TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (TaskCreation, TaskUpdate)
-import Types.Positive exposing (Positive)
-import Types.Progress exposing (Progress)
+import Types.Task.Progress exposing (Progress)
 import Types.TaskId exposing (TaskId)
 
 

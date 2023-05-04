@@ -1,7 +1,7 @@
-module Types.Positive exposing (..)
+module Types.Task.Positive exposing (..)
 
 import Maybe.Extra
-import Types.Natural exposing (Natural)
+import Types.Task.Natural exposing (Natural)
 
 
 type alias Positive =

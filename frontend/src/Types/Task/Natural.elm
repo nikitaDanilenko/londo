@@ -1,4 +1,4 @@
-module Types.Natural exposing (..)
+module Types.Task.Natural exposing (..)
 
 import Maybe.Extra
 

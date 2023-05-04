@@ -1,10 +1,10 @@
-module Types.Progress exposing (..)
+module Types.Task.Progress exposing (..)
 
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
 import Monocle.Lens exposing (Lens)
-import Types.Natural as Natural exposing (Natural)
-import Types.Positive as Positive exposing (Positive)
+import Types.Task.Natural as Natural exposing (Natural)
+import Types.Task.Positive as Positive exposing (Positive)
 
 
 type alias Progress =
