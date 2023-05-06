@@ -3,23 +3,21 @@ module Pages.Util.ValidatedInput exposing
     , boundedNatural
     , emptyText
     , isValid
+    , lenses
     , lift
     , limitTo
     , natural
     , nonEmptyString
-    , percentualProgress
     , positive
-    , lenses
     )
 
 import Basics.Extra exposing (flip)
 import Integer exposing (Integer)
 import List.Extra
+import Math.Natural as Natural exposing (Natural)
+import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
-import Types.Natural as Natural exposing (Natural)
-import Types.Positive as Positive exposing (Positive)
-import Types.Progress exposing (Progress)
 import Util.MathUtil as MathUtil
 
 
@@ -203,75 +201,77 @@ positive =
         }
 
 
-percentualProgress : ValidatedInput Progress
-percentualProgress =
-    let
-        zero =
-            { reachable = Positive.oneHundred
-            , reached = natural.ifEmptyValue
-            }
 
-        isDecimalPoint : Char -> Bool
-        isDecimalPoint c =
-            c == '.' || c == ','
-
-        countDecimalPoints : String -> Int
-        countDecimalPoints =
-            String.toList >> List.Extra.count isDecimalPoint
-
-        isPartial : String -> Bool
-        isPartial =
-            parseDecimal
-                >> Result.toMaybe
-                >> Maybe.Extra.isJust
-
-        parseDecimal : String -> Result String Progress
-        parseDecimal txt =
-            let
-                decimalPoints =
-                    countDecimalPoints txt
-
-                withoutDecimalPoint =
-                    txt |> String.filter (isDecimalPoint >> not)
-
-                numberOfDecimalPlacesStrict =
-                    MathUtil.numberOfDecimalPlaces txt
-
-                numberOfDecimalPlacesFuzzy =
-                    if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then
-                        1
-
-                    else
-                        numberOfDecimalPlacesStrict
-            in
-            if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlacesStrict && String.all Char.isDigit withoutDecimalPoint) || txt == "100") then
-                let
-                    intWithoutDecimalPoint =
-                        withoutDecimalPoint |> String.toInt |> Maybe.withDefault 0
-                in
-                Ok
-                    { reachable = 100 |> (*) (10 ^ numberOfDecimalPlacesFuzzy) |> Positive
-                    , reached =
-                        Natural
-                            (intWithoutDecimalPoint
-                                * (if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then
-                                    10
-
-                                   else
-                                    1
-                                  )
-                            )
-                    }
-
-            else
-                Err "Not a valid percentual value"
-    in
-    emptyText
-        { value = zero
-        , ifEmptyValue = zero
-        , parse = parseDecimal
-        , isPartial = isPartial
-        }
+-- todo: Check necessity
+--percentualProgress : ValidatedInput Progress
+--percentualProgress =
+--    let
+--        zero =
+--            { reachable = Positive.oneHundred
+--            , reached = natural.ifEmptyValue
+--            }
+--
+--        isDecimalPoint : Char -> Bool
+--        isDecimalPoint c =
+--            c == '.' || c == ','
+--
+--        countDecimalPoints : String -> Int
+--        countDecimalPoints =
+--            String.toList >> List.Extra.count isDecimalPoint
+--
+--        isPartial : String -> Bool
+--        isPartial =
+--            parseDecimal
+--                >> Result.toMaybe
+--                >> Maybe.Extra.isJust
+--
+--        parseDecimal : String -> Result String Progress
+--        parseDecimal txt =
+--            let
+--                decimalPoints =
+--                    countDecimalPoints txt
+--
+--                withoutDecimalPoint =
+--                    txt |> String.filter (isDecimalPoint >> not)
+--
+--                numberOfDecimalPlacesStrict =
+--                    MathUtil.numberOfDecimalPlaces txt
+--
+--                numberOfDecimalPlacesFuzzy =
+--                    if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then
+--                        1
+--
+--                    else
+--                        numberOfDecimalPlacesStrict
+--            in
+--            if decimalPoints <= 1 && ((String.length withoutDecimalPoint < 3 + numberOfDecimalPlacesStrict && String.all Char.isDigit withoutDecimalPoint) || txt == "100") then
+--                let
+--                    intWithoutDecimalPoint =
+--                        withoutDecimalPoint |> String.toInt |> Maybe.withDefault 0
+--                in
+--                Ok
+--                    { reachable = 100 |> (*) (10 ^ numberOfDecimalPlacesFuzzy) |> Positive
+--                    , reached =
+--                        Natural
+--                            (intWithoutDecimalPoint
+--                                * (if numberOfDecimalPlacesStrict == 0 && decimalPoints == 1 then
+--                                    10
+--
+--                                   else
+--                                    1
+--                                  )
+--                            )
+--                    }
+--
+--            else
+--                Err "Not a valid percentual value"
+--    in
+--    emptyText
+--        { value = zero
+--        , ifEmptyValue = zero
+--        , parse = parseDecimal
+--        , isPartial = isPartial
+--        }
 
 
 boundedNaturalParser : Natural -> String -> Result String Natural
