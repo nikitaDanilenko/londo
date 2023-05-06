@@ -18,6 +18,7 @@ import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Types.Project.Creation
+import Types.Project.ProjectId exposing (ProjectId)
 import Types.Project.Update
 import Util.MaybeUtil as MaybeUtil
 import Util.SearchUtil as SearchUtil
@@ -35,7 +36,7 @@ view =
 viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
 viewMain configuration main =
     Pages.Util.ParentEditor.View.viewParentsWith
-        { currentPage = ViewUtil.Projects
+        { currentPage = Just ViewUtil.Projects
         , matchesSearchText =
             \string project ->
                 SearchUtil.search string project.name
@@ -43,7 +44,7 @@ viewMain configuration main =
         , sort = List.sortBy (.original >> .name)
         , tableHeader = tableHeader main.language
         , viewLine = viewProjectLine
-        , updateLine = \language _ -> updateProjectLine language
+        , updateLine = \language project -> updateProjectLine language project.id
         , deleteLine = deleteProjectLine
         , create =
             { ifCreating = createProjectLine
@@ -147,18 +148,18 @@ projectLineWith ps =
         }
 
 
-updateProjectLine : Page.Language -> Page.Update -> List (Html Page.LogicMsg)
-updateProjectLine language projectUpdateClientInput =
+updateProjectLine : Page.Language -> ProjectId -> Page.Update -> List (Html Page.LogicMsg)
+updateProjectLine language projectId projectUpdateClientInput =
     editProjectLineWith
-        { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit projectUpdateClientInput.projectId
+        { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit projectId
         , nameLens = Types.Project.Update.lenses.name
         , descriptionLens = Types.Project.Update.lenses.description
-        , updateMsg = Pages.Util.ParentEditor.Page.Edit
+        , updateMsg = Pages.Util.ParentEditor.Page.Edit projectId
         , confirmName = language.save
-        , cancelMsg = Pages.Util.ParentEditor.Page.ExitEdit <| projectUpdateClientInput.projectId
+        , cancelMsg = Pages.Util.ParentEditor.Page.ExitEdit <| projectId
         , cancelName = language.cancel
         , rowStyles = [ Style.classes.editLine ]
-        , toggleCommand = Pages.Util.ParentEditor.Page.ToggleControls projectUpdateClientInput.projectId |> Just
+        , toggleCommand = Pages.Util.ParentEditor.Page.ToggleControls projectId |> Just
         }
         projectUpdateClientInput
 
