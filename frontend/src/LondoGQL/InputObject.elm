@@ -1069,12 +1069,11 @@ buildUpdateTaskInput :
     UpdateTaskInputRequiredFields
     -> UpdateTaskInput
 buildUpdateTaskInput required____ =
-    { projectId = required____.projectId, taskId = required____.taskId, taskUpdate = required____.taskUpdate }
+    { taskId = required____.taskId, taskUpdate = required____.taskUpdate }
 
 
 type alias UpdateTaskInputRequiredFields =
-    { projectId : ProjectIdInput
-    , taskId : TaskIdInput
+    { taskId : TaskIdInput
     , taskUpdate : TaskUpdate
     }
 
@@ -1082,8 +1081,7 @@ type alias UpdateTaskInputRequiredFields =
 {-| Type for the UpdateTaskInput input object.
 -}
 type alias UpdateTaskInput =
-    { projectId : ProjectIdInput
-    , taskId : TaskIdInput
+    { taskId : TaskIdInput
     , taskUpdate : TaskUpdate
     }
 
@@ -1093,7 +1091,7 @@ type alias UpdateTaskInput =
 encodeUpdateTaskInput : UpdateTaskInput -> Value
 encodeUpdateTaskInput input____ =
     Encode.maybeObject
-        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ) ]
+        [ ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ) ]
 
 
 buildUpdateUserInput :
