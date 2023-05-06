@@ -19,7 +19,7 @@ import Util.MaybeUtil as MaybeUtil
 
 
 viewParentsWith :
-    { currentPage : ViewUtil.Page
+    { currentPage : Maybe ViewUtil.Page
     , matchesSearchText : String -> parent -> Bool
     , sort : List (Editing parent update) -> List (Editing parent update)
     , tableHeader : Html msg
@@ -43,7 +43,7 @@ viewParentsWith :
 viewParentsWith ps language configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
-        , currentPage = Just ps.currentPage
+        , currentPage = ps.currentPage
         , showNavigation = True
         }
     <|
