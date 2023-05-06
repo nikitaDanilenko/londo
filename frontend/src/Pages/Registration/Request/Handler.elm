@@ -3,10 +3,10 @@ module Pages.Registration.Request.Handler exposing (init, update)
 import LondoGQL.Scalar exposing (Unit)
 import Pages.Registration.Request.Page as Page
 import Pages.Registration.Request.Requests as Requests
-import Pages.Util.ValidatedInput exposing (ValidatedInput)
 import Pages.View.Tristate as Tristate
 import Result.Extra
 import Util.HttpUtil as HttpUtil
+import Util.ValidatedInput exposing (ValidatedInput)
 
 
 init : Page.Flags -> ( Page.Model, Cmd Page.Msg )

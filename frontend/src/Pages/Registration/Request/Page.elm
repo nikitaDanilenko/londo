@@ -4,9 +4,9 @@ import Configuration exposing (Configuration)
 import Language.Language as Language
 import LondoGQL.Scalar exposing (Unit)
 import Monocle.Lens exposing (Lens)
-import Pages.Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 import Pages.View.Tristate as Tristate
 import Util.HttpUtil as HttpUtil
+import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 type alias Model =

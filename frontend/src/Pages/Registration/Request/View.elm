@@ -12,11 +12,11 @@ import Monocle.Lens exposing (Lens)
 import Pages.Registration.Request.Page as Page
 import Pages.Util.Links as Links
 import Pages.Util.Style as Style
-import Pages.Util.ValidatedInput as ValidatedInput
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Util.LensUtil as LensUtil
 import Util.MaybeUtil as MaybeUtil
+import Util.ValidatedInput as ValidatedInput
 
 
 view : Page.Model -> Html Page.Msg

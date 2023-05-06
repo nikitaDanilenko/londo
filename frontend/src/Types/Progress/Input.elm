@@ -1,4 +1,4 @@
-module Types.Progress.Update exposing (..)
+module Types.Progress.Input exposing (..)
 
 import LondoGQL.InputObject
 import Math.Natural as Natural exposing (Natural)
@@ -11,6 +11,23 @@ import Types.Progress.Progress exposing (Progress)
 type alias ClientInput =
     { reachable : ValidatedInput Positive
     , reached : ValidatedInput Natural
+    }
+
+
+default : ClientInput
+default =
+    { reachable =
+        ValidatedInput.positive
+            |> ValidatedInput.set
+                { value = Positive.oneHundred
+                , toString = Positive.toString
+                }
+    , reached =
+        ValidatedInput.natural
+            |> ValidatedInput.set
+                { value = Natural.zero
+                , toString = Natural.toString
+                }
     }
 
 

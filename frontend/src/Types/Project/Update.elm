@@ -6,10 +6,10 @@ import LondoGQL.InputObject
 import LondoGQL.Mutation
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
-import Pages.Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 import Types.Project.Project
 import Types.Project.ProjectId as ProjectId exposing (ProjectId)
 import Util.HttpUtil as HttpUtil
+import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 type alias ClientInput =

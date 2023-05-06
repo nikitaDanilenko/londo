@@ -1,4 +1,4 @@
-module Pages.Util.ValidatedInput exposing
+module Util.ValidatedInput exposing
     ( ValidatedInput
     , boundedNatural
     , emptyText
@@ -9,6 +9,7 @@ module Pages.Util.ValidatedInput exposing
     , natural
     , nonEmptyString
     , positive
+    , set
     )
 
 import Basics.Extra exposing (flip)
@@ -40,6 +41,13 @@ lenses =
     , value =
         Lens .value (\b a -> { a | value = b })
     }
+
+
+set : { value : a, toString : a -> String } -> ValidatedInput a -> ValidatedInput a
+set ps input =
+    input
+        |> lenses.value.set ps.value
+        |> lenses.text.set (ps.value |> ps.toString)
 
 
 emptyText :

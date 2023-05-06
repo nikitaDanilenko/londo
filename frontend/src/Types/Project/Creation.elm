@@ -6,7 +6,7 @@ import LondoGQL.InputObject exposing (CreateProjectInput)
 import LondoGQL.Mutation
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
-import Pages.Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
+import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 import Types.Project.Project
 import Util.HttpUtil as HttpUtil
 

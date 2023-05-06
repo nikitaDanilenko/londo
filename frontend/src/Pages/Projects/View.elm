@@ -15,13 +15,13 @@ import Pages.Util.Links as Links
 import Pages.Util.ParentEditor.Page
 import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
-import Pages.Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Types.Project.Creation
 import Types.Project.Update
 import Util.MaybeUtil as MaybeUtil
 import Util.SearchUtil as SearchUtil
+import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 view : Page.Model -> Html Page.Msg
