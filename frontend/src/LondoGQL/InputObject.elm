@@ -473,21 +473,17 @@ buildDeleteTaskInput :
     DeleteTaskInputRequiredFields
     -> DeleteTaskInput
 buildDeleteTaskInput required____ =
-    { projectId = required____.projectId, taskId = required____.taskId }
+    { taskId = required____.taskId }
 
 
 type alias DeleteTaskInputRequiredFields =
-    { projectId : ProjectIdInput
-    , taskId : TaskIdInput
-    }
+    { taskId : TaskIdInput }
 
 
 {-| Type for the DeleteTaskInput input object.
 -}
 type alias DeleteTaskInput =
-    { projectId : ProjectIdInput
-    , taskId : TaskIdInput
-    }
+    { taskId : TaskIdInput }
 
 
 {-| Encode a DeleteTaskInput into a value that can be used as an argument.
@@ -495,7 +491,7 @@ type alias DeleteTaskInput =
 encodeDeleteTaskInput : DeleteTaskInput -> Value
 encodeDeleteTaskInput input____ =
     Encode.maybeObject
-        [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ) ]
+        [ ( "taskId", encodeTaskIdInput input____.taskId |> Just ) ]
 
 
 buildFetchDashboardInput :
