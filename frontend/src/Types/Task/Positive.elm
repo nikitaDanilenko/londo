@@ -1,5 +1,6 @@
 module Types.Task.Positive exposing (..)
 
+import LondoGQL.InputObject
 import Maybe.Extra
 import Types.Task.Natural exposing (Natural)
 
@@ -33,3 +34,8 @@ one =
 oneHundred : Positive
 oneHundred =
     { positive = 100 }
+
+
+toGraphQLInput : Positive -> LondoGQL.InputObject.PositiveInput
+toGraphQLInput =
+    identity

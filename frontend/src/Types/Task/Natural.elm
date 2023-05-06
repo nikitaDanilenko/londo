@@ -1,5 +1,6 @@
 module Types.Task.Natural exposing (..)
 
+import LondoGQL.InputObject
 import Maybe.Extra
 
 
@@ -31,3 +32,8 @@ min x y =
 
     else
         y
+
+
+toGraphQLInput : Natural -> LondoGQL.InputObject.NaturalInput
+toGraphQLInput =
+    identity
