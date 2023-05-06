@@ -34,8 +34,8 @@ lenses =
     }
 
 
-toCreation : ClientInput -> LondoGQL.InputObject.CreateProjectInput
-toCreation input =
+toGraphQLInput : ClientInput -> LondoGQL.InputObject.CreateProjectInput
+toGraphQLInput input =
     { name = input.name.value
     , description = input.description |> OptionalArgument.fromMaybe
     }
@@ -48,7 +48,7 @@ createWith :
     -> Cmd msg
 createWith expect authorizedAccess creation =
     LondoGQL.Mutation.createProject
-        { input = creation |> toCreation }
+        { input = creation |> toGraphQLInput }
         Types.Project.Project.selection
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
         |> HttpUtil.sendWithJWT
