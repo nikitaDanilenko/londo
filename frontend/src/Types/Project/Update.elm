@@ -13,8 +13,7 @@ import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 type alias ClientInput =
-    { projectId : ProjectId
-    , name : ValidatedInput String
+    { name : ValidatedInput String
     , description : Maybe String
     }
 
@@ -31,8 +30,7 @@ lenses =
 
 from : Types.Project.Project.Project -> ClientInput
 from project =
-    { projectId = project.id
-    , name =
+    { name =
         ValidatedInput.nonEmptyString
             |> ValidatedInput.lenses.value.set project.name
             |> ValidatedInput.lenses.text.set project.name
@@ -40,9 +38,9 @@ from project =
     }
 
 
-toGraphQLInput : ClientInput -> LondoGQL.InputObject.UpdateProjectInput
-toGraphQLInput input =
-    { projectId = input.projectId |> ProjectId.toGraphQLInput
+toGraphQLInput : ProjectId -> ClientInput -> LondoGQL.InputObject.UpdateProjectInput
+toGraphQLInput projectId input =
+    { projectId = projectId |> ProjectId.toGraphQLInput
     , name = input.name.value
     , description = input.description |> OptionalArgument.fromMaybe
     }
@@ -51,11 +49,12 @@ toGraphQLInput input =
 updateWith :
     (HttpUtil.GraphQLResult Types.Project.Project.Project -> msg)
     -> AuthorizedAccess
+    -> ProjectId
     -> ClientInput
     -> Cmd msg
-updateWith expect authorizedAccess update =
+updateWith expect authorizedAccess projectId update =
     LondoGQL.Mutation.updateProject
-        { input = update |> toGraphQLInput }
+        { input = update |> toGraphQLInput projectId }
         Types.Project.Project.selection
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
         |> HttpUtil.sendWithJWT
