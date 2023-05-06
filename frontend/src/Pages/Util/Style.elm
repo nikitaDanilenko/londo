@@ -34,6 +34,7 @@ classes :
         , field : Attribute msg
         }
     , tableHeader : Attribute msg
+    , taskEditTable : Attribute msg
     , toggle : Attribute msg
     }
 classes =
@@ -66,12 +67,14 @@ classes =
         , field = class "search-field"
         }
     , tableHeader = class "table-header"
+    , taskEditTable = class "task-edit-table"
     , toggle = class "toggle"
     }
 
 
 ids :
     { addProjectView : Attribute msg
+    , addTaskView : Attribute msg
     , confirmRegistration : Attribute msg
     , error : Attribute msg
     , login : Attribute msg
@@ -82,6 +85,7 @@ ids :
     }
 ids =
     { addProjectView = id "add-project-view"
+    , addTaskView = id "add-task-view"
     , confirmRegistration = id "confirm-registration"
     , error = id "error"
     , login = id "login"
