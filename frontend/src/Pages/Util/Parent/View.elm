@@ -7,16 +7,16 @@ import Util.Editing as Editing
 
 
 viewMain :
-    { tableHeader : Html msg
+    { tableHeader : language -> Html msg
     , onView : parent -> Bool -> List (Html msg)
     , onUpdate : parent -> update -> List (Html msg)
     , onDelete : parent -> List (Html msg)
     }
-    -> Page.Main parent update
+    -> Page.Main parent update language
     -> Html msg
 viewMain ps main =
     table [ Style.classes.elementsWithControlsTable ]
-        (ps.tableHeader
+        (ps.tableHeader main.language
             :: [ tbody []
                     (Editing.unpack
                         { onView = ps.onView
