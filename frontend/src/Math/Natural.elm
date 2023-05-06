@@ -1,4 +1,4 @@
-module Types.Task.Natural exposing (..)
+module Math.Natural exposing (..)
 
 import LondoGQL.InputObject
 import Maybe.Extra

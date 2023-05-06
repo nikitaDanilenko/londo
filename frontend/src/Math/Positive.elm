@@ -1,8 +1,8 @@
-module Types.Task.Positive exposing (..)
+module Math.Positive exposing (..)
 
 import LondoGQL.InputObject
+import Math.Natural exposing (Natural)
 import Maybe.Extra
-import Types.Task.Natural exposing (Natural)
 
 
 type alias Positive =
