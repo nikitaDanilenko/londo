@@ -1,7 +1,10 @@
 module Types.Progress.Progress exposing (..)
 
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
+import LondoGQL.Object
+import LondoGQL.Object.Progress
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 
@@ -10,6 +13,14 @@ type alias Progress =
     { reachable : Positive
     , reached : Natural
     }
+
+
+selection : SelectionSet Progress LondoGQL.Object.Progress
+selection =
+    SelectionSet.map2
+        Progress
+        (LondoGQL.Object.Progress.reachable Positive.selection)
+        (LondoGQL.Object.Progress.reached Natural.selection)
 
 
 display : TaskKind -> Progress -> String

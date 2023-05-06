@@ -5,7 +5,6 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Mutation
 import LondoGQL.Object
 import LondoGQL.Object.Project
-import LondoGQL.Object.ProjectId
 import LondoGQL.Query
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Project.ProjectId exposing (ProjectId(..))
@@ -19,15 +18,10 @@ type alias Project =
     }
 
 
-projectIdSelection : SelectionSet ProjectId LondoGQL.Object.Project
-projectIdSelection =
-    LondoGQL.Object.Project.id LondoGQL.Object.ProjectId.uuid |> SelectionSet.map ProjectId
-
-
 selection : SelectionSet Project LondoGQL.Object.Project
 selection =
     SelectionSet.map3 Project
-        projectIdSelection
+        (LondoGQL.Object.Project.id Types.Project.ProjectId.selection)
         LondoGQL.Object.Project.name
         LondoGQL.Object.Project.description
 
