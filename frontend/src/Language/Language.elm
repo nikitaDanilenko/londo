@@ -70,8 +70,9 @@ type alias Overview =
 type alias TaskEditor =
     { tasks : String
     , newTask : String
-    , remove : String
+    , delete : String
     , taskName : String
+    , counting : String
     , taskKind : String
     , discrete : String
     , percentual : String
@@ -159,8 +160,9 @@ english =
     , taskEditor =
         { tasks = "Plain tasks"
         , newTask = "Create new plain task"
-        , remove = "Remove"
+        , delete = "Remove"
         , taskName = "Name"
+        , counting = "Counting?"
         , taskKind = "Kind"
         , discrete = "Discrete"
         , percentual = "Percentual"
