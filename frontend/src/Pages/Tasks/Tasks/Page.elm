@@ -41,5 +41,9 @@ type alias Main =
     Pages.Util.ParentEditor.Page.Main TaskId Task Creation Update Language
 
 
+type alias Msg =
+    Tristate.Msg LogicMsg
+
+
 type alias LogicMsg =
     Pages.Util.ParentEditor.Page.LogicMsg TaskId Task Creation Update
