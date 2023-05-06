@@ -68,14 +68,10 @@ type alias Overview =
 
 
 type alias TaskEditor =
-    { plainTasks : String
-    , newPlainTask : String
-    , projectReferenceTasks : String
-    , newProjectReferenceTask : String
-    , weight : String
-    , projectReference : String
+    { tasks : String
+    , newTask : String
     , remove : String
-    , plainTaskName : String
+    , taskName : String
     , taskKind : String
     , discrete : String
     , percentual : String
@@ -161,14 +157,10 @@ english =
         , settings = "Settings"
         }
     , taskEditor =
-        { plainTasks = "Plain tasks"
-        , newPlainTask = "Create new plain task"
-        , projectReferenceTasks = "Project reference tasks"
-        , newProjectReferenceTask = "Create new project reference task"
-        , weight = "Weight"
-        , projectReference = "Project reference"
+        { tasks = "Plain tasks"
+        , newTask = "Create new plain task"
         , remove = "Remove"
-        , plainTaskName = "Name"
+        , taskName = "Name"
         , taskKind = "Kind"
         , discrete = "Discrete"
         , percentual = "Percentual"
