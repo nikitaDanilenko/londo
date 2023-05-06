@@ -7,7 +7,6 @@ import LondoGQL.Object
 import LondoGQL.Object.Project
 import LondoGQL.Object.ProjectId
 import LondoGQL.Query
-import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Project.ProjectId exposing (ProjectId(..))
 import Util.HttpUtil as HttpUtil
@@ -17,16 +16,6 @@ type alias Project =
     { id : ProjectId
     , name : String
     , description : Maybe String
-    }
-
-
-lenses :
-    { name : Lens Project String
-    , description : Lens Project (Maybe String)
-    }
-lenses =
-    { name = Lens .name (\b a -> { a | name = b })
-    , description = Lens .description (\b a -> { a | description = b })
     }
 
 
@@ -51,7 +40,7 @@ fetchWith :
 fetchWith expect authorizedAccess projectId =
     LondoGQL.Query.fetchProject
         { input =
-            { projectId = projectId |> Types.Project.ProjectId.toInput
+            { projectId = projectId |> Types.Project.ProjectId.toGraphQLInput
             }
         }
         selection
@@ -84,7 +73,7 @@ deleteWith :
 deleteWith expect authorizedAccess projectId =
     LondoGQL.Mutation.deleteProject
         { input =
-            { projectId = projectId |> Types.Project.ProjectId.toInput
+            { projectId = projectId |> Types.Project.ProjectId.toGraphQLInput
             }
         }
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint

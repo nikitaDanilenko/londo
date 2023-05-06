@@ -40,12 +40,9 @@ from project =
     }
 
 
-to : ClientInput -> LondoGQL.InputObject.UpdateProjectInput
-to input =
-    { projectId =
-        input.projectId
-            |> ProjectId.uuid
-            |> LondoGQL.InputObject.ProjectIdInput
+toGraphQLInput : ClientInput -> LondoGQL.InputObject.UpdateProjectInput
+toGraphQLInput input =
+    { projectId = input.projectId |> ProjectId.toGraphQLInput
     , name = input.name.value
     , description = input.description |> OptionalArgument.fromMaybe
     }
@@ -58,7 +55,7 @@ updateWith :
     -> Cmd msg
 updateWith expect authorizedAccess update =
     LondoGQL.Mutation.updateProject
-        { input = update |> to }
+        { input = update |> toGraphQLInput }
         Types.Project.Project.selection
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
         |> HttpUtil.sendWithJWT

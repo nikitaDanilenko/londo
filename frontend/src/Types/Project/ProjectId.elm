@@ -13,6 +13,6 @@ uuid (ProjectId u) =
     u
 
 
-toInput : ProjectId -> LondoGQL.InputObject.ProjectIdInput
-toInput =
+toGraphQLInput : ProjectId -> LondoGQL.InputObject.ProjectIdInput
+toGraphQLInput =
     uuid >> LondoGQL.InputObject.ProjectIdInput
