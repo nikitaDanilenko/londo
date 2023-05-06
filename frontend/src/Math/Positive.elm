@@ -1,6 +1,9 @@
 module Math.Positive exposing (..)
 
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.InputObject
+import LondoGQL.Object
+import LondoGQL.Object.Positive
 import Math.Natural exposing (Natural)
 import Maybe.Extra
 
@@ -39,3 +42,8 @@ oneHundred =
 toGraphQLInput : Positive -> LondoGQL.InputObject.PositiveInput
 toGraphQLInput =
     identity
+
+
+selection : SelectionSet Positive LondoGQL.Object.Positive
+selection =
+    SelectionSet.map Positive LondoGQL.Object.Positive.positive

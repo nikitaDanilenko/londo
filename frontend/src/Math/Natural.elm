@@ -1,6 +1,9 @@
 module Math.Natural exposing (..)
 
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.InputObject
+import LondoGQL.Object
+import LondoGQL.Object.Natural
 import Maybe.Extra
 
 
@@ -37,3 +40,8 @@ min x y =
 toGraphQLInput : Natural -> LondoGQL.InputObject.NaturalInput
 toGraphQLInput =
     identity
+
+
+selection : SelectionSet Natural LondoGQL.Object.Natural
+selection =
+    SelectionSet.map Natural LondoGQL.Object.Natural.nonNegative
