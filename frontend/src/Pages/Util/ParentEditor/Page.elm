@@ -81,7 +81,7 @@ type LogicMsg parentId parent creation update
     = UpdateCreation (Maybe creation)
     | Create
     | GotCreateResponse (HttpUtil.GraphQLResult parent)
-    | Edit update
+    | Edit parentId update
     | SaveEdit parentId
     | GotSaveEditResponse (HttpUtil.GraphQLResult parent)
     | ToggleControls parentId
