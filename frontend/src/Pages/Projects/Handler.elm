@@ -31,7 +31,7 @@ updateLogic =
     Pages.Util.ParentEditor.Handler.updateLogic
         { idOfParent = .id
         , toUpdate = Types.Project.Update.from
-        , navigateToAddress = Addresses.Frontend.taskEditor.address >> Just
+        , navigateToAddress = Addresses.Frontend.tasks.address >> Just
         , create = Types.Project.Creation.createWith Pages.Util.ParentEditor.Page.GotCreateResponse
         , save = Types.Project.Update.updateWith Pages.Util.ParentEditor.Page.GotSaveEditResponse
         , delete = Types.Project.Project.deleteWith Pages.Util.ParentEditor.Page.GotDeleteResponse

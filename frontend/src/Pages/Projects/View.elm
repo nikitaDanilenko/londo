@@ -83,7 +83,7 @@ viewProjectLine language configuration project showControls =
                 ]
             , td [ Style.classes.controls ]
                 [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.taskEditor.address <| project.id
+                    { url = Links.frontendPage configuration <| Addresses.Frontend.tasks.address <| project.id
                     , attributes = [ Style.classes.button.editor ]
                     , children = [ text <| language.taskEditor ]
                     }
