@@ -71,6 +71,7 @@ type alias TaskEditor =
     { tasks : String
     , newTask : String
     , delete : String
+    , confirmDelete : String
     , taskName : String
     , counting : String
     , taskKind : String
@@ -160,7 +161,8 @@ english =
     , taskEditor =
         { tasks = "Plain tasks"
         , newTask = "Create new plain task"
-        , delete = "Remove"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
         , taskName = "Name"
         , counting = "Counting?"
         , taskKind = "Kind"
