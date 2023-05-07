@@ -24,6 +24,7 @@ classes :
     , editable : Attribute msg
     , editing : Attribute msg
     , editLine : Attribute msg
+    , elements : Attribute msg
     , elementsWithControlsTable : Attribute msg
     , ellipsis : Attribute msg
     , info : Attribute msg
@@ -57,6 +58,7 @@ classes =
     , editable = class "editable"
     , editing = class "editing"
     , editLine = class "edit-line"
+    , elements = class "elements"
     , elementsWithControlsTable = class "elements-with-controls-table"
     , ellipsis = class "ellipsis"
     , info = class "info"
@@ -82,6 +84,7 @@ ids :
     , overview : Attribute msg
     , registrationRequestSent : Attribute msg
     , requestRegistration : Attribute msg
+    , taskEditor : Attribute msg
     }
 ids =
     { addProjectView = id "add-project-view"
@@ -93,4 +96,5 @@ ids =
     , overview = id "overview"
     , registrationRequestSent = id "registration-request-sent"
     , requestRegistration = id "request-registration"
+    , taskEditor = id "task-editor"
     }
