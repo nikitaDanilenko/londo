@@ -4,8 +4,8 @@ import LondoGQL.InputObject
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Monocle.Lens exposing (Lens)
-import Pages.Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 import Types.Progress.Progress exposing (Progress)
+import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 type alias ClientInput =
