@@ -18,8 +18,9 @@ type alias Project =
 type alias Update =
     Types.Project.Update.ClientInput
 
+
 type alias Language =
-  Language.Language.ProjectEditor
+    Language.Language.ProjectEditor
 
 
 type alias Main =

@@ -1,4 +1,4 @@
-module Pages.MealEntries.Meal.Handler exposing (updateLogic)
+module Pages.Tasks.Project.Handler exposing (updateLogic)
 
 import Addresses.Frontend
 import Pages.Tasks.Project.Page as Page
@@ -14,10 +14,11 @@ updateLogic =
         { toUpdate = Types.Project.Update.from
         , idOf = .id
         , save =
-            \authorizedAccess ->
+            \authorizedAccess projectId ->
                 Types.Project.Update.updateWith
                     Pages.Util.Parent.Page.GotSaveEditResponse
                     authorizedAccess
+                    projectId
                     >> Just
         , delete = Types.Project.Project.deleteWith (\_ -> Pages.Util.Parent.Page.GotDeleteResponse)
         , navigateAfterDeletionAddress = Addresses.Frontend.projects.address
