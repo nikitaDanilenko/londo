@@ -13,13 +13,13 @@ import Util.Editing as Editing
 updateLogic :
     { toUpdate : parent -> update
     , idOf : parent -> parentId
-    , save : AuthorizedAccess -> update -> Maybe (Cmd (Page.LogicMsg parent update))
+    , save : AuthorizedAccess -> parentId -> update -> Maybe (Cmd (Page.LogicMsg parent update))
     , delete : AuthorizedAccess -> parentId -> Cmd (Page.LogicMsg parent update)
     , navigateAfterDeletionAddress : () -> List String
     }
     -> Page.LogicMsg parent update
-    -> Page.Model parent update
-    -> ( Page.Model parent update, Cmd (Page.LogicMsg parent update) )
+    -> Page.Model parent update language
+    -> ( Page.Model parent update language, Cmd (Page.LogicMsg parent update) )
 updateLogic ps msg model =
     let
         gotFetchResponse result =
@@ -57,13 +57,16 @@ updateLogic ps msg model =
                     (\main ->
                         main
                             |> Page.lenses.main.parent.get
-                            |> Editing.extractUpdate
-                            |> Maybe.andThen
-                                (ps.save
-                                    { configuration = model.configuration
-                                    , jwt = main.jwt
-                                    }
-                                )
+                            |> (\editing ->
+                                    Editing.extractUpdate editing
+                                        |> Maybe.andThen
+                                            (ps.save
+                                                { configuration = model.configuration
+                                                , jwt = main.jwt
+                                                }
+                                                (editing.original |> ps.idOf)
+                                            )
+                               )
                     )
                 |> Maybe.withDefault Cmd.none
             )
