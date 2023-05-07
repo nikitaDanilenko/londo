@@ -57,8 +57,8 @@ userSettings =
     plain "user-settings"
 
 
-taskEditor : AddressWithParser ProjectId (ProjectId -> a) a
-taskEditor =
+tasks : AddressWithParser ProjectId (ProjectId -> a) a
+tasks =
     with1
         { step1 = "task-editor"
         , toString = ProjectId.uuid >> ScalarUtil.uuidToString >> List.singleton
