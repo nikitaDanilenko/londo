@@ -1,7 +1,10 @@
 module Util.HttpUtil exposing (..)
 
 import Graphql.Http
+import Graphql.Operation exposing (RootMutation, RootQuery)
+import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Auxiliary exposing (JWT)
 
 
@@ -89,6 +92,32 @@ sendWithJWT :
 sendWithJWT ps =
     Graphql.Http.withHeader userTokenHeader ps.jwt
         >> Graphql.Http.send ps.expect
+
+
+queryWith :
+    (GraphQLResult a -> msg)
+    -> AuthorizedAccess
+    -> SelectionSet a RootQuery
+    -> Cmd msg
+queryWith expect authorizedAccess =
+    Graphql.Http.queryRequest authorizedAccess.configuration.graphQLEndpoint
+        >> sendWithJWT
+            { jwt = authorizedAccess.jwt
+            , expect = expect
+            }
+
+
+mutationWith :
+    (GraphQLResult a -> msg)
+    -> AuthorizedAccess
+    -> SelectionSet a RootMutation
+    -> Cmd msg
+mutationWith expect authorizedAccess =
+    Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
+        >> sendWithJWT
+            { jwt = authorizedAccess.jwt
+            , expect = expect
+            }
 
 
 type alias GraphQLResult a =
