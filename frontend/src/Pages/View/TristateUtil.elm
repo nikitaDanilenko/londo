@@ -7,7 +7,6 @@ import Pages.View.Tristate as Tristate
 updateFromSubModel :
     { initialSubModelLens : Lens initial initialSubModel
     , mainSubModelLens : Lens main mainSubModel
-    , subModelOf : Tristate.Model main initial -> Tristate.Model mainSubModel initialSubModel
     , fromInitToMain : initial -> Maybe main
     , updateSubModel : subModelMsg -> Tristate.Model mainSubModel initialSubModel -> ( Tristate.Model mainSubModel initialSubModel, Cmd subModelMsg )
     , toMsg : subModelMsg -> msg
@@ -18,29 +17,34 @@ updateFromSubModel :
 updateFromSubModel ps msg model =
     let
         ( recipeModel, recipeCmd ) =
-            ps.updateSubModel msg (model |> ps.subModelOf)
+            model
+                |> subModelWith
+                    { subInitial = ps.initialSubModelLens.get
+                    , subMain = ps.mainSubModelLens.get
+                    }
+                |> ps.updateSubModel msg
 
         newCmd =
             Cmd.map ps.toMsg recipeCmd
 
         newModel =
             case ( model.status, recipeModel.status ) of
-                ( Tristate.Initial i, Tristate.Initial subModel ) ->
+                ( Tristate.Initial i, Tristate.Initial subInitial ) ->
                     i
-                        |> ps.initialSubModelLens.set subModel
+                        |> ps.initialSubModelLens.set subInitial
                         |> Tristate.createInitial model.configuration
                         |> Tristate.fromInitToMain ps.fromInitToMain
 
-                ( Tristate.Main m, Tristate.Main subModel ) ->
+                ( Tristate.Main m, Tristate.Main subMain ) ->
                     m
-                        |> ps.mainSubModelLens.set subModel
+                        |> ps.mainSubModelLens.set subMain
                         |> Tristate.createMain model.configuration
 
-                ( _, Tristate.Error subModel ) ->
+                ( _, Tristate.Error subError ) ->
                     { configuration = model.configuration
                     , status =
                         Tristate.Error
-                            { errorExplanation = subModel.errorExplanation
+                            { errorExplanation = subError.errorExplanation
                             , previousMain = Tristate.lenses.main.getOption model
                             }
                     }
@@ -52,8 +56,8 @@ updateFromSubModel ps msg model =
 
 
 subModelWith :
-    { initialLens : Lens initial initialSubModel
-    , mainLens : Lens main mainSubModel
+    { subInitial : initial -> initialSubModel
+    , subMain : main -> mainSubModel
     }
     -> Tristate.Model main initial
     -> Tristate.Model mainSubModel initialSubModel
@@ -61,13 +65,13 @@ subModelWith ps model =
     { configuration = model.configuration
     , status =
         Tristate.fold
-            { onInitial = ps.initialLens.get >> Tristate.Initial
-            , onMain = ps.mainLens.get >> Tristate.Main
+            { onInitial = ps.subInitial >> Tristate.Initial
+            , onMain = ps.subMain >> Tristate.Main
             , onError =
                 \es ->
                     Tristate.Error
                         { errorExplanation = es.errorExplanation
-                        , previousMain = es.previousMain |> Maybe.map ps.mainLens.get
+                        , previousMain = es.previousMain |> Maybe.map ps.subMain
                         }
             }
             model
