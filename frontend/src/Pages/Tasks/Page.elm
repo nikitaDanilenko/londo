@@ -1,16 +1,12 @@
 module Pages.Tasks.Page exposing (..)
 
-import Language.Language
 import Monocle.Lens exposing (Lens)
 import Pages.Tasks.Project.Page
 import Pages.Tasks.Tasks.Page
-import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Parent.Page
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
-import Pages.View.TristateUtil as TristateUtil
 import Types.Auxiliary exposing (JWT)
-import Types.Project.ProjectId exposing (ProjectId)
 import Types.Project.Resolved
 import Util.HttpUtil as HttpUtil
 
@@ -31,34 +27,6 @@ type alias Initial =
     , project : Pages.Tasks.Project.Page.Initial
     , tasks : Pages.Tasks.Tasks.Page.Initial
     }
-
-
-projectSubModel : Model -> Pages.Tasks.Project.Page.Model
-projectSubModel =
-    TristateUtil.subModelWith
-        { initialLens = lenses.initial.project
-        , mainLens = lenses.main.project
-        }
-
-
-tasksSubModel : Model -> Pages.Tasks.Tasks.Page.Model
-tasksSubModel =
-    TristateUtil.subModelWith
-        { initialLens = lenses.initial.tasks
-        , mainLens = lenses.main.tasks
-        }
-
-
-initial : AuthorizedAccess -> ProjectId -> Model
-initial authorizedAccess projectId =
-    { jwt = authorizedAccess.jwt
-    , project = Pages.Util.Parent.Page.initialWith authorizedAccess.jwt Language.Language.default.projectEditor
-    , tasks =
-        { projectId = projectId
-        , initial = Pages.Util.ParentEditor.Page.defaultInitial authorizedAccess.jwt Language.Language.default.taskEditor
-        }
-    }
-        |> Tristate.createInitial authorizedAccess.configuration
 
 
 initialToMain : Initial -> Maybe Main

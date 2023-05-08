@@ -14,6 +14,7 @@ import Util.DictList as DictList
 import Util.Editing as Editing
 
 
+update : Page.Msg -> Page.Model -> ( Page.Model, Cmd Page.Msg )
 update =
     Tristate.updateWith updateLogic
 
@@ -25,7 +26,6 @@ updateLogic msg model =
             TristateUtil.updateFromSubModel
                 { initialSubModelLens = Page.lenses.initial.project
                 , mainSubModelLens = Page.lenses.main.project
-                , subModelOf = Page.projectSubModel
                 , fromInitToMain = Page.initialToMain
                 , updateSubModel = Pages.Tasks.Project.Handler.updateLogic
                 , toMsg = Page.ProjectMsg
@@ -35,7 +35,6 @@ updateLogic msg model =
             TristateUtil.updateFromSubModel
                 { initialSubModelLens = Page.lenses.initial.tasks
                 , mainSubModelLens = Page.lenses.main.tasks
-                , subModelOf = Page.tasksSubModel
                 , fromInitToMain = Page.initialToMain
                 , updateSubModel = Pages.Tasks.Tasks.Handler.updateLogic
                 , toMsg = Page.TasksMsg
