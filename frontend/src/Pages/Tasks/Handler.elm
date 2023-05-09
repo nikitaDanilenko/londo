@@ -1,10 +1,8 @@
 module Pages.Tasks.Handler exposing (init, update)
 
-import Monocle.Compose as Compose
 import Pages.Tasks.Page as Page
 import Pages.Tasks.Project.Handler
 import Pages.Tasks.Tasks.Handler
-import Pages.Tasks.Tasks.Page
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Parent.Page
 import Pages.Util.ParentEditor.Page
@@ -13,8 +11,6 @@ import Pages.View.TristateUtil as TristateUtil
 import Result.Extra
 import Types.Project.ProjectId exposing (ProjectId)
 import Types.Project.Resolved
-import Util.DictList as DictList
-import Util.Editing as Editing
 
 
 update : Page.Msg -> Page.Model -> ( Page.Model, Cmd Page.Msg )
@@ -59,23 +55,26 @@ updateLogic msg model =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
                     (\resolved ->
+                        -- We assume that all subcommands are Cmd.none, otherwise collect the commands, and batch the result.
                         model
-                            |> Tristate.mapInitial
-                                ((Page.lenses.initial.project
-                                    |> Compose.lensWithLens Pages.Util.Parent.Page.lenses.initial.parent
-                                 ).set
-                                    (resolved.project |> Just)
-                                    >> (Page.lenses.initial.tasks
-                                            |> Compose.lensWithLens Pages.Tasks.Tasks.Page.lenses.initial
-                                            |> Compose.lensWithLens Pages.Util.ParentEditor.Page.lenses.initial.parents
-                                       ).set
-                                        (resolved.tasks
-                                            |> List.map Editing.asView
-                                            |> DictList.fromListWithKey (.original >> .id)
-                                            |> Just
-                                        )
-                                )
-                            |> Tristate.fromInitToMain Page.initialToMain
+                            |> TristateUtil.updateFromSubModel
+                                { initialSubModelLens = Page.lenses.initial.project
+                                , mainSubModelLens = Page.lenses.main.project
+                                , fromInitToMain = Page.initialToMain
+                                , updateSubModel = Pages.Tasks.Project.Handler.updateLogic
+                                , toMsg = Page.ProjectMsg
+                                }
+                                (resolved |> .project |> Ok |> Pages.Util.Parent.Page.GotFetchResponse)
+                            |> Tuple.first
+                            |> TristateUtil.updateFromSubModel
+                                { initialSubModelLens = Page.lenses.initial.tasks
+                                , mainSubModelLens = Page.lenses.main.tasks
+                                , fromInitToMain = Page.initialToMain
+                                , updateSubModel = Pages.Tasks.Tasks.Handler.updateLogic
+                                , toMsg = Page.TasksMsg
+                                }
+                                (resolved |> .tasks |> Ok |> Pages.Util.ParentEditor.Page.GotFetchResponse)
+                            |> Tuple.first
                     )
             , Cmd.none
             )
