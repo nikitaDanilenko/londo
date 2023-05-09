@@ -1,15 +1,18 @@
-module Pages.Tasks.Handler exposing (..)
+module Pages.Tasks.Handler exposing (init, update)
 
 import Monocle.Compose as Compose
 import Pages.Tasks.Page as Page
 import Pages.Tasks.Project.Handler
 import Pages.Tasks.Tasks.Handler
 import Pages.Tasks.Tasks.Page
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Parent.Page
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
 import Pages.View.TristateUtil as TristateUtil
 import Result.Extra
+import Types.Project.ProjectId exposing (ProjectId)
+import Types.Project.Resolved
 import Util.DictList as DictList
 import Util.Editing as Editing
 
@@ -17,6 +20,18 @@ import Util.Editing as Editing
 update : Page.Msg -> Page.Model -> ( Page.Model, Cmd Page.Msg )
 update =
     Tristate.updateWith updateLogic
+
+
+init : Page.Flags -> ( Page.Model, Cmd Page.Msg )
+init flags =
+    ( Page.initial flags.authorizedAccess flags.projectId
+    , initialFetch flags.authorizedAccess flags.projectId |> Cmd.map Tristate.Logic
+    )
+
+
+initialFetch : AuthorizedAccess -> ProjectId -> Cmd Page.LogicMsg
+initialFetch =
+    Types.Project.Resolved.fetchWith Page.GotFetchResponse
 
 
 updateLogic : Page.LogicMsg -> Page.Model -> ( Page.Model, Cmd Page.LogicMsg )

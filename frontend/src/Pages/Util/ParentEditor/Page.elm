@@ -31,12 +31,17 @@ type alias Initial parentId parent update language =
     }
 
 
-initial : AuthorizedAccess -> language -> Model parentId parent creation update language
-initial authorizedAccess language =
+defaultInitial : JWT -> language -> Initial parentId parent update language
+defaultInitial jwt language =
     { parents = Nothing
-    , jwt = authorizedAccess.jwt
+    , jwt = jwt
     , language = language
     }
+
+
+initial : AuthorizedAccess -> language -> Model parentId parent creation update language
+initial authorizedAccess language =
+    defaultInitial authorizedAccess.jwt language
         |> Tristate.createInitial authorizedAccess.configuration
 
 

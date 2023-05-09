@@ -1,12 +1,15 @@
 module Pages.Tasks.Page exposing (..)
 
+import Language.Language
 import Monocle.Lens exposing (Lens)
 import Pages.Tasks.Project.Page
 import Pages.Tasks.Tasks.Page
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Parent.Page
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
 import Types.Auxiliary exposing (JWT)
+import Types.Project.ProjectId exposing (ProjectId)
 import Types.Project.Resolved
 import Util.HttpUtil as HttpUtil
 
@@ -27,6 +30,15 @@ type alias Initial =
     , project : Pages.Tasks.Project.Page.Initial
     , tasks : Pages.Tasks.Tasks.Page.Initial
     }
+
+
+initial : AuthorizedAccess -> ProjectId -> Model
+initial authorizedAccess projectId =
+    { jwt = authorizedAccess.jwt
+    , project = Pages.Util.Parent.Page.initialWith authorizedAccess.jwt Language.Language.default.projectEditor
+    , tasks = Pages.Tasks.Tasks.Page.initial authorizedAccess.jwt projectId
+    }
+        |> Tristate.createInitial authorizedAccess.configuration
 
 
 initialToMain : Initial -> Maybe Main
@@ -69,6 +81,12 @@ lenses =
         { project = Lens .project (\b a -> { a | project = b })
         , tasks = Lens .tasks (\b a -> { a | tasks = b })
         }
+    }
+
+
+type alias Flags =
+    { projectId : ProjectId
+    , authorizedAccess : AuthorizedAccess
     }
 
 
