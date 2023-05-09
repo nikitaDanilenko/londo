@@ -16,7 +16,7 @@ updateFromSubModel :
     -> ( Tristate.Model main initial, Cmd msg )
 updateFromSubModel ps msg model =
     let
-        ( recipeModel, recipeCmd ) =
+        ( subModel, subCmd ) =
             model
                 |> subModelWith
                     { subInitial = ps.initialSubModelLens.get
@@ -25,10 +25,10 @@ updateFromSubModel ps msg model =
                 |> ps.updateSubModel msg
 
         newCmd =
-            Cmd.map ps.toMsg recipeCmd
+            Cmd.map ps.toMsg subCmd
 
         newModel =
-            case ( model.status, recipeModel.status ) of
+            case ( model.status, subModel.status ) of
                 ( Tristate.Initial i, Tristate.Initial subInitial ) ->
                     i
                         |> ps.initialSubModelLens.set subInitial
