@@ -5,7 +5,7 @@ import Basics.Extra exposing (flip)
 import Browser exposing (UrlRequest)
 import Browser.Navigation
 import Configuration exposing (Configuration)
-import Html exposing (Html, div, main_, text)
+import Html exposing (Html, main_, text)
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 import Pages.Login.Handler
