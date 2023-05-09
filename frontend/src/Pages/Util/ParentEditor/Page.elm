@@ -49,9 +49,9 @@ initialToMain : Initial parentId parent update language -> Maybe (Main parentId 
 initialToMain i =
     i.parents
         |> Maybe.map
-            (\recipes ->
+            (\parents ->
                 { jwt = i.jwt
-                , parents = recipes
+                , parents = parents
                 , parentCreation = Nothing
                 , searchString = ""
                 , pagination = Pagination.initial
