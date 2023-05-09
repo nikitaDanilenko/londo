@@ -1,23 +1,36 @@
 module Main exposing (main)
 
+import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Browser exposing (UrlRequest)
-import Browser.Navigation as Nav
+import Browser.Navigation
 import Configuration exposing (Configuration)
-import Html exposing (Html, div, text)
-import Language.Language as Language exposing (Language)
+import Html exposing (Html, div, main_, text)
 import Maybe.Extra
-import Pages.Login.Login as Login
-import Pages.Overview.Overview as Overview
-import Pages.Project.ProjectEditor as ProjectEditor
-import Pages.Project.TaskEditor as TaskEditor
-import Pages.Register.CreateNewUser as CreateNewUser
-import Pages.Register.CreateRegistrationToken as CreateRegistrationToken
-import Pages.Util.ParserUtil as ParserUtil
-import Types.ProjectId exposing (ProjectId(..))
+import Monocle.Lens exposing (Lens)
+import Pages.Login.Handler
+import Pages.Login.Page
+import Pages.Login.View
+import Pages.Overview.Handler
+import Pages.Overview.Page
+import Pages.Overview.View
+import Pages.Projects.Handler
+import Pages.Projects.Page
+import Pages.Projects.View
+import Pages.Registration.Confirm.Handler
+import Pages.Registration.Confirm.Page
+import Pages.Registration.Confirm.View
+import Pages.Registration.Request.Handler
+import Pages.Registration.Request.Page
+import Pages.Registration.Request.View
+import Pages.Tasks.Handler
+import Pages.Tasks.Page
+import Pages.Tasks.View
+import Ports
+import Types.Auxiliary exposing (JWT, UserIdentifier)
+import Types.Project.ProjectId exposing (ProjectId(..))
 import Url exposing (Protocol(..), Url)
-import Url.Parser as Parser exposing ((</>), (<?>), Parser, s)
-import Url.Parser.Query as Query
+import Url.Parser as Parser exposing (Parser)
 
 
 main : Program Configuration Model Msg
@@ -26,38 +39,62 @@ main =
         { init = init
         , onUrlChange = ChangedUrl
         , onUrlRequest = ClickedLink
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , update = update
         , view = \model -> { title = titleFor model, body = [ view model ] }
         }
 
 
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.batch
+        [ Ports.fetchToken FetchToken
+        , Ports.deleteToken DeleteToken
+        ]
+
+
 type alias Model =
-    { key : Nav.Key
+    { key : Browser.Navigation.Key
     , page : Page
     , configuration : Configuration
+    , jwt : Maybe JWT
+    , entryRoute : Maybe Route
+    }
+
+
+lenses :
+    { jwt : Lens Model (Maybe JWT)
+    , page : Lens Model Page
+    , entryRoute : Lens Model (Maybe Route)
+    }
+lenses =
+    { jwt = Lens .jwt (\b a -> { a | jwt = b })
+    , page = Lens .page (\b a -> { a | page = b })
+    , entryRoute = Lens .entryRoute (\b a -> { a | entryRoute = b })
     }
 
 
 type Page
-    = CreateRegistrationToken CreateRegistrationToken.Model
-    | CreateNewUser CreateNewUser.Model
-    | Login Login.Model
-    | Overview Overview.Model
-    | ProjectEditor ProjectEditor.Model
-    | TaskEditor TaskEditor.Model
+    = RequestRegistration Pages.Registration.Request.Page.Model
+    | ConfirmRegistration Pages.Registration.Confirm.Page.Model
+    | Login Pages.Login.Page.Model
+    | Overview Pages.Overview.Page.Model
+    | Projects Pages.Projects.Page.Model
+    | Tasks Pages.Tasks.Page.Model
     | NotFound
 
 
 type Msg
     = ClickedLink UrlRequest
     | ChangedUrl Url
-    | CreateRegistrationTokenMsg CreateRegistrationToken.Msg
-    | CreateNewUserMsg CreateNewUser.Msg
-    | LoginMsg Login.Msg
-    | OverviewMsg Overview.Msg
-    | ProjectEditorMsg ProjectEditor.Msg
-    | TaskEditorMsg TaskEditor.Msg
+    | FetchToken String
+    | DeleteToken ()
+    | RequestRegistrationMsg Pages.Registration.Request.Page.Msg
+    | ConfirmRegistrationMsg Pages.Registration.Confirm.Page.Msg
+    | LoginMsg Pages.Login.Page.Msg
+    | OverviewMsg Pages.Overview.Page.Msg
+    | ProjectsMsg Pages.Projects.Page.Msg
+    | TasksMsg Pages.Tasks.Page.Msg
 
 
 titleFor : Model -> String
@@ -65,38 +102,41 @@ titleFor _ =
     "Londo"
 
 
-init : Configuration -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Configuration -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init configuration url key =
-    stepTo url
-        { page = ProjectEditor ({ token = "", configuration = configuration, language = Language.default } |> ProjectEditor.init |> Tuple.first)
-        , key = key
-        , configuration = configuration
-        }
+    ( { page = NotFound
+      , key = key
+      , configuration = configuration
+      , jwt = Nothing
+      , entryRoute = parsePage url
+      }
+    , Ports.doFetchToken ()
+    )
 
 
 view : Model -> Html Msg
 view model =
     case model.page of
-        CreateRegistrationToken createRegistrationToken ->
-            Html.map CreateRegistrationTokenMsg (CreateRegistrationToken.view createRegistrationToken)
+        RequestRegistration requestRegistration ->
+            Html.map RequestRegistrationMsg (Pages.Registration.Request.View.view requestRegistration)
 
-        CreateNewUser createNewUser ->
-            Html.map CreateNewUserMsg (CreateNewUser.view createNewUser)
+        ConfirmRegistration confirmRegistration ->
+            Html.map ConfirmRegistrationMsg (Pages.Registration.Confirm.View.view confirmRegistration)
 
         Login login ->
-            Html.map LoginMsg (Login.view login)
+            Html.map LoginMsg (Pages.Login.View.view login)
 
         Overview overview ->
-            Html.map OverviewMsg (Overview.view overview)
+            Html.map OverviewMsg (Pages.Overview.View.view overview)
 
-        ProjectEditor projectEditor ->
-            Html.map ProjectEditorMsg (ProjectEditor.view projectEditor)
+        Projects projects ->
+            Html.map ProjectsMsg (Pages.Projects.View.view projects)
 
-        TaskEditor taskEditor ->
-            Html.map TaskEditorMsg (TaskEditor.view taskEditor)
+        Tasks tasks ->
+            Html.map TasksMsg (Pages.Tasks.View.view tasks)
 
         NotFound ->
-            div [] [ text "Page not found" ]
+            main_ [] [ text "Page not found" ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -105,200 +145,184 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+                    ( model, Browser.Navigation.pushUrl model.key (Url.toString url) )
 
                 Browser.External href ->
-                    ( model, Nav.load href )
+                    ( model, Browser.Navigation.load href )
 
         ( ChangedUrl url, _ ) ->
-            stepTo url model
+            model
+                |> lenses.entryRoute.set (url |> parsePage)
+                |> followRoute
 
-        ( CreateRegistrationTokenMsg createRegistrationTokenMsg, CreateRegistrationToken createRegistrationToken ) ->
-            stepCreateRegistrationToken model (CreateRegistrationToken.update createRegistrationTokenMsg createRegistrationToken)
+        ( FetchToken token, _ ) ->
+            model
+                |> lenses.jwt.set (Maybe.Extra.filter (String.isEmpty >> not) (Just token))
+                |> followRoute
 
-        ( CreateNewUserMsg createNewUserMsg, CreateNewUser createNewUser ) ->
-            stepCreateNewUser model (CreateNewUser.update createNewUserMsg createNewUser)
+        --  todo: Remove command, otherwise there is an endless loop
+        ( DeleteToken _, _ ) ->
+            ( model |> lenses.jwt.set Nothing, Ports.doDeleteToken () )
+
+        ( RequestRegistrationMsg requestRegistrationMsg, RequestRegistration requestRegistration ) ->
+            stepThrough steps.requestRegistration model (Pages.Registration.Request.Handler.update requestRegistrationMsg requestRegistration)
+
+        ( ConfirmRegistrationMsg confirmRegistrationMsg, ConfirmRegistration confirmRegistration ) ->
+            stepThrough steps.confirmRegistration model (Pages.Registration.Confirm.Handler.update confirmRegistrationMsg confirmRegistration)
 
         ( LoginMsg loginMsg, Login login ) ->
-            stepLogin model (Login.update loginMsg login)
+            stepThrough steps.login model (Pages.Login.Handler.update loginMsg login)
 
         ( OverviewMsg overviewMsg, Overview overview ) ->
-            stepOverview model (Overview.update overviewMsg overview)
+            stepThrough steps.overview model (Pages.Overview.Handler.update overviewMsg overview)
 
-        ( ProjectEditorMsg projectEditorMsg, ProjectEditor projectEditor ) ->
-            stepProjectEditor model (ProjectEditor.update projectEditorMsg projectEditor)
+        ( ProjectsMsg projectsMsg, Projects projects ) ->
+            stepThrough steps.projects model (Pages.Projects.Handler.update projectsMsg projects)
 
-        ( TaskEditorMsg taskEditorMsg, TaskEditor taskEditor ) ->
-            stepTaskEditor model (TaskEditor.update taskEditorMsg taskEditor)
+        ( TasksMsg tasksMsg, Tasks tasks ) ->
+            stepThrough steps.tasks model (Pages.Tasks.Handler.update tasksMsg tasks)
 
         _ ->
             ( model, Cmd.none )
 
 
-stepTo : Url -> Model -> ( Model, Cmd Msg )
-stepTo url model =
-    case Parser.parse (routeParser model.configuration) (fragmentToPath url) of
-        Just answer ->
-            case answer of
-                CreateRegistrationTokenRoute flags ->
-                    CreateRegistrationToken.init flags |> stepCreateRegistrationToken model
-
-                CreateNewUserRoute flags ->
-                    CreateNewUser.init flags |> stepCreateNewUser model
-
-                LoginRoute flags ->
-                    Login.init flags |> stepLogin model
-
-                OverviewRoute flags ->
-                    Overview.init flags |> stepOverview model
-
-                ProjectEditorRoute flags ->
-                    ProjectEditor.init flags |> stepProjectEditor model
-
-                TaskEditorRoute flags ->
-                    TaskEditor.init flags |> stepTaskEditor model
-
-        Nothing ->
-            ( { model | page = NotFound }, Cmd.none )
+type alias StepParameters model msg =
+    { page : model -> Page
+    , message : msg -> Msg
+    }
 
 
-stepCreateRegistrationToken : Model -> ( CreateRegistrationToken.Model, Cmd CreateRegistrationToken.Msg ) -> ( Model, Cmd Msg )
-stepCreateRegistrationToken model ( createRegistrationToken, cmd ) =
-    ( { model | page = CreateRegistrationToken createRegistrationToken }, Cmd.map CreateRegistrationTokenMsg cmd )
+steps :
+    { login : StepParameters Pages.Login.Page.Model Pages.Login.Page.Msg
+    , overview : StepParameters Pages.Overview.Page.Model Pages.Overview.Page.Msg
+    , projects : StepParameters Pages.Projects.Page.Model Pages.Projects.Page.Msg
+    , tasks : StepParameters Pages.Tasks.Page.Model Pages.Tasks.Page.Msg
+
+    {- , dashboardEntries : StepParameters Pages.DashboardEntries.Page.Model Pages.DashboardEntries.Page.Msg
+       , dashboards : StepParameters Pages.Dashboards.Page.Model Pages.Dashboards.Page.Msg
+       ,
+    -}
+    , requestRegistration : StepParameters Pages.Registration.Request.Page.Model Pages.Registration.Request.Page.Msg
+    , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
+
+    --, userSettings : StepParameters Pages.UserSettings.Page.Model Pages.UserSettings.Page.Msg
+    --, deletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
+    --, requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
+    --, confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
+    }
+steps =
+    { login = StepParameters Login LoginMsg
+    , overview = StepParameters Overview OverviewMsg
+    , projects = StepParameters Projects ProjectsMsg
+    , tasks = StepParameters Tasks TasksMsg
+
+    {- , dashboardEntries = StepParameters DashboardEntries DashboardEntriesMsg
+       , dashboards = StepParameters Dashboards DashboardsMsg
+       ,
+    -}
+    , requestRegistration = StepParameters RequestRegistration RequestRegistrationMsg
+    , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
+
+    --, userSettings = StepParameters UserSettings UserSettingsMsg
+    --, deletion = StepParameters Deletion DeletionMsg
+    --, requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
+    --, confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
+    }
 
 
-stepCreateNewUser : Model -> ( CreateNewUser.Model, Cmd CreateNewUser.Msg ) -> ( Model, Cmd Msg )
-stepCreateNewUser model ( createNewUser, cmd ) =
-    ( { model | page = CreateNewUser createNewUser }, Cmd.map CreateNewUserMsg cmd )
-
-
-stepLogin : Model -> ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
-stepLogin model ( login, cmd ) =
-    ( { model | page = Login login }, Cmd.map LoginMsg cmd )
-
-
-stepOverview : Model -> ( Overview.Model, Cmd Overview.Msg ) -> ( Model, Cmd Msg )
-stepOverview model ( overview, cmd ) =
-    ( { model | page = Overview overview }, Cmd.map OverviewMsg cmd )
-
-
-stepProjectEditor : Model -> ( ProjectEditor.Model, Cmd ProjectEditor.Msg ) -> ( Model, Cmd Msg )
-stepProjectEditor model ( projectEditor, cmd ) =
-    ( { model | page = ProjectEditor projectEditor }, Cmd.map ProjectEditorMsg cmd )
-
-
-stepTaskEditor : Model -> ( TaskEditor.Model, Cmd TaskEditor.Msg ) -> ( Model, Cmd Msg )
-stepTaskEditor model ( taskEditor, cmd ) =
-    ( { model | page = TaskEditor taskEditor }, Cmd.map TaskEditorMsg cmd )
+stepThrough : { page : model -> Page, message : msg -> Msg } -> Model -> ( model, Cmd msg ) -> ( Model, Cmd Msg )
+stepThrough ps model ( subModel, cmd ) =
+    ( { model | page = ps.page subModel }, Cmd.map ps.message cmd )
 
 
 type Route
-    = CreateRegistrationTokenRoute CreateRegistrationToken.Flags
-    | CreateNewUserRoute CreateNewUser.Flags
-    | LoginRoute Login.Flags
-    | OverviewRoute Overview.Flags
-    | ProjectEditorRoute ProjectEditor.Flags
-    | TaskEditorRoute TaskEditor.Flags
+    = RequestRegistrationRoute
+    | ConfirmRegistrationRoute UserIdentifier JWT
+    | LoginRoute
+    | OverviewRoute
+    | ProjectsRoute
+    | TasksRoute ProjectId
 
 
-routeParser : Configuration -> Parser (Route -> a) a
-routeParser configuration =
-    let
-        registrationTokenParser =
-            (s configuration.subFolders.register
-                <?> languageParser
-            )
-                |> Parser.map (\l -> { language = l, configuration = configuration })
-
-        createNewUserParser =
-            (s configuration.subFolders.register
-                </> s "email"
-                </> Parser.string
-                </> tokenParser
-                <?> languageParser
-            )
-                |> Parser.map
-                    (\email token language ->
-                        { email = email
-                        , token = token
-                        , language = language
-                        , configuration = configuration
-                        }
-                    )
-
-        loginParser =
-            (s configuration.subFolders.login <?> languageParser)
-                |> Parser.map
-                    (\language ->
-                        { language = language
-                        , configuration = configuration
-                        }
-                    )
-
-        overviewParser =
-            (s configuration.subFolders.overview
-                </> tokenParser
-                <?> languageParser
-            )
-                |> Parser.map
-                    (\token language ->
-                        { token = token
-                        , language = language
-                        , configuration = configuration
-                        }
-                    )
-
-        projectEditorParser =
-            (s configuration.subFolders.projects
-                </> tokenParser
-                <?> languageParser
-            )
-                |> Parser.map
-                    (\token language ->
-                        { token = token
-                        , language = language
-                        , configuration = configuration
-                        }
-                    )
-
-        taskEditorParser =
-            (s configuration.subFolders.tasks
-                </> ParserUtil.uuidParser
-                </> tokenParser
-                <?> languageParser
-            )
-                |> Parser.map
-                    (\uuid token language ->
-                        { projectId = ProjectId uuid
-                        , token = token
-                        , language = language
-                        , configuration = configuration
-                        }
-                    )
-    in
+plainRouteParser : Parser (Route -> a) a
+plainRouteParser =
     Parser.oneOf
-        [ route registrationTokenParser CreateRegistrationTokenRoute
-        , route createNewUserParser CreateNewUserRoute
-        , route loginParser LoginRoute
-        , route overviewParser OverviewRoute
-        , route projectEditorParser ProjectEditorRoute
-        , route taskEditorParser TaskEditorRoute
+        [ route Addresses.Frontend.requestRegistration.parser RequestRegistrationRoute
+        , route Addresses.Frontend.confirmRegistration.parser ConfirmRegistrationRoute
+        , route Addresses.Frontend.login.parser LoginRoute
+        , route Addresses.Frontend.overview.parser OverviewRoute
+        , route Addresses.Frontend.projects.parser ProjectsRoute
+        , route Addresses.Frontend.tasks.parser TasksRoute
         ]
 
 
-languageParser : Query.Parser Language
-languageParser =
-    Query.map (Maybe.Extra.unwrap Language.default Language.fromString) (Query.string "language")
+parsePage : Url -> Maybe Route
+parsePage =
+    fragmentToPath >> Parser.parse plainRouteParser
 
 
-tokenParser : Parser (String -> a) a
-tokenParser =
-    s "token" </> Parser.string
+{-| Todo: Rethink the structure - the matching is inelegant, error prone, and contains duplication.
+-}
+followRoute : Model -> ( Model, Cmd Msg )
+followRoute model =
+    let
+        authorizedAccessWith jwt =
+            { configuration = model.configuration
+            , jwt = jwt
+            }
+    in
+    case model.entryRoute of
+        Nothing ->
+            ( { model | page = NotFound }, Cmd.none )
+
+        Just entryRoute ->
+            case ( entryRoute, model.jwt ) of
+                ( RequestRegistrationRoute, _ ) ->
+                    Pages.Registration.Request.Handler.init { configuration = model.configuration }
+                        |> stepThrough steps.requestRegistration model
+
+                ( ConfirmRegistrationRoute userIdentifier registrationJWT, _ ) ->
+                    Pages.Registration.Confirm.Handler.init
+                        { configuration = model.configuration
+                        , userIdentifier = userIdentifier
+                        , registrationJWT = registrationJWT
+                        }
+                        |> stepThrough steps.confirmRegistration model
+
+                ( LoginRoute, _ ) ->
+                    Pages.Login.Handler.init { configuration = model.configuration }
+                        |> stepThrough steps.login model
+
+                ( OverviewRoute, Just _ ) ->
+                    Pages.Overview.Handler.init { configuration = model.configuration }
+                        |> stepThrough steps.overview model
+
+                ( ProjectsRoute, Just userJWT ) ->
+                    Pages.Projects.Handler.init
+                        { authorizedAccess = authorizedAccessWith userJWT
+                        }
+                        |> stepThrough steps.projects model
+
+                (TasksRoute projectId, Just userJWT) ->
+                    Pages.Tasks.Handler.init
+                        { authorizedAccess = authorizedAccessWith userJWT
+                        , projectId = projectId
+                        }
+                        |> stepThrough steps.tasks model
+
+                _ ->
+                    Pages.Login.Handler.init { configuration = model.configuration }
+                        |> stepThrough steps.login model
 
 
-optionalTokenParser : Query.Parser (Maybe String)
-optionalTokenParser =
-    Query.string "token"
+
+--LoginRoute ->
+--    Pages.Login.Handler.init { configuration = model.configuration } |> stepThrough steps.login model
+--
+--OverviewRoute ->
+--    Pages.Overview.Handler.init { configuration = model.configuration } |> stepThrough steps.overview model
+--
+--
 
 
 fragmentToPath : Url -> Url
