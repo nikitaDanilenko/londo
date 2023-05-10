@@ -24,6 +24,11 @@ The name `londo` hints at [Londo Mollari](https://en.wikipedia.org/wiki/Londo_Mo
    psql>create user <londo> with encrypted password <password>;
    psql>grant all privileges on database <londo> to <londo>;
    ```
+   When `psql` is running in Docker it may also be necessary to add
+   ```
+   psql>\c <londo>
+   londo>grant all privileges on all tables in schema public to <londo>;
+   ```
 1. The system scans for migrations in the folder `conf/db/migrations/default`
    and applies new ones.
    After a migration one should re-generate database related code:
