@@ -3,7 +3,7 @@ module Pages.Tasks.Tasks.View exposing (..)
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
-import Html.Attributes exposing (checked, type_, value)
+import Html.Attributes exposing (checked, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
@@ -17,6 +17,7 @@ import Pages.Util.Style as Style
 import Pages.View.Tristate as Tristate
 import Types.Progress.Input
 import Types.Progress.Progress as Progress exposing (Progress)
+import Types.Project.ProjectId exposing (ProjectId)
 import Types.Task.Creation
 import Types.Task.TaskId exposing (TaskId)
 import Types.Task.Update
@@ -26,28 +27,29 @@ import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 view : Page.Model -> Html Page.Msg
-view =
+view main =
     Tristate.view
-        { viewMain = viewMain
+        { viewMain = viewSubMain main.projectId
         , showLoginRedirect = True
         }
+        main.subModel
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
-viewMain configuration main =
+viewSubMain : ProjectId -> Configuration -> Page.SubMain -> Html Page.LogicMsg
+viewSubMain projectId configuration subMain =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Nothing
         , matchesSearchText =
             \string task ->
                 SearchUtil.search string task.name
         , sort = List.sortBy (.original >> .name) -- todo: use progress sorting
-        , tableHeader = tableHeader main.main.language
+        , tableHeader = tableHeader subMain.language
         , viewLine = \language _ -> viewTaskLine language
         , updateLine = \language task -> updateTaskLine language task.id
         , deleteLine = deleteTaskLine
         , create =
             { ifCreating = createTaskLine
-            , default = Types.Task.Creation.default main.projectId
+            , default = Types.Task.Creation.default projectId
             , label = .newTask
             , update = Pages.Util.ParentEditor.Page.UpdateCreation
             }
@@ -55,9 +57,9 @@ viewMain configuration main =
         , setPagination = Pages.Util.ParentEditor.Page.SetPagination
         , styling = Style.ids.addTaskView
         }
-        main.main.language
+        subMain.language
         configuration
-        main.main
+        subMain
 
 
 tableHeader : Page.Language -> Html msg
@@ -130,7 +132,7 @@ taskInfoColumns task =
       , children = [ label [] [ text <| Maybe.withDefault "" <| task.unit ] ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ input [ type_ "checkbox", checked <| task.counting ] [] ]
+      , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
       }
     ]
 
@@ -232,7 +234,7 @@ editProjectLineWith handling editedValue =
                     )
                     []
                 ]
-
+            , td [] []
             ]
 
         controlsRow =

@@ -29,6 +29,6 @@ viewMain configuration main =
         main_ [ Style.ids.taskEditor ]
             [ Pages.Tasks.Project.View.viewMain configuration main.project
                 |> Html.map Page.ProjectMsg
-            , h1 [ Style.classes.elements ] [ label [] [ text <| main.tasks.main.language.tasks ] ]
-            , Pages.Tasks.Tasks.View.viewMain configuration main.tasks |> Html.map Page.TasksMsg
+            , h1 [ Style.classes.elements ] [ label [] [ text <| main.tasks.language.tasks ] ]
+            , Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id configuration main.tasks |> Html.map Page.TasksMsg
             ]

@@ -8,7 +8,6 @@ import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Parent.Page
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
-import Types.Auxiliary exposing (JWT)
 import Types.Project.ProjectId exposing (ProjectId)
 import Types.Project.Resolved
 import Util.HttpUtil as HttpUtil
@@ -19,24 +18,21 @@ type alias Model =
 
 
 type alias Main =
-    { jwt : JWT
-    , project : Pages.Tasks.Project.Page.Main
-    , tasks : Pages.Tasks.Tasks.Page.Main
+    { project : Pages.Tasks.Project.Page.Main
+    , tasks : Pages.Tasks.Tasks.Page.SubMain
     }
 
 
 type alias Initial =
-    { jwt : JWT
-    , project : Pages.Tasks.Project.Page.Initial
-    , tasks : Pages.Tasks.Tasks.Page.Initial
+    { project : Pages.Tasks.Project.Page.Initial
+    , tasks : Pages.Tasks.Tasks.Page.SubInitial
     }
 
 
-initial : AuthorizedAccess -> ProjectId -> Model
-initial authorizedAccess projectId =
-    { jwt = authorizedAccess.jwt
-    , project = Pages.Util.Parent.Page.initialWith authorizedAccess.jwt Language.Language.default.projectEditor
-    , tasks = Pages.Tasks.Tasks.Page.initial authorizedAccess.jwt projectId
+initial : AuthorizedAccess -> Model
+initial authorizedAccess =
+    { project = Pages.Util.Parent.Page.initialWith authorizedAccess.jwt Language.Language.default.projectEditor
+    , tasks = Pages.Tasks.Tasks.Page.subInitial authorizedAccess
     }
         |> Tristate.createInitial authorizedAccess.configuration
 
@@ -47,16 +43,12 @@ initialToMain i =
         |> Pages.Util.Parent.Page.initialToMain
         |> Maybe.andThen
             (\project ->
-                i.tasks.initial
+                i.tasks
                     |> Pages.Util.ParentEditor.Page.initialToMain
                     |> Maybe.map
                         (\tasks ->
-                            { jwt = i.jwt
-                            , project = project
-                            , tasks =
-                                { projectId = i.tasks.projectId
-                                , main = tasks
-                                }
+                            {  project = project
+                            , tasks = tasks
                             }
                         )
             )
@@ -65,11 +57,11 @@ initialToMain i =
 lenses :
     { initial :
         { project : Lens Initial Pages.Tasks.Project.Page.Initial
-        , tasks : Lens Initial Pages.Tasks.Tasks.Page.Initial
+        , tasks : Lens Initial Pages.Tasks.Tasks.Page.SubInitial
         }
     , main :
         { project : Lens Main Pages.Tasks.Project.Page.Main
-        , tasks : Lens Main Pages.Tasks.Tasks.Page.Main
+        , tasks : Lens Main Pages.Tasks.Tasks.Page.SubMain
         }
     }
 lenses =

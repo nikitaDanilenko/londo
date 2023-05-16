@@ -2,9 +2,9 @@ module Pages.Tasks.Tasks.Page exposing (..)
 
 import Language.Language
 import Monocle.Lens exposing (Lens)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
-import Types.Auxiliary exposing (JWT)
 import Types.Project.ProjectId exposing (ProjectId)
 import Types.Task.Creation
 import Types.Task.Task
@@ -13,7 +13,13 @@ import Types.Task.Update
 
 
 type alias Model =
-    Tristate.Model Main Initial
+    { projectId : ProjectId
+    , subModel : Tristate.Model SubMain SubInitial
+    }
+
+
+type alias SubModel =
+    Tristate.Model SubMain SubInitial
 
 
 type alias TaskId =
@@ -36,39 +42,43 @@ type alias Language =
     Language.Language.TaskEditor
 
 
-type alias Initial =
-    { projectId : ProjectId
-    , initial : Pages.Util.ParentEditor.Page.Initial TaskId Task Update Language
-    }
+type alias SubInitial =
+    Pages.Util.ParentEditor.Page.Initial TaskId Task Update Language
 
 
-type alias Main =
-    { projectId : ProjectId
-    , main : Pages.Util.ParentEditor.Page.Main TaskId Task Creation Update Language
-    }
+type alias SubMain =
+    Pages.Util.ParentEditor.Page.Main TaskId Task Creation Update Language
 
 
-lenses :
-    { initial : Lens Initial (Pages.Util.ParentEditor.Page.Initial TaskId Task Update Language)
-    , main : Lens Main (Pages.Util.ParentEditor.Page.Main TaskId Task Creation Update Language)
-    }
+lenses : { subModel : Lens Model (Tristate.Model SubMain SubInitial) }
 lenses =
-    { initial = Lens .initial (\b a -> { a | initial = b })
-    , main = Lens .main (\b a -> { a | main = b })
+    { subModel = Lens .subModel (\b a -> { a | subModel = b })
     }
 
 
-initial : JWT -> ProjectId -> Initial
-initial jwt projectId =
-    { projectId = projectId
-    , initial = Pages.Util.ParentEditor.Page.defaultInitial jwt Language.Language.default.taskEditor
-    }
+
+--lenses :
+--    { initial : Lens Initial (Pages.Util.ParentEditor.Page.Initial TaskId Task Update Language)
+--    , main : Lens Main (Pages.Util.ParentEditor.Page.Main TaskId Task Creation Update Language)
+--    }
+--lenses =
+--    { initial = Lens .initial (\b a -> { a | initial = b })
+--    , main = Lens .main (\b a -> { a | main = b })
+--    }
 
 
-initialToMain : Initial -> Maybe Main
-initialToMain i =
-    Pages.Util.ParentEditor.Page.initialToMain i.initial
-        |> Maybe.map (Main i.projectId)
+subInitial : AuthorizedAccess -> SubInitial
+subInitial authorizedAccess =
+    Pages.Util.ParentEditor.Page.defaultInitial
+        authorizedAccess.jwt
+        Language.Language.default.taskEditor
+
+
+
+--initialToMain : Initial -> Maybe Main
+--initialToMain i =
+--    Pages.Util.ParentEditor.Page.initialToMain i.initial
+--        |> Maybe.map (Main i.projectId)
 
 
 type alias Msg =

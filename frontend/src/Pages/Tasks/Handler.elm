@@ -20,7 +20,7 @@ update =
 
 init : Page.Flags -> ( Page.Model, Cmd Page.Msg )
 init flags =
-    ( Page.initial flags.authorizedAccess flags.projectId
+    ( Page.initial flags.authorizedAccess
     , initialFetch flags.authorizedAccess flags.projectId |> Cmd.map Tristate.Logic
     )
 
@@ -52,30 +52,23 @@ updateLogic msg model =
                 }
 
         gotFetchResponse result =
-            ( result
-                |> Result.Extra.unpack (Tristate.toError model)
-                    (\resolved ->
-                        -- We assume that all subcommands are Cmd.none, otherwise collect the commands, and batch the result.
-                        model
-                            |> TristateUtil.updateFromSubModel
-                                { initialSubModelLens = Page.lenses.initial.project
-                                , mainSubModelLens = Page.lenses.main.project
-                                , fromInitToMain = Page.initialToMain
-                                , updateSubModel = Pages.Tasks.Project.Handler.updateLogic
-                                , toMsg = Page.ProjectMsg
-                                }
-                                (resolved |> .project |> Ok |> Pages.Util.Parent.Page.GotFetchResponse)
-                            |> Tuple.first
-                            |> TristateUtil.updateFromSubModel
-                                { initialSubModelLens = Page.lenses.initial.tasks
-                                , mainSubModelLens = Page.lenses.main.tasks
-                                , fromInitToMain = Page.initialToMain
-                                , updateSubModel = Pages.Tasks.Tasks.Handler.updateLogic
-                                , toMsg = Page.TasksMsg
-                                }
-                                (resolved |> .tasks |> Ok |> Pages.Util.ParentEditor.Page.GotFetchResponse)
-                            |> Tuple.first
-                    )
+            let
+                newModel =
+                    result
+                        |> Result.Extra.unpack (Tristate.toError model)
+                            (\resolved ->
+                                -- We assume that all subcommands are Cmd.none, otherwise collect the commands, and batch the result.
+                                model
+                                    |> updateLogicProject
+                                        (resolved |> .project |> Ok |> Pages.Util.Parent.Page.GotFetchResponse)
+                                    |> Tuple.first
+                                    |> updateLogicTasks
+                                        (resolved |> .tasks |> Ok |> Pages.Util.ParentEditor.Page.GotFetchResponse)
+                                    |> Tuple.first
+                                    |> Debug.log "update tasks"
+                            )
+            in
+            ( newModel
             , Cmd.none
             )
     in
