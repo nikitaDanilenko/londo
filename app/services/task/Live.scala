@@ -43,7 +43,7 @@ class Live @Inject() (
       companion.create(userId, projectId, creation)
     ).map(Right(_))
       .recover { case error =>
-        Left(ErrorContext.Task.Plain.Create(error.getMessage).asServerError)
+        Left(ErrorContext.Task.Create(error.getMessage).asServerError)
       }
 
   override def update(
@@ -54,14 +54,14 @@ class Live @Inject() (
     db.runTransactionally(companion.update(userId, taskId, update))
       .map(Right(_))
       .recover { case error =>
-        Left(ErrorContext.Task.Plain.Update(error.getMessage).asServerError)
+        Left(ErrorContext.Task.Update(error.getMessage).asServerError)
       }
 
   override def delete(userId: UserId, taskId: TaskId): Future[ServerError.Or[Boolean]] =
     db.runTransactionally(companion.delete(userId, taskId))
       .map(Right(_))
       .recover { error =>
-        Left(ErrorContext.Task.Plain.Delete(error.getMessage).asServerError)
+        Left(ErrorContext.Task.Delete(error.getMessage).asServerError)
       }
 
 }
@@ -95,10 +95,10 @@ object Live {
       for {
         matchingProjects <- projectDao.allOf(userId, projectIds)
         typedIds = matchingProjects.map(_.id.transformInto[ProjectId])
-        allPlainTasks <- taskDao.findAllFor(typedIds)
+        allTasks <- taskDao.findAllFor(typedIds)
       } yield {
         // GroupBy skips projects with no entries, hence they are added manually afterwards.
-        val preMap = allPlainTasks.groupBy(_.projectId.transformInto[ProjectId])
+        val preMap = allTasks.groupBy(_.projectId.transformInto[ProjectId])
         MapUtil
           .unionWith(preMap, typedIds.map(_ -> Seq.empty).toMap)((x, _) => x)
           .view
@@ -144,8 +144,8 @@ object Live {
           } yield ()
 
         }
-        updatedPlainTaskRow <- findAction
-      } yield updatedPlainTaskRow.transformInto[Task]
+        updatedTaskRow <- findAction
+      } yield updatedTaskRow.transformInto[Task]
     }
 
     override def delete(

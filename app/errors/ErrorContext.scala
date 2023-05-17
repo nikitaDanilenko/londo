@@ -56,27 +56,11 @@ object ErrorContext {
 
   object Task {
 
-    object Plain {
+    case class Create(errorMessage: String) extends ServerErrorInstance(s"Error while creating a task: $errorMessage")
 
-      case class Create(errorMessage: String) extends ServerErrorInstance(s"Error while creating a task: $errorMessage")
+    case class Update(errorMessage: String) extends ServerErrorInstance(s"Error while replacing a task: $errorMessage")
 
-      case class Update(errorMessage: String)
-          extends ServerErrorInstance(s"Error while replacing a task: $errorMessage")
-
-      case class Delete(errorMessage: String) extends ServerErrorInstance(s"Error while deleting a task: $errorMessage")
-
-    }
-
-    // TODO: Remove references, clean up rest
-    object Reference {
-
-      case class Create(errorMessage: String)
-          extends ServerErrorInstance(s"Error while creating a reference task: $errorMessage")
-
-      case class Delete(errorMessage: String)
-          extends ServerErrorInstance(s"Error while deleting a reference task: $errorMessage")
-
-    }
+    case class Delete(errorMessage: String) extends ServerErrorInstance(s"Error while deleting a task: $errorMessage")
 
     case object NotFound extends ServerErrorInstance("No task with the given id found")
 

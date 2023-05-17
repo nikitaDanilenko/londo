@@ -65,13 +65,13 @@ object Live {
     )(implicit ec: ExecutionContext): DBIO[Seq[DashboardEntry]] =
       for {
         exists <- dashboardDao.exists(DashboardKey(userId, dashboardId))
-        plainTasks <-
+        tasks <-
           if (exists)
             dashboardEntryDao
               .findAllFor(dashboardId)
               .map(_.map(_.transformInto[DashboardEntry]))
           else Applicative[DBIO].pure(Seq.empty)
-      } yield plainTasks
+      } yield tasks
 
     override def create(
         userId: UserId,
