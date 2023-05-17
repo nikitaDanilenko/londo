@@ -22,6 +22,6 @@ object Task {
       .define[services.task.Task, Task]
       .buildTransformer
 
-  implicit val plainObjectType: ObjectType[Unit, Task] = deriveObjectType[Unit, Task]()
+  implicit val objectType: ObjectType[Unit, Task] = deriveObjectType[Unit, Task]()
 
 }
