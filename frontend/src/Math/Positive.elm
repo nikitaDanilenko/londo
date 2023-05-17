@@ -4,7 +4,6 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.InputObject
 import LondoGQL.Object
 import LondoGQL.Object.Positive
-import Math.Natural exposing (Natural)
 import Maybe.Extra
 
 
