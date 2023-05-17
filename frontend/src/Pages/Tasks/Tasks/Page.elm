@@ -56,29 +56,11 @@ lenses =
     }
 
 
-
---lenses :
---    { initial : Lens Initial (Pages.Util.ParentEditor.Page.Initial TaskId Task Update Language)
---    , main : Lens Main (Pages.Util.ParentEditor.Page.Main TaskId Task Creation Update Language)
---    }
---lenses =
---    { initial = Lens .initial (\b a -> { a | initial = b })
---    , main = Lens .main (\b a -> { a | main = b })
---    }
-
-
 subInitial : AuthorizedAccess -> SubInitial
 subInitial authorizedAccess =
     Pages.Util.ParentEditor.Page.defaultInitial
         authorizedAccess.jwt
         Language.Language.default.taskEditor
-
-
-
---initialToMain : Initial -> Maybe Main
---initialToMain i =
---    Pages.Util.ParentEditor.Page.initialToMain i.initial
---        |> Maybe.map (Main i.projectId)
 
 
 type alias Msg =

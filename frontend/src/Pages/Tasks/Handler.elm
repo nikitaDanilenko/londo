@@ -1,8 +1,10 @@
 module Pages.Tasks.Handler exposing (init, update)
 
+import Monocle.Compose as Compose
 import Pages.Tasks.Page as Page
 import Pages.Tasks.Project.Handler
 import Pages.Tasks.Tasks.Handler
+import Pages.Tasks.Tasks.Page
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Parent.Page
 import Pages.Util.ParentEditor.Page
@@ -11,6 +13,8 @@ import Pages.View.TristateUtil as TristateUtil
 import Result.Extra
 import Types.Project.ProjectId exposing (ProjectId)
 import Types.Project.Resolved
+import Util.DictList as DictList
+import Util.Editing as Editing
 
 
 update : Page.Msg -> Page.Model -> ( Page.Model, Cmd Page.Msg )
@@ -53,6 +57,16 @@ updateLogic msg model =
 
         gotFetchResponse result =
             let
+                {- todo: There is an issue here. The action that is performed is setting the tasks, and the project
+                   at the same time (atomically). It would seem that one could simply reuse the two update functions
+                   for the corresponding subcomponents, but this is not the case. Why? Because the tasks display a
+                   parent-like behaviour, and are implemented via the parent editor. This means that they transform
+                   the model from Initial to Main too early for this particular scenario, which in turn results in non-matching
+                   model states for the `updateFromSubModel` function.
+
+                   We keep this now as a compromise, to avoid boilerplate duplication.
+                   However, the overall design could be improved.
+                -}
                 newModel =
                     result
                         |> Result.Extra.unpack (Tristate.toError model)
@@ -62,9 +76,17 @@ updateLogic msg model =
                                     |> updateLogicProject
                                         (resolved |> .project |> Ok |> Pages.Util.Parent.Page.GotFetchResponse)
                                     |> Tuple.first
-                                    |> updateLogicTasks
-                                        (resolved |> .tasks |> Ok |> Pages.Util.ParentEditor.Page.GotFetchResponse)
-                                    |> Tuple.first
+                                    |> Tristate.mapInitial
+                                        ((Page.lenses.initial.tasks
+                                            |> Compose.lensWithLens Pages.Util.ParentEditor.Page.lenses.initial.parents
+                                         ).set
+                                            (resolved.tasks
+                                                |> List.map Editing.asView
+                                                |> DictList.fromListWithKey (.original >> .id)
+                                                |> Just
+                                            )
+                                        )
+                                    |> Tristate.fromInitToMain Page.initialToMain
                             )
             in
             ( newModel
