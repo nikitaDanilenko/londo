@@ -2,6 +2,7 @@ module Pages.Tasks.Tasks.View exposing (..)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
+import Dropdown exposing (dropdown)
 import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
 import Html.Attributes exposing (checked, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -219,6 +220,16 @@ editProjectLineWith handling editedValue =
         validatedSaveAction =
             MaybeUtil.optional validInput <| onEnter handling.saveMsg
 
+        taskKindToItem taskKind =
+            let
+                stringValue =
+                    taskKind |> TaskKind.toString
+            in
+            { value = stringValue
+            , text = stringValue
+            , enabled = True
+            }
+
         infoColumns =
             [ td [ Style.classes.editable ]
                 [ input
@@ -234,6 +245,23 @@ editProjectLineWith handling editedValue =
                     )
                     []
                 ]
+            , td []
+                [ dropdown
+                    { items =
+                        TaskKind.list
+                            |> List.map
+                                taskKindToItem
+                    , emptyItem = Nothing
+                    , onChange =
+                        Maybe.andThen TaskKind.fromString
+                            >> Maybe.Extra.unwrap editedValue (flip handling.taskKindLens.set editedValue)
+                            >> handling.updateMsg
+                    }
+                    []
+                    (editedValue |> handling.taskKindLens.get |> TaskKind.toString |> Just)
+                ]
+            , td [] []
+            , td [] []
             , td [] []
             ]
 
