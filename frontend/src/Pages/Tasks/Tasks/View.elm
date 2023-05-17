@@ -9,7 +9,7 @@ import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
 import Maybe.Extra
-import Monocle.Lens exposing (Lens)
+import Monocle.Lens as Lens exposing (Lens)
 import Pages.Tasks.Tasks.Page as Page
 import Pages.Util.HtmlUtil as HtmlUtil
 import Pages.Util.ParentEditor.Page
@@ -236,8 +236,8 @@ editProjectLineWith handling editedValue =
                     ([ MaybeUtil.defined <| value <| .text <| handling.nameLens.get <| editedValue
                      , MaybeUtil.defined <|
                         onInput <|
-                            flip (ValidatedInput.lift handling.nameLens).set editedValue
-                                >> handling.updateMsg
+                            handling.updateMsg
+                                << flip (ValidatedInput.lift handling.nameLens).set editedValue
                      , MaybeUtil.defined <| HtmlUtil.onEscape handling.cancelMsg
                      , validatedSaveAction
                      ]
@@ -261,8 +261,32 @@ editProjectLineWith handling editedValue =
                     (editedValue |> handling.taskKindLens.get |> TaskKind.toString |> Just)
                 ]
             , td [] []
-            , td [] []
-            , td [] []
+            , td [ Style.classes.editable ]
+                [ input
+                    [ value <| Maybe.withDefault "" <| handling.unitLens.get <| editedValue
+                    , onInput <|
+                        handling.updateMsg
+                            << flip handling.unitLens.set editedValue
+                            << Maybe.Extra.filter (String.isEmpty >> not)
+                            << Just
+                    , onEnter handling.saveMsg
+                    , HtmlUtil.onEscape handling.cancelMsg
+                    ]
+                    []
+                ]
+            , td []
+                [ input
+                    [ type_ "checkbox"
+                    , checked <| handling.countingLens.get <| editedValue
+                    , onClick <|
+                        handling.updateMsg <|
+                            Lens.modify handling.countingLens not <|
+                                editedValue
+                    , onEnter handling.saveMsg
+                    , HtmlUtil.onEscape handling.cancelMsg
+                    ]
+                    []
+                ]
             ]
 
         controlsRow =
