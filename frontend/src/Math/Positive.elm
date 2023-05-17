@@ -24,11 +24,6 @@ fromString s =
         |> Maybe.map (\p -> { positive = p })
 
 
-toNatural : Positive -> Natural
-toNatural p =
-    { nonNegative = p.positive }
-
-
 one : Positive
 one =
     { positive = 1 }
