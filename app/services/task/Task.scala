@@ -32,7 +32,7 @@ object Task {
       unit = row.unit,
       progress = Progress.fraction(
         reachable = Positive.nextOf(
-          Natural(row.reachable)
+          Natural(row.reachable - 1)
         ),
         reached = Natural(row.reached)
       ),
