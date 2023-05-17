@@ -9,7 +9,7 @@ import Types.Task.Update
 
 
 updateLogic : Page.LogicMsg -> Page.SubModel -> ( Page.SubModel, Cmd Page.LogicMsg )
-updateLogic msg model =
+updateLogic =
     Pages.Util.ParentEditor.Handler.updateLogic
         { idOfParent = .id
         , toUpdate = Types.Task.Update.from
@@ -17,5 +17,4 @@ updateLogic msg model =
         , create = Types.Task.Creation.createWith Pages.Util.ParentEditor.Page.GotCreateResponse
         , save = Types.Task.Update.updateWith Pages.Util.ParentEditor.Page.GotSaveEditResponse
         , delete = Types.Task.Task.deleteWith Pages.Util.ParentEditor.Page.GotDeleteResponse
-        } msg model
-        --|> Debug.log "updateInner"
+        }

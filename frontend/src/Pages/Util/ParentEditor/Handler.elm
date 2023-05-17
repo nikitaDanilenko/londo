@@ -35,7 +35,6 @@ updateLogic ps msg model =
                             |> Tristate.mapInitial
                                 (Page.lenses.initial.parents.set
                                     (parents
-                                        |> Debug.log "parents"
                                         |> List.map Editing.asView
                                         |> DictList.fromListWithKey (.original >> ps.idOfParent)
                                         |> Just

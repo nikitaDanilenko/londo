@@ -65,7 +65,6 @@ updateLogic msg model =
                                     |> updateLogicTasks
                                         (resolved |> .tasks |> Ok |> Pages.Util.ParentEditor.Page.GotFetchResponse)
                                     |> Tuple.first
-                                    |> Debug.log "update tasks"
                             )
             in
             ( newModel
