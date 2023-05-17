@@ -1,9 +1,9 @@
 package services.task
 
-import algebra.ring.{AdditiveMonoid, AdditiveSemigroup}
+import algebra.ring.{ AdditiveMonoid, AdditiveSemigroup }
 import math.Positive
-import spire.algebra.{MultiplicativeSemigroup, Order}
-import spire.math.{Natural, Rational}
+import spire.algebra.{ MultiplicativeSemigroup, Order }
+import spire.math.{ Natural, Rational }
 import spire.syntax.multiplicativeMonoid._
 import utils.math.NaturalUtil
 
@@ -50,7 +50,7 @@ object Progress {
   def divideBy(progress: Progress, p: Positive): Progress =
     unsafeFromRational(progress.value * Rational(1, p.natural.toBigInt))
 
-  private def clampMax[A: Order: AdditiveMonoid](value: A, max: A): A =
+  private def clampMax[A: Order](value: A, max: A): A =
     Order[A].min(max, value)
 
   private def unsafeFromRational(rational: Rational): Progress =
