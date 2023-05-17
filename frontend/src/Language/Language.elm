@@ -160,7 +160,7 @@ english =
         }
     , taskEditor =
         { tasks = "Plain tasks"
-        , newTask = "Create new plain task"
+        , newTask = "Create new task"
         , delete = "Delete"
         , confirmDelete = "Delete?"
         , taskName = "Name"
