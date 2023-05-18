@@ -1,8 +1,8 @@
 module Types.Progress.Progress exposing (..)
 
+import Basics.Extra exposing (flip)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
-import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
 import LondoGQL.Object
 import LondoGQL.Object.Progress
 import Math.Natural as Natural exposing (Natural)
@@ -15,6 +15,11 @@ type alias Progress =
     }
 
 
+isComplete : Progress -> Bool
+isComplete progress =
+    (progress.reached |> Natural.intValue) == (progress.reachable |> Positive.intValue)
+
+
 selection : SelectionSet Progress LondoGQL.Object.Progress
 selection =
     SelectionSet.map2
@@ -23,32 +28,33 @@ selection =
         (LondoGQL.Object.Progress.reached Natural.selection)
 
 
-display : TaskKind -> Progress -> String
-display tk p =
-    case tk of
-        TaskKind.Percentual ->
-            let
-                numberOfDecimalPlaces =
-                    logBase 10 (toFloat p.reachable.positive) - 2 |> round
+displayPercentage : Progress -> String
+displayPercentage progress =
+    let
+        numberOfDecimalPlaces =
+            progress
+                |> .reachable
+                |> Positive.intValue
+                |> toFloat
+                |> logBase 10
+                |> flip (-) 2
+                |> round
 
-                reachedString =
-                    p.reached |> Natural.toString
+        reachedString =
+            progress |> .reached |> Natural.toString
 
-                reachedStringLength =
-                    String.length reachedString
+        reachedStringLength =
+            String.length reachedString
 
-                percent =
-                    if numberOfDecimalPlaces <= 0 then
-                        reachedString
+        percent =
+            if numberOfDecimalPlaces <= 0 then
+                reachedString
 
-                    else
-                        let
-                            ( before, after ) =
-                                reachedString |> String.toList |> List.Extra.splitAt (reachedStringLength - numberOfDecimalPlaces)
-                        in
-                        String.concat [ String.fromList before, ".", String.fromList after ]
-            in
-            String.concat [ percent, "%" ]
-
-        _ ->
-            String.concat [ Natural.toString p.reached, "/", Positive.toString p.reachable ]
+            else
+                let
+                    ( before, after ) =
+                        reachedString |> String.toList |> List.Extra.splitAt (reachedStringLength - numberOfDecimalPlaces)
+                in
+                String.concat [ String.fromList before, ".", String.fromList after ]
+    in
+    String.concat [ percent, "%" ]
