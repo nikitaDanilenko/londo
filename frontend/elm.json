@@ -12,6 +12,7 @@
             "abadi199/elm-input-extra": "5.2.6",
             "arturopala/elm-monocle": "2.2.0",
             "chain-partners/elm-bignum": "1.0.1",
+            "cuducos/elm-format-number": "9.0.1",
             "danyx23/elm-uuid": "2.1.2",
             "dillonkearns/elm-graphql": "5.0.5",
             "elm/browser": "1.0.2",
@@ -50,6 +51,7 @@
             "jinjor/elm-diff": "1.0.6",
             "jschomay/elm-bounded-number": "2.1.2",
             "lukewestby/elm-string-interpolate": "1.0.4",
+            "myrho/elm-round": "1.0.5",
             "robinheghan/murmur3": "1.0.0",
             "rtfeldman/elm-css": "17.1.1",
             "rtfeldman/elm-hex": "1.0.0"
