@@ -1,4 +1,4 @@
-module Math.Positive exposing (..)
+module Math.Positive exposing (Positive, fromString, intValue, one, oneHundred, selection, toGraphQLInput, toString)
 
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.InputObject
@@ -7,35 +7,40 @@ import LondoGQL.Object.Positive
 import Maybe.Extra
 
 
-type alias Positive =
-    { positive : Int }
+type Positive
+    = Positive Int
+
+
+intValue : Positive -> Int
+intValue (Positive int) =
+    int
 
 
 toString : Positive -> String
 toString =
-    .positive >> String.fromInt
+    intValue >> String.fromInt
 
 
 fromString : String -> Maybe Positive
 fromString s =
     String.toInt s
         |> Maybe.Extra.filter (\x -> x > 0)
-        |> Maybe.map (\p -> { positive = p })
+        |> Maybe.map Positive
 
 
 one : Positive
 one =
-    { positive = 1 }
+    Positive 1
 
 
 oneHundred : Positive
 oneHundred =
-    { positive = 100 }
+    Positive 100
 
 
 toGraphQLInput : Positive -> LondoGQL.InputObject.PositiveInput
 toGraphQLInput =
-    identity
+    intValue >> LondoGQL.InputObject.PositiveInput
 
 
 selection : SelectionSet Positive LondoGQL.Object.Positive

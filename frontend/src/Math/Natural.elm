@@ -7,30 +7,35 @@ import LondoGQL.Object.Natural
 import Maybe.Extra
 
 
-type alias Natural =
-    { nonNegative : Int }
+type Natural
+    = NonNegative Int
+
+
+intValue : Natural -> Int
+intValue (NonNegative int) =
+    int
 
 
 toString : Natural -> String
 toString =
-    .nonNegative >> String.fromInt
+    intValue >> String.fromInt
 
 
 fromString : String -> Maybe Natural
 fromString s =
     String.toInt s
         |> Maybe.Extra.filter (\x -> x >= 0)
-        |> Maybe.map (\n -> { nonNegative = n })
+        |> Maybe.map NonNegative
 
 
 zero : Natural
 zero =
-    { nonNegative = 0 }
+    NonNegative 0
 
 
 min : Natural -> Natural -> Natural
 min x y =
-    if x.nonNegative <= y.nonNegative then
+    if (x |> intValue) <= (y |> intValue) then
         x
 
     else
@@ -39,9 +44,9 @@ min x y =
 
 toGraphQLInput : Natural -> LondoGQL.InputObject.NaturalInput
 toGraphQLInput =
-    identity
+    intValue >> LondoGQL.InputObject.NaturalInput
 
 
 selection : SelectionSet Natural LondoGQL.Object.Natural
 selection =
-    SelectionSet.map Natural LondoGQL.Object.Natural.nonNegative
+    SelectionSet.map NonNegative LondoGQL.Object.Natural.nonNegative
