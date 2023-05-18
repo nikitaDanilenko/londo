@@ -1,6 +1,12 @@
 module Util.MathUtil exposing (..)
 
 import Basics.Extra exposing (flip)
+import FormatNumber
+import FormatNumber.Locales
+
+
+
+-- todo: Check usage
 
 
 numberOfDecimalPlaces : String -> Int
@@ -24,3 +30,13 @@ numberOfDecimalPlaces string =
             )
         |> Maybe.map String.length
         |> Maybe.withDefault 0
+
+
+
+-- todo: Check usage
+
+
+displayFloat : Float -> String
+displayFloat =
+    FormatNumber.format FormatNumber.Locales.frenchLocale
+        >> String.replace "," "."
