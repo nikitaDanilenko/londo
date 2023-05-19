@@ -14,6 +14,11 @@ type alias ClientInput =
     }
 
 
+progressOf : ClientInput -> Progress
+progressOf input =
+    Progress input.reachable.value input.reached.value
+
+
 default : ClientInput
 default =
     { reachable =
@@ -48,7 +53,7 @@ from progress =
             |> ValidatedInput.lenses.value.set progress.reachable
             |> ValidatedInput.lenses.text.set (progress.reachable |> Positive.toString)
     , reached =
-        ValidatedInput.natural
+        ValidatedInput.boundedNatural (progress.reachable |> Natural.fromPositive)
             |> ValidatedInput.lenses.value.set progress.reached
             |> ValidatedInput.lenses.text.set (progress.reached |> Natural.toString)
     }
