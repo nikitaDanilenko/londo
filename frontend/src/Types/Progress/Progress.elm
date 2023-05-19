@@ -58,3 +58,16 @@ displayPercentage progress =
                 String.concat [ String.fromList before, ".", String.fromList after ]
     in
     String.concat [ percent, "%" ]
+
+
+booleanToggle : Progress -> Progress
+booleanToggle progress =
+    let
+        reached =
+            if progress |> isComplete then
+                Natural.zero
+
+            else
+                Natural.one
+    in
+    Progress Positive.one reached
