@@ -8,7 +8,10 @@ import Html.Attributes exposing (checked, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.TaskKind as TaskKind exposing (TaskKind)
+import Math.Natural as Natural
+import Math.Positive as Positive
 import Maybe.Extra
+import Monocle.Compose as Compose
 import Monocle.Lens as Lens exposing (Lens)
 import Pages.Tasks.Tasks.Page as Page
 import Pages.Util.HtmlUtil as HtmlUtil
@@ -127,7 +130,7 @@ taskInfoColumns task =
       , children = [ label [] [ text <| TaskKind.toString <| task.taskKind ] ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| Progress.display task.taskKind <| task.progress ] ]
+      , children = [ displayProgress task.progress task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ label [] [ text <| Maybe.withDefault "" <| task.unit ] ]
@@ -215,6 +218,8 @@ editProjectLineWith handling editedValue =
         validInput =
             List.all identity
                 [ handling.nameLens.get editedValue |> ValidatedInput.isValid
+                , handling.progressLens.get editedValue |> .reachable |> ValidatedInput.isValid
+                , handling.progressLens.get editedValue |> .reached |> ValidatedInput.isValid
                 ]
 
         validatedSaveAction =
@@ -260,7 +265,19 @@ editProjectLineWith handling editedValue =
                     []
                     (editedValue |> handling.taskKindLens.get |> TaskKind.toString |> Just)
                 ]
-            , td [] []
+            , td []
+                (editProgress { progressLens = handling.progressLens, updateMsg = handling.updateMsg }
+                    (editedValue |> handling.taskKindLens.get)
+                    editedValue
+                    |> List.map
+                        (HtmlUtil.withAttributes
+                            ([ MaybeUtil.defined <| HtmlUtil.onEscape handling.cancelMsg
+                             , validatedSaveAction
+                             ]
+                                |> Maybe.Extra.values
+                            )
+                        )
+                )
             , td [ Style.classes.editable ]
                 [ input
                     [ value <| Maybe.withDefault "" <| handling.unitLens.get <| editedValue
@@ -311,3 +328,95 @@ editProjectLineWith handling editedValue =
     [ tr handling.rowStyles (infoColumns ++ commandToggle)
     , controlsRow
     ]
+
+
+displayProgress : Progress -> TaskKind -> Html msg
+displayProgress progress taskKind =
+    case taskKind of
+        TaskKind.Discrete ->
+            input
+                [ type_ "checkbox"
+                , checked <| Progress.isComplete <| progress
+                , disabled True
+                ]
+                []
+
+        TaskKind.Percentual ->
+            label []
+                [ text <| flip String.append "%" <| Progress.displayPercentage progress
+                ]
+
+        TaskKind.Fractional ->
+            label []
+                [ text <| String.join "/" [ Natural.toString progress.reached, Positive.toString progress.reachable ]
+                ]
+
+
+editProgress :
+    { progressLens : Lens editedValue Types.Progress.Input.ClientInput
+    , updateMsg : editedValue -> msg
+    }
+    -> TaskKind
+    -> editedValue
+    -> List (HtmlUtil.Structure msg)
+editProgress ps taskKind editedValue =
+    case taskKind of
+        TaskKind.Discrete ->
+            [ { constructor = input
+              , attributes =
+                    [ type_ "checkbox"
+                    , checked <| Progress.isComplete <| Types.Progress.Input.progressOf <| ps.progressLens.get <| editedValue
+                    , onClick <|
+                        ps.updateMsg <|
+                            Lens.modify ps.progressLens
+                                (Types.Progress.Input.progressOf
+                                    >> Progress.booleanToggle
+                                    >> Types.Progress.Input.from
+                                )
+                            <|
+                                editedValue
+                    ]
+              , children = []
+              }
+            ]
+
+        TaskKind.Percentual ->
+            []
+
+        TaskKind.Fractional ->
+            let
+                reachedLens =
+                    ps.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.reached
+
+                reachableLens =
+                    ps.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.reachable
+            in
+            [ { constructor = input
+              , attributes =
+                    [ onInput <|
+                        ps.updateMsg
+                            << flip
+                                (ValidatedInput.lift reachedLens).set
+                                editedValue
+                    , value <| .text <| reachedLens.get <| editedValue
+                    , Style.classes.numberCell
+                    ]
+              , children = []
+              }
+            , { constructor = label
+              , attributes = []
+              , children = [ text <| "/" ]
+              }
+            , { constructor = input
+              , attributes =
+                    [ onInput <|
+                        ps.updateMsg
+                            << flip
+                                (ValidatedInput.lift reachableLens).set
+                                editedValue
+                    , value <| Positive.toString <| .value <| reachableLens.get <| editedValue
+                    , Style.classes.numberCell
+                    ]
+              , children = []
+              }
+            ]
