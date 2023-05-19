@@ -1,25 +1,22 @@
 module Util.ValidatedInput exposing
     ( ValidatedInput
     , boundedNatural
-    , emptyText
     , isValid
     , lenses
     , lift
-    , limitTo
     , natural
     , nonEmptyString
     , positive
     , set
+    , updateBound
     )
 
 import Basics.Extra exposing (flip)
-import Integer exposing (Integer)
-import List.Extra
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
-import Util.MathUtil as MathUtil
+import Result.Extra
 
 
 type alias ValidatedInput a =
@@ -50,22 +47,6 @@ set ps input =
         |> lenses.text.set (ps.value |> ps.toString)
 
 
-emptyText :
-    { ifEmptyValue : a
-    , value : a
-    , parse : String -> Result String a
-    , isPartial : String -> Bool
-    }
-    -> ValidatedInput a
-emptyText params =
-    { value = params.value
-    , ifEmptyValue = params.ifEmptyValue
-    , text = ""
-    , parse = params.parse
-    , partial = params.isPartial
-    }
-
-
 isValid : ValidatedInput a -> Bool
 isValid fromInput =
     case fromInput.parse fromInput.text of
@@ -79,18 +60,18 @@ isValid fromInput =
 setWithLens : Lens model (ValidatedInput a) -> String -> model -> model
 setWithLens lens txt model =
     let
-        fromInput =
+        validatedInput =
             lens.get model
 
         possiblyValid =
-            if String.isEmpty txt || fromInput.partial txt then
-                fromInput
+            if String.isEmpty txt || validatedInput.partial txt then
+                validatedInput
                     |> lenses.text.set txt
 
             else
-                fromInput
+                validatedInput
     in
-    case fromInput.parse txt of
+    case validatedInput.parse txt of
         Ok v ->
             possiblyValid
                 |> lenses.value.set v
@@ -107,68 +88,33 @@ lift lens =
 
 natural : ValidatedInput Natural
 natural =
-    let
-        zero =
-            Natural.zero
-
-        parseNatural : String -> Result String Natural
-        parseNatural str =
-            (if String.isEmpty str then
-                zero
-                    |> Natural.toString
-                    |> Ok
-
-             else if String.all Char.isDigit str then
-                Ok str
-
-             else
-                Err "The string does not represent a natural number"
-            )
-                |> Result.andThen
-                    (String.toList
-                        >> List.Extra.dropWhile ((==) '0')
-                        >> String.fromList
-                        >> Natural.fromString
-                        >> Result.fromMaybe "Not a natural number"
-                    )
-    in
-    emptyText
-        { value = zero
-        , ifEmptyValue = zero
-        , parse = parseNatural
-        , isPartial =
-            parseNatural
-                >> Result.toMaybe
-                >> Maybe.Extra.isJust
-        }
+    naturalWithParser Natural.fromString
 
 
 boundedNatural : Natural -> ValidatedInput Natural
-boundedNatural n =
-    let
-        zero =
-            Natural.zero
-
-        parseNatural =
-            boundedNaturalParser n
-    in
-    emptyText
-        { value = zero
-        , ifEmptyValue = zero
-        , parse = parseNatural
-        , isPartial =
-            parseNatural
-                >> Result.toMaybe
-                >> Maybe.Extra.isJust
-        }
+boundedNatural =
+    boundedNaturalParser >> naturalWithParser
 
 
-limitTo : Natural -> ValidatedInput Natural -> ValidatedInput Natural
-limitTo n fi =
-    { fi
-        | parse = boundedNaturalParser n
-        , value = Natural.min fi.value n
+naturalWithParser : (String -> Result String Natural) -> ValidatedInput Natural
+naturalWithParser parser =
+    { value = Natural.zero
+    , ifEmptyValue = Natural.zero
+    , text = "0"
+    , parse = parser
+    , partial = parser >> Result.Extra.isOk
     }
+
+
+updateBound : Natural -> ValidatedInput Natural -> ValidatedInput Natural
+updateBound n input =
+    let
+        minValue =
+            Natural.min input.value n
+    in
+    naturalWithParser (boundedNaturalParser n)
+        |> lenses.value.set minValue
+        |> lenses.text.set (minValue |> Natural.toString)
 
 
 positive : ValidatedInput Positive
@@ -192,21 +138,20 @@ positive =
             )
                 |> Result.andThen
                     (String.toList
-                        >> List.Extra.dropWhile ((==) '0')
                         >> String.fromList
                         >> Positive.fromString
                         >> Result.fromMaybe "Not a positive number"
                     )
     in
-    emptyText
-        { value = one
-        , ifEmptyValue = one
-        , parse = parsePositive
-        , isPartial =
-            parsePositive
-                >> Result.toMaybe
-                >> Maybe.Extra.isJust
-        }
+    { value = one
+    , ifEmptyValue = one
+    , parse = parsePositive
+    , text = "1"
+    , partial =
+        parsePositive
+            >> Result.toMaybe
+            >> Maybe.Extra.isJust
+    }
 
 
 
@@ -284,36 +229,10 @@ positive =
 
 boundedNaturalParser : Natural -> String -> Result String Natural
 boundedNaturalParser n =
-    let
-        stringToInteger : String -> Integer
-        stringToInteger =
-            Integer.fromString >> Maybe.withDefault Integer.zero
-
-        upperBound =
-            n |> Natural.toString |> stringToInteger
-
-        parseNatural : String -> Result String Natural
-        parseNatural str =
-            (if String.isEmpty str then
-                Natural.zero
-                    |> Natural.toString
-                    |> Ok
-
-             else if String.all Char.isDigit str && Integer.lte (stringToInteger str) upperBound then
-                Ok str
-
-             else
-                Err "The string does not represent a natural number"
-            )
-                |> Result.andThen
-                    (String.toList
-                        >> List.Extra.dropWhile ((==) '0')
-                        >> String.fromList
-                        >> Natural.fromString
-                        >> Result.fromMaybe ""
-                    )
-    in
-    parseNatural
+    Natural.fromString
+        >> Result.Extra.filter
+            ([ "The number is larger than the bound '", n |> Natural.toString, "'" ] |> String.concat)
+            (\k -> Natural.min k n == k)
 
 
 nonEmptyString : ValidatedInput String
