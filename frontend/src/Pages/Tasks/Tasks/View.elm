@@ -411,6 +411,7 @@ editProgress ps taskKind editedValue =
               , attributes =
                     [ onInput <|
                         ps.updateMsg
+                            << (\ev -> Lens.modify reachedLens (ev |> reachableLens.get |> .value |> Natural.fromPositive |> ValidatedInput.updateBound) ev)
                             << flip
                                 (ValidatedInput.lift reachableLens).set
                                 editedValue
