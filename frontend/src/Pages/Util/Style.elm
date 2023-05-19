@@ -28,6 +28,8 @@ classes :
     , elementsWithControlsTable : Attribute msg
     , ellipsis : Attribute msg
     , info : Attribute msg
+    , numberCell : Attribute msg
+    , numberLabel : Attribute msg
     , pagination : Attribute msg
     , projectEditTable : Attribute msg
     , search :
@@ -62,6 +64,8 @@ classes =
     , elementsWithControlsTable = class "elements-with-controls-table"
     , ellipsis = class "ellipsis"
     , info = class "info"
+    , numberCell = class "number-cell"
+    , numberLabel = class "number-label"
     , pagination = class "pagination"
     , projectEditTable = class "project-edit-table"
     , search =
