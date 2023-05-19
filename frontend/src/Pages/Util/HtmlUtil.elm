@@ -1,4 +1,4 @@
-module Pages.Util.HtmlUtil exposing (Column, RowWithControls, menuIcon, onEscape, searchAreaWith, toggleControlsCell, withExtraAttributes)
+module Pages.Util.HtmlUtil exposing (Column, RowWithControls, Structure, menuIcon, onEscape, searchAreaWith, toggleControlsCell, withAttributes, withExtraAttributes)
 
 import Html exposing (Attribute, Html, button, div, input, label, td, text)
 import Html.Attributes exposing (disabled, value)
@@ -73,6 +73,18 @@ type alias Column msg =
 withExtraAttributes : List (Attribute msg) -> Column msg -> Html msg
 withExtraAttributes extra column =
     td (column.attributes ++ extra) column.children
+
+
+type alias Structure msg =
+    { constructor : List (Attribute msg) -> List (Html msg) -> Html msg
+    , attributes : List (Attribute msg)
+    , children : List (Html msg)
+    }
+
+
+withAttributes : List (Attribute msg) -> Structure msg -> Html msg
+withAttributes extra structure =
+    structure.constructor (extra ++ structure.attributes) structure.children
 
 
 type alias RowWithControls msg =
