@@ -1,10 +1,12 @@
-module Math.Natural exposing (..)
+module Math.Natural exposing (Natural, fromPositive, fromString, intValue, min, one, selection, toGraphQLInput, toString, zero)
 
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.InputObject
 import LondoGQL.Object
 import LondoGQL.Object.Natural
+import Math.Positive
 import Maybe.Extra
+import Result.Extra
 
 
 type Natural
@@ -21,16 +23,27 @@ toString =
     intValue >> String.fromInt
 
 
-fromString : String -> Maybe Natural
-fromString s =
-    String.toInt s
-        |> Maybe.Extra.filter (\x -> x >= 0)
-        |> Maybe.map NonNegative
+fromString : String -> Result String Natural
+fromString =
+    String.toInt
+        >> Result.fromMaybe "Not a representation of a natural number"
+        >> Result.Extra.filter "Not a non-negative number" (\x -> x >= 0)
+        >> Result.map NonNegative
+
+
+fromPositive : Math.Positive.Positive -> Natural
+fromPositive =
+    Math.Positive.intValue >> NonNegative
 
 
 zero : Natural
 zero =
     NonNegative 0
+
+
+one : Natural
+one =
+    NonNegative 1
 
 
 min : Natural -> Natural -> Natural
