@@ -8,7 +8,6 @@ import LondoGQL.Object.Progress
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
-import Round
 
 
 type alias Progress =
