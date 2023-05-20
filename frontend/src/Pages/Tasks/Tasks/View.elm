@@ -341,12 +341,12 @@ displayProgress progress taskKind =
                 ]
                 []
 
-        TaskKind.Percentual ->
+        TaskKind.Percent ->
             label []
                 [ text <| flip (++) "%" <| Progress.displayPercentage progress
                 ]
 
-        TaskKind.Fractional ->
+        TaskKind.Fraction ->
             label []
                 [ text <| String.join "/" [ Natural.toString progress.reached, Positive.toString progress.reachable ]
                 ]
@@ -387,7 +387,7 @@ editProgress ps taskKind editedValue =
               }
             ]
 
-        TaskKind.Percentual ->
+        TaskKind.Percent ->
             [ { constructor = input
               , attributes =
                     [ onInput <|
@@ -404,7 +404,7 @@ editProgress ps taskKind editedValue =
                                         |> Maybe.withDefault "0"
 
                                 fullInput =
-                                    splitPercentual str decimal
+                                    splitPercent str decimal
                             in
                             editedValue
                                 |> (ValidatedInput.lift reachableLens).set fullInput.reachable
@@ -441,7 +441,7 @@ editProgress ps taskKind editedValue =
                                         |> Maybe.withDefault "0"
 
                                 fullInput =
-                                    splitPercentual whole str
+                                    splitPercent whole str
                             in
                             editedValue
                                 |> (ValidatedInput.lift reachableLens).set fullInput.reachable
@@ -463,7 +463,7 @@ editProgress ps taskKind editedValue =
               }
             ]
 
-        TaskKind.Fractional ->
+        TaskKind.Fraction ->
             [ { constructor = input
               , attributes =
                     [ onInput <|
@@ -496,8 +496,8 @@ editProgress ps taskKind editedValue =
             ]
 
 
-splitPercentual : String -> String -> { reachable : String, reached : String }
-splitPercentual whole decimal =
+splitPercent : String -> String -> { reachable : String, reached : String }
+splitPercent whole decimal =
     { reachable = (Positive.oneHundred |> Positive.toString) ++ String.repeat (String.length decimal) "0"
     , reached = whole ++ decimal
     }

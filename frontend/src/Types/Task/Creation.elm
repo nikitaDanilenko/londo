@@ -28,7 +28,7 @@ default : Types.Project.ProjectId.ProjectId -> ClientInput
 default projectId =
     { projectId = projectId
     , name = ValidatedInput.nonEmptyString
-    , taskKind = LondoGQL.Enum.TaskKind.Percentual
+    , taskKind = LondoGQL.Enum.TaskKind.Percent
     , unit = Nothing
     , progress = Types.Progress.Input.default
     , counting = True

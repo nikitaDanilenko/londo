@@ -76,8 +76,8 @@ type alias TaskEditor =
     , counting : String
     , taskKind : String
     , discrete : String
-    , percentual : String
-    , fractional : String
+    , percent : String
+    , fraction : String
     , unit : String
     , progress : String
     , projectName : String
@@ -167,8 +167,8 @@ english =
         , counting = "Counting?"
         , taskKind = "Kind"
         , discrete = "Discrete"
-        , percentual = "Percentual"
-        , fractional = "Fractional"
+        , percent = "Percent"
+        , fraction = "Fraction"
         , unit = "Unit"
         , progress = "Progress"
         , projectName = "Project name"
