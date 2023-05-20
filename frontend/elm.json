@@ -29,6 +29,7 @@
             "jschomay/elm-paginate": "3.1.2",
             "krisajenkins/remotedata": "6.0.1",
             "mgold/elm-nonempty-list": "4.2.0",
+            "myrho/elm-round": "1.0.5",
             "perzanko/elm-loading": "2.0.5",
             "rundis/elm-bootstrap": "5.2.0",
             "simonh1000/elm-jwt": "7.1.1",
@@ -51,7 +52,6 @@
             "jinjor/elm-diff": "1.0.6",
             "jschomay/elm-bounded-number": "2.1.2",
             "lukewestby/elm-string-interpolate": "1.0.4",
-            "myrho/elm-round": "1.0.5",
             "robinheghan/murmur3": "1.0.0",
             "rtfeldman/elm-css": "17.1.1",
             "rtfeldman/elm-hex": "1.0.0"
