@@ -52,10 +52,12 @@ default taskKind =
 lenses :
     { reachable : Lens ClientInput (ValidatedInput Positive)
     , reached : Lens ClientInput (ValidatedInput Natural)
+    , progress : Lens ClientInput Progress
     }
 lenses =
     { reachable = Lens .reachable (\b a -> { a | reachable = b })
     , reached = Lens .reached (\b a -> { a | reached = b })
+    , progress = Lens progressOf (from >> always)
     }
 
 
