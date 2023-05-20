@@ -79,8 +79,9 @@ alter table task
         foreign key (project_id) references project(id) on delete cascade,
     add constraint reached_non_negative check (reached >= 0),
     add constraint reachable_larger_than_reached check (reachable >= reached),
+    add constraint reachable_positive check ( reachable > 0 ),
     add constraint kind_enumeration
-        check (kind = 'Discrete' or kind = 'Percentual' or kind = 'Fractional');
+        check (kind = 'Discrete' or kind = 'Percent' or kind = 'Fraction');
 
 create table session
 (
