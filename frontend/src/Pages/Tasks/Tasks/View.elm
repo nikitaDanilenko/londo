@@ -388,21 +388,30 @@ editProgress ps taskKind editedValue =
             ]
 
         TaskKind.Percent ->
+            let
+                percentageParts =
+                    editedValue
+                        |> ps.progressLens.get
+                        |> Types.Progress.Input.progressOf
+                        |> Progress.displayPercentage
+                        |> String.split "."
+
+                whole =
+                    percentageParts
+                        |> List.head
+                        |> Maybe.withDefault "0"
+
+                decimal =
+                    percentageParts
+                        |> List.drop 1
+                        |> List.head
+                        |> Maybe.withDefault "0"
+            in
             [ { constructor = input
               , attributes =
                     [ onInput <|
                         \str ->
                             let
-                                decimal =
-                                    editedValue
-                                        |> ps.progressLens.get
-                                        |> Types.Progress.Input.progressOf
-                                        |> Progress.displayPercentage
-                                        |> String.split "."
-                                        |> List.drop 1
-                                        |> List.head
-                                        |> Maybe.withDefault "0"
-
                                 fullInput =
                                     splitPercent str decimal
                             in
@@ -410,14 +419,7 @@ editProgress ps taskKind editedValue =
                                 |> (ValidatedInput.lift reachableLens).set fullInput.reachable
                                 |> (ValidatedInput.lift reachedLens).set fullInput.reached
                                 |> ps.updateMsg
-                    , value <|
-                        Maybe.withDefault "0" <|
-                            List.head <|
-                                String.split "." <|
-                                    Progress.displayPercentage <|
-                                        Types.Progress.Input.progressOf <|
-                                            ps.progressLens.get <|
-                                                editedValue
+                    , value <| whole
                     , Style.classes.numberCell
                     ]
               , children = []
@@ -431,15 +433,6 @@ editProgress ps taskKind editedValue =
                     [ onInput <|
                         \str ->
                             let
-                                whole =
-                                    editedValue
-                                        |> ps.progressLens.get
-                                        |> Types.Progress.Input.progressOf
-                                        |> Progress.displayPercentage
-                                        |> String.split "."
-                                        |> List.head
-                                        |> Maybe.withDefault "0"
-
                                 fullInput =
                                     splitPercent whole str
                             in
@@ -448,15 +441,7 @@ editProgress ps taskKind editedValue =
                                 |> (\ev -> Lens.modify reachedLens (ev |> reachableLens.get |> .value |> Natural.fromPositive |> ValidatedInput.updateBound) ev)
                                 |> (ValidatedInput.lift reachedLens).set fullInput.reached
                                 |> ps.updateMsg
-                    , value <|
-                        Maybe.withDefault "0" <|
-                            List.head <|
-                                List.drop 1 <|
-                                    String.split "." <|
-                                        Progress.displayPercentage <|
-                                            Types.Progress.Input.progressOf <|
-                                                ps.progressLens.get <|
-                                                    editedValue
+                    , value <| decimal
                     , Style.classes.numberCell
                     ]
               , children = []
