@@ -1,4 +1,4 @@
-module Math.Positive exposing (Positive, fromString, intValue, one, oneHundred, selection, toGraphQLInput, toString)
+module Math.Positive exposing (Positive, fromString, intValue, one, oneHundred, selection, tenToTheNth, toGraphQLInput, toString)
 
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.InputObject
@@ -33,9 +33,25 @@ one =
     Positive 1
 
 
+{-| todo: This is awkward - it should only work with natural numbers.
+-}
+tenToTheNth : Int -> Positive
+tenToTheNth n =
+    if n <= 0 then
+        one
+
+    else
+        10 ^ n |> Positive
+
+
 oneHundred : Positive
 oneHundred =
     Positive 100
+
+
+times : Positive -> Positive -> Positive
+times (Positive x) (Positive y) =
+    Positive (x * y)
 
 
 toGraphQLInput : Positive -> LondoGQL.InputObject.PositiveInput

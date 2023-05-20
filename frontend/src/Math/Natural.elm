@@ -5,7 +5,6 @@ import LondoGQL.InputObject
 import LondoGQL.Object
 import LondoGQL.Object.Natural
 import Math.Positive
-import Maybe.Extra
 import Result.Extra
 
 

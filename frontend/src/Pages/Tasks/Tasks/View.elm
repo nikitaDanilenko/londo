@@ -343,7 +343,7 @@ displayProgress progress taskKind =
 
         TaskKind.Percentual ->
             label []
-                [ text <| flip String.append "%" <| Progress.displayPercentage progress
+                [ text <| flip (++) "%" <| Progress.displayPercentage progress
                 ]
 
         TaskKind.Fractional ->
@@ -360,6 +360,13 @@ editProgress :
     -> editedValue
     -> List (HtmlUtil.Structure msg)
 editProgress ps taskKind editedValue =
+    let
+        reachedLens =
+            ps.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.reached
+
+        reachableLens =
+            ps.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.reachable
+    in
     case taskKind of
         TaskKind.Discrete ->
             [ { constructor = input
@@ -381,16 +388,82 @@ editProgress ps taskKind editedValue =
             ]
 
         TaskKind.Percentual ->
-            []
+            [ { constructor = input
+              , attributes =
+                    [ onInput <|
+                        \str ->
+                            let
+                                decimal =
+                                    editedValue
+                                        |> ps.progressLens.get
+                                        |> Types.Progress.Input.progressOf
+                                        |> Progress.displayPercentage
+                                        |> String.split "."
+                                        |> List.drop 1
+                                        |> List.head
+                                        |> Maybe.withDefault "0"
+
+                                fullInput =
+                                    splitPercentual str decimal
+                            in
+                            editedValue
+                                |> (ValidatedInput.lift reachableLens).set fullInput.reachable
+                                |> (ValidatedInput.lift reachedLens).set fullInput.reached
+                                |> ps.updateMsg
+                    , value <|
+                        Maybe.withDefault "0" <|
+                            List.head <|
+                                String.split "." <|
+                                    Progress.displayPercentage <|
+                                        Types.Progress.Input.progressOf <|
+                                            ps.progressLens.get <|
+                                                editedValue
+                    , Style.classes.numberCell
+                    ]
+              , children = []
+              }
+            , { constructor = label
+              , attributes = []
+              , children = [ text <| "." ]
+              }
+            , { constructor = input
+              , attributes =
+                    [ onInput <|
+                        \str ->
+                            let
+                                whole =
+                                    editedValue
+                                        |> ps.progressLens.get
+                                        |> Types.Progress.Input.progressOf
+                                        |> Progress.displayPercentage
+                                        |> String.split "."
+                                        |> List.head
+                                        |> Maybe.withDefault "0"
+
+                                fullInput =
+                                    splitPercentual whole str
+                            in
+                            editedValue
+                                |> (ValidatedInput.lift reachableLens).set fullInput.reachable
+                                |> (\ev -> Lens.modify reachedLens (ev |> reachableLens.get |> .value |> Natural.fromPositive |> ValidatedInput.updateBound) ev)
+                                |> (ValidatedInput.lift reachedLens).set fullInput.reached
+                                |> ps.updateMsg
+                    , value <|
+                        Maybe.withDefault "0" <|
+                            List.head <|
+                                List.drop 1 <|
+                                    String.split "." <|
+                                        Progress.displayPercentage <|
+                                            Types.Progress.Input.progressOf <|
+                                                ps.progressLens.get <|
+                                                    editedValue
+                    , Style.classes.numberCell
+                    ]
+              , children = []
+              }
+            ]
 
         TaskKind.Fractional ->
-            let
-                reachedLens =
-                    ps.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.reached
-
-                reachableLens =
-                    ps.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.reachable
-            in
             [ { constructor = input
               , attributes =
                     [ onInput <|
@@ -421,3 +494,10 @@ editProgress ps taskKind editedValue =
               , children = []
               }
             ]
+
+
+splitPercentual : String -> String -> { reachable : String, reached : String }
+splitPercentual whole decimal =
+    { reachable = (Positive.oneHundred |> Positive.toString) ++ String.repeat (String.length decimal) "0"
+    , reached = whole ++ decimal
+    }

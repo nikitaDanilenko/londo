@@ -45,19 +45,16 @@ displayPercentage progress =
 
         reachedStringLength =
             String.length reachedString
-
-        percent =
-            if numberOfDecimalPlaces <= 0 then
-                reachedString
-
-            else
-                let
-                    ( before, after ) =
-                        reachedString |> String.toList |> List.Extra.splitAt (reachedStringLength - numberOfDecimalPlaces)
-                in
-                String.concat [ String.fromList before, ".", String.fromList after ]
     in
-    String.concat [ percent, "%" ]
+    if numberOfDecimalPlaces <= 0 then
+        reachedString
+
+    else
+        let
+            ( before, after ) =
+                reachedString |> String.toList |> List.Extra.splitAt (reachedStringLength - numberOfDecimalPlaces)
+        in
+        String.concat [ String.fromList before, ".", String.fromList after ]
 
 
 booleanToggle : Progress -> Progress
