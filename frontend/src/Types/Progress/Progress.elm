@@ -7,6 +7,8 @@ import LondoGQL.Object
 import LondoGQL.Object.Progress
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
+import Maybe.Extra
+import Round
 
 
 type alias Progress =
@@ -28,8 +30,8 @@ selection =
         (LondoGQL.Object.Progress.reached Natural.selection)
 
 
-displayPercentage : Progress -> String
-displayPercentage progress =
+percentParts : Progress -> { whole : String, decimal : Maybe String }
+percentParts progress =
     let
         numberOfDecimalPlaces =
             progress
@@ -47,14 +49,27 @@ displayPercentage progress =
             String.length reachedString
     in
     if numberOfDecimalPlaces <= 0 then
-        reachedString
+        { whole = reachedString
+        , decimal = Nothing
+        }
 
     else
         let
             ( before, after ) =
                 reachedString |> String.toList |> List.Extra.splitAt (reachedStringLength - numberOfDecimalPlaces)
         in
-        String.concat [ String.fromList before, ".", String.fromList after ]
+        { whole = before |> String.fromList
+        , decimal = after |> String.fromList |> Just
+        }
+
+
+displayPercentage : Progress -> String
+displayPercentage progress =
+    progress
+        |> percentParts
+        |> (\parts -> [ parts.whole |> Just, parts.decimal ])
+        |> Maybe.Extra.values
+        |> String.join "."
 
 
 booleanToggle : Progress -> Progress
@@ -68,3 +83,45 @@ booleanToggle progress =
                 Natural.one
     in
     Progress Positive.one reached
+
+
+toDiscrete : Progress -> Progress
+toDiscrete progress =
+    { reached =
+        if progress |> isComplete then
+            Natural.one
+
+        else
+            Natural.zero
+    , reachable = Positive.one
+    }
+
+
+toPercent : Progress -> Progress
+toPercent progress =
+    let
+        approximation =
+            100
+                * (progress.reached |> Natural.intValue |> toFloat)
+                / (progress.reachable |> Positive.intValue |> toFloat)
+
+        numberParts =
+            approximation
+                |> String.fromFloat
+                |> String.split "."
+
+        decimalPlaces =
+            numberParts
+                |> List.drop 1
+                |> List.head
+                |> Maybe.Extra.unwrap 0 String.length
+
+        reached =
+            numberParts
+                |> String.concat
+                |> Natural.fromString
+                |> Result.withDefault Natural.zero
+    in
+    { reachable = Positive.tenToTheNth (2 + decimalPlaces)
+    , reached = reached
+    }
