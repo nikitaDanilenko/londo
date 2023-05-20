@@ -32,9 +32,9 @@ object Task {
       unit = row.unit,
       progress = Progress.fraction(
         reachable = Positive.nextOf(
-          Natural(row.reachable - 1)
+          Natural(row.reachable.toBigInt - 1)
         ),
-        reached = Natural(row.reached)
+        reached = Natural(row.reached.toBigInt)
       ),
       counting = row.counting,
       createdAt = row.createdAt.transformInto[LocalDateTime],
@@ -48,8 +48,8 @@ object Task {
       name = task.name,
       unit = task.unit,
       kind = task.taskKind.entryName,
-      reached = task.progress.reached.longValue,
-      reachable = task.progress.reachable.natural.longValue,
+      reached = BigDecimal(task.progress.reached.longValue),
+      reachable = BigDecimal(task.progress.reachable.natural.longValue),
       counting = task.counting,
       createdAt = task.createdAt.transformInto[java.sql.Timestamp],
       updatedAt = task.updatedAt.map(_.transformInto[java.sql.Timestamp])

@@ -9,12 +9,12 @@ import sangria.schema.{ InputObjectType, ObjectType }
 import scala.util.chaining._
 
 sealed abstract case class Natural(
-    nonNegative: Int
+    nonNegative: BigInt
 )
 
 object Natural {
 
-  private def apply(nonNegative: Int): Natural = new Natural(nonNegative) {}
+  private def apply(nonNegative: BigInt): Natural = new Natural(nonNegative) {}
 
   implicit val naturalCodec: Codec[Natural] =
     deriveCodec[Natural].iemap(
@@ -22,10 +22,10 @@ object Natural {
     )(identity)
 
   implicit val fromInternal: Transformer[spire.math.Natural, Natural] =
-    _.intValue.pipe(Natural.apply)
+    _.toBigInt.pipe(Natural.apply)
 
   implicit val toInternal: Transformer[Natural, spire.math.Natural] =
-    _.nonNegative.pipe(spire.math.Natural.apply(_))
+    _.nonNegative.pipe(spire.math.Natural.apply)
 
   implicit val objectType: ObjectType[Unit, Natural] = deriveObjectType[Unit, Natural]()
 

@@ -195,16 +195,16 @@ trait Tables {
    *  @param name Database column name SqlType(text)
    *  @param unit Database column unit SqlType(text), Default(None)
    *  @param kind Database column kind SqlType(text)
-   *  @param reached Database column reached SqlType(int8)
-   *  @param reachable Database column reachable SqlType(int8)
+   *  @param reached Database column reached SqlType(numeric)
+   *  @param reachable Database column reachable SqlType(numeric)
    *  @param counting Database column counting SqlType(bool)
    *  @param createdAt Database column created_at SqlType(timestamptz)
    *  @param updatedAt Database column updated_at SqlType(timestamptz), Default(None) */
-  case class TaskRow(id: java.util.UUID, projectId: java.util.UUID, name: String, unit: Option[String] = None, kind: String, reached: Long, reachable: Long, counting: Boolean, createdAt: java.sql.Timestamp, updatedAt: Option[java.sql.Timestamp] = None)
+  case class TaskRow(id: java.util.UUID, projectId: java.util.UUID, name: String, unit: Option[String] = None, kind: String, reached: scala.math.BigDecimal, reachable: scala.math.BigDecimal, counting: Boolean, createdAt: java.sql.Timestamp, updatedAt: Option[java.sql.Timestamp] = None)
   /** GetResult implicit for fetching TaskRow objects using plain SQL queries */
-  implicit def GetResultTaskRow(implicit e0: GR[java.util.UUID], e1: GR[String], e2: GR[Option[String]], e3: GR[Long], e4: GR[Boolean], e5: GR[java.sql.Timestamp], e6: GR[Option[java.sql.Timestamp]]): GR[TaskRow] = GR{
+  implicit def GetResultTaskRow(implicit e0: GR[java.util.UUID], e1: GR[String], e2: GR[Option[String]], e3: GR[scala.math.BigDecimal], e4: GR[Boolean], e5: GR[java.sql.Timestamp], e6: GR[Option[java.sql.Timestamp]]): GR[TaskRow] = GR{
     prs => import prs._
-    TaskRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[String], <<?[String], <<[String], <<[Long], <<[Long], <<[Boolean], <<[java.sql.Timestamp], <<?[java.sql.Timestamp]))
+    TaskRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[String], <<?[String], <<[String], <<[scala.math.BigDecimal], <<[scala.math.BigDecimal], <<[Boolean], <<[java.sql.Timestamp], <<?[java.sql.Timestamp]))
   }
   /** Table description of table task. Objects of this class serve as prototypes for rows in queries. */
   class Task(_tableTag: Tag) extends profile.api.Table[TaskRow](_tableTag, "task") {
@@ -222,10 +222,10 @@ trait Tables {
     val unit: Rep[Option[String]] = column[Option[String]]("unit", O.Default(None))
     /** Database column kind SqlType(text) */
     val kind: Rep[String] = column[String]("kind")
-    /** Database column reached SqlType(int8) */
-    val reached: Rep[Long] = column[Long]("reached")
-    /** Database column reachable SqlType(int8) */
-    val reachable: Rep[Long] = column[Long]("reachable")
+    /** Database column reached SqlType(numeric) */
+    val reached: Rep[scala.math.BigDecimal] = column[scala.math.BigDecimal]("reached")
+    /** Database column reachable SqlType(numeric) */
+    val reachable: Rep[scala.math.BigDecimal] = column[scala.math.BigDecimal]("reachable")
     /** Database column counting SqlType(bool) */
     val counting: Rep[Boolean] = column[Boolean]("counting")
     /** Database column created_at SqlType(timestamptz) */
