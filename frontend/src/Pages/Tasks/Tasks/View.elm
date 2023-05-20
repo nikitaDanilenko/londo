@@ -260,6 +260,23 @@ editProjectLineWith handling editedValue =
                     , onChange =
                         Maybe.andThen TaskKind.fromString
                             >> Maybe.Extra.unwrap editedValue (flip handling.taskKindLens.set editedValue)
+                            >> (\ev ->
+                                    let
+                                        progressModifier =
+                                            case handling.taskKindLens.get ev of
+                                                TaskKind.Discrete ->
+                                                    Progress.toDiscrete
+
+                                                TaskKind.Percent ->
+                                                    Progress.toPercent
+
+                                                TaskKind.Fraction ->
+                                                    identity
+                                    in
+                                    Lens.modify (handling.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.progress)
+                                        progressModifier
+                                        ev
+                               )
                             >> handling.updateMsg
                     }
                     []
@@ -366,20 +383,22 @@ editProgress ps taskKind editedValue =
 
         reachableLens =
             ps.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.reachable
+
+        progressValueLens =
+            ps.progressLens
+                |> Compose.lensWithLens Types.Progress.Input.lenses.progress
     in
     case taskKind of
         TaskKind.Discrete ->
             [ { constructor = input
               , attributes =
                     [ type_ "checkbox"
-                    , checked <| Progress.isComplete <| Types.Progress.Input.progressOf <| ps.progressLens.get <| editedValue
+                    , checked <| Progress.isComplete <| progressValueLens.get <| editedValue
                     , onClick <|
                         ps.updateMsg <|
-                            Lens.modify ps.progressLens
-                                (Types.Progress.Input.progressOf
-                                    >> Progress.booleanToggle
-                                    >> Types.Progress.Input.from
-                                )
+                            Lens.modify
+                                progressValueLens
+                                Progress.booleanToggle
                             <|
                                 editedValue
                     ]
@@ -391,8 +410,7 @@ editProgress ps taskKind editedValue =
             let
                 percentageParts =
                     editedValue
-                        |> ps.progressLens.get
-                        |> Types.Progress.Input.progressOf
+                        |> progressValueLens.get
                         |> Progress.displayPercentage
                         |> String.split "."
 
