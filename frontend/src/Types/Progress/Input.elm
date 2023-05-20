@@ -1,5 +1,6 @@
 module Types.Progress.Input exposing (..)
 
+import LondoGQL.Enum.TaskKind
 import LondoGQL.InputObject
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
@@ -19,16 +20,28 @@ progressOf input =
     Progress input.reachable.value input.reached.value
 
 
-default : ClientInput
-default =
+default : LondoGQL.Enum.TaskKind.TaskKind -> ClientInput
+default taskKind =
+    let
+        max =
+            case taskKind of
+                LondoGQL.Enum.TaskKind.Discrete ->
+                    Positive.one
+
+                LondoGQL.Enum.TaskKind.Percent ->
+                    Positive.tenToTheNth 3
+
+                LondoGQL.Enum.TaskKind.Fraction ->
+                    Positive.oneHundred
+    in
     { reachable =
         ValidatedInput.positive
             |> ValidatedInput.set
-                { value = Positive.oneHundred
+                { value = max
                 , toString = Positive.toString
                 }
     , reached =
-        ValidatedInput.natural
+        ValidatedInput.boundedNatural (max |> Natural.fromPositive)
             |> ValidatedInput.set
                 { value = Natural.zero
                 , toString = Natural.toString

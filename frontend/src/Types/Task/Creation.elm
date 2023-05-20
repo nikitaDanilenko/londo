@@ -26,11 +26,15 @@ type alias ClientInput =
 
 default : Types.Project.ProjectId.ProjectId -> ClientInput
 default projectId =
+    let
+        defaultTaskKind =
+            LondoGQL.Enum.TaskKind.Percent
+    in
     { projectId = projectId
     , name = ValidatedInput.nonEmptyString
-    , taskKind = LondoGQL.Enum.TaskKind.Percent
+    , taskKind = defaultTaskKind
     , unit = Nothing
-    , progress = Types.Progress.Input.default
+    , progress = Types.Progress.Input.default defaultTaskKind
     , counting = True
     }
 
