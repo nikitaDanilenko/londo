@@ -5,6 +5,7 @@ import io.circe.generic.semiauto.deriveCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriveObjectType }
 import sangria.schema.{ InputObjectType, ObjectType }
+import utils.graphql.SangriaUtil.instances._
 
 sealed abstract case class Positive(
     positive: BigInt
@@ -20,7 +21,7 @@ object Positive {
   implicit val toInternal: Transformer[Positive, math.Positive] = positive =>
     math.Positive.nextOf(spire.math.Natural(positive.positive - 1))
 
-  implicit val fromInternal: Transformer[math.Positive, Positive] = positive => Positive(positive.natural.intValue)
+  implicit val fromInternal: Transformer[math.Positive, Positive] = positive => Positive(positive.natural.toBigInt)
 
   implicit val objectType: ObjectType[Unit, Positive] = deriveObjectType[Unit, Positive]()
 

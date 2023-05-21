@@ -7,6 +7,7 @@ import sangria.macros.derive.{ InputObjectTypeName, deriveInputObjectType, deriv
 import sangria.schema.{ InputObjectType, ObjectType }
 
 import scala.util.chaining._
+import utils.graphql.SangriaUtil.instances._
 
 sealed abstract case class Natural(
     nonNegative: BigInt

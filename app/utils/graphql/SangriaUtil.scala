@@ -9,33 +9,42 @@ import scala.util.Try
 
 object SangriaUtil {
 
-  trait Instances {
+  object instances {
 
-    implicit val uuidType: ScalarType[UUID] =
+    implicit val uuid: ScalarType[UUID] =
       createScalarType(
         name = "UUID",
-        matcher = {
-          case StringValue(s, _, _, _, _) => s
+        matcher = { case StringValue(s, _, _, _, _) =>
+          s
         },
         parse = parseUUID,
         parseString = parseUUID,
         UUIDCoercionViolation
       )
 
-    implicit val unitType: ScalarType[Unit] =
+    implicit val unit: ScalarType[Unit] =
       createScalarType(
         name = "Unit",
-        matcher = {
-          case StringValue(s, _, _, _, _) => s
+        matcher = { case StringValue(s, _, _, _, _) =>
+          s
         },
         parse = parseUnit,
         parseString = parseUnit,
         UnitCoercionViolation
       )
 
-  }
+    implicit val bigInt: ScalarType[BigInt] =
+      createScalarType(
+        name = "BigInt",
+        matcher = { case StringValue(s, _, _, _, _) =>
+          s
+        },
+        parse = parseBigInt,
+        parseString = parseBigInt,
+        BigIntCoercionViolation
+      )
 
-  object instances extends Instances
+  }
 
   private def createScalarType[A, Rep](
       name: String,
@@ -69,10 +78,14 @@ object SangriaUtil {
     else Left(UnitCoercionViolation)
   }
 
+  private def parseBigInt(string: String): Either[Violation, BigInt] =
+    Try(BigInt(string)).toEither.left
+      .map(_ => BigIntCoercionViolation)
+
   case object UUIDCoercionViolation extends ValueCoercionViolation("Not a valid UUID representation")
 
   case object UnitCoercionViolation extends ValueCoercionViolation("Not a valid unit representation")
 
-  case object NaturalCoercionViolation extends ValueCoercionViolation("Not a natural number")
-  case object PositiveCoercionViolation extends ValueCoercionViolation("Not a positive natural number")
+  case object BigIntCoercionViolation extends ValueCoercionViolation("Not a valid BigInt representation")
+
 }
