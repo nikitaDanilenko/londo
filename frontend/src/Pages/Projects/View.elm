@@ -37,6 +37,7 @@ viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
 viewMain configuration main =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Just ViewUtil.Projects
+        , showNavigation = True
         , matchesSearchText =
             \string project ->
                 SearchUtil.search string project.name
