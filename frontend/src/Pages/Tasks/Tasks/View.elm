@@ -33,6 +33,7 @@ viewSubMain : ProjectId -> Configuration -> Page.SubMain -> Html Page.LogicMsg
 viewSubMain projectId configuration subMain =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Nothing
+        , showNavigation = False
         , matchesSearchText =
             \string task ->
                 SearchUtil.search string task.name
