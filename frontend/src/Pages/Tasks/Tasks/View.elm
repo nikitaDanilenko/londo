@@ -125,8 +125,6 @@ taskInfoColumns task =
       , children = [ label [] [ text task.name ] ]
       }
     , { attributes = [ Style.classes.editable ]
-
-      --todo: Use a prettier naming for task kinds
       , children = [ label [] [ text <| TaskKind.toString <| task.taskKind ] ]
       }
     , { attributes = [ Style.classes.editable ]
