@@ -6,6 +6,7 @@ on:
       - "main"
     paths:
       - frontend/**
+      - .github/workflows/elm.yml
   workflow_dispatch:
 
 permissions:
@@ -26,8 +27,6 @@ jobs:
         run: |
           cd frontend
           rm .env
-          export ELM_APP_GRAPH_QL_ENDPOINT=${{ env.ELM_APP_GRAPH_QL_ENDPOINT }}
-          export ELM_APP_MAIN_PAGE_URL=${{ env.ELM_APP_MAIN_PAGE_URL }}
           elm-app build
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
