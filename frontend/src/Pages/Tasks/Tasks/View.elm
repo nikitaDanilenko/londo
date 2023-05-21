@@ -18,7 +18,6 @@ import Pages.Util.HtmlUtil as HtmlUtil
 import Pages.Util.ParentEditor.Page
 import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
-import Pages.View.Tristate as Tristate
 import Types.Progress.Input
 import Types.Progress.Progress as Progress exposing (Progress)
 import Types.Project.ProjectId exposing (ProjectId)
@@ -28,15 +27,6 @@ import Types.Task.Update
 import Util.MaybeUtil as MaybeUtil
 import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
-
-
-view : Page.Model -> Html Page.Msg
-view main =
-    Tristate.view
-        { viewMain = viewSubMain main.projectId
-        , showLoginRedirect = True
-        }
-        main.subModel
 
 
 viewSubMain : ProjectId -> Configuration -> Page.SubMain -> Html Page.LogicMsg
