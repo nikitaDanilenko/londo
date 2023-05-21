@@ -26,7 +26,7 @@ jobs:
         run: |
           cd frontend
           rm .env
-          export ELM_APP_BACKEND_URL=${{ env.ELM_APP_BACKEND_URL }}
+          export ELM_APP_GRAPH_QL_ENDPOINT=${{ env.ELM_APP_GRAPH_QL_ENDPOINT }}
           export ELM_APP_MAIN_PAGE_URL=${{ env.ELM_APP_MAIN_PAGE_URL }}
           elm-app build
       - name: Set up Docker Buildx
