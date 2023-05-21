@@ -32,7 +32,16 @@ The name `londo` hints at [Londo Mollari](https://en.wikipedia.org/wiki/Londo_Mo
 1. The system scans for migrations in the folder `conf/db/migrations/default`
    and applies new ones.
    After a migration one should re-generate database related code:
-   1. `sbt dbGenerate` generates the base queries, and types.
-   1. `sbt daoGenerate` generates DAOs for all configured types.
-      This feature is somewhat experimental, and the actual steps should be smoothed out.
-      New DAOs and related functions need to be configured in `DaoGenerators.scala`.
+   `sbt slickCodegen` generates the base queries, and types.
+1. The front end tools for the GraphQL interface are generated via
+   `npm run apiGen`.
+   Make sure that the back end server is running, so the current schema can be fetched.
+
+## Deployment
+
+1. When running (locally) via Docker, make sure to
+   1. Provide all necessary variables in a top-level file called `deployment.env`.
+      The variables in question are specified in `application.conf` (back end),
+      and in `index.js` (front end).
+   2. Duplicate the database components from `deployment.env` to the top-level file `db.env`,
+      see the note in `db.env` for more information.
