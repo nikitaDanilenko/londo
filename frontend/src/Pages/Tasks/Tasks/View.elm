@@ -497,6 +497,17 @@ editProgress ps taskKind editedValue =
 
 splitPercent : String -> String -> { reachable : String, reached : String }
 splitPercent whole decimal =
-    { reachable = (Positive.oneHundred |> Positive.toString) ++ String.repeat (String.length decimal) "0"
-    , reached = whole ++ decimal
+    let
+        {- The behaviour for percentage is flaky when reachable = 100,
+           hence we make sure that the value is always at least 1000.
+        -}
+        adjustedDecimal =
+            if String.isEmpty decimal then
+                "0"
+
+            else
+                decimal
+    in
+    { reachable = (Positive.oneHundred |> Positive.toString) ++ String.repeat (String.length adjustedDecimal) "0"
+    , reached = whole ++ adjustedDecimal
     }
