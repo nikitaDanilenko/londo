@@ -159,7 +159,7 @@ english =
         , settings = "Settings"
         }
     , taskEditor =
-        { tasks = "Plain tasks"
+        { tasks = "Tasks"
         , newTask = "Create new task"
         , delete = "Delete"
         , confirmDelete = "Delete?"
