@@ -48,8 +48,8 @@ object Task {
       name = task.name,
       unit = task.unit,
       kind = task.taskKind.entryName,
-      reached = BigDecimal(task.progress.reached.longValue),
-      reachable = BigDecimal(task.progress.reachable.natural.longValue),
+      reached = BigDecimal(task.progress.reached),
+      reachable = BigDecimal(task.progress.reachable.natural),
       counting = task.counting,
       createdAt = task.createdAt.transformInto[java.sql.Timestamp],
       updatedAt = task.updatedAt.map(_.transformInto[java.sql.Timestamp])
