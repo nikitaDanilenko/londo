@@ -1,64 +1,63 @@
-module Math.Positive exposing (Positive, fromString, intValue, one, oneHundred, selection, tenToTheNth, toGraphQLInput, toString)
+module Math.Positive exposing (Positive, fromString, integerValue, one, oneHundred, selection, tenToTheNth, toGraphQLInput, toString)
 
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Integer exposing (Integer)
 import LondoGQL.InputObject
 import LondoGQL.Object
 import LondoGQL.Object.Positive
+import LondoGQL.Scalar
 import Maybe.Extra
 
 
 type Positive
-    = Positive Int
+    = Positive Integer
 
 
-intValue : Positive -> Int
-intValue (Positive int) =
+integerValue : Positive -> Integer
+integerValue (Positive int) =
     int
 
 
 toString : Positive -> String
 toString =
-    intValue >> String.fromInt
+    integerValue >> Integer.toString
 
 
 fromString : String -> Maybe Positive
 fromString s =
-    String.toInt s
-        |> Maybe.Extra.filter (\x -> x > 0)
+    Integer.fromString s
+        |> Maybe.Extra.filter (\x -> Integer.gt x Integer.zero)
         |> Maybe.map Positive
 
 
 one : Positive
 one =
-    Positive 1
+    Positive Integer.one
 
 
 {-| todo: This is awkward - it should only work with natural numbers.
 -}
 tenToTheNth : Int -> Positive
 tenToTheNth n =
-    if n <= 0 then
-        one
-
-    else
-        10 ^ n |> Positive
+    "1" ++ String.repeat n "0" |> Integer.fromString |> Maybe.withDefault Integer.one |> Positive
 
 
 oneHundred : Positive
 oneHundred =
-    Positive 100
-
-
-times : Positive -> Positive -> Positive
-times (Positive x) (Positive y) =
-    Positive (x * y)
+    Positive Integer.hundred
 
 
 toGraphQLInput : Positive -> LondoGQL.InputObject.PositiveInput
 toGraphQLInput =
-    intValue >> LondoGQL.InputObject.PositiveInput
+    toString >> LondoGQL.Scalar.BigInt >> LondoGQL.InputObject.PositiveInput
 
 
 selection : SelectionSet Positive LondoGQL.Object.Positive
 selection =
-    SelectionSet.map Positive LondoGQL.Object.Positive.positive
+    SelectionSet.map
+        --todo: Extract conversion from BigInt to Integer?
+        ((\(LondoGQL.Scalar.BigInt str) -> Integer.fromString str)
+            >> Maybe.withDefault Integer.one
+            >> Positive
+        )
+        LondoGQL.Object.Positive.positive

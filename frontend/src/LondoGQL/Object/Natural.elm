@@ -19,6 +19,6 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-nonNegative : SelectionSet Int LondoGQL.Object.Natural
+nonNegative : SelectionSet LondoGQL.ScalarCodecs.BigInt LondoGQL.Object.Natural
 nonNegative =
-    Object.selectionForField "Int" "nonNegative" [] Decode.int
+    Object.selectionForField "ScalarCodecs.BigInt" "nonNegative" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigInt |> .decoder)

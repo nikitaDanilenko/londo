@@ -2,13 +2,17 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Scalar exposing (Codecs, Unit(..), Uuid(..), defaultCodecs, defineCodecs, unwrapCodecs, unwrapEncoder)
+module LondoGQL.Scalar exposing (BigInt(..), Codecs, Unit(..), Uuid(..), defaultCodecs, defineCodecs, unwrapCodecs, unwrapEncoder)
 
 import Graphql.Codec exposing (Codec)
 import Graphql.Internal.Builder.Object as Object
 import Graphql.Internal.Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+
+
+type BigInt
+    = BigInt String
 
 
 type Unit
@@ -20,18 +24,20 @@ type Uuid
 
 
 defineCodecs :
-    { codecUnit : Codec valueUnit
+    { codecBigInt : Codec valueBigInt
+    , codecUnit : Codec valueUnit
     , codecUuid : Codec valueUuid
     }
-    -> Codecs valueUnit valueUuid
+    -> Codecs valueBigInt valueUnit valueUuid
 defineCodecs definitions =
     Codecs definitions
 
 
 unwrapCodecs :
-    Codecs valueUnit valueUuid
+    Codecs valueBigInt valueUnit valueUuid
     ->
-        { codecUnit : Codec valueUnit
+        { codecBigInt : Codec valueBigInt
+        , codecUnit : Codec valueUnit
         , codecUuid : Codec valueUuid
         }
 unwrapCodecs (Codecs unwrappedCodecs) =
@@ -39,27 +45,32 @@ unwrapCodecs (Codecs unwrappedCodecs) =
 
 
 unwrapEncoder :
-    (RawCodecs valueUnit valueUuid -> Codec getterValue)
-    -> Codecs valueUnit valueUuid
+    (RawCodecs valueBigInt valueUnit valueUuid -> Codec getterValue)
+    -> Codecs valueBigInt valueUnit valueUuid
     -> getterValue
     -> Graphql.Internal.Encode.Value
 unwrapEncoder getter (Codecs unwrappedCodecs) =
     (unwrappedCodecs |> getter |> .encoder) >> Graphql.Internal.Encode.fromJson
 
 
-type Codecs valueUnit valueUuid
-    = Codecs (RawCodecs valueUnit valueUuid)
+type Codecs valueBigInt valueUnit valueUuid
+    = Codecs (RawCodecs valueBigInt valueUnit valueUuid)
 
 
-type alias RawCodecs valueUnit valueUuid =
-    { codecUnit : Codec valueUnit
+type alias RawCodecs valueBigInt valueUnit valueUuid =
+    { codecBigInt : Codec valueBigInt
+    , codecUnit : Codec valueUnit
     , codecUuid : Codec valueUuid
     }
 
 
-defaultCodecs : RawCodecs Unit Uuid
+defaultCodecs : RawCodecs BigInt Unit Uuid
 defaultCodecs =
-    { codecUnit =
+    { codecBigInt =
+        { encoder = \(BigInt raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map BigInt
+        }
+    , codecUnit =
         { encoder = \(Unit raw) -> Encode.string raw
         , decoder = Object.scalarDecoder |> Decode.map Unit
         }

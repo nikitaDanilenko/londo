@@ -19,6 +19,6 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-positive : SelectionSet Int LondoGQL.Object.Positive
+positive : SelectionSet LondoGQL.ScalarCodecs.BigInt LondoGQL.Object.Positive
 positive =
-    Object.selectionForField "Int" "positive" [] Decode.int
+    Object.selectionForField "ScalarCodecs.BigInt" "positive" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigInt |> .decoder)

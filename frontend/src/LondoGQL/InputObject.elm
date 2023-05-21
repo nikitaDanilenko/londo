@@ -683,13 +683,13 @@ buildNaturalInput required____ =
 
 
 type alias NaturalInputRequiredFields =
-    { nonNegative : Int }
+    { nonNegative : LondoGQL.ScalarCodecs.BigInt }
 
 
 {-| Type for the NaturalInput input object.
 -}
 type alias NaturalInput =
-    { nonNegative : Int }
+    { nonNegative : LondoGQL.ScalarCodecs.BigInt }
 
 
 {-| Encode a NaturalInput into a value that can be used as an argument.
@@ -697,7 +697,7 @@ type alias NaturalInput =
 encodeNaturalInput : NaturalInput -> Value
 encodeNaturalInput input____ =
     Encode.maybeObject
-        [ ( "nonNegative", Encode.int input____.nonNegative |> Just ) ]
+        [ ( "nonNegative", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecBigInt) input____.nonNegative |> Just ) ]
 
 
 buildPositiveInput :
@@ -708,13 +708,13 @@ buildPositiveInput required____ =
 
 
 type alias PositiveInputRequiredFields =
-    { positive : Int }
+    { positive : LondoGQL.ScalarCodecs.BigInt }
 
 
 {-| Type for the PositiveInput input object.
 -}
 type alias PositiveInput =
-    { positive : Int }
+    { positive : LondoGQL.ScalarCodecs.BigInt }
 
 
 {-| Encode a PositiveInput into a value that can be used as an argument.
@@ -722,7 +722,7 @@ type alias PositiveInput =
 encodePositiveInput : PositiveInput -> Value
 encodePositiveInput input____ =
     Encode.maybeObject
-        [ ( "positive", Encode.int input____.positive |> Just ) ]
+        [ ( "positive", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecBigInt) input____.positive |> Just ) ]
 
 
 buildProgressInput :
