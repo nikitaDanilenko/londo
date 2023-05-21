@@ -1,0 +1,31 @@
+version: '3'
+services:
+  db:
+    container_name: londo-postgres
+    restart: always
+    image: postgres:12.11-alpine
+    env_file:
+      - db.env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+  backend:
+    container_name: londo-backend
+    image: nikitadanilenko/londo:latest
+    ports:
+      - "9003:9000"
+    env_file:
+      - deployment.env
+    depends_on:
+      - db
+    extra_hosts:
+      # Expose 'localhost' to the docker container
+      - "host.docker.internal:host-gateway"
+  frontend:
+    container_name: londo-frontend
+    image: nikitadanilenko/londo-frontend:latest
+    ports:
+      - "9004:80"
+    restart: always
+volumes:
+  postgres-data:
+
