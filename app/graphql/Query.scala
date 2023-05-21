@@ -1,15 +1,14 @@
 package graphql
 
-import graphql.queries.{ DashboardQuery, ProjectQuery, UserQuery }
-import security.jwt.JwtContent
-trait Query extends UserQuery with ProjectQuery with DashboardQuery
+import security.jwt.LoggedIn
+trait Query extends graphql.queries.user.Query with graphql.queries.project.Query with graphql.queries.dashboard.Query
 
 object Query {
 
-  def apply(_graphQLServices: GraphQLServices, _loggedInJwtContent: Option[JwtContent]): Query =
+  def apply(_graphQLServices: GraphQLServices, _loggedIn: Option[LoggedIn]): Query =
     new Query {
       override protected val graphQLServices: GraphQLServices = _graphQLServices
-      override protected val loggedInJwtContent: Option[JwtContent] = _loggedInJwtContent
+      override protected val loggedIn: Option[LoggedIn]       = _loggedIn
     }
 
 }

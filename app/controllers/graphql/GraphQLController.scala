@@ -1,7 +1,6 @@
 package controllers.graphql
 
-import controllers.{ JWTAction, RequestHeaders }
-import errors.ErrorContext
+import controllers.JWTAction
 import graphql._
 import io.circe.Json
 import io.circe.syntax._
@@ -11,8 +10,6 @@ import play.api.mvc._
 import sangria.execution.{ ErrorWithResolver, Executor, QueryAnalysisError }
 import sangria.marshalling.circe._
 import sangria.parser.QueryParser
-import security.jwt.JwtConfiguration
-import utils.jwt.JwtUtil
 
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -22,7 +19,6 @@ class GraphQLController @Inject() (
     override protected val controllerComponents: ControllerComponents,
     graphQLSchema: GraphQLSchema,
     graphQLServices: GraphQLServices,
-    jwtConfiguration: JwtConfiguration,
     jwtAction: JWTAction
 )(implicit
     executionContext: ExecutionContext
@@ -34,21 +30,8 @@ class GraphQLController @Inject() (
 
   def graphQL: Action[GraphQLRequest] =
     jwtAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
-      val graphQLContext = request.headers
-        .get(RequestHeaders.userTokenHeader)
-        .toRight(ErrorContext.Authentication.Token.Missing.asServerError)
-        .flatMap(JwtUtil.validateJwt(_, jwtConfiguration.signaturePublicKey))
-        .fold(
-          error => {
-            logger.warn(error.message)
-            contextWithoutUser
-          },
-          jwtContent =>
-            GraphQLContext.withUser(
-              graphQLServices,
-              jwtContent
-            )
-        )
+      val graphQLContext = request.loggedIn
+        .fold(contextWithoutUser)(GraphQLContext.withUser(graphQLServices, _))
 
       QueryParser
         .parse(request.body.query)

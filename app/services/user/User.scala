@@ -1,32 +1,29 @@
 package services.user
 
+import db.UserId
+import db.generated.Tables
+import io.scalaland.chimney.Transformer
+import utils.transformer.implicits._
+
 case class User(
     id: UserId,
     nickname: String,
+    displayName: Option[String],
     email: String,
-    settings: UserSettings,
-    details: UserDetails
+    salt: String,
+    hash: String
 )
 
 object User {
 
-  def fromRow(userRow: db.models.User, settings: UserSettings, details: UserDetails): User =
-    User(
-      id = UserId(userRow.id),
-      nickname = userRow.nickname,
-      email = userRow.nickname,
-      settings = settings,
-      details = details
-    )
+  implicit val fromDB: Transformer[Tables.UserRow, User] =
+    Transformer
+      .define[Tables.UserRow, User]
+      .buildTransformer
 
-  def toRow(user: User, passwordParameters: PasswordParameters): db.models.User =
-    db.models.User(
-      id = user.id.uuid,
-      nickname = user.nickname,
-      email = user.email,
-      passwordSalt = passwordParameters.salt,
-      passwordHash = passwordParameters.hash,
-      iterations = passwordParameters.iterations.intValue
-    )
+  implicit val toDB: Transformer[User, Tables.UserRow] =
+    Transformer
+      .define[User, Tables.UserRow]
+      .buildTransformer
 
 }

@@ -2,18 +2,38 @@ module Language.Language exposing (..)
 
 
 type alias Language =
-    { createRegistrationToken : CreateRegistrationToken
+    { requestRegistration : RequestRegistration
+    , confirmRegistration : ConfirmRegistration
     , userCreation : UserCreation
     , login : Login
     , overview : Overview
+    , taskEditor : TaskEditor
+    , projectEditor : ProjectEditor
+    , searchProject : SearchProject
     }
 
 
-type alias CreateRegistrationToken =
-    { enterEmailForRegistrationRequest : String
-    , requestTokenForRegistration : String
-    , tokenRequestSuccessful : String
-    , tokenRequestFailed : String
+type alias RequestRegistration =
+    { header : String
+    , nickname : String
+    , email : String
+    , register : String
+    , registrationSuccessful : String
+    , registrationFailed : String
+    , mainPage : String
+    }
+
+
+type alias ConfirmRegistration =
+    { header : String
+    , nickname : String
+    , email : String
+    , displayName : String
+    , password : String
+    , passwordRepetition : String
+    , confirm : String
+    , successfullyCreatedUser : String
+    , mainPage : String
     }
 
 
@@ -26,19 +46,17 @@ type alias UserCreation =
     , failure : String
     , loginPageLinkText : String
     , tryAgain : String
+    , create : String
     }
-
-
-
---todo: Add password recovery parts
 
 
 type alias Login =
     { nickname : String
     , password : String
     , login : String
-    , wrongCombination : String
-    , tryAgain : String
+    , keepMeLoggedIn : String
+    , createAccount : String
+    , recoverAccount : String
     }
 
 
@@ -49,6 +67,46 @@ type alias Overview =
     }
 
 
+type alias TaskEditor =
+    { tasks : String
+    , newTask : String
+    , delete : String
+    , confirmDelete : String
+    , taskName : String
+    , counting : String
+    , taskKind : String
+    , discrete : String
+    , percent : String
+    , fraction : String
+    , unit : String
+    , progress : String
+    , projectName : String
+    , create : String
+    , edit : String
+    , cancel : String
+    , save : String
+    }
+
+
+type alias ProjectEditor =
+    { add : String
+    , newProject : String
+    , delete : String
+    , confirmDelete : String
+    , edit : String
+    , taskEditor : String
+    , name : String
+    , description : String
+    , flatIfSingleTask : String
+    , save : String
+    , cancel : String
+    }
+
+
+type alias SearchProject =
+    {}
+
+
 default : Language
 default =
     english
@@ -56,11 +114,25 @@ default =
 
 english : Language
 english =
-    { createRegistrationToken =
-        { enterEmailForRegistrationRequest = "Email for registration"
-        , requestTokenForRegistration = "Request registration"
-        , tokenRequestSuccessful = "Successfully requested token! Check your email to proceed!"
-        , tokenRequestFailed = "There was an error requesting the token. Please try again!"
+    { requestRegistration =
+        { header = "Registration"
+        , nickname = "Nickname"
+        , email = "Email for registration"
+        , register = "Request registration"
+        , registrationSuccessful = "Successfully requested token! Check your email to proceed!"
+        , registrationFailed = "There was an error requesting the token. Please try again!"
+        , mainPage = "Main page"
+        }
+    , confirmRegistration =
+        { header = "Confirm registration"
+        , nickname = "Nickname"
+        , email = "Email"
+        , displayName = "Display name (optional)"
+        , password = "Password"
+        , passwordRepetition = "Password repetition"
+        , confirm = "Confirm"
+        , successfullyCreatedUser = "User creation successful"
+        , mainPage = "Main Page"
         }
     , userCreation =
         { nickname = "User name"
@@ -71,19 +143,54 @@ english =
         , failure = "User creation failed"
         , loginPageLinkText = "Go to login page"
         , tryAgain = "Try again"
+        , create = "Create"
         }
     , login =
         { nickname = "User name"
         , password = "Password"
-        , login = "Log in"
-        , wrongCombination = "Wrong combination of user name and password"
-        , tryAgain = "Try again?"
+        , login = "Log In"
+        , keepMeLoggedIn = "Keep me logged in"
+        , createAccount = "Create account"
+        , recoverAccount = "Recover account"
         }
     , overview =
         { dashboards = "Dashboards"
         , projects = "Projects"
         , settings = "Settings"
         }
+    , taskEditor =
+        { tasks = "Plain tasks"
+        , newTask = "Create new task"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
+        , taskName = "Name"
+        , counting = "Counting?"
+        , taskKind = "Kind"
+        , discrete = "Discrete"
+        , percent = "Percent"
+        , fraction = "Fraction"
+        , unit = "Unit"
+        , progress = "Progress"
+        , projectName = "Project name"
+        , create = "Create"
+        , edit = "Edit"
+        , cancel = "Cancel"
+        , save = "Save"
+        }
+    , projectEditor =
+        { add = "Add"
+        , newProject = "New project"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
+        , edit = "Edit"
+        , taskEditor = "Task editor"
+        , name = "Project name"
+        , description = "Description"
+        , flatIfSingleTask = "Flatten if the project contains only a single task"
+        , save = "Save"
+        , cancel = "Cancel"
+        }
+    , searchProject = {}
     }
 
 

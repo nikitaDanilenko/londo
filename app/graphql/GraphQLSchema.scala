@@ -4,14 +4,15 @@ import sangria.macros.derive.deriveContextObjectType
 import sangria.schema.{ ObjectType, Schema }
 import javax.inject.Singleton
 import utils.graphql.SangriaUtil.instances._
+import sangria.marshalling.circe._
 
 @Singleton
 class GraphQLSchema {
 
-  val QueryType: ObjectType[GraphQLContext, Unit] =
+  private val QueryType: ObjectType[GraphQLContext, Unit] =
     deriveContextObjectType[GraphQLContext, Query, Unit](_.query)
 
-  val MutationType: ObjectType[GraphQLContext, Unit] =
+  private val MutationType: ObjectType[GraphQLContext, Unit] =
     deriveContextObjectType[GraphQLContext, Mutation, Unit](_.mutation)
 
   val schema: Schema[GraphQLContext, Unit] = Schema(

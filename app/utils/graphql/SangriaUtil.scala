@@ -1,65 +1,50 @@
 package utils.graphql
 
-import math.Positive
-import sangria.ast.{ BigIntValue, StringValue, Value }
+import sangria.ast.{ StringValue, Value }
 import sangria.schema.ScalarType
 import sangria.validation.{ ValueCoercionViolation, Violation }
-import spire.math.Natural
 
 import java.util.UUID
 import scala.util.Try
 
 object SangriaUtil {
 
-  trait Instances {
+  object instances {
 
-    implicit val uuidType: ScalarType[UUID] =
+    implicit val uuid: ScalarType[UUID] =
       createScalarType(
         name = "UUID",
-        matcher = {
-          case StringValue(s, _, _, _, _) => s
+        matcher = { case StringValue(s, _, _, _, _) =>
+          s
         },
         parse = parseUUID,
         parseString = parseUUID,
         UUIDCoercionViolation
       )
 
-    implicit val unitType: ScalarType[Unit] =
+    implicit val unit: ScalarType[Unit] =
       createScalarType(
         name = "Unit",
-        matcher = {
-          case StringValue(s, _, _, _, _) => s
+        matcher = { case StringValue(s, _, _, _, _) =>
+          s
         },
         parse = parseUnit,
         parseString = parseUnit,
         UnitCoercionViolation
       )
 
-    implicit val naturalType: ScalarType[Natural] =
+    implicit val bigInt: ScalarType[BigInt] =
       createScalarType(
-        name = "Natural",
-        matcher = {
-          case BigIntValue(bi, _, _) => bi
+        name = "BigInt",
+        matcher = { case StringValue(s, _, _, _, _) =>
+          s
         },
-        parse = parseNatural,
-        parseString = s => Try(BigInt(s)).toEither.left.map(_ => NaturalCoercionViolation).flatMap(parseNatural),
-        NaturalCoercionViolation
-      )
-
-    implicit val positiveType: ScalarType[Positive] =
-      createScalarType(
-        name = "Positive",
-        matcher = {
-          case BigIntValue(bi, _, _) => bi
-        },
-        parse = parsePositive,
-        parseString = s => Try(BigInt(s)).toEither.left.map(_ => PositiveCoercionViolation).flatMap(parsePositive),
-        PositiveCoercionViolation
+        parse = parseBigInt,
+        parseString = parseBigInt,
+        BigIntCoercionViolation
       )
 
   }
-
-  object instances extends Instances
 
   private def createScalarType[A, Rep](
       name: String,
@@ -93,16 +78,14 @@ object SangriaUtil {
     else Left(UnitCoercionViolation)
   }
 
-  private def parseNatural(bigInt: BigInt): Either[Violation, Natural] =
-    Try(Natural(bigInt)).toEither.left.map(_ => NaturalCoercionViolation)
-
-  private def parsePositive(bigInt: BigInt): Either[Violation, Positive] =
-    parseNatural(bigInt).flatMap(Positive(_).left.map(_ => PositiveCoercionViolation))
+  private def parseBigInt(string: String): Either[Violation, BigInt] =
+    Try(BigInt(string)).toEither.left
+      .map(_ => BigIntCoercionViolation)
 
   case object UUIDCoercionViolation extends ValueCoercionViolation("Not a valid UUID representation")
 
   case object UnitCoercionViolation extends ValueCoercionViolation("Not a valid unit representation")
 
-  case object NaturalCoercionViolation extends ValueCoercionViolation("Not a natural number")
-  case object PositiveCoercionViolation extends ValueCoercionViolation("Not a positive natural number")
+  case object BigIntCoercionViolation extends ValueCoercionViolation("Not a valid BigInt representation")
+
 }

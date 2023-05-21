@@ -1,17 +1,31 @@
 module Pages.Util.RequestUtil exposing (..)
 
+import Constants
 import Graphql.Http
-import Graphql.Operation exposing (RootMutation)
+import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.SelectionSet exposing (SelectionSet)
-import RemoteData
+import RemoteData exposing (RemoteData)
 
 
-sendGraphQLRequest :
+type alias GraphQLDataOrError a =
+    RemoteData (Graphql.Http.Error a) a
+
+
+type alias GraphQLRequestParameters a msg =
     { endpoint : String
-    , gotResponse : RemoteData.RemoteData (Graphql.Http.Error a) a -> msg
+    , token : String
+    , gotResponse : GraphQLDataOrError a -> msg
     }
-    -> SelectionSet a RootMutation
-    -> Cmd msg
-sendGraphQLRequest params =
-    Graphql.Http.mutationRequest params.endpoint
-        >> Graphql.Http.send (RemoteData.fromResult >> params.gotResponse)
+
+mutateWith : GraphQLRequestParameters a msg -> SelectionSet a RootMutation -> Cmd msg
+mutateWith ps =
+    Graphql.Http.mutationRequest ps.endpoint
+        >> Graphql.Http.withHeader Constants.userToken ps.token
+        >> Graphql.Http.send (RemoteData.fromResult >> ps.gotResponse)
+
+
+queryWith : GraphQLRequestParameters a msg -> SelectionSet a RootQuery -> Cmd msg
+queryWith ps =
+    Graphql.Http.queryRequest ps.endpoint
+        >> Graphql.Http.withHeader Constants.userToken ps.token
+        >> Graphql.Http.send (RemoteData.fromResult >> ps.gotResponse)

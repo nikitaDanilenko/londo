@@ -50,7 +50,7 @@ object Progress {
   def divideBy(progress: Progress, p: Positive): Progress =
     unsafeFromRational(progress.value * Rational(1, p.natural.toBigInt))
 
-  private def clampMax[A: Order: AdditiveMonoid](value: A, max: A): A =
+  private def clampMax[A: Order](value: A, max: A): A =
     Order[A].min(max, value)
 
   private def unsafeFromRational(rational: Rational): Progress =

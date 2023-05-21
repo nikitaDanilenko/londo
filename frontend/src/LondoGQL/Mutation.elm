@@ -20,44 +20,113 @@ import LondoGQL.Union
 
 
 type alias LoginRequiredArguments =
-    { nickname : String
-    , password : String
-    , isValidityUnrestricted : Bool
-    }
+    { input : LondoGQL.InputObject.LoginInput }
 
 
 login :
     LoginRequiredArguments
     -> SelectionSet String RootMutation
 login requiredArgs____ =
-    Object.selectionForField "String" "login" [ Argument.required "nickname" requiredArgs____.nickname Encode.string, Argument.required "password" requiredArgs____.password Encode.string, Argument.required "isValidityUnrestricted" requiredArgs____.isValidityUnrestricted Encode.bool ] Decode.string
+    Object.selectionForField "String" "login" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeLoginInput ] Decode.string
 
 
-type alias RequestCreateRequiredArguments =
-    { email : String }
+type alias LogoutRequiredArguments =
+    { input : LondoGQL.InputObject.LogoutInput }
 
 
-requestCreate :
-    RequestCreateRequiredArguments
-    -> SelectionSet LondoGQL.ScalarCodecs.Unit RootMutation
-requestCreate requiredArgs____ =
-    Object.selectionForField "ScalarCodecs.Unit" "requestCreate" [ Argument.required "email" requiredArgs____.email Encode.string ] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecUnit |> .decoder)
+logout :
+    LogoutRequiredArguments
+    -> SelectionSet Bool RootMutation
+logout requiredArgs____ =
+    Object.selectionForField "Bool" "logout" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeLogoutInput ] Decode.bool
 
 
-type alias CreateUserRequiredArguments =
-    { userCreation : LondoGQL.InputObject.UserCreation }
+type alias UpdateUserRequiredArguments =
+    { input : LondoGQL.InputObject.UpdateUserInput }
 
 
-createUser :
-    CreateUserRequiredArguments
+updateUser :
+    UpdateUserRequiredArguments
     -> SelectionSet decodesTo LondoGQL.Object.User
     -> SelectionSet decodesTo RootMutation
-createUser requiredArgs____ object____ =
-    Object.selectionForCompositeField "createUser" [ Argument.required "userCreation" requiredArgs____.userCreation LondoGQL.InputObject.encodeUserCreation ] object____ Basics.identity
+updateUser requiredArgs____ object____ =
+    Object.selectionForCompositeField "updateUser" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateUserInput ] object____ Basics.identity
+
+
+type alias UpdatePasswordRequiredArguments =
+    { input : LondoGQL.InputObject.UpdatePasswordInput }
+
+
+updatePassword :
+    UpdatePasswordRequiredArguments
+    -> SelectionSet Bool RootMutation
+updatePassword requiredArgs____ =
+    Object.selectionForField "Bool" "updatePassword" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdatePasswordInput ] Decode.bool
+
+
+type alias RequestRegistrationRequiredArguments =
+    { input : LondoGQL.InputObject.RequestRegistrationInput }
+
+
+requestRegistration :
+    RequestRegistrationRequiredArguments
+    -> SelectionSet LondoGQL.ScalarCodecs.Unit RootMutation
+requestRegistration requiredArgs____ =
+    Object.selectionForField "ScalarCodecs.Unit" "requestRegistration" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeRequestRegistrationInput ] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecUnit |> .decoder)
+
+
+type alias ConfirmRegistrationRequiredArguments =
+    { input : LondoGQL.InputObject.ConfirmRegistrationInput }
+
+
+confirmRegistration :
+    ConfirmRegistrationRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.User
+    -> SelectionSet decodesTo RootMutation
+confirmRegistration requiredArgs____ object____ =
+    Object.selectionForCompositeField "confirmRegistration" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeConfirmRegistrationInput ] object____ Basics.identity
+
+
+type alias RequestRecoveryRequiredArguments =
+    { input : LondoGQL.InputObject.RequestRecoveryInput }
+
+
+requestRecovery :
+    RequestRecoveryRequiredArguments
+    -> SelectionSet LondoGQL.ScalarCodecs.Unit RootMutation
+requestRecovery requiredArgs____ =
+    Object.selectionForField "ScalarCodecs.Unit" "requestRecovery" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeRequestRecoveryInput ] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecUnit |> .decoder)
+
+
+type alias ConfirmRecoveryRequiredArguments =
+    { input : LondoGQL.InputObject.ConfirmRecoveryInput }
+
+
+confirmRecovery :
+    ConfirmRecoveryRequiredArguments
+    -> SelectionSet Bool RootMutation
+confirmRecovery requiredArgs____ =
+    Object.selectionForField "Bool" "confirmRecovery" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeConfirmRecoveryInput ] Decode.bool
+
+
+requestDeletion : SelectionSet LondoGQL.ScalarCodecs.Unit RootMutation
+requestDeletion =
+    Object.selectionForField "ScalarCodecs.Unit" "requestDeletion" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecUnit |> .decoder)
+
+
+type alias ConfirmDeletionRequiredArguments =
+    { input : LondoGQL.InputObject.ConfirmDeletionInput }
+
+
+confirmDeletion :
+    ConfirmDeletionRequiredArguments
+    -> SelectionSet Bool RootMutation
+confirmDeletion requiredArgs____ =
+    Object.selectionForField "Bool" "confirmDeletion" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeConfirmDeletionInput ] Decode.bool
 
 
 type alias CreateProjectRequiredArguments =
-    { projectCreation : LondoGQL.InputObject.ProjectCreation }
+    { input : LondoGQL.InputObject.CreateProjectInput }
 
 
 createProject :
@@ -65,133 +134,11 @@ createProject :
     -> SelectionSet decodesTo LondoGQL.Object.Project
     -> SelectionSet decodesTo RootMutation
 createProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "createProject" [ Argument.required "projectCreation" requiredArgs____.projectCreation LondoGQL.InputObject.encodeProjectCreation ] object____ Basics.identity
-
-
-type alias AllowReadUsersProjectRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-allowReadUsersProject :
-    AllowReadUsersProjectRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-allowReadUsersProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "allowReadUsersProject" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
-
-
-type alias AllowWriteUsersProjectRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-allowWriteUsersProject :
-    AllowWriteUsersProjectRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-allowWriteUsersProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "allowWriteUsersProject" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
-
-
-type alias BlockReadUsersProjectRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-blockReadUsersProject :
-    BlockReadUsersProjectRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-blockReadUsersProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "blockReadUsersProject" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
-
-
-type alias BlockWriteUsersProjectRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-blockWriteUsersProject :
-    BlockWriteUsersProjectRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-blockWriteUsersProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "blockWriteUsersProject" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
-
-
-type alias DeleteProjectRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput }
-
-
-deleteProject :
-    DeleteProjectRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Project
-    -> SelectionSet decodesTo RootMutation
-deleteProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "deleteProject" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput ] object____ Basics.identity
-
-
-type alias AddPlainTaskRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput
-    , plainCreation : LondoGQL.InputObject.PlainCreation
-    }
-
-
-addPlainTask :
-    AddPlainTaskRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Plain
-    -> SelectionSet decodesTo RootMutation
-addPlainTask requiredArgs____ object____ =
-    Object.selectionForCompositeField "addPlainTask" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "plainCreation" requiredArgs____.plainCreation LondoGQL.InputObject.encodePlainCreation ] object____ Basics.identity
-
-
-type alias AddProjectReferenceTaskRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput
-    , projectReferenceCreation : LondoGQL.InputObject.ProjectReferenceCreation
-    }
-
-
-addProjectReferenceTask :
-    AddProjectReferenceTaskRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.ProjectReference
-    -> SelectionSet decodesTo RootMutation
-addProjectReferenceTask requiredArgs____ object____ =
-    Object.selectionForCompositeField "addProjectReferenceTask" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "projectReferenceCreation" requiredArgs____.projectReferenceCreation LondoGQL.InputObject.encodeProjectReferenceCreation ] object____ Basics.identity
-
-
-type alias RemovePlainTaskRequiredArguments =
-    { taskKey : LondoGQL.InputObject.TaskKeyInput }
-
-
-removePlainTask :
-    RemovePlainTaskRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Plain
-    -> SelectionSet decodesTo RootMutation
-removePlainTask requiredArgs____ object____ =
-    Object.selectionForCompositeField "removePlainTask" [ Argument.required "taskKey" requiredArgs____.taskKey LondoGQL.InputObject.encodeTaskKeyInput ] object____ Basics.identity
-
-
-type alias RemoveProjectReferenceTaskRequiredArguments =
-    { taskKey : LondoGQL.InputObject.TaskKeyInput }
-
-
-removeProjectReferenceTask :
-    RemoveProjectReferenceTaskRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.ProjectReference
-    -> SelectionSet decodesTo RootMutation
-removeProjectReferenceTask requiredArgs____ object____ =
-    Object.selectionForCompositeField "removeProjectReferenceTask" [ Argument.required "taskKey" requiredArgs____.taskKey LondoGQL.InputObject.encodeTaskKeyInput ] object____ Basics.identity
+    Object.selectionForCompositeField "createProject" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeCreateProjectInput ] object____ Basics.identity
 
 
 type alias UpdateProjectRequiredArguments =
-    { projectId : LondoGQL.InputObject.ProjectIdInput
-    , projectUpdate : LondoGQL.InputObject.ProjectUpdate
-    }
+    { input : LondoGQL.InputObject.UpdateProjectInput }
 
 
 updateProject :
@@ -199,39 +146,57 @@ updateProject :
     -> SelectionSet decodesTo LondoGQL.Object.Project
     -> SelectionSet decodesTo RootMutation
 updateProject requiredArgs____ object____ =
-    Object.selectionForCompositeField "updateProject" [ Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "projectUpdate" requiredArgs____.projectUpdate LondoGQL.InputObject.encodeProjectUpdate ] object____ Basics.identity
+    Object.selectionForCompositeField "updateProject" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateProjectInput ] object____ Basics.identity
 
 
-type alias UpdatePlainTaskRequiredArguments =
-    { taskKey : LondoGQL.InputObject.TaskKeyInput
-    , plainUpdate : LondoGQL.InputObject.PlainUpdate
-    }
+type alias DeleteProjectRequiredArguments =
+    { input : LondoGQL.InputObject.DeleteProjectInput }
 
 
-updatePlainTask :
-    UpdatePlainTaskRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Plain
+deleteProject :
+    DeleteProjectRequiredArguments
+    -> SelectionSet Bool RootMutation
+deleteProject requiredArgs____ =
+    Object.selectionForField "Bool" "deleteProject" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeDeleteProjectInput ] Decode.bool
+
+
+type alias CreateTaskRequiredArguments =
+    { input : LondoGQL.InputObject.CreateTaskInput }
+
+
+createTask :
+    CreateTaskRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.Task
     -> SelectionSet decodesTo RootMutation
-updatePlainTask requiredArgs____ object____ =
-    Object.selectionForCompositeField "updatePlainTask" [ Argument.required "taskKey" requiredArgs____.taskKey LondoGQL.InputObject.encodeTaskKeyInput, Argument.required "plainUpdate" requiredArgs____.plainUpdate LondoGQL.InputObject.encodePlainUpdate ] object____ Basics.identity
+createTask requiredArgs____ object____ =
+    Object.selectionForCompositeField "createTask" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeCreateTaskInput ] object____ Basics.identity
 
 
-type alias UpdateProjectReferenceTaskRequiredArguments =
-    { taskKey : LondoGQL.InputObject.TaskKeyInput
-    , projectReferenceUpdate : LondoGQL.InputObject.ProjectReferenceUpdate
-    }
+type alias UpdateTaskRequiredArguments =
+    { input : LondoGQL.InputObject.UpdateTaskInput }
 
 
-updateProjectReferenceTask :
-    UpdateProjectReferenceTaskRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.ProjectReference
+updateTask :
+    UpdateTaskRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.Task
     -> SelectionSet decodesTo RootMutation
-updateProjectReferenceTask requiredArgs____ object____ =
-    Object.selectionForCompositeField "updateProjectReferenceTask" [ Argument.required "taskKey" requiredArgs____.taskKey LondoGQL.InputObject.encodeTaskKeyInput, Argument.required "projectReferenceUpdate" requiredArgs____.projectReferenceUpdate LondoGQL.InputObject.encodeProjectReferenceUpdate ] object____ Basics.identity
+updateTask requiredArgs____ object____ =
+    Object.selectionForCompositeField "updateTask" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateTaskInput ] object____ Basics.identity
+
+
+type alias DeleteTaskRequiredArguments =
+    { input : LondoGQL.InputObject.DeleteTaskInput }
+
+
+deleteTask :
+    DeleteTaskRequiredArguments
+    -> SelectionSet Bool RootMutation
+deleteTask requiredArgs____ =
+    Object.selectionForField "Bool" "deleteTask" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeDeleteTaskInput ] Decode.bool
 
 
 type alias CreateDashboardRequiredArguments =
-    { dashboardCreation : LondoGQL.InputObject.DashboardCreation }
+    { input : LondoGQL.InputObject.CreateDashboardInput }
 
 
 createDashboard :
@@ -239,69 +204,11 @@ createDashboard :
     -> SelectionSet decodesTo LondoGQL.Object.Dashboard
     -> SelectionSet decodesTo RootMutation
 createDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "createDashboard" [ Argument.required "dashboardCreation" requiredArgs____.dashboardCreation LondoGQL.InputObject.encodeDashboardCreation ] object____ Basics.identity
-
-
-type alias AllowReadUsersDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-allowReadUsersDashboard :
-    AllowReadUsersDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-allowReadUsersDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "allowReadUsersDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
-
-
-type alias AllowWriteUsersDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-allowWriteUsersDashboard :
-    AllowWriteUsersDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-allowWriteUsersDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "allowWriteUsersDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
-
-
-type alias BlockReadUsersDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-blockReadUsersDashboard :
-    BlockReadUsersDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-blockReadUsersDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "blockReadUsersDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
-
-
-type alias BlockWriteUsersDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , userIds : LondoGQL.InputObject.NonEmptyListOfUserIdInput
-    }
-
-
-blockWriteUsersDashboard :
-    BlockWriteUsersDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo RootMutation
-blockWriteUsersDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "blockWriteUsersDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "userIds" requiredArgs____.userIds LondoGQL.InputObject.encodeNonEmptyListOfUserIdInput ] object____ Basics.identity
+    Object.selectionForCompositeField "createDashboard" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeCreateDashboardInput ] object____ Basics.identity
 
 
 type alias UpdateDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , dashboardUpdate : LondoGQL.InputObject.DashboardUpdate
-    }
+    { input : LondoGQL.InputObject.UpdateDashboardInput }
 
 
 updateDashboard :
@@ -309,59 +216,38 @@ updateDashboard :
     -> SelectionSet decodesTo LondoGQL.Object.Dashboard
     -> SelectionSet decodesTo RootMutation
 updateDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "updateDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "dashboardUpdate" requiredArgs____.dashboardUpdate LondoGQL.InputObject.encodeDashboardUpdate ] object____ Basics.identity
+    Object.selectionForCompositeField "updateDashboard" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateDashboardInput ] object____ Basics.identity
 
 
 type alias DeleteDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput }
+    { input : LondoGQL.InputObject.DeleteDashboardInput }
 
 
 deleteDashboard :
     DeleteDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Dashboard
+    -> SelectionSet Bool RootMutation
+deleteDashboard requiredArgs____ =
+    Object.selectionForField "Bool" "deleteDashboard" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeDeleteDashboardInput ] Decode.bool
+
+
+type alias CreateDashboardEntryRequiredArguments =
+    { input : LondoGQL.InputObject.CreateDashboardEntryInput }
+
+
+createDashboardEntry :
+    CreateDashboardEntryRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardEntry
     -> SelectionSet decodesTo RootMutation
-deleteDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "deleteDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput ] object____ Basics.identity
+createDashboardEntry requiredArgs____ object____ =
+    Object.selectionForCompositeField "createDashboardEntry" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeCreateDashboardEntryInput ] object____ Basics.identity
 
 
-type alias AddProjectToDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , projectId : LondoGQL.InputObject.ProjectIdInput
-    , weight : LondoGQL.ScalarCodecs.Natural
-    }
+type alias DeleteDashboardEntryRequiredArguments =
+    { input : LondoGQL.InputObject.DeleteDashboardEntryInput }
 
 
-addProjectToDashboard :
-    AddProjectToDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Dashboard
-    -> SelectionSet decodesTo RootMutation
-addProjectToDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "addProjectToDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput, Argument.required "weight" requiredArgs____.weight (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecNatural) ] object____ Basics.identity
-
-
-type alias AdjustWeightsOnDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , projectWeightsOnDashboard : List LondoGQL.InputObject.ProjectWeightOnDashboardInput
-    }
-
-
-adjustWeightsOnDashboard :
-    AdjustWeightsOnDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Dashboard
-    -> SelectionSet decodesTo RootMutation
-adjustWeightsOnDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "adjustWeightsOnDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "projectWeightsOnDashboard" requiredArgs____.projectWeightsOnDashboard (LondoGQL.InputObject.encodeProjectWeightOnDashboardInput |> Encode.list) ] object____ Basics.identity
-
-
-type alias RemoveProjectFromDashboardRequiredArguments =
-    { dashboardId : LondoGQL.InputObject.DashboardIdInput
-    , projectId : LondoGQL.InputObject.ProjectIdInput
-    }
-
-
-removeProjectFromDashboard :
-    RemoveProjectFromDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Dashboard
-    -> SelectionSet decodesTo RootMutation
-removeProjectFromDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "removeProjectFromDashboard" [ Argument.required "dashboardId" requiredArgs____.dashboardId LondoGQL.InputObject.encodeDashboardIdInput, Argument.required "projectId" requiredArgs____.projectId LondoGQL.InputObject.encodeProjectIdInput ] object____ Basics.identity
+deleteDashboardEntry :
+    DeleteDashboardEntryRequiredArguments
+    -> SelectionSet Bool RootMutation
+deleteDashboardEntry requiredArgs____ =
+    Object.selectionForField "Bool" "deleteDashboardEntry" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeDeleteDashboardEntryInput ] Decode.bool

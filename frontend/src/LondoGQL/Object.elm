@@ -5,24 +5,28 @@
 module LondoGQL.Object exposing (..)
 
 
-type Accessors
-    = Accessors
-
-
 type Dashboard
     = Dashboard
+
+
+type DashboardEntry
+    = DashboardEntry
 
 
 type DashboardId
     = DashboardId
 
 
-type NonEmptyList
-    = NonEmptyList
+type FindUserResult
+    = FindUserResult
 
 
-type Plain
-    = Plain
+type Natural
+    = Natural
+
+
+type Positive
+    = Positive
 
 
 type Progress
@@ -37,20 +41,16 @@ type ProjectId
     = ProjectId
 
 
-type ProjectReference
-    = ProjectReference
-
-
-type ResolvedPlain
-    = ResolvedPlain
+type ResolvedDashboard
+    = ResolvedDashboard
 
 
 type ResolvedProject
     = ResolvedProject
 
 
-type ResolvedProjectReference
-    = ResolvedProjectReference
+type Task
+    = Task
 
 
 type TaskId
@@ -61,17 +61,5 @@ type User
     = User
 
 
-type UserDetails
-    = UserDetails
-
-
 type UserId
     = UserId
-
-
-type UserSettings
-    = UserSettings
-
-
-type WeightedProject
-    = WeightedProject

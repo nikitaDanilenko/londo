@@ -19,11 +19,15 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-reached : SelectionSet LondoGQL.ScalarCodecs.Natural LondoGQL.Object.Progress
-reached =
-    Object.selectionForField "ScalarCodecs.Natural" "reached" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecNatural |> .decoder)
+reached :
+    SelectionSet decodesTo LondoGQL.Object.Natural
+    -> SelectionSet decodesTo LondoGQL.Object.Progress
+reached object____ =
+    Object.selectionForCompositeField "reached" [] object____ Basics.identity
 
 
-reachable : SelectionSet LondoGQL.ScalarCodecs.Positive LondoGQL.Object.Progress
-reachable =
-    Object.selectionForField "ScalarCodecs.Positive" "reachable" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecPositive |> .decoder)
+reachable :
+    SelectionSet decodesTo LondoGQL.Object.Positive
+    -> SelectionSet decodesTo LondoGQL.Object.Progress
+reachable object____ =
+    Object.selectionForCompositeField "reachable" [] object____ Basics.identity

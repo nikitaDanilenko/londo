@@ -1,6 +1,6 @@
 package graphql
 
-import security.jwt.JwtContent
+import security.jwt.LoggedIn
 
 sealed trait GraphQLContext {
   def mutation: Mutation
@@ -12,19 +12,19 @@ object GraphQLContext {
   def withoutUser(graphQLServices: GraphQLServices): GraphQLContext =
     create(
       graphQLServices = graphQLServices,
-      _jwtContent = None
+      _loggedIn = None
     )
 
-  def withUser(graphQLServices: GraphQLServices, jwtContent: JwtContent): GraphQLContext =
+  def withUser(graphQLServices: GraphQLServices, loggedIn: LoggedIn): GraphQLContext =
     create(
       graphQLServices = graphQLServices,
-      _jwtContent = Some(jwtContent)
+      _loggedIn = Some(loggedIn)
     )
 
-  private def create(graphQLServices: GraphQLServices, _jwtContent: Option[JwtContent]): GraphQLContext =
+  private def create(graphQLServices: GraphQLServices, _loggedIn: Option[LoggedIn]): GraphQLContext =
     new GraphQLContext {
-      override val mutation: Mutation = Mutation(graphQLServices, _jwtContent)
-      override val query: Query = Query(graphQLServices, _jwtContent)
+      override val mutation: Mutation = Mutation(graphQLServices, _loggedIn)
+      override val query: Query       = Query(graphQLServices, _loggedIn)
     }
 
 }

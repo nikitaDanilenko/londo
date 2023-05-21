@@ -1,61 +1,89 @@
-name := "londo"
+import com.typesafe.config.ConfigFactory
+
+name         := "londo"
 organization := "io.danilenko"
-version := "0.1.0"
+version      := "0.1.0"
 
-lazy val root = project
-  .in(file("."))
+val circeVersion = "0.14.5"
+val jwtVersion   = "9.2.0"
+val slickVersion = "3.4.1"
+
+val config = ConfigFactory
+  .parseFile(new File("conf/application.conf"))
+  .resolve()
+
+lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-
-scalaVersion := "2.13.3"
-
-val doobieVersion = "0.10.0"
-val circeVersion = "0.13.0"
-val jwtVersion = "7.1.2"
-val quillVersion = "3.6.0-RC1"
-
-libraryDependencies ++= Seq(
-  guice,
-  "org.scalatestplus.play"     %% "scalatestplus-play"   % "5.0.0" % Test,
-  "org.postgresql"              % "postgresql"           % "42.2.8",
-  "io.getquill"                %% "quill-jdbc"           % quillVersion,
-  "io.getquill"                %% "quill-codegen-jdbc"   % quillVersion,
-  "io.getquill"                %% "quill-async-postgres" % quillVersion,
-  "org.flywaydb"               %% "flyway-play"          % "6.0.0",
-  "org.typelevel"              %% "cats-core"            % "2.2.0",
-  "org.scalameta"              %% "scalafmt-dynamic"     % "2.6.1",
-  "com.github.pathikrit"       %% "better-files"         % "3.9.1",
-  "org.scalameta"              %% "scalameta"            % "4.3.13",
-  "org.tpolecat"               %% "doobie-core"          % doobieVersion,
-  "org.tpolecat"               %% "doobie-hikari"        % doobieVersion,
-  "org.tpolecat"               %% "doobie-postgres"      % doobieVersion,
-  "org.tpolecat"               %% "doobie-quill"         % doobieVersion,
-  "io.circe"                   %% "circe-core"           % circeVersion,
-  "io.circe"                   %% "circe-generic"        % circeVersion,
-  "io.circe"                   %% "circe-parser"         % circeVersion,
-  "org.sangria-graphql"        %% "sangria"              % "2.1.0",
-  "org.sangria-graphql"        %% "sangria-circe"        % "1.3.1",
-  "com.dripower"               %% "play-circe"           % "2812.0",
-  "com.github.jwt-scala"       %% "jwt-core"             % jwtVersion,
-  "com.github.jwt-scala"       %% "jwt-circe"            % jwtVersion,
-  "org.typelevel"              %% "spire"                % "0.17.0",
-  "com.beachape"               %% "enumeratum-circe"     % "1.6.1",
-  "com.github.julien-truffaut" %% "monocle-core"         % "3.0.0-M5",
-  "com.github.julien-truffaut" %% "monocle-macro"        % "3.0.0-M5",
-  "io.circe"                   %% "circe-generic-extras" % circeVersion
-)
+  .enablePlugins(CodegenPlugin)
+  .enablePlugins(JavaServerAppPackaging)
+  .settings(
+    scalaVersion := "2.13.10",
+    libraryDependencies ++= Seq(
+      guice,
+      "org.postgresql"              % "postgresql"           % "42.6.0",
+      "org.flywaydb"               %% "flyway-play"          % "7.37.0",
+      "com.typesafe.slick"         %% "slick"                % slickVersion,
+      "com.typesafe.slick"         %% "slick-hikaricp"       % slickVersion,
+      "com.typesafe.slick"         %% "slick-codegen"        % slickVersion,
+      "org.typelevel"              %% "cats-core"            % "2.9.0",
+      "org.typelevel"              %% "cats-effect"          % "3.4.8",
+      "org.scalameta"              %% "scalafmt-dynamic"     % "3.7.2",
+      "ch.qos.logback"              % "logback-classic"      % "1.4.6",
+      "io.circe"                   %% "circe-core"           % circeVersion,
+      "io.circe"                   %% "circe-generic"        % circeVersion,
+      "io.circe"                   %% "circe-parser"         % circeVersion,
+      "org.sangria-graphql"        %% "sangria"              % "3.5.3",
+      "org.sangria-graphql"        %% "sangria-circe"        % "1.3.2",
+      "com.typesafe.play"          %% "play-slick"           % "5.1.0",
+      "com.dripower"               %% "play-circe"           % "2814.2",
+      "com.github.jwt-scala"       %% "jwt-core"             % jwtVersion,
+      "com.github.jwt-scala"       %% "jwt-circe"            % jwtVersion,
+      "org.typelevel"              %% "spire"                % "0.18.0",
+      "com.beachape"               %% "enumeratum-circe"     % "1.7.2",
+      "com.github.julien-truffaut" %% "monocle-core"         % "3.0.0-M5",
+      "com.github.julien-truffaut" %% "monocle-macro"        % "3.0.0-M5",
+      "io.circe"                   %% "circe-generic-extras" % "0.14.3",
+      "com.typesafe"                % "config"               % "1.4.2",
+      "io.scalaland"               %% "chimney"              % "0.7.2",
+      "com.github.pureconfig"      %% "pureconfig"           % "0.17.2",
+      "com.typesafe.play"          %% "play-mailer"          % "8.0.1",
+      "com.typesafe.play"          %% "play-mailer-guice"    % "8.0.1",
+      "com.kubukoz"                %% "slick-effect"         % "0.5.0",
+      "com.kubukoz"                %% "slick-effect-catsio"  % "0.5.0",
+      "com.lihaoyi"                %% "pprint"               % "0.8.1",
+      // Transitive dependency. Override added for proper version.
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2"
+    ),
+    dependencyOverrides ++= Seq(
+      "com.google.inject" % "guice" % "5.1.0"
+    ),
+    slickCodegenDatabaseUrl      := config.getString("slick.dbs.default.db.url"),
+    slickCodegenDatabaseUser     := config.getString("slick.dbs.default.db.user"),
+    slickCodegenDatabasePassword := config.getString("slick.dbs.default.db.password"),
+    slickCodegenDriver           := slick.jdbc.PostgresProfile,
+    slickCodegenJdbcDriver       := "org.postgresql.Driver",
+    slickCodegenOutputPackage    := "db.generated",
+    slickCodegenExcludedTables   := Seq("flyway_schema_history"),
+    slickCodegenOutputDir        := baseDirectory.value / "app"
+  )
 
 scalacOptions ++= Seq(
   "-Ymacro-annotations"
 )
 
-lazy val dbGenerate = Command.command("dbGenerate") { state =>
-  "runMain db.generators.CodeGenerator" :: state
-}
+Docker / maintainer    := "nikita.danilenko.is@gmail.com"
+Docker / packageName   := "londo"
+Docker / version       := sys.env.getOrElse("BUILD_NUMBER", "0")
+Docker / daemonUserUid := None
+Docker / daemonUser    := "daemon"
+dockerBaseImage        := "adoptopenjdk/openjdk11:latest"
+dockerUpdateLatest     := true
 
-commands += dbGenerate
+// Patches and workarounds
 
-lazy val daoGenerate = Command.command("daoGenerate") { state =>
-  "runMain db.generators.DaoGenerator" :: state
-}
-
-commands += daoGenerate
+// Docker has known issues with Play's PID file. The below command disables Play's PID file.
+// cf. https://www.playframework.com/documentation/2.8.x/Deploying#Play-PID-Configuration
+// The setting is a possible duplicate of the same setting in the application.conf.
+Universal / javaOptions ++= Seq(
+  "-Dpidfile.path=/dev/null"
+)

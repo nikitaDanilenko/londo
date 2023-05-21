@@ -11,8 +11,11 @@ sealed abstract case class Positive(
 
 object Positive {
 
-  def apply(natural: Natural): ServerError.Or[Positive] =
+  def apply(natural: Natural): ServerError.Or[Positive] = {
     Either.cond(!natural.isZero, new Positive(natural) {}, ErrorContext.Conversion.PositiveNatural.asServerError)
+  }
+
+  def nextOf(natural: Natural): Positive = new Positive(natural + Natural.one) {}
 
   implicit val positiveAdditiveSemigroup: AdditiveSemigroup[Positive] = (x, y) => new Positive(x.natural + y.natural) {}
 

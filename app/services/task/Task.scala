@@ -1,98 +1,60 @@
 package services.task
 
-import cats.syntax.contravariantSemigroupal._
-import errors.ServerError
+import db.{ ProjectId, TaskId }
+import db.generated.Tables
+import io.scalaland.chimney.Transformer
+import io.scalaland.chimney.dsl._
 import math.Positive
-import services.project.ProjectId
-import services.task
 import spire.math.Natural
-import utils.math.NaturalUtil
+import utils.transformer.implicits._
+
+import java.time.LocalDateTime
+import java.util.UUID
+
+case class Task(
+    id: TaskId,
+    name: String,
+    taskKind: TaskKind,
+    unit: Option[String],
+    progress: Progress,
+    counting: Boolean,
+    createdAt: LocalDateTime,
+    updatedAt: Option[LocalDateTime]
+)
 
 object Task {
 
-  case class Plain(
-      id: TaskId,
-      name: String,
-      taskKind: TaskKind,
-      unit: Option[String],
-      progress: Progress,
-      weight: Positive
-  )
+  implicit val fromDB: Transformer[Tables.TaskRow, Task] = row =>
+    Task(
+      id = row.id.transformInto[TaskId],
+      name = row.name,
+      taskKind = TaskKind.withName(row.kind),
+      unit = row.unit,
+      progress = Progress.fraction(
+        reachable = Positive.nextOf(
+          Natural(row.reachable.toBigInt - 1)
+        ),
+        reached = Natural(row.reached.toBigInt)
+      ),
+      counting = row.counting,
+      createdAt = row.createdAt.transformInto[LocalDateTime],
+      updatedAt = row.updatedAt.map(_.transformInto[LocalDateTime])
+    )
 
-  object Plain {
-
-    def fromRow(taskRow: db.models.PlainTask): ServerError.Valid[Plain] =
-      (
-        positiveWeight(taskRow.weight),
-        ServerError.fromEither(asNatural(taskRow.reachable).flatMap(Positive.apply)),
-        ServerError.fromEither(asNatural(taskRow.reached))
-      )
-        .mapN { (weight, reachable, reached) =>
-          Plain(
-            id = task.TaskId(uuid = taskRow.id),
-            name = taskRow.name,
-            taskKind = TaskKind.fromId(taskRow.kindId),
-            unit = taskRow.unit,
-            progress = Progress.fraction(
-              reachable = reachable,
-              reached = reached
-            ),
-            weight = weight
-          )
-        }
-
-    def toRow(projectId: ProjectId, plainTask: Plain): db.models.PlainTask =
-      db.models.PlainTask(
-        id = plainTask.id.uuid,
-        projectId = projectId.uuid,
-        name = plainTask.name,
-        unit = plainTask.unit,
-        kindId = TaskKind.toRow(plainTask.taskKind).id,
-        reached = asBigDecimal(plainTask.progress.reached),
-        reachable = asBigDecimal(plainTask.progress.reachable.natural),
-        weight = plainTask.weight.natural.intValue
-      )
+  implicit val toDB: Transformer[(Task, ProjectId), Tables.TaskRow] = { case (task, projectId) =>
+    Tables.TaskRow(
+      id = task.id.transformInto[UUID],
+      projectId = projectId.transformInto[UUID],
+      name = task.name,
+      unit = task.unit,
+      kind = task.taskKind.entryName,
+      reached = BigDecimal(task.progress.reached),
+      reachable = BigDecimal(task.progress.reachable.natural),
+      counting = task.counting,
+      createdAt = task.createdAt.transformInto[java.sql.Timestamp],
+      updatedAt = task.updatedAt.map(_.transformInto[java.sql.Timestamp])
+    )
 
   }
-
-  case class ProjectReference(
-      id: TaskId,
-      projectReference: ProjectId,
-      weight: Positive
-  )
-
-  object ProjectReference {
-
-    def fromRow(taskRow: db.models.ProjectReferenceTask): ServerError.Valid[ProjectReference] =
-      positiveWeight(taskRow.weight).map { weight =>
-        ProjectReference(
-          id = task.TaskId(
-            uuid = taskRow.id
-          ),
-          ProjectId(
-            uuid = taskRow.projectReferenceId
-          ),
-          weight = weight
-        )
-      }
-
-    def toRow(projectId: ProjectId, projectReferenceTask: ProjectReference): db.models.ProjectReferenceTask =
-      db.models.ProjectReferenceTask(
-        id = projectReferenceTask.id.uuid,
-        projectId = projectId.uuid,
-        projectReferenceId = projectReferenceTask.projectReference.uuid,
-        weight = projectReferenceTask.weight.natural.intValue
-      )
-
-  }
-
-  private def asNatural(bigDecimal: BigDecimal): ServerError.Or[Natural] =
-    NaturalUtil.fromBigInt(bigDecimal.toBigInt)
-
-  private def asBigDecimal(natural: Natural): BigDecimal =
-    BigDecimal(natural.toBigInt)
-
-  private def positiveWeight(weight: Int): ServerError.Valid[Positive] =
-    ServerError.fromEither(Positive(Natural(weight)))
 
 }

@@ -1,0 +1,16 @@
+package graphql.mutations.project.inputs
+
+import graphql.types.task.TaskId
+import io.circe.generic.JsonCodec
+import sangria.macros.derive.deriveInputObjectType
+import sangria.schema.InputObjectType
+
+@JsonCodec(decodeOnly = true)
+case class UpdateTaskInput(
+    taskId: TaskId,
+    taskUpdate: TaskUpdate
+)
+
+object UpdateTaskInput {
+  implicit val inputObjectType: InputObjectType[UpdateTaskInput] = deriveInputObjectType[UpdateTaskInput]()
+}

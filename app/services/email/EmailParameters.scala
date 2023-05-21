@@ -1,7 +1,8 @@
 package services.email
 
 case class EmailParameters(
-    from: String,
-    to: String,
-    content: String
+    to: Seq[String],
+    cc: Seq[String],
+    subject: String,
+    message: String
 )

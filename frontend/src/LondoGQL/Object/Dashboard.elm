@@ -11,6 +11,7 @@ import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
+import LondoGQL.Enum.Visibility
 import LondoGQL.InputObject
 import LondoGQL.Interface
 import LondoGQL.Object
@@ -26,13 +27,6 @@ id object____ =
     Object.selectionForCompositeField "id" [] object____ Basics.identity
 
 
-projects :
-    SelectionSet decodesTo LondoGQL.Object.WeightedProject
-    -> SelectionSet (List decodesTo) LondoGQL.Object.Dashboard
-projects object____ =
-    Object.selectionForCompositeField "projects" [] object____ (Basics.identity >> Decode.list)
-
-
 header : SelectionSet String LondoGQL.Object.Dashboard
 header =
     Object.selectionForField "String" "header" [] Decode.string
@@ -43,22 +37,6 @@ description =
     Object.selectionForField "(Maybe String)" "description" [] (Decode.string |> Decode.nullable)
 
 
-userId :
-    SelectionSet decodesTo LondoGQL.Object.UserId
-    -> SelectionSet decodesTo LondoGQL.Object.Dashboard
-userId object____ =
-    Object.selectionForCompositeField "userId" [] object____ Basics.identity
-
-
-readAccessors :
-    SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo LondoGQL.Object.Dashboard
-readAccessors object____ =
-    Object.selectionForCompositeField "readAccessors" [] object____ Basics.identity
-
-
-writeAccessors :
-    SelectionSet decodesTo LondoGQL.Object.Accessors
-    -> SelectionSet decodesTo LondoGQL.Object.Dashboard
-writeAccessors object____ =
-    Object.selectionForCompositeField "writeAccessors" [] object____ Basics.identity
+visibility : SelectionSet LondoGQL.Enum.Visibility.Visibility LondoGQL.Object.Dashboard
+visibility =
+    Object.selectionForField "Enum.Visibility.Visibility" "visibility" [] LondoGQL.Enum.Visibility.decoder

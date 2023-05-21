@@ -10,8 +10,8 @@ case class ProgressUpdate(
 
 object ProgressUpdate {
 
-  def applyToTask(plainTask: Task.Plain, progressUpdate: ProgressUpdate): Task.Plain =
-    plainTask.copy(progress =
+  def update(task: Task, progressUpdate: ProgressUpdate): Task =
+    task.copy(progress =
       Progress.fraction(
         reachable = progressUpdate.reachable,
         reached = progressUpdate.reached
