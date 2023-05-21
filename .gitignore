@@ -13,6 +13,10 @@ target
 
 null
 
+# Ignore the deployment file due to possibly sensitive content.
+deployment.env
+/.bsp/sbt.json
+
 # Frontend
 
 /frontend/elm-stuff
