@@ -360,7 +360,7 @@ displayProgress progress taskKind =
 
         TaskKind.Percent ->
             label []
-                [ text <| flip (++) "%" <| Progress.displayPercentage progress
+                [ text <| flip (++) "%" <| Progress.displayPercentage <| progress
                 ]
 
         TaskKind.Fraction ->
@@ -411,18 +411,14 @@ editProgress ps taskKind editedValue =
                 percentageParts =
                     editedValue
                         |> progressValueLens.get
-                        |> Progress.displayPercentage
-                        |> String.split "."
+                        |> Progress.percentParts
 
                 whole =
-                    percentageParts
-                        |> List.head
-                        |> Maybe.withDefault "0"
+                    percentageParts |> .whole
 
                 decimal =
                     percentageParts
-                        |> List.drop 1
-                        |> List.head
+                        |> .decimal
                         |> Maybe.withDefault "0"
             in
             [ { constructor = input
@@ -437,7 +433,7 @@ editProgress ps taskKind editedValue =
                                 |> (ValidatedInput.lift reachableLens).set fullInput.reachable
                                 |> (ValidatedInput.lift reachedLens).set fullInput.reached
                                 |> ps.updateMsg
-                    , value <| whole
+                    , value <| .whole <| percentageParts
                     , Style.classes.numberCell
                     ]
               , children = []

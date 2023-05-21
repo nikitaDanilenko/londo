@@ -1,10 +1,11 @@
 module Types.Progress.Progress exposing (..)
 
-import Basics.Extra exposing (flip)
+import BigInt
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
 import LondoGQL.Object
 import LondoGQL.Object.Progress
+import Math.Constants as Constants
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
@@ -18,7 +19,7 @@ type alias Progress =
 
 isComplete : Progress -> Bool
 isComplete progress =
-    (progress.reached |> Natural.intValue) == (progress.reachable |> Positive.intValue)
+    (progress.reached |> Natural.integerValue) == (progress.reachable |> Positive.integerValue)
 
 
 selection : SelectionSet Progress LondoGQL.Object.Progress
@@ -35,11 +36,9 @@ percentParts progress =
         numberOfDecimalPlaces =
             progress
                 |> .reachable
-                |> Positive.intValue
-                |> toFloat
-                |> logBase 10
-                |> flip (-) 2
-                |> round
+                |> Positive.toString
+                |> String.dropLeft 3
+                |> String.length
 
         reachedString =
             progress |> .reached |> Natural.toString
@@ -100,27 +99,41 @@ toPercent : Progress -> Progress
 toPercent progress =
     let
         approximation =
-            100
-                * (progress.reached |> Natural.intValue |> toFloat)
-                / (progress.reachable |> Positive.intValue |> toFloat)
-
-        numberParts =
-            approximation
-                |> String.fromFloat
-                |> String.split "."
+            approximatePercent progress
 
         decimalPlaces =
-            numberParts
-                |> List.drop 1
-                |> List.head
-                |> Maybe.Extra.unwrap 0 String.length
+            approximation.decimal
+                |> String.length
 
         reached =
-            numberParts
+            [ approximation.whole, approximation.decimal ]
                 |> String.concat
                 |> Natural.fromString
                 |> Result.withDefault Natural.zero
     in
     { reachable = Positive.tenToTheNth (2 + decimalPlaces)
     , reached = reached
+    }
+
+
+approximatePercent : Progress -> { whole : String, decimal : String }
+approximatePercent progress =
+    let
+        reachable =
+            progress.reachable |> Positive.integerValue
+
+        ( timesWhole, rem ) =
+            BigInt.divmod (progress.reached |> Natural.integerValue |> BigInt.mul Constants.oneHundredBigInt) reachable
+                |> Maybe.withDefault ( Constants.zeroBigInt, Constants.zeroBigInt )
+
+        timesDecimal =
+            BigInt.div (rem |> BigInt.mul (BigInt.pow Constants.tenBigInt Constants.tenBigInt)) reachable
+    in
+    { whole = timesWhole |> BigInt.toString
+    , decimal =
+        timesDecimal
+            |> BigInt.toString
+            |> String.toList
+            |> List.Extra.dropWhileRight ((==) '0')
+            |> String.fromList
     }

@@ -11,7 +11,7 @@
             "TSFoster/elm-uuid": "4.1.0",
             "abadi199/elm-input-extra": "5.2.6",
             "arturopala/elm-monocle": "2.2.0",
-            "chain-partners/elm-bignum": "1.0.1",
+            "cmditch/elm-bigint": "2.0.1",
             "cuducos/elm-format-number": "9.0.1",
             "danyx23/elm-uuid": "2.1.2",
             "dillonkearns/elm-graphql": "5.0.5",
