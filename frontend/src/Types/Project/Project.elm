@@ -26,25 +26,6 @@ selection =
         LondoGQL.Object.Project.description
 
 
-fetchWith :
-    (HttpUtil.GraphQLResult Project -> msg)
-    -> AuthorizedAccess
-    -> ProjectId
-    -> Cmd msg
-fetchWith expect authorizedAccess projectId =
-    LondoGQL.Query.fetchProject
-        { input =
-            { projectId = projectId |> Types.Project.ProjectId.toGraphQLInput
-            }
-        }
-        selection
-        |> Graphql.Http.queryRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
-
-
 fetchAllWith :
     (HttpUtil.GraphQLResult (List Project) -> msg)
     -> AuthorizedAccess
