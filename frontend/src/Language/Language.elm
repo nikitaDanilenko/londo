@@ -9,6 +9,7 @@ type alias Language =
     , overview : Overview
     , taskEditor : TaskEditor
     , projectEditor : ProjectEditor
+    , dashboardEditor : DashboardEditor
     }
 
 
@@ -101,6 +102,21 @@ type alias ProjectEditor =
     }
 
 
+type alias DashboardEditor =
+    { add : String
+    , newDashboard : String
+    , delete : String
+    , confirmDelete : String
+    , edit : String
+    , dashboardEntryEditor : String
+    , header : String
+    , description : String
+    , visibility : String
+    , save : String
+    , cancel : String
+    }
+
+
 default : Language
 default =
     english
@@ -177,9 +193,22 @@ english =
         , delete = "Delete"
         , confirmDelete = "Delete?"
         , edit = "Edit"
-        , taskEditor = "Task editor"
-        , name = "Project name"
+        , taskEditor = "Tasks"
+        , name = "Name"
         , description = "Description"
+        , save = "Save"
+        , cancel = "Cancel"
+        }
+    , dashboardEditor =
+        { add = "Add"
+        , newDashboard = "New dashboard"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
+        , edit = "Edit"
+        , dashboardEntryEditor = "Entries"
+        , header = "Name"
+        , description = "Description"
+        , visibility = "Visibility"
         , save = "Save"
         , cancel = "Cancel"
         }
