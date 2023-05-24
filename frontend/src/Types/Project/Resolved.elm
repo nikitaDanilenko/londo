@@ -1,6 +1,5 @@
 module Types.Project.Resolved exposing (..)
 
-import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Object
 import LondoGQL.Object.ResolvedProject
