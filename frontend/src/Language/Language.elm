@@ -9,7 +9,6 @@ type alias Language =
     , overview : Overview
     , taskEditor : TaskEditor
     , projectEditor : ProjectEditor
-    , searchProject : SearchProject
     }
 
 
@@ -102,10 +101,6 @@ type alias ProjectEditor =
     }
 
 
-type alias SearchProject =
-    {}
-
-
 default : Language
 default =
     english
@@ -188,7 +183,6 @@ english =
         , save = "Save"
         , cancel = "Cancel"
         }
-    , searchProject = {}
     }
 
 
