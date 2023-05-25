@@ -84,7 +84,6 @@ ids :
     { addDashboardView : Attribute msg
     , addProjectView : Attribute msg
     , addTaskView : Attribute msg
-    , addTaskView : Attribute msg
     , confirmRegistration : Attribute msg
     , error : Attribute msg
     , login : Attribute msg
