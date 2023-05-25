@@ -7,6 +7,7 @@ import Pages.View.Tristate as Tristate
 import Types.Dashboard.Creation
 import Types.Dashboard.Dashboard
 import Types.Dashboard.Id
+import Types.Dashboard.Update
 import Util.DictList exposing (DictList)
 import Util.Editing exposing (Editing)
 
