@@ -14,11 +14,11 @@ updateLogic =
         { toUpdate = Types.Dashboard.Update.from
         , idOf = .id
         , save =
-            \authorizedAccess projectId ->
+            \authorizedAccess dashboardId ->
                 Types.Dashboard.Update.updateWith
                     Pages.Util.Parent.Page.GotSaveEditResponse
                     authorizedAccess
-                    projectId
+                    dashboardId
                     >> Just
         , delete = Types.Dashboard.Dashboard.deleteWith (\_ -> Pages.Util.Parent.Page.GotDeleteResponse)
         , navigateAfterDeletionAddress = Addresses.Frontend.dashboards.address
