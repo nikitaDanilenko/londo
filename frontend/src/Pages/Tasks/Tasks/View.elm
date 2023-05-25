@@ -22,7 +22,7 @@ import Types.Progress.Input
 import Types.Progress.Progress as Progress exposing (Progress)
 import Types.Project.ProjectId exposing (ProjectId)
 import Types.Task.Creation
-import Types.Task.TaskId exposing (TaskId)
+import Types.Task.Id exposing (Id)
 import Types.Task.Update
 import Util.MaybeUtil as MaybeUtil
 import Util.SearchUtil as SearchUtil
@@ -149,7 +149,7 @@ taskLineWith ps =
         }
 
 
-updateTaskLine : Page.Language -> TaskId -> Page.Update -> List (Html Page.LogicMsg)
+updateTaskLine : Page.Language -> Id -> Page.Update -> List (Html Page.LogicMsg)
 updateTaskLine language taskId update =
     editProjectLineWith
         { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit taskId

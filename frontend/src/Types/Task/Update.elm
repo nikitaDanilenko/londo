@@ -8,8 +8,8 @@ import LondoGQL.Mutation
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Progress.Input
+import Types.Task.Id
 import Types.Task.Task
-import Types.Task.TaskId
 import Util.HttpUtil as HttpUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
@@ -65,13 +65,13 @@ toGraphQLInput clientInput =
 updateWith :
     (HttpUtil.GraphQLResult Types.Task.Task.Task -> msg)
     -> AuthorizedAccess
-    -> Types.Task.TaskId.TaskId
+    -> Types.Task.Id.Id
     -> ClientInput
     -> Cmd msg
 updateWith expect authorizedAccess taskId update =
     LondoGQL.Mutation.updateTask
         { input =
-            { taskId = taskId |> Types.Task.TaskId.toGraphQLInput
+            { taskId = taskId |> Types.Task.Id.toGraphQLInput
             , taskUpdate = update |> toGraphQLInput
             }
         }
