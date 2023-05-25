@@ -7,13 +7,13 @@ import LondoGQL.Query
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Dashboard.Dashboard
 import Types.Dashboard.Id
-import Types.Project.Project
+import Types.DashboardEntry.Entry
 import Util.HttpUtil as HttpUtil
 
 
 type alias Resolved =
     { dashboard : Types.Dashboard.Dashboard.Dashboard
-    , entries : List Types.Dashboard.Entry.Entry
+    , entries : List Types.DashboardEntry.Entry.Entry
     }
 
 
@@ -22,7 +22,7 @@ selection =
     SelectionSet.map2
         Resolved
         (LondoGQL.Object.ResolvedDashboard.dashboard Types.Dashboard.Dashboard.selection)
-        (LondoGQL.Object.ResolvedDashboard.entries Types.Entry.Entry.selection)
+        (LondoGQL.Object.ResolvedDashboard.entries Types.DashboardEntry.Entry.selection)
 
 
 fetchWith :
