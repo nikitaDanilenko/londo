@@ -8,14 +8,14 @@ import LondoGQL.Mutation
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Progress.Input
-import Types.Project.ProjectId
+import Types.Project.Id
 import Types.Task.Task
 import Util.HttpUtil as HttpUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 type alias ClientInput =
-    { projectId : Types.Project.ProjectId.ProjectId
+    { projectId : Types.Project.Id.Id
     , name : ValidatedInput String
     , taskKind : TaskKind
     , unit : Maybe String
@@ -24,7 +24,7 @@ type alias ClientInput =
     }
 
 
-default : Types.Project.ProjectId.ProjectId -> ClientInput
+default : Types.Project.Id.Id -> ClientInput
 default projectId =
     let
         defaultTaskKind =
@@ -73,7 +73,7 @@ createWith :
 createWith expect authorizedAccess creation =
     LondoGQL.Mutation.createTask
         { input =
-            { projectId = creation |> .projectId |> Types.Project.ProjectId.toGraphQLInput
+            { projectId = creation |> .projectId |> Types.Project.Id.toGraphQLInput
             , taskCreation = creation |> toGraphQLInput
             }
         }

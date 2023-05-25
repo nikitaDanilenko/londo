@@ -18,7 +18,7 @@ import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Types.Project.Creation
-import Types.Project.ProjectId exposing (ProjectId)
+import Types.Project.Id exposing (Id)
 import Types.Project.Update
 import Util.MaybeUtil as MaybeUtil
 import Util.SearchUtil as SearchUtil
@@ -149,7 +149,7 @@ projectLineWith ps =
         }
 
 
-updateProjectLine : Page.Language -> ProjectId -> Page.Update -> List (Html Page.LogicMsg)
+updateProjectLine : Page.Language -> Id -> Page.Update -> List (Html Page.LogicMsg)
 updateProjectLine language projectId projectUpdateClientInput =
     editProjectLineWith
         { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit projectId

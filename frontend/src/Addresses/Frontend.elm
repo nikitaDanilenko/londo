@@ -4,7 +4,7 @@ import Addresses.ParserUtil as ParserUtil exposing (AddressWithParser, nicknameE
 import Pages.Util.ScalarUtil as ScalarUtil
 import Types.Auxiliary exposing (JWT, UserIdentifier)
 import Types.Dashboard.Id
-import Types.Project.ProjectId as ProjectId exposing (ProjectId(..))
+import Types.Project.Id as ProjectId exposing (Id(..))
 import Url.Parser as Parser exposing (s)
 
 
@@ -67,12 +67,12 @@ userSettings =
     plain "user-settings"
 
 
-tasks : AddressWithParser ProjectId (ProjectId -> a) a
+tasks : AddressWithParser Id (Id -> a) a
 tasks =
     with1
         { step1 = "task-editor"
         , toString = ProjectId.uuid >> ScalarUtil.uuidToString >> List.singleton
-        , paramParser = ParserUtil.uuidParser |> Parser.map ProjectId
+        , paramParser = ParserUtil.uuidParser |> Parser.map Id
         }
 
 

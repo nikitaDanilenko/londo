@@ -6,8 +6,8 @@ import LondoGQL.InputObject
 import LondoGQL.Mutation
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
+import Types.Project.Id as ProjectId exposing (Id)
 import Types.Project.Project
-import Types.Project.ProjectId as ProjectId exposing (ProjectId)
 import Util.HttpUtil as HttpUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
@@ -38,7 +38,7 @@ from project =
     }
 
 
-toGraphQLInput : ProjectId -> ClientInput -> LondoGQL.InputObject.UpdateProjectInput
+toGraphQLInput : Id -> ClientInput -> LondoGQL.InputObject.UpdateProjectInput
 toGraphQLInput projectId input =
     { projectId = projectId |> ProjectId.toGraphQLInput
     , name = input.name.value
@@ -49,7 +49,7 @@ toGraphQLInput projectId input =
 updateWith :
     (HttpUtil.GraphQLResult Types.Project.Project.Project -> msg)
     -> AuthorizedAccess
-    -> ProjectId
+    -> Id
     -> ClientInput
     -> Cmd msg
 updateWith expect authorizedAccess projectId update =

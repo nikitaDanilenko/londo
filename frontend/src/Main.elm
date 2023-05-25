@@ -31,7 +31,7 @@ import Pages.Tasks.Page
 import Pages.Tasks.View
 import Ports
 import Types.Auxiliary exposing (JWT, UserIdentifier)
-import Types.Project.ProjectId exposing (ProjectId(..))
+import Types.Project.Id exposing (Id(..))
 import Url exposing (Protocol(..), Url)
 import Url.Parser as Parser exposing (Parser)
 
@@ -250,7 +250,7 @@ type Route
     | LoginRoute
     | OverviewRoute
     | ProjectsRoute
-    | TasksRoute ProjectId
+    | TasksRoute Id
     | DashboardsRoute
 
 

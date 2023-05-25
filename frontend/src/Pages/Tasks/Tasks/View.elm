@@ -20,16 +20,16 @@ import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Types.Progress.Input
 import Types.Progress.Progress as Progress exposing (Progress)
-import Types.Project.ProjectId exposing (ProjectId)
+import Types.Project.Id exposing (Id)
 import Types.Task.Creation
-import Types.Task.Id exposing (Id)
+import Types.Task.Id
 import Types.Task.Update
 import Util.MaybeUtil as MaybeUtil
 import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
-viewSubMain : ProjectId -> Configuration -> Page.SubMain -> Html Page.LogicMsg
+viewSubMain : Types.Project.Id.Id -> Configuration -> Page.SubMain -> Html Page.LogicMsg
 viewSubMain projectId configuration subMain =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Nothing
@@ -149,7 +149,7 @@ taskLineWith ps =
         }
 
 
-updateTaskLine : Page.Language -> Id -> Page.Update -> List (Html Page.LogicMsg)
+updateTaskLine : Page.Language -> Types.Task.Id.Id -> Page.Update -> List (Html Page.LogicMsg)
 updateTaskLine language taskId update =
     editProjectLineWith
         { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit taskId

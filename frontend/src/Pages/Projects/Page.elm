@@ -5,8 +5,8 @@ import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
 import Types.Project.Creation
+import Types.Project.Id
 import Types.Project.Project
-import Types.Project.ProjectId
 import Types.Project.Update
 import Util.DictList exposing (DictList)
 import Util.Editing exposing (Editing)
@@ -17,7 +17,7 @@ type alias Model =
 
 
 type alias Id =
-    Types.Project.ProjectId.ProjectId
+    Types.Project.Id.Id
 
 
 type alias Project =
