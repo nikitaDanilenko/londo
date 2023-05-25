@@ -56,7 +56,7 @@ dashboards =
 dashboardEntries : AddressWithParser Types.Dashboard.Id.Id (Types.Dashboard.Id.Id -> a) a
 dashboardEntries =
     with1
-        { step1 = "task-editor"
+        { step1 = "dashboard-entry-editor"
         , toString = Types.Dashboard.Id.uuid >> ScalarUtil.uuidToString >> List.singleton
         , paramParser = ParserUtil.uuidParser |> Parser.map Types.Dashboard.Id.Id
         }
