@@ -11,15 +11,15 @@ import Types.Project.Id
 import Util.HttpUtil as HttpUtil
 
 
-type alias DashboardEntry =
+type alias Entry =
     { projectId : Types.Project.Id.Id
     }
 
 
-selection : SelectionSet DashboardEntry LondoGQL.Object.DashboardEntry
+selection : SelectionSet Entry LondoGQL.Object.DashboardEntry
 selection =
     SelectionSet.map
-        DashboardEntry
+        Entry
         (LondoGQL.Object.DashboardEntry.projectId Types.Project.Id.selection)
 
 
