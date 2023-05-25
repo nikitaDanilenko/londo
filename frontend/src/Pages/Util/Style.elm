@@ -20,6 +20,7 @@ classes :
         , pager : Attribute msg
         }
     , controls : Attribute msg
+    , dashboardEditTable : Attribute msg
     , disabled : Attribute msg
     , editable : Attribute msg
     , editing : Attribute msg
@@ -56,6 +57,7 @@ classes =
         , pager = class "pager-button"
         }
     , controls = class "controls"
+    , dashboardEditTable = class "dashboard-edit-table"
     , disabled = class "disabled"
     , editable = class "editable"
     , editing = class "editing"
@@ -79,7 +81,9 @@ classes =
 
 
 ids :
-    { addProjectView : Attribute msg
+    { addDashboardView : Attribute msg
+    , addProjectView : Attribute msg
+    , addTaskView : Attribute msg
     , addTaskView : Attribute msg
     , confirmRegistration : Attribute msg
     , error : Attribute msg
@@ -91,7 +95,8 @@ ids :
     , taskEditor : Attribute msg
     }
 ids =
-    { addProjectView = id "add-project-view"
+    { addDashboardView = id "add-dashboard-view"
+    , addProjectView = id "add-project-view"
     , addTaskView = id "add-task-view"
     , confirmRegistration = id "confirm-registration"
     , error = id "error"
