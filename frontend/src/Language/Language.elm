@@ -117,6 +117,19 @@ type alias DashboardEditor =
     }
 
 
+type alias DashboardEntryEditor =
+    { dashboardEntries : String
+    , newDashboardEntry : String
+    , delete : String
+    , confirmDelete : String
+    , dashboardEntryName : String
+    , create : String
+    , edit : String
+    , cancel : String
+    , save : String
+    }
+
+
 default : Language
 default =
     english
