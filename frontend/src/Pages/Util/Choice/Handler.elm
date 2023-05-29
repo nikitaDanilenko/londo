@@ -28,8 +28,8 @@ updateLogic :
     , storeChoices : List choice -> Cmd (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
     }
     -> Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation
-    -> Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation
-    -> ( Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation, Cmd (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation) )
+    -> Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation language
+    -> ( Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation language, Cmd (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation) )
 updateLogic ps msg model =
     let
         edit update =
@@ -331,8 +331,8 @@ updateLogic ps msg model =
 mapElementStateById :
     elementId
     -> (Editing element update -> Editing element update)
-    -> Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation
-    -> Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation
+    -> Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation language
+    -> Pages.Util.Choice.Page.Model parentId elementId element update choiceId choice creation language
 mapElementStateById elementId =
     (Pages.Util.Choice.Page.lenses.main.elements
         |> LensUtil.updateById elementId

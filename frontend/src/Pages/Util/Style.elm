@@ -6,6 +6,8 @@ import Html.Attributes exposing (class, id)
 
 classes :
     { add : Attribute msg
+    , addElement : Attribute msg
+    , addView : Attribute msg
     , button :
         { add : Attribute msg
         , cancel : Attribute msg
@@ -19,12 +21,14 @@ classes :
         , overview : Attribute msg
         , pager : Attribute msg
         }
+    , choices : Attribute msg
     , controls : Attribute msg
     , dashboardEditTable : Attribute msg
     , disabled : Attribute msg
     , editable : Attribute msg
     , editing : Attribute msg
     , editLine : Attribute msg
+    , elementEditTable : Attribute msg
     , elements : Attribute msg
     , elementsWithControlsTable : Attribute msg
     , ellipsis : Attribute msg
@@ -43,6 +47,8 @@ classes :
     }
 classes =
     { add = class "add"
+    , addElement = class "add-element"
+    , addView = class "add-view"
     , button =
         { add = class "add-button"
         , cancel = class "cancel-button"
@@ -56,12 +62,14 @@ classes =
         , overview = class "overview-button"
         , pager = class "pager-button"
         }
+    , choices = class "choices"
     , controls = class "controls"
     , dashboardEditTable = class "dashboard-edit-table"
     , disabled = class "disabled"
     , editable = class "editable"
     , editing = class "editing"
     , editLine = class "edit-line"
+    , elementEditTable = class "element-edit-table"
     , elements = class "elements"
     , elementsWithControlsTable = class "elements-with-controls-table"
     , ellipsis = class "ellipsis"

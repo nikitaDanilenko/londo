@@ -1,7 +1,7 @@
 module Pages.Util.Choice.View exposing (viewChoices, viewElements)
 
 import Basics.Extra exposing (flip)
-import Html exposing (Attribute, Html, button, div, label, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, div, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -29,7 +29,7 @@ viewElements :
     , isValidInput : update -> Bool
     , edit : element -> update -> List (HtmlUtil.Column (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
     }
-    -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation
+    -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
 viewElements ps main =
     let
@@ -119,7 +119,7 @@ viewChoices :
     , elementCreationLine : choice -> creation -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
     , viewChoiceLine : choice -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
     }
-    -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation
+    -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
 viewChoices ps main =
     let
