@@ -93,6 +93,7 @@ ids :
     , addProjectView : Attribute msg
     , addTaskView : Attribute msg
     , confirmRegistration : Attribute msg
+    , dashboardEntryEditor : Attribute msg
     , error : Attribute msg
     , login : Attribute msg
     , navigation : Attribute msg
@@ -106,6 +107,7 @@ ids =
     , addProjectView = id "add-project-view"
     , addTaskView = id "add-task-view"
     , confirmRegistration = id "confirm-registration"
+    , dashboardEntryEditor = id "dashboard-entry-editor"
     , error = id "error"
     , login = id "login"
     , navigation = id "navigation"
