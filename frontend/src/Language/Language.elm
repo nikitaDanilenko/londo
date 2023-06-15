@@ -10,6 +10,7 @@ type alias Language =
     , taskEditor : TaskEditor
     , projectEditor : ProjectEditor
     , dashboardEditor : DashboardEditor
+    , dashboardEntryEditor : DashboardEntryEditor
     }
 
 
@@ -224,6 +225,17 @@ english =
         , visibility = "Visibility"
         , save = "Save"
         , cancel = "Cancel"
+        }
+    , dashboardEntryEditor =
+        { dashboardEntries = "Dashboard entries"
+        , newDashboardEntry = "New dashboard entry"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
+        , dashboardEntryName = "Name"
+        , create = "Create"
+        , edit = "Edit"
+        , cancel = "Cancel"
+        , save = "Save"
         }
     }
 
