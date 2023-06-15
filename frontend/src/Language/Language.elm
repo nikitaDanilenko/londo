@@ -120,6 +120,7 @@ type alias DashboardEditor =
 
 type alias DashboardEntryEditor =
     { dashboardEntries : String
+    , projects : String
     , newDashboardEntry : String
     , delete : String
     , confirmDelete : String
@@ -228,6 +229,7 @@ english =
         }
     , dashboardEntryEditor =
         { dashboardEntries = "Dashboard entries"
+        , projects = "Projects"
         , newDashboardEntry = "New dashboard entry"
         , delete = "Delete"
         , confirmDelete = "Delete?"
