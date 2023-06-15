@@ -8,6 +8,9 @@ import Configuration exposing (Configuration)
 import Html exposing (Html, main_, text)
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
+import Pages.DashboardEntries.Handler
+import Pages.DashboardEntries.Page
+import Pages.DashboardEntries.View
 import Pages.Dashboards.Handler
 import Pages.Dashboards.Page
 import Pages.Dashboards.View
@@ -31,6 +34,7 @@ import Pages.Tasks.Page
 import Pages.Tasks.View
 import Ports
 import Types.Auxiliary exposing (JWT, UserIdentifier)
+import Types.Dashboard.Id
 import Types.Project.Id exposing (Id(..))
 import Url exposing (Protocol(..), Url)
 import Url.Parser as Parser exposing (Parser)
@@ -85,6 +89,7 @@ type Page
     | Projects Pages.Projects.Page.Model
     | Tasks Pages.Tasks.Page.Model
     | Dashboards Pages.Dashboards.Page.Model
+    | DashboardEntries Pages.DashboardEntries.Page.Model
     | NotFound
 
 
@@ -100,6 +105,7 @@ type Msg
     | ProjectsMsg Pages.Projects.Page.Msg
     | TasksMsg Pages.Tasks.Page.Msg
     | DashboardsMsg Pages.Dashboards.Page.Msg
+    | DashboardEntriesMsg Pages.DashboardEntries.Page.Msg
 
 
 titleFor : Model -> String
@@ -142,6 +148,9 @@ view model =
 
         Dashboards dashboards ->
             Html.map DashboardsMsg (Pages.Dashboards.View.view dashboards)
+
+        DashboardEntries dashboardEntries ->
+            Html.map DashboardEntriesMsg (Pages.DashboardEntries.View.view dashboardEntries)
 
         NotFound ->
             main_ [] [ text "Page not found" ]
@@ -193,6 +202,9 @@ update msg model =
         ( DashboardsMsg dashboardsMsg, Dashboards dashboards ) ->
             stepThrough steps.dashboards model (Pages.Dashboards.Handler.update dashboardsMsg dashboards)
 
+        ( DashboardEntriesMsg dashboardEntriesMsg, DashboardEntries dashboardEntries ) ->
+            stepThrough steps.dashboardEntries model (Pages.DashboardEntries.Handler.update dashboardEntriesMsg dashboardEntries)
+
         _ ->
             ( model, Cmd.none )
 
@@ -208,9 +220,8 @@ steps :
     , overview : StepParameters Pages.Overview.Page.Model Pages.Overview.Page.Msg
     , projects : StepParameters Pages.Projects.Page.Model Pages.Projects.Page.Msg
     , tasks : StepParameters Pages.Tasks.Page.Model Pages.Tasks.Page.Msg
-
-    {- , dashboardEntries : StepParameters Pages.DashboardEntries.Page.Model Pages.DashboardEntries.Page.Msg -}
     , dashboards : StepParameters Pages.Dashboards.Page.Model Pages.Dashboards.Page.Msg
+    , dashboardEntries : StepParameters Pages.DashboardEntries.Page.Model Pages.DashboardEntries.Page.Msg
     , requestRegistration : StepParameters Pages.Registration.Request.Page.Model Pages.Registration.Request.Page.Msg
     , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
 
@@ -224,11 +235,8 @@ steps =
     , overview = StepParameters Overview OverviewMsg
     , projects = StepParameters Projects ProjectsMsg
     , tasks = StepParameters Tasks TasksMsg
-
-    {- , dashboardEntries = StepParameters DashboardEntries DashboardEntriesMsg
-
-    -}
     , dashboards = StepParameters Dashboards DashboardsMsg
+    , dashboardEntries = StepParameters DashboardEntries DashboardEntriesMsg
     , requestRegistration = StepParameters RequestRegistration RequestRegistrationMsg
     , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
 
@@ -250,8 +258,9 @@ type Route
     | LoginRoute
     | OverviewRoute
     | ProjectsRoute
-    | TasksRoute Id
+    | TasksRoute Types.Project.Id.Id
     | DashboardsRoute
+    | DashboardEntriesRoute Types.Dashboard.Id.Id
 
 
 plainRouteParser : Parser (Route -> a) a
@@ -264,6 +273,7 @@ plainRouteParser =
         , route Addresses.Frontend.projects.parser ProjectsRoute
         , route Addresses.Frontend.tasks.parser TasksRoute
         , route Addresses.Frontend.dashboards.parser DashboardsRoute
+        , route Addresses.Frontend.dashboardEntries.parser DashboardEntriesRoute
         ]
 
 
@@ -326,6 +336,13 @@ followRoute model =
                         { authorizedAccess = authorizedAccessWith userJWT
                         }
                         |> stepThrough steps.dashboards model
+
+                ( DashboardEntriesRoute dashboardId, Just userJWT ) ->
+                    Pages.DashboardEntries.Handler.init
+                        { authorizedAccess = authorizedAccessWith userJWT
+                        , dashboardId = dashboardId
+                        }
+                        |> stepThrough steps.dashboardEntries model
 
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }
