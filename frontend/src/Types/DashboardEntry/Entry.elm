@@ -7,6 +7,7 @@ import LondoGQL.Object
 import LondoGQL.Object.DashboardEntry
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Dashboard.Id
+import Types.DashboardEntry.Id
 import Types.Project.Id
 import Util.HttpUtil as HttpUtil
 
@@ -24,20 +25,23 @@ selection =
 
 
 deleteWith :
-    (Types.Dashboard.Id.Id -> Types.Project.Id.Id -> HttpUtil.GraphQLResult Bool -> msg)
+    (Types.DashboardEntry.Id.Id -> HttpUtil.GraphQLResult Bool -> msg)
     -> AuthorizedAccess
-    -> Types.Dashboard.Id.Id
-    -> Types.Project.Id.Id
+    -> Types.DashboardEntry.Id.Id
     -> Cmd msg
-deleteWith expect authorizedAccess dashboardId projectId =
+deleteWith expect authorizedAccess dashboardEntryId =
+    let
+        unwrapped =
+            Types.DashboardEntry.Id.unwrap dashboardEntryId
+    in
     LondoGQL.Mutation.deleteDashboardEntry
         { input =
-            { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
-            , projectId = projectId |> Types.Project.Id.toGraphQLInput
+            { dashboardId = unwrapped |> .dashboardId |> Types.Dashboard.Id.toGraphQLInput
+            , projectId = unwrapped |> .projectId |> Types.Project.Id.toGraphQLInput
             }
         }
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
         |> HttpUtil.sendWithJWT
             { jwt = authorizedAccess.jwt
-            , expect = expect dashboardId projectId
+            , expect = expect dashboardEntryId
             }

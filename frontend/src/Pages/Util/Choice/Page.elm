@@ -109,7 +109,7 @@ type LogicMsg elementId element update choiceId choice creation
     | RequestDelete elementId
     | ConfirmDelete elementId
     | CancelDelete elementId
-    | GotDeleteResponse elementId (HttpUtil.GraphQLResult ())
+    | GotDeleteResponse elementId (HttpUtil.GraphQLResult Bool)
     | GotFetchElementsResponse (HttpUtil.GraphQLResult (List element))
     | GotFetchChoicesResponse (HttpUtil.GraphQLResult (List choice))
     | ToggleChoiceControls choiceId

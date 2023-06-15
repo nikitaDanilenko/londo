@@ -35,7 +35,7 @@ type alias Creation =
 
 
 type alias Update =
-    ()
+    Types.DashboardEntry.Entry.Entry
 
 
 type alias Language =
