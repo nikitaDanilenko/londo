@@ -7,12 +7,12 @@ import LondoGQL.Object
 import LondoGQL.Object.Project
 import LondoGQL.Query
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
-import Types.Project.Id exposing (Id(..))
+import Types.Project.Id
 import Util.HttpUtil as HttpUtil
 
 
 type alias Project =
-    { id : Id
+    { id : Types.Project.Id.Id
     , name : String
     , description : Maybe String
     }
