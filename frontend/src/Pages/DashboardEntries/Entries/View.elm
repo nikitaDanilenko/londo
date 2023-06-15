@@ -12,8 +12,7 @@ viewEntries configuration main =
     Pages.Util.Choice.View.viewElements
         { nameOfChoice = .name
         , choiceIdOfElement = .projectId
-        , -- todo: Or id?
-          idOfElement = .id
+        , idOfElement = .projectId
         , elementHeaderColumns = []
         , info =
             \entry ->

@@ -1,11 +1,18 @@
 module Pages.DashboardEntries.Entries.Handler exposing (..)
 
 import Pages.DashboardEntries.Entries.Page as Page
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Choice.Handler
 import Pages.Util.Choice.Page
 import Types.DashboardEntry.Creation
 import Types.DashboardEntry.Entry
 import Types.DashboardEntry.Id exposing (Id(..))
+import Types.Project.Project
+
+
+initialFetch : AuthorizedAccess -> Cmd Page.LogicMsg
+initialFetch =
+    Types.Project.Project.fetchAllWith Pages.Util.Choice.Page.GotFetchChoicesResponse
 
 
 updateLogic : Page.LogicMsg -> Page.Model -> ( Page.Model, Cmd Page.LogicMsg )

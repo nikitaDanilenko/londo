@@ -14,7 +14,10 @@ import Types.Dashboard.Resolved
 init : Page.Flags -> ( Page.Model, Cmd Page.Msg )
 init flags =
     ( Page.initial flags.authorizedAccess flags.dashboardId
-    , Types.Dashboard.Resolved.fetchWith Page.GotFetchResponse flags.authorizedAccess flags.dashboardId
+    , Cmd.batch
+        [ Types.Dashboard.Resolved.fetchWith Page.GotFetchResponse flags.authorizedAccess flags.dashboardId
+        , Pages.DashboardEntries.Entries.Handler.initialFetch flags.authorizedAccess |> Cmd.map Page.EntriesMsg
+        ]
         |> Cmd.map Tristate.Logic
     )
 
@@ -66,7 +69,7 @@ updateLogic msg model =
                                 model
                                     |> updateLogicDashboard (resolved |> .dashboard |> Ok |> Pages.Util.Parent.Page.GotFetchResponse)
                                     |> Tuple.first
-                                    |> updateLogicEntries (resolved |> .entries |> Ok |> Pages.Util.Choice.Page.GotFetchChoicesResponse)
+                                    |> updateLogicEntries (resolved |> .entries |> Ok |> Pages.Util.Choice.Page.GotFetchElementsResponse)
                                     |> Tuple.first
                             )
             in
