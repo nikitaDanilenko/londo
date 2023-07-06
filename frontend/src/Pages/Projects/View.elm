@@ -1,6 +1,5 @@
 module Pages.Projects.View exposing (editProjectLineWith, projectInfoColumns, projectLineWith, tableHeader, view)
 
-import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
@@ -11,7 +10,6 @@ import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 import Pages.Projects.Page as Page
 import Pages.Util.HtmlUtil as HtmlUtil
-import Pages.Util.Links as Links
 import Pages.Util.NavigationUtil as NavigationUtil
 import Pages.Util.ParentEditor.Page
 import Pages.Util.ParentEditor.View
