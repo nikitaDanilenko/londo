@@ -20,6 +20,7 @@ classes :
         , navigation : Attribute msg
         , overview : Attribute msg
         , pager : Attribute msg
+        , select : Attribute msg
         }
     , choices : Attribute msg
     , controls : Attribute msg
@@ -61,6 +62,7 @@ classes =
         , navigation = class "navigation-button"
         , overview = class "overview-button"
         , pager = class "pager-button"
+        , select = class "select-button"
         }
     , choices = class "choices"
     , controls = class "controls"
