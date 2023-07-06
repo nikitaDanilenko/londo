@@ -125,10 +125,13 @@ type alias DashboardEntryEditor =
     , delete : String
     , confirmDelete : String
     , dashboardEntryName : String
+    , dashboardEntryDescription : String
+    , taskEditor : String
     , create : String
     , edit : String
     , cancel : String
     , save : String
+    , select : String
     }
 
 
@@ -234,10 +237,13 @@ english =
         , delete = "Delete"
         , confirmDelete = "Delete?"
         , dashboardEntryName = "Name"
+        , dashboardEntryDescription = "Description"
+        , taskEditor = "Project"
         , create = "Create"
         , edit = "Edit"
         , cancel = "Cancel"
         , save = "Save"
+        , select = "Select"
         }
     }
 
