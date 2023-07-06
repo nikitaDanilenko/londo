@@ -12,6 +12,7 @@ import Monocle.Lens exposing (Lens)
 import Pages.Projects.Page as Page
 import Pages.Util.HtmlUtil as HtmlUtil
 import Pages.Util.Links as Links
+import Pages.Util.NavigationUtil as NavigationUtil
 import Pages.Util.ParentEditor.Page
 import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
@@ -83,11 +84,7 @@ viewProjectLine language configuration project showControls =
                     [ text <| language.edit ]
                 ]
             , td [ Style.classes.controls ]
-                [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.tasks.address <| project.id
-                    , attributes = [ Style.classes.button.editor ]
-                    , children = [ text <| language.taskEditor ]
-                    }
+                [ NavigationUtil.projectEditorLinkButton configuration project.id language.taskEditor
                 ]
             , td [ Style.classes.controls ]
                 [ button
