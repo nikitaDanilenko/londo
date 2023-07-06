@@ -9,7 +9,8 @@ type alias Language =
     , overview : Overview
     , taskEditor : TaskEditor
     , projectEditor : ProjectEditor
-    , searchProject : SearchProject
+    , dashboardEditor : DashboardEditor
+    , dashboardEntryEditor : DashboardEntryEditor
     }
 
 
@@ -97,14 +98,43 @@ type alias ProjectEditor =
     , taskEditor : String
     , name : String
     , description : String
-    , flatIfSingleTask : String
     , save : String
     , cancel : String
     }
 
 
-type alias SearchProject =
-    {}
+type alias DashboardEditor =
+    { add : String
+    , newDashboard : String
+    , delete : String
+    , confirmDelete : String
+    , edit : String
+    , dashboardEntryEditor : String
+    , header : String
+    , description : String
+    , visibility : String
+    , save : String
+    , cancel : String
+    }
+
+
+type alias DashboardEntryEditor =
+    { dashboardEntries : String
+    , projects : String
+    , newDashboardEntry : String
+    , delete : String
+    , confirmDelete : String
+    , dashboardEntryName : String
+    , dashboardEntryDescription : String
+    , taskEditor : String
+    , create : String
+    , edit : String
+    , cancel : String
+    , save : String
+    , select : String
+    , add : String
+    , added : String
+    }
 
 
 default : Language
@@ -183,14 +213,42 @@ english =
         , delete = "Delete"
         , confirmDelete = "Delete?"
         , edit = "Edit"
-        , taskEditor = "Task editor"
-        , name = "Project name"
+        , taskEditor = "Tasks"
+        , name = "Name"
         , description = "Description"
-        , flatIfSingleTask = "Flatten if the project contains only a single task"
         , save = "Save"
         , cancel = "Cancel"
         }
-    , searchProject = {}
+    , dashboardEditor =
+        { add = "Add"
+        , newDashboard = "New dashboard"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
+        , edit = "Edit"
+        , dashboardEntryEditor = "Entries"
+        , header = "Name"
+        , description = "Description"
+        , visibility = "Visibility"
+        , save = "Save"
+        , cancel = "Cancel"
+        }
+    , dashboardEntryEditor =
+        { dashboardEntries = "Dashboard entries"
+        , projects = "Projects"
+        , newDashboardEntry = "New dashboard entry"
+        , delete = "Delete"
+        , confirmDelete = "Delete?"
+        , dashboardEntryName = "Name"
+        , dashboardEntryDescription = "Description"
+        , taskEditor = "Project"
+        , create = "Create"
+        , edit = "Edit"
+        , cancel = "Cancel"
+        , save = "Save"
+        , select = "Select"
+        , add = "Add"
+        , added = "Added"
+        }
     }
 
 

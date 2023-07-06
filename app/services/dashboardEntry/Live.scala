@@ -93,7 +93,7 @@ object Live {
     )(implicit ec: ExecutionContext): DBIO[Boolean] =
       OptionT(
         dashboardEntryDao.find(key)
-      ).map(_.projectId)
+      ).map(_.dashboardId)
         .semiflatMap(dashboardId =>
           ifDashboardExists(userId, dashboardId.transformInto[DashboardId]) {
             dashboardEntryDao

@@ -3,7 +3,8 @@ module Addresses.Frontend exposing (..)
 import Addresses.ParserUtil as ParserUtil exposing (AddressWithParser, nicknameEmailParser, with1, with2)
 import Pages.Util.ScalarUtil as ScalarUtil
 import Types.Auxiliary exposing (JWT, UserIdentifier)
-import Types.Project.ProjectId as ProjectId exposing (ProjectId(..))
+import Types.Dashboard.Id
+import Types.Project.Id as ProjectId exposing (Id(..))
 import Url.Parser as Parser exposing (s)
 
 
@@ -52,17 +53,26 @@ dashboards =
     plain "dashboards"
 
 
+dashboardEntries : AddressWithParser Types.Dashboard.Id.Id (Types.Dashboard.Id.Id -> a) a
+dashboardEntries =
+    with1
+        { step1 = "dashboard-entry-editor"
+        , toString = Types.Dashboard.Id.uuid >> ScalarUtil.uuidToString >> List.singleton
+        , paramParser = ParserUtil.uuidParser |> Parser.map Types.Dashboard.Id.Id
+        }
+
+
 userSettings : AddressWithParser () a a
 userSettings =
     plain "user-settings"
 
 
-tasks : AddressWithParser ProjectId (ProjectId -> a) a
+tasks : AddressWithParser Id (Id -> a) a
 tasks =
     with1
         { step1 = "task-editor"
         , toString = ProjectId.uuid >> ScalarUtil.uuidToString >> List.singleton
-        , paramParser = ParserUtil.uuidParser |> Parser.map ProjectId
+        , paramParser = ParserUtil.uuidParser |> Parser.map Id
         }
 
 

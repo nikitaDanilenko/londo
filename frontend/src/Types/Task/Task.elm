@@ -8,12 +8,12 @@ import LondoGQL.Object
 import LondoGQL.Object.Task
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Progress.Progress
-import Types.Task.TaskId
+import Types.Task.Id
 import Util.HttpUtil as HttpUtil
 
 
 type alias Task =
-    { id : Types.Task.TaskId.TaskId
+    { id : Types.Task.Id.Id
     , name : String
     , taskKind : TaskKind
     , unit : Maybe String
@@ -26,7 +26,7 @@ selection : SelectionSet Task LondoGQL.Object.Task
 selection =
     SelectionSet.map6
         Task
-        (LondoGQL.Object.Task.id Types.Task.TaskId.selection)
+        (LondoGQL.Object.Task.id Types.Task.Id.selection)
         LondoGQL.Object.Task.name
         LondoGQL.Object.Task.taskKind
         LondoGQL.Object.Task.unit
@@ -35,14 +35,14 @@ selection =
 
 
 deleteWith :
-    (Types.Task.TaskId.TaskId -> HttpUtil.GraphQLResult Bool -> msg)
+    (Types.Task.Id.Id -> HttpUtil.GraphQLResult Bool -> msg)
     -> AuthorizedAccess
-    -> Types.Task.TaskId.TaskId
+    -> Types.Task.Id.Id
     -> Cmd msg
 deleteWith expect authorizedAccess taskId =
     LondoGQL.Mutation.deleteTask
         { input =
-            { taskId = taskId |> Types.Task.TaskId.toGraphQLInput
+            { taskId = taskId |> Types.Task.Id.toGraphQLInput
             }
         }
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint

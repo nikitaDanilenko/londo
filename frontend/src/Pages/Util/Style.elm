@@ -6,6 +6,8 @@ import Html.Attributes exposing (class, id)
 
 classes :
     { add : Attribute msg
+    , addElement : Attribute msg
+    , addView : Attribute msg
     , button :
         { add : Attribute msg
         , cancel : Attribute msg
@@ -18,12 +20,16 @@ classes :
         , navigation : Attribute msg
         , overview : Attribute msg
         , pager : Attribute msg
+        , select : Attribute msg
         }
+    , choices : Attribute msg
     , controls : Attribute msg
+    , dashboardEditTable : Attribute msg
     , disabled : Attribute msg
     , editable : Attribute msg
     , editing : Attribute msg
     , editLine : Attribute msg
+    , elementEditTable : Attribute msg
     , elements : Attribute msg
     , elementsWithControlsTable : Attribute msg
     , ellipsis : Attribute msg
@@ -42,6 +48,8 @@ classes :
     }
 classes =
     { add = class "add"
+    , addElement = class "add-element"
+    , addView = class "add-view"
     , button =
         { add = class "add-button"
         , cancel = class "cancel-button"
@@ -54,12 +62,16 @@ classes =
         , navigation = class "navigation-button"
         , overview = class "overview-button"
         , pager = class "pager-button"
+        , select = class "select-button"
         }
+    , choices = class "choices"
     , controls = class "controls"
+    , dashboardEditTable = class "dashboard-edit-table"
     , disabled = class "disabled"
     , editable = class "editable"
     , editing = class "editing"
     , editLine = class "edit-line"
+    , elementEditTable = class "element-edit-table"
     , elements = class "elements"
     , elementsWithControlsTable = class "elements-with-controls-table"
     , ellipsis = class "ellipsis"
@@ -79,9 +91,11 @@ classes =
 
 
 ids :
-    { addProjectView : Attribute msg
+    { addDashboardView : Attribute msg
+    , addProjectView : Attribute msg
     , addTaskView : Attribute msg
     , confirmRegistration : Attribute msg
+    , dashboardEntryEditor : Attribute msg
     , error : Attribute msg
     , login : Attribute msg
     , navigation : Attribute msg
@@ -91,9 +105,11 @@ ids :
     , taskEditor : Attribute msg
     }
 ids =
-    { addProjectView = id "add-project-view"
+    { addDashboardView = id "add-dashboard-view"
+    , addProjectView = id "add-project-view"
     , addTaskView = id "add-task-view"
     , confirmRegistration = id "confirm-registration"
+    , dashboardEntryEditor = id "dashboard-entry-editor"
     , error = id "error"
     , login = id "login"
     , navigation = id "navigation"

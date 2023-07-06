@@ -8,7 +8,7 @@ import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.Parent.Page
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
-import Types.Project.ProjectId exposing (ProjectId)
+import Types.Project.Id exposing (Id)
 import Types.Project.Resolved
 import Util.HttpUtil as HttpUtil
 
@@ -47,7 +47,7 @@ initialToMain i =
                     |> Pages.Util.ParentEditor.Page.initialToMain
                     |> Maybe.map
                         (\tasks ->
-                            {  project = project
+                            { project = project
                             , tasks = tasks
                             }
                         )
@@ -77,7 +77,7 @@ lenses =
 
 
 type alias Flags =
-    { projectId : ProjectId
+    { projectId : Id
     , authorizedAccess : AuthorizedAccess
     }
 

@@ -7,12 +7,12 @@ import LondoGQL.Object
 import LondoGQL.Object.Project
 import LondoGQL.Query
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
-import Types.Project.ProjectId exposing (ProjectId(..))
+import Types.Project.Id
 import Util.HttpUtil as HttpUtil
 
 
 type alias Project =
-    { id : ProjectId
+    { id : Types.Project.Id.Id
     , name : String
     , description : Maybe String
     }
@@ -21,28 +21,9 @@ type alias Project =
 selection : SelectionSet Project LondoGQL.Object.Project
 selection =
     SelectionSet.map3 Project
-        (LondoGQL.Object.Project.id Types.Project.ProjectId.selection)
+        (LondoGQL.Object.Project.id Types.Project.Id.selection)
         LondoGQL.Object.Project.name
         LondoGQL.Object.Project.description
-
-
-fetchWith :
-    (HttpUtil.GraphQLResult Project -> msg)
-    -> AuthorizedAccess
-    -> ProjectId
-    -> Cmd msg
-fetchWith expect authorizedAccess projectId =
-    LondoGQL.Query.fetchProject
-        { input =
-            { projectId = projectId |> Types.Project.ProjectId.toGraphQLInput
-            }
-        }
-        selection
-        |> Graphql.Http.queryRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
 
 
 fetchAllWith :
@@ -60,14 +41,14 @@ fetchAllWith expect authorizedAccess =
 
 
 deleteWith :
-    (Types.Project.ProjectId.ProjectId -> HttpUtil.GraphQLResult Bool -> msg)
+    (Types.Project.Id.Id -> HttpUtil.GraphQLResult Bool -> msg)
     -> AuthorizedAccess
-    -> Types.Project.ProjectId.ProjectId
+    -> Types.Project.Id.Id
     -> Cmd msg
 deleteWith expect authorizedAccess projectId =
     LondoGQL.Mutation.deleteProject
         { input =
-            { projectId = projectId |> Types.Project.ProjectId.toGraphQLInput
+            { projectId = projectId |> Types.Project.Id.toGraphQLInput
             }
         }
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint

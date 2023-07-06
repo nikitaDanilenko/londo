@@ -11,7 +11,7 @@ import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
 import Pages.View.TristateUtil as TristateUtil
 import Result.Extra
-import Types.Project.ProjectId exposing (ProjectId)
+import Types.Project.Id exposing (Id)
 import Types.Project.Resolved
 import Util.DictList as DictList
 import Util.Editing as Editing
@@ -29,7 +29,7 @@ init flags =
     )
 
 
-initialFetch : AuthorizedAccess -> ProjectId -> Cmd Page.LogicMsg
+initialFetch : AuthorizedAccess -> Id -> Cmd Page.LogicMsg
 initialFetch =
     Types.Project.Resolved.fetchWith Page.GotFetchResponse
 

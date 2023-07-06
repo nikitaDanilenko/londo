@@ -4,7 +4,7 @@ import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (autocomplete, colspan, type_)
+import Html.Attributes exposing (autocomplete, colspan, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Monocle.Lens as Lens
@@ -46,6 +46,7 @@ viewMain configuration main =
                         , td []
                             [ input
                                 [ autocomplete True
+                                , value <| Credentials.lenses.nickname.get <| main.credentials
                                 , onInput <|
                                     Page.SetCredentials
                                         << flip Credentials.lenses.nickname.set main.credentials

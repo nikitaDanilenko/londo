@@ -1,13 +1,12 @@
 module Types.Project.Resolved exposing (..)
 
-import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Object
 import LondoGQL.Object.ResolvedProject
 import LondoGQL.Query
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
+import Types.Project.Id exposing (Id)
 import Types.Project.Project
-import Types.Project.ProjectId exposing (ProjectId)
 import Types.Task.Task
 import Util.HttpUtil as HttpUtil
 
@@ -29,12 +28,12 @@ selection =
 fetchWith :
     (HttpUtil.GraphQLResult Resolved -> msg)
     -> AuthorizedAccess
-    -> ProjectId
+    -> Id
     -> Cmd msg
 fetchWith expect authorizedAccess projectId =
     LondoGQL.Query.fetchResolvedProject
         { input =
-            { projectId = projectId |> Types.Project.ProjectId.toGraphQLInput
+            { projectId = projectId |> Types.Project.Id.toGraphQLInput
             }
         }
         selection

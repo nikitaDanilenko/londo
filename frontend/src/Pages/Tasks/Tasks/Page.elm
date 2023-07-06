@@ -5,15 +5,15 @@ import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
-import Types.Project.ProjectId exposing (ProjectId)
+import Types.Project.Id exposing (Id)
 import Types.Task.Creation
+import Types.Task.Id
 import Types.Task.Task
-import Types.Task.TaskId
 import Types.Task.Update
 
 
 type alias Model =
-    { projectId : ProjectId
+    { projectId : Id
     , subModel : Tristate.Model SubMain SubInitial
     }
 
@@ -23,7 +23,7 @@ type alias SubModel =
 
 
 type alias TaskId =
-    Types.Task.TaskId.TaskId
+    Types.Task.Id.Id
 
 
 type alias Task =
