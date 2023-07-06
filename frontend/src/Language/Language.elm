@@ -132,6 +132,8 @@ type alias DashboardEntryEditor =
     , cancel : String
     , save : String
     , select : String
+    , add : String
+    , added : String
     }
 
 
@@ -244,6 +246,8 @@ english =
         , cancel = "Cancel"
         , save = "Save"
         , select = "Select"
+        , add = "Add"
+        , added = "Added"
         }
     }
 
