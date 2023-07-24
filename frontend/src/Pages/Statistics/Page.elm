@@ -8,7 +8,9 @@ import Types.Dashboard.Dashboard
 import Types.Dashboard.Id
 import Types.Project.Id
 import Types.Project.Project
+import Types.Task.Id
 import Types.Task.Task
+import Types.Task.Update
 import Util.DictList exposing (DictList)
 import Util.HttpUtil as HttpUtil
 
@@ -35,6 +37,14 @@ type alias Project =
 
 type alias Task =
     Types.Task.Task.Task
+
+
+type alias TaskUpdate =
+    Types.Task.Update.ClientInput
+
+
+type alias TaskId =
+    Types.Task.Id.Id
 
 
 type alias Main =
@@ -118,3 +128,9 @@ type LogicMsg
     | FetchTasks
     | GotFetchTasksResponse (HttpUtil.GraphQLResult (List Task))
     | SetSearchString String
+    | EditTask TaskId TaskUpdate
+    | SaveEditTask TaskId
+    | GotSaveEditTaskResponse (HttpUtil.GraphQLResult Task)
+    | ToggleControls TaskId
+    | EnterEditTask TaskId
+    | ExitEditTask TaskId
