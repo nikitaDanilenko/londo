@@ -49,8 +49,8 @@ type alias TaskId =
 
 type alias Main =
     { jwt : JWT
-    , dashboards : List Dashboard
-    , projectsByDashboard : DictList DashboardId (List Project)
+    , dashboard : Dashboard
+    , projects : List Project
     , tasksByProjectId : DictList ProjectId (List Task)
     , search : String
     }
@@ -58,8 +58,8 @@ type alias Main =
 
 type alias Initial =
     { jwt : JWT
-    , dashboards : Maybe (List Dashboard)
-    , projectsByDashboard : Maybe (DictList DashboardId (List Project))
+    , dashboard : Maybe Dashboard
+    , projects : Maybe (List Project)
     , tasksByProjectId : Maybe (DictList ProjectId (List Task))
     }
 
@@ -67,8 +67,8 @@ type alias Initial =
 initial : AuthorizedAccess -> Model
 initial authorizedAccess =
     { jwt = authorizedAccess.jwt
-    , dashboards = Nothing
-    , projectsByDashboard = Nothing
+    , dashboard = Nothing
+    , projects = Nothing
     , tasksByProjectId = Nothing
     }
         |> Tristate.createInitial authorizedAccess.configuration
@@ -77,40 +77,40 @@ initial authorizedAccess =
 initialToMain : Initial -> Maybe Main
 initialToMain i =
     Maybe.map3
-        (\dashboards projectsByDashboard tasksByProjectId ->
+        (\dashboard projects tasksByProjectId ->
             { jwt = i.jwt
-            , dashboards = dashboards
-            , projectsByDashboard = projectsByDashboard
+            , dashboard = dashboard
+            , projects = projects
             , tasksByProjectId = tasksByProjectId
             , search = ""
             }
         )
-        i.dashboards
-        i.projectsByDashboard
+        i.dashboard
+        i.projects
         i.tasksByProjectId
 
 
 lenses :
     { initial :
-        { dashboards : Lens Initial (Maybe (List Dashboard))
-        , projectsByDashboard : Lens Initial (Maybe (DictList DashboardId (List Project)))
+        { dashboard : Lens Initial (Maybe Dashboard)
+        , projects : Lens Initial (Maybe (List Project))
         , tasksByProjectId : Lens Initial (Maybe (DictList ProjectId (List Task)))
         }
     , main :
-        { dashboards : Lens Main (List Dashboard)
-        , projectsByDashboard : Lens Main (DictList DashboardId (List Project))
+        { dashboard : Lens Main Dashboard
+        , projects : Lens Main (List Project)
         , tasksByProjectId : Lens Main (DictList ProjectId (List Task))
         }
     }
 lenses =
     { initial =
-        { dashboards = Lens .dashboards (\b a -> { a | dashboards = b })
-        , projectsByDashboard = Lens .projectsByDashboard (\b a -> { a | projectsByDashboard = b })
+        { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
+        , projects = Lens .projects (\b a -> { a | projects = b })
         , tasksByProjectId = Lens .tasksByProjectId (\b a -> { a | tasksByProjectId = b })
         }
     , main =
-        { dashboards = Lens .dashboards (\b a -> { a | dashboards = b })
-        , projectsByDashboard = Lens .projectsByDashboard (\b a -> { a | projectsByDashboard = b })
+        { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
+        , projects = Lens .projects (\b a -> { a | projects = b })
         , tasksByProjectId = Lens .tasksByProjectId (\b a -> { a | tasksByProjectId = b })
         }
     }
@@ -121,11 +121,8 @@ type alias Flags =
 
 
 type LogicMsg
-    = FetchDashboards
-    | GotFetchDashboardsResponse (HttpUtil.GraphQLResult (List Dashboard))
-    | FetchProjects
+    = GotFetchDashboardsResponse (HttpUtil.GraphQLResult (List Dashboard))
     | GotFetchProjectsResponse (HttpUtil.GraphQLResult (List Project))
-    | FetchTasks
     | GotFetchTasksResponse (HttpUtil.GraphQLResult (List Task))
     | SetSearchString String
     | EditTask TaskId TaskUpdate
@@ -134,3 +131,7 @@ type LogicMsg
     | ToggleControls TaskId
     | EnterEditTask TaskId
     | ExitEditTask TaskId
+
+
+type alias Msg =
+    Tristate.Msg LogicMsg
