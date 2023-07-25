@@ -1,6 +1,7 @@
 module Pages.Statistics.Page exposing (..)
 
 import Monocle.Lens exposing (Lens)
+import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.View.Tristate as Tristate
@@ -54,12 +55,6 @@ type alias TaskId =
     Types.Task.Id.Id
 
 
-type alias EditingResolvedProject =
-    { project : Project
-    , tasks : Editing Task TaskUpdate
-    }
-
-
 type alias Main =
     { jwt : JWT
     , dashboard : Dashboard
@@ -99,7 +94,8 @@ initialToMain i =
                             , tasks =
                                 resolvedProject
                                     |> .tasks
-                                    |> Editing.asView
+                                    |> List.map Editing.asView
+                                    |> DictList.fromListWithKey (.original >> .id)
                             }
                         )
                     |> DictList.fromListWithKey (.project >> .id)
@@ -144,12 +140,12 @@ type alias Flags =
 type LogicMsg
     = GotFetchDashboardResponse (HttpUtil.GraphQLResult Dashboard)
     | GotFetchProjectsResponse (HttpUtil.GraphQLResult (List ResolvedProject))
-    | EditTask TaskId TaskUpdate
-    | SaveEditTask TaskId
-    | GotSaveEditTaskResponse (HttpUtil.GraphQLResult Task)
-    | ToggleControls TaskId
-    | EnterEditTask TaskId
-    | ExitEditTask TaskId
+    | EditTask ProjectId TaskId TaskUpdate
+    | SaveEditTask ProjectId TaskId
+    | GotSaveEditTaskResponse ( ProjectId, HttpUtil.GraphQLResult Task )
+    | ToggleControls ProjectId TaskId
+    | EnterEditTask ProjectId TaskId
+    | ExitEditTask ProjectId TaskId
     | SetPagination Pagination
     | SetSearchString String
 
