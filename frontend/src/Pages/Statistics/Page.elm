@@ -144,7 +144,6 @@ type alias Flags =
 type LogicMsg
     = GotFetchDashboardResponse (HttpUtil.GraphQLResult Dashboard)
     | GotFetchProjectsResponse (HttpUtil.GraphQLResult (List ResolvedProject))
-    | SetSearchString String
     | EditTask TaskId TaskUpdate
     | SaveEditTask TaskId
     | GotSaveEditTaskResponse (HttpUtil.GraphQLResult Task)
