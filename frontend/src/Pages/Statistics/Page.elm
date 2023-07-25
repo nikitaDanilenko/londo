@@ -1,6 +1,7 @@
 module Pages.Statistics.Page exposing (..)
 
 import Monocle.Lens exposing (Lens)
+import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.View.Tristate as Tristate
 import Types.Auxiliary exposing (JWT)
@@ -8,10 +9,12 @@ import Types.Dashboard.Dashboard
 import Types.Dashboard.Id
 import Types.Project.Id
 import Types.Project.Project
+import Types.Project.Resolved
 import Types.Task.Id
 import Types.Task.Task
 import Types.Task.Update
-import Util.DictList exposing (DictList)
+import Util.DictList as DictList exposing (DictList)
+import Util.Editing as Editing exposing (Editing)
 import Util.HttpUtil as HttpUtil
 
 
@@ -35,6 +38,10 @@ type alias Project =
     Types.Project.Project.Project
 
 
+type alias ResolvedProject =
+    Types.Project.Resolved.Resolved
+
+
 type alias Task =
     Types.Task.Task.Task
 
@@ -47,20 +54,25 @@ type alias TaskId =
     Types.Task.Id.Id
 
 
+type alias EditingResolvedProject =
+    { project : Project
+    , tasks : Editing Task TaskUpdate
+    }
+
+
 type alias Main =
     { jwt : JWT
     , dashboard : Dashboard
-    , projects : List Project
-    , tasksByProjectId : DictList ProjectId (List Task)
-    , search : String
+    , projects : DictList ProjectId EditingResolvedProject
+    , searchString : String
+    , pagination : Pagination
     }
 
 
 type alias Initial =
     { jwt : JWT
     , dashboard : Maybe Dashboard
-    , projects : Maybe (List Project)
-    , tasksByProjectId : Maybe (DictList ProjectId (List Task))
+    , projects : Maybe (List ResolvedProject)
     }
 
 
@@ -69,49 +81,58 @@ initial authorizedAccess =
     { jwt = authorizedAccess.jwt
     , dashboard = Nothing
     , projects = Nothing
-    , tasksByProjectId = Nothing
     }
         |> Tristate.createInitial authorizedAccess.configuration
 
 
 initialToMain : Initial -> Maybe Main
 initialToMain i =
-    Maybe.map3
-        (\dashboard projects tasksByProjectId ->
+    Maybe.map2
+        (\dashboard resolvedProjects ->
             { jwt = i.jwt
             , dashboard = dashboard
-            , projects = projects
-            , tasksByProjectId = tasksByProjectId
-            , search = ""
+            , projects =
+                resolvedProjects
+                    |> List.map
+                        (\resolvedProject ->
+                            { project = resolvedProject.project
+                            , tasks =
+                                resolvedProject
+                                    |> .tasks
+                                    |> Editing.asView
+                            }
+                        )
+                    |> DictList.fromListWithKey (.project >> .id)
+            , searchString = ""
+            , pagination = Pagination.initial
             }
         )
         i.dashboard
         i.projects
-        i.tasksByProjectId
 
 
 lenses :
     { initial :
         { dashboard : Lens Initial (Maybe Dashboard)
-        , projects : Lens Initial (Maybe (List Project))
-        , tasksByProjectId : Lens Initial (Maybe (DictList ProjectId (List Task)))
+        , projects : Lens Initial (Maybe (List ResolvedProject))
         }
     , main :
         { dashboard : Lens Main Dashboard
-        , projects : Lens Main (List Project)
-        , tasksByProjectId : Lens Main (DictList ProjectId (List Task))
+        , projects : Lens Main (DictList ProjectId EditingResolvedProject)
+        , searchString : Lens Main String
+        , pagination : Lens Main Pagination
         }
     }
 lenses =
     { initial =
         { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
         , projects = Lens .projects (\b a -> { a | projects = b })
-        , tasksByProjectId = Lens .tasksByProjectId (\b a -> { a | tasksByProjectId = b })
         }
     , main =
         { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
         , projects = Lens .projects (\b a -> { a | projects = b })
-        , tasksByProjectId = Lens .tasksByProjectId (\b a -> { a | tasksByProjectId = b })
+        , searchString = Lens .searchString (\b a -> { a | searchString = b })
+        , pagination = Lens .pagination (\b a -> { a | pagination = b })
         }
     }
 
@@ -121,9 +142,8 @@ type alias Flags =
 
 
 type LogicMsg
-    = GotFetchDashboardsResponse (HttpUtil.GraphQLResult (List Dashboard))
-    | GotFetchProjectsResponse (HttpUtil.GraphQLResult (List Project))
-    | GotFetchTasksResponse (HttpUtil.GraphQLResult (List Task))
+    = GotFetchDashboardResponse (HttpUtil.GraphQLResult Dashboard)
+    | GotFetchProjectsResponse (HttpUtil.GraphQLResult (List ResolvedProject))
     | SetSearchString String
     | EditTask TaskId TaskUpdate
     | SaveEditTask TaskId
@@ -131,6 +151,8 @@ type LogicMsg
     | ToggleControls TaskId
     | EnterEditTask TaskId
     | ExitEditTask TaskId
+    | SetPagination Pagination
+    | SetSearchString String
 
 
 type alias Msg =
