@@ -12,7 +12,7 @@ import Types.Dashboard.Update
 
 
 viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
-viewMain configuration main =
+viewMain _ main =
     Pages.Util.Parent.View.viewMain
         { tableHeader = Pages.Dashboards.View.tableHeader
         , onView =

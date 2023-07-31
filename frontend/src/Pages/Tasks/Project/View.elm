@@ -12,7 +12,7 @@ import Types.Project.Update
 
 
 viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
-viewMain configuration main =
+viewMain _ main =
     Pages.Util.Parent.View.viewMain
         { tableHeader = Pages.Projects.View.tableHeader
         , onView =
