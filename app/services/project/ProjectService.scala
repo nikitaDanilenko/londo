@@ -10,6 +10,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait ProjectService {
 
   def all(userId: UserId): Future[Seq[Project]]
+
+  def allOf(userId: UserId, ids: Seq[ProjectId]): Future[Seq[Project]]
   def get(userId: UserId, id: ProjectId): Future[Option[Project]]
   def create(userId: UserId, creation: Creation): Future[ServerError.Or[Project]]
   def update(userId: UserId, projectId: ProjectId, update: Update): Future[ServerError.Or[Project]]
