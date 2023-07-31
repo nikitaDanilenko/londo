@@ -519,6 +519,31 @@ encodeFetchDashboardInput input____ =
         [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
 
 
+buildFetchDeeplyResolvedDashboardInput :
+    FetchDeeplyResolvedDashboardInputRequiredFields
+    -> FetchDeeplyResolvedDashboardInput
+buildFetchDeeplyResolvedDashboardInput required____ =
+    { dashboardId = required____.dashboardId }
+
+
+type alias FetchDeeplyResolvedDashboardInputRequiredFields =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Type for the FetchDeeplyResolvedDashboardInput input object.
+-}
+type alias FetchDeeplyResolvedDashboardInput =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Encode a FetchDeeplyResolvedDashboardInput into a value that can be used as an argument.
+-}
+encodeFetchDeeplyResolvedDashboardInput : FetchDeeplyResolvedDashboardInput -> Value
+encodeFetchDeeplyResolvedDashboardInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
+
+
 buildFetchProjectInput :
     FetchProjectInputRequiredFields
     -> FetchProjectInput
