@@ -1,5 +1,6 @@
 module Pages.Statistics.Page exposing (..)
 
+import Language.Language as Language
 import Monocle.Lens exposing (Lens)
 import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Pagination as Pagination exposing (Pagination)
@@ -7,6 +8,7 @@ import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.View.Tristate as Tristate
 import Types.Auxiliary exposing (JWT)
 import Types.Dashboard.Dashboard
+import Types.Dashboard.DeeplyResolved
 import Types.Dashboard.Id
 import Types.Project.Id
 import Types.Project.Project
@@ -29,6 +31,10 @@ type alias DashboardId =
 
 type alias Dashboard =
     Types.Dashboard.Dashboard.Dashboard
+
+
+type alias DeeplyResolvedDashboard =
+    Types.Dashboard.DeeplyResolved.DeeplyResolved
 
 
 type alias ProjectId =
@@ -55,39 +61,59 @@ type alias TaskId =
     Types.Task.Id.Id
 
 
+type alias TaskEditorLanguage =
+    Language.TaskEditor
+
+
+type alias ProjectLanguage =
+    Language.ProjectEditor
+
+
+type alias DashboardLanguage =
+    Language.DashboardEditor
+
+
+type alias Languages =
+    { taskEditor : TaskEditorLanguage
+    , project : ProjectLanguage
+    , dashboard : DashboardLanguage
+    }
+
+
 type alias Main =
     { jwt : JWT
     , dashboard : Dashboard
     , projects : DictList ProjectId EditingResolvedProject
     , searchString : String
     , pagination : Pagination
+    , languages : Languages
     }
 
 
 type alias Initial =
     { jwt : JWT
-    , dashboard : Maybe Dashboard
-    , projects : Maybe (List ResolvedProject)
+    , deeplyResolvedDashboard : Maybe DeeplyResolvedDashboard
+    , languages : Languages
     }
 
 
-initial : AuthorizedAccess -> Model
-initial authorizedAccess =
+initial : Languages -> AuthorizedAccess -> Model
+initial languages authorizedAccess =
     { jwt = authorizedAccess.jwt
-    , dashboard = Nothing
-    , projects = Nothing
+    , deeplyResolvedDashboard = Nothing
+    , languages = languages
     }
         |> Tristate.createInitial authorizedAccess.configuration
 
 
 initialToMain : Initial -> Maybe Main
 initialToMain i =
-    Maybe.map2
-        (\dashboard resolvedProjects ->
+    Maybe.map
+        (\deeplyResolvedDashboard ->
             { jwt = i.jwt
-            , dashboard = dashboard
+            , dashboard = deeplyResolvedDashboard.dashboard
             , projects =
-                resolvedProjects
+                deeplyResolvedDashboard.resolvedProjects
                     |> List.map
                         (\resolvedProject ->
                             { project = resolvedProject.project
@@ -101,16 +127,15 @@ initialToMain i =
                     |> DictList.fromListWithKey (.project >> .id)
             , searchString = ""
             , pagination = Pagination.initial
+            , languages = i.languages
             }
         )
-        i.dashboard
-        i.projects
+        i.deeplyResolvedDashboard
 
 
 lenses :
     { initial :
-        { dashboard : Lens Initial (Maybe Dashboard)
-        , projects : Lens Initial (Maybe (List ResolvedProject))
+        { deeplyResolvedDashboard : Lens Initial (Maybe DeeplyResolvedDashboard)
         }
     , main :
         { dashboard : Lens Main Dashboard
@@ -121,8 +146,7 @@ lenses :
     }
 lenses =
     { initial =
-        { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
-        , projects = Lens .projects (\b a -> { a | projects = b })
+        { deeplyResolvedDashboard = Lens .deeplyResolvedDashboard (\b a -> { a | deeplyResolvedDashboard = b })
         }
     , main =
         { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
@@ -134,12 +158,13 @@ lenses =
 
 
 type alias Flags =
-    { authorizedAccess : AuthorizedAccess }
+    { dashboardId : DashboardId
+    , authorizedAccess : AuthorizedAccess
+    }
 
 
 type LogicMsg
-    = GotFetchDashboardResponse (HttpUtil.GraphQLResult Dashboard)
-    | GotFetchProjectsResponse (HttpUtil.GraphQLResult (List ResolvedProject))
+    = GotFetchDeeplyDashboardResponse (HttpUtil.GraphQLResult DeeplyResolvedDashboard)
     | EditTask ProjectId TaskId TaskUpdate
     | SaveEditTask ProjectId TaskId
     | GotSaveEditTaskResponse ( ProjectId, HttpUtil.GraphQLResult Task )
