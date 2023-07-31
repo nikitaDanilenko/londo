@@ -62,6 +62,15 @@ dashboardEntries =
         }
 
 
+statistics : AddressWithParser Types.Dashboard.Id.Id (Types.Dashboard.Id.Id -> a) a
+statistics =
+    with1
+        { step1 = "statistics"
+        , toString = Types.Dashboard.Id.uuid >> ScalarUtil.uuidToString >> List.singleton
+        , paramParser = ParserUtil.uuidParser |> Parser.map Types.Dashboard.Id.Id
+        }
+
+
 userSettings : AddressWithParser () a a
 userSettings =
     plain "user-settings"

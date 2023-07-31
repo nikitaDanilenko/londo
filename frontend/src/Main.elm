@@ -29,6 +29,9 @@ import Pages.Registration.Confirm.View
 import Pages.Registration.Request.Handler
 import Pages.Registration.Request.Page
 import Pages.Registration.Request.View
+import Pages.Statistics.Handler
+import Pages.Statistics.Page
+import Pages.Statistics.View
 import Pages.Tasks.Handler
 import Pages.Tasks.Page
 import Pages.Tasks.View
@@ -90,6 +93,7 @@ type Page
     | Tasks Pages.Tasks.Page.Model
     | Dashboards Pages.Dashboards.Page.Model
     | DashboardEntries Pages.DashboardEntries.Page.Model
+    | Statistics Pages.Statistics.Page.Model
     | NotFound
 
 
@@ -106,6 +110,7 @@ type Msg
     | TasksMsg Pages.Tasks.Page.Msg
     | DashboardsMsg Pages.Dashboards.Page.Msg
     | DashboardEntriesMsg Pages.DashboardEntries.Page.Msg
+    | StatisticsMsg Pages.Statistics.Page.Msg
 
 
 titleFor : Model -> String
@@ -151,6 +156,9 @@ view model =
 
         DashboardEntries dashboardEntries ->
             Html.map DashboardEntriesMsg (Pages.DashboardEntries.View.view dashboardEntries)
+
+        Statistics statistics ->
+            Html.map StatisticsMsg (Pages.Statistics.View.view statistics)
 
         NotFound ->
             main_ [] [ text "Page not found" ]
@@ -205,6 +213,9 @@ update msg model =
         ( DashboardEntriesMsg dashboardEntriesMsg, DashboardEntries dashboardEntries ) ->
             stepThrough steps.dashboardEntries model (Pages.DashboardEntries.Handler.update dashboardEntriesMsg dashboardEntries)
 
+        ( StatisticsMsg statisticsMsg, Statistics statistics ) ->
+            stepThrough steps.statistics model (Pages.Statistics.Handler.update statisticsMsg statistics)
+
         _ ->
             ( model, Cmd.none )
 
@@ -222,6 +233,7 @@ steps :
     , tasks : StepParameters Pages.Tasks.Page.Model Pages.Tasks.Page.Msg
     , dashboards : StepParameters Pages.Dashboards.Page.Model Pages.Dashboards.Page.Msg
     , dashboardEntries : StepParameters Pages.DashboardEntries.Page.Model Pages.DashboardEntries.Page.Msg
+    , statistics : StepParameters Pages.Statistics.Page.Model Pages.Statistics.Page.Msg
     , requestRegistration : StepParameters Pages.Registration.Request.Page.Model Pages.Registration.Request.Page.Msg
     , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
 
@@ -237,6 +249,7 @@ steps =
     , tasks = StepParameters Tasks TasksMsg
     , dashboards = StepParameters Dashboards DashboardsMsg
     , dashboardEntries = StepParameters DashboardEntries DashboardEntriesMsg
+    , statistics = StepParameters Statistics StatisticsMsg
     , requestRegistration = StepParameters RequestRegistration RequestRegistrationMsg
     , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
 
@@ -261,6 +274,7 @@ type Route
     | TasksRoute Types.Project.Id.Id
     | DashboardsRoute
     | DashboardEntriesRoute Types.Dashboard.Id.Id
+    | StatisticsRoute Types.Dashboard.Id.Id
 
 
 plainRouteParser : Parser (Route -> a) a
@@ -274,6 +288,7 @@ plainRouteParser =
         , route Addresses.Frontend.tasks.parser TasksRoute
         , route Addresses.Frontend.dashboards.parser DashboardsRoute
         , route Addresses.Frontend.dashboardEntries.parser DashboardEntriesRoute
+        , route Addresses.Frontend.statistics.parser StatisticsRoute
         ]
 
 
@@ -343,6 +358,13 @@ followRoute model =
                         , dashboardId = dashboardId
                         }
                         |> stepThrough steps.dashboardEntries model
+
+                ( StatisticsRoute dashboardId, Just userJWT ) ->
+                    Pages.Statistics.Handler.init
+                        { authorizedAccess = authorizedAccessWith userJWT
+                        , dashboardId = dashboardId
+                        }
+                        |> stepThrough steps.statistics model
 
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }
