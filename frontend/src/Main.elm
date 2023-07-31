@@ -371,16 +371,6 @@ followRoute model =
                         |> stepThrough steps.login model
 
 
-
---LoginRoute ->
---    Pages.Login.Handler.init { configuration = model.configuration } |> stepThrough steps.login model
---
---OverviewRoute ->
---    Pages.Overview.Handler.init { configuration = model.configuration } |> stepThrough steps.overview model
---
---
-
-
 fragmentToPath : Url -> Url
 fragmentToPath url =
     { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
