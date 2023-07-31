@@ -1,5 +1,6 @@
-module Pages.Statistics.Handler exposing (updateLogic)
+module Pages.Statistics.Handler exposing (init, update, updateLogic)
 
+import Language.Language
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
@@ -9,45 +10,48 @@ import Pages.Statistics.Pagination as Pagination
 import Pages.Util.PaginationSettings as PaginationSettings
 import Pages.View.Tristate as Tristate
 import Result.Extra
+import Types.Dashboard.DeeplyResolved
 import Types.Task.Update
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing exposing (Editing)
-import Util.HttpUtil as HttpUtil
 import Util.LensUtil as LensUtil
+
+
+update : Page.Msg -> Page.Model -> ( Page.Model, Cmd Page.Msg )
+update =
+    Tristate.updateWith updateLogic
+
+
+init : Page.Flags -> ( Page.Model, Cmd Page.Msg )
+init flags =
+    ( Page.initial
+        { taskEditor = Language.Language.default.taskEditor
+        , project = Language.Language.default.projectEditor
+        , dashboard = Language.Language.default.dashboardEditor
+        }
+        flags.authorizedAccess
+    , Types.Dashboard.DeeplyResolved.fetchWith
+        Page.GotFetchDeeplyDashboardResponse
+        flags.authorizedAccess
+        flags.dashboardId
+        |> Cmd.map Tristate.Logic
+    )
 
 
 updateLogic : Page.LogicMsg -> Page.Model -> ( Page.Model, Cmd Page.LogicMsg )
 updateLogic msg model =
     let
-        gotResponse :
-            { lens : Lens Page.Initial (Maybe response)
-            }
-            -> HttpUtil.GraphQLResult response
-            -> Page.Model
-        gotResponse ps =
-            Result.Extra.unpack (Tristate.toError model)
-                (\serverResponse ->
-                    model
-                        |> Tristate.mapInitial
-                            (ps.lens.set
-                                (serverResponse |> Just)
-                            )
-                        |> Tristate.fromInitToMain Page.initialToMain
-                )
-
-        gotFetchDashboardResponse result =
-            ( gotResponse
-                { lens = Page.lenses.initial.dashboard
-                }
-                result
-            , Cmd.none
-            )
-
-        gotFetchProjectsResponse result =
-            ( gotResponse
-                { lens = Page.lenses.initial.projects
-                }
-                result
+        gotFetchDeeplyResolvedDashboardResponse result =
+            ( result
+                |> Result.Extra.unpack (Tristate.toError model)
+                    (\serverResponse ->
+                        model
+                            |> Tristate.mapInitial
+                                (Page.lenses.initial.deeplyResolvedDashboard.set
+                                    (serverResponse |> Just)
+                                )
+                            |> Tristate.fromInitToMain Page.initialToMain
+                    )
             , Cmd.none
             )
 
@@ -126,11 +130,8 @@ updateLogic msg model =
             )
     in
     case msg of
-        Page.GotFetchDashboardResponse result ->
-            gotFetchDashboardResponse result
-
-        Page.GotFetchProjectsResponse result ->
-            gotFetchProjectsResponse result
+        Page.GotFetchDeeplyDashboardResponse result ->
+            gotFetchDeeplyResolvedDashboardResponse result
 
         Page.EditTask projectId taskId taskUpdate ->
             editTask projectId taskId taskUpdate
