@@ -11,6 +11,7 @@ type alias Language =
     , projectEditor : ProjectEditor
     , dashboardEditor : DashboardEditor
     , dashboardEntryEditor : DashboardEntryEditor
+    , statistics : Statistics
     }
 
 
@@ -137,6 +138,10 @@ type alias DashboardEntryEditor =
     }
 
 
+type alias Statistics =
+    {}
+
+
 default : Language
 default =
     english
@@ -249,6 +254,7 @@ english =
         , add = "Add"
         , added = "Added"
         }
+    , statistics = {}
     }
 
 
