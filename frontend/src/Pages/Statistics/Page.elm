@@ -73,10 +73,15 @@ type alias DashboardLanguage =
     Language.DashboardEditor
 
 
+type alias StatisticsLanguage =
+    Language.Statistics
+
+
 type alias Languages =
     { taskEditor : TaskEditorLanguage
     , project : ProjectLanguage
     , dashboard : DashboardLanguage
+    , statistics : StatisticsLanguage
     }
 
 

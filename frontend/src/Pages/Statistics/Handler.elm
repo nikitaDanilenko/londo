@@ -28,6 +28,7 @@ init flags =
         { taskEditor = Language.Language.default.taskEditor
         , project = Language.Language.default.projectEditor
         , dashboard = Language.Language.default.dashboardEditor
+        , statistics = Language.Language.default.statistics
         }
         flags.authorizedAccess
     , Types.Dashboard.DeeplyResolved.fetchWith
