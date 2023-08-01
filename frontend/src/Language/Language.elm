@@ -139,7 +139,10 @@ type alias DashboardEntryEditor =
 
 
 type alias Statistics =
-    {}
+    { total : String
+    , counted : String
+    , simulated : String
+    }
 
 
 default : Language
@@ -254,7 +257,11 @@ english =
         , add = "Add"
         , added = "Added"
         }
-    , statistics = {}
+    , statistics =
+        { total = "Total"
+        , counted = "Counted"
+        , simulated = "Simulated"
+        }
     }
 
 
