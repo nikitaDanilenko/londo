@@ -151,7 +151,7 @@ taskLineWith ps =
 
 updateTaskLine : Page.Language -> Types.Task.Id.Id -> Page.Update -> List (Html Page.LogicMsg)
 updateTaskLine language taskId update =
-    editProjectLineWith
+    editTaskLineWith
         { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit taskId
         , nameLens = Types.Task.Update.lenses.name
         , taskKindLens = Types.Task.Update.lenses.taskKind
@@ -170,7 +170,7 @@ updateTaskLine language taskId update =
 
 createTaskLine : Page.Language -> Page.Creation -> List (Html Page.LogicMsg)
 createTaskLine language =
-    editProjectLineWith
+    editTaskLineWith
         { saveMsg = Pages.Util.ParentEditor.Page.Create
         , nameLens = Types.Task.Creation.lenses.name
         , taskKindLens = Types.Task.Creation.lenses.taskKind
@@ -186,7 +186,7 @@ createTaskLine language =
         }
 
 
-editProjectLineWith :
+editTaskLineWith :
     { saveMsg : msg
     , nameLens : Lens editedValue (ValidatedInput String)
     , taskKindLens : Lens editedValue TaskKind
@@ -202,7 +202,7 @@ editProjectLineWith :
     }
     -> editedValue
     -> List (Html msg)
-editProjectLineWith handling editedValue =
+editTaskLineWith handling editedValue =
     let
         validInput =
             List.all identity
