@@ -4,8 +4,10 @@ import Configuration exposing (Configuration)
 import Html exposing (Html, button, h3, input, section, table, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, disabled, type_)
 import Html.Events exposing (onClick)
+import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.TaskKind as TaskKind
 import Maybe.Extra
+import Monocle.Lens as Lens
 import Pages.Dashboards.View
 import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Page as Page
@@ -15,8 +17,11 @@ import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
+import Types.Task.Update
 import Util.DictList as DictList
 import Util.Editing as Editing
+import Util.MaybeUtil as MaybeUtil
+import Util.ValidatedInput as ValidatedInput
 
 
 view : Page.Model -> Html Page.Msg
@@ -40,7 +45,7 @@ viewMain configuration main =
                 :: (main.projects
                         |> DictList.values
                         |> List.map
-                            (viewResolvedProject configuration main.languages.taskEditor)
+                            (viewResolvedProject main.languages.taskEditor)
                    )
             )
 
@@ -68,8 +73,8 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard =
         ]
 
 
-viewResolvedProject : Configuration -> Page.TaskEditorLanguage -> EditingResolvedProject -> Html Page.LogicMsg
-viewResolvedProject configuration taskEditorLanguage resolvedProject =
+viewResolvedProject : Page.TaskEditorLanguage -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject taskEditorLanguage resolvedProject =
     let
         project =
             resolvedProject.project
@@ -86,25 +91,8 @@ viewResolvedProject configuration taskEditorLanguage resolvedProject =
                     |> List.concatMap
                         (\e ->
                             Editing.unpack
-                                { onView =
-                                    \editingTask showControls ->
-                                        Pages.Util.ParentEditor.View.lineWith
-                                            { rowWithControls =
-                                                \task ->
-                                                    { display = taskInfoColumns task
-                                                    , controls =
-                                                        [ td [ Style.classes.controls ]
-                                                            [ button
-                                                                [ Style.classes.button.edit, onClick <| Page.EnterEditTask project.id <| task.id ]
-                                                                [ text <| .edit <| taskEditorLanguage ]
-                                                            ]
-                                                        ]
-                                                    }
-                                            , toggleMsg = Page.ToggleControls project.id e.original.id
-                                            , showControls = showControls
-                                            }
-                                            editingTask
-                                , onUpdate = \_ _ -> []
+                                { onView = viewTask project.id taskEditorLanguage
+                                , onUpdate = updateTask taskEditorLanguage project.id
                                 , onDelete = \_ -> []
                                 }
                                 e
@@ -139,15 +127,97 @@ taskInfoColumns task =
 
 viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> Page.Task -> Bool -> List (Html Page.LogicMsg)
 viewTask projectId language task showControls =
-    Pages.Tasks.Tasks.View.taskLineWith
-        { controls =
-            [ td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| task.id ]
-                    [ text <| language.edit ]
-                ]
-            ]
-        , toggleMsg = Page.ToggleControls projectId <| task.id
+    Pages.Util.ParentEditor.View.lineWith
+        { rowWithControls =
+            \t ->
+                { display = taskInfoColumns t
+                , controls =
+                    [ td [ Style.classes.controls ]
+                        [ button
+                            [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| .id <| t ]
+                            [ text <| .edit <| language ]
+                        ]
+                    ]
+                }
+        , toggleMsg = Page.ToggleControls projectId task.id
         , showControls = showControls
         }
         task
+
+
+updateTask : Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
+updateTask language projectId task update =
+    let
+        validInput =
+            update
+                |> Types.Task.Update.lenses.progressUpdate.get
+                |> .reached
+                |> ValidatedInput.isValid
+
+        validatedSaveAction =
+            MaybeUtil.optional validInput <| onEnter <| Page.SaveEditTask projectId <| .id <| task
+
+        updateMsg =
+            Page.EditTask projectId task.id
+
+        cancelMsg =
+            Page.ExitEditTask projectId <| .id <| task
+
+        saveMsg =
+            Page.SaveEditTask projectId <| .id <| task
+
+        infoColumns =
+            [ td [ Style.classes.editable ]
+                [ text <| .name <| task ]
+            , td []
+                [ text <| TaskKind.toString <| .taskKind <| task ]
+            , td []
+                (Pages.Tasks.Tasks.View.editProgress
+                    { progressLens = Types.Task.Update.lenses.progressUpdate
+                    , updateMsg = updateMsg
+                    }
+                    (update |> Types.Task.Update.lenses.taskKind.get)
+                    update
+                    |> List.map
+                        (HtmlUtil.withAttributes
+                            ([ MaybeUtil.defined <| HtmlUtil.onEscape <| cancelMsg
+                             , validatedSaveAction
+                             ]
+                                |> Maybe.Extra.values
+                            )
+                        )
+                )
+            , td [ Style.classes.editable ]
+                [ text <| Maybe.withDefault "" <| task.unit ]
+            , td []
+                [ input
+                    [ type_ "checkbox"
+                    , checked <| Types.Task.Update.lenses.counting.get <| update
+                    , onClick <|
+                        updateMsg <|
+                            Lens.modify Types.Task.Update.lenses.counting not <|
+                                update
+                    , onEnter <| saveMsg
+                    , HtmlUtil.onEscape cancelMsg
+                    ]
+                    []
+                ]
+            ]
+
+        controlsRow =
+            Pages.Util.ParentEditor.View.controlsRowWith
+                { colspan = infoColumns |> List.length
+                , validInput = validInput
+                , confirm =
+                    { msg = saveMsg
+                    , name = language |> .save
+                    }
+                , cancel =
+                    { msg = cancelMsg
+                    , name = language |> .cancel
+                    }
+                }
+    in
+    [ tr [ Style.classes.editLine ] (infoColumns ++ [ HtmlUtil.toggleControlsCell <| Page.ToggleControls projectId <| .id <| task ])
+    , controlsRow
+    ]
