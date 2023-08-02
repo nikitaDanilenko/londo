@@ -1,15 +1,22 @@
 module Pages.Statistics.View exposing (view)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, h1, section, table, td, text, th, thead, tr)
+import Html exposing (Html, button, h3, input, section, table, td, text, th, thead, tr)
+import Html.Attributes exposing (checked, disabled, type_)
 import Html.Events exposing (onClick)
+import LondoGQL.Enum.TaskKind as TaskKind
+import Maybe.Extra
 import Pages.Dashboards.View
+import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Page as Page
 import Pages.Tasks.Tasks.View
 import Pages.Util.HtmlUtil as HtmlUtil
+import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
+import Util.DictList as DictList
+import Util.Editing as Editing
 
 
 view : Page.Model -> Html Page.Msg
@@ -29,8 +36,13 @@ viewMain configuration main =
         }
     <|
         section []
-            [ viewDashboard main.languages.statistics main.languages.dashboard main.dashboard
-            ]
+            (viewDashboard main.languages.statistics main.languages.dashboard main.dashboard
+                :: (main.projects
+                        |> DictList.values
+                        |> List.map
+                            (viewResolvedProject configuration main.languages.taskEditor)
+                   )
+            )
 
 
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> Html Page.LogicMsg
@@ -56,19 +68,73 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard =
         ]
 
 
+viewResolvedProject : Configuration -> Page.TaskEditorLanguage -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject configuration taskEditorLanguage resolvedProject =
+    let
+        project =
+            resolvedProject.project
 
---viewProject : Configuration -> Page.ProjectLanguage -> Page.Project -> Bool -> List (Html Page.LogicMsg)
---viewProject configuration language project showControls =
---    Pages.Projects.View.projectLineWith
---        { controls =
---            [ td [ Style.classes.controls ]
---                [ NavigationUtil.projectEditorLinkButton configuration project.id language.taskEditor
---                ]
---            ]
---        , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls project.id
---        , showControls = showControls
---        }
---        project
+        projectName =
+            project.name ++ (project.description |> Maybe.Extra.unwrap "" (\description -> " (" ++ description ++ ")"))
+    in
+    section []
+        (h3 []
+            [ text <| projectName ]
+            :: (resolvedProject
+                    |> .tasks
+                    |> DictList.values
+                    |> List.concatMap
+                        (\e ->
+                            Editing.unpack
+                                { onView =
+                                    \editingTask showControls ->
+                                        Pages.Util.ParentEditor.View.lineWith
+                                            { rowWithControls =
+                                                \task ->
+                                                    { display = taskInfoColumns task
+                                                    , controls =
+                                                        [ td [ Style.classes.controls ]
+                                                            [ button
+                                                                [ Style.classes.button.edit, onClick <| Page.EnterEditTask project.id <| task.id ]
+                                                                [ text <| .edit <| taskEditorLanguage ]
+                                                            ]
+                                                        ]
+                                                    }
+                                            , toggleMsg = Page.ToggleControls project.id e.original.id
+                                            , showControls = showControls
+                                            }
+                                            editingTask
+                                , onUpdate = \_ _ -> []
+                                , onDelete = \_ -> []
+                                }
+                                e
+                        )
+               )
+        )
+
+
+
+-- todo: Adjust columns
+
+
+taskInfoColumns : Page.Task -> List (HtmlUtil.Column msg)
+taskInfoColumns task =
+    [ { attributes = [ Style.classes.editable ]
+      , children = [ text task.name ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| TaskKind.toString <| task.taskKind ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ Pages.Tasks.Tasks.View.displayProgress task.progress task.taskKind ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.withDefault "" <| task.unit ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
+      }
+    ]
 
 
 viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> Page.Task -> Bool -> List (Html Page.LogicMsg)
