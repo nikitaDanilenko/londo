@@ -1,15 +1,18 @@
 module Pages.Statistics.View exposing (view)
 
+import BigInt exposing (BigInt)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, h3, input, section, table, td, text, th, thead, tr)
+import Html exposing (Html, button, h3, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.TaskKind as TaskKind
+import Math.Natural as Natural
+import Math.Positive as Positive
 import Maybe.Extra
 import Monocle.Lens as Lens
 import Pages.Dashboards.View
-import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
+import Pages.Statistics.EditingResolvedProject as EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Page as Page
 import Pages.Tasks.Tasks.View
 import Pages.Util.HtmlUtil as HtmlUtil
@@ -40,8 +43,17 @@ viewMain configuration main =
         , showNavigation = True
         }
     <|
+        let
+            groupedTasks =
+                main.projects
+                    |> DictList.values
+                    |> List.map EditingResolvedProject.tasks
+        in
         section []
-            (viewDashboard main.languages.statistics main.languages.dashboard main.dashboard
+            (viewDashboard main.languages.statistics
+                main.languages.dashboard
+                main.dashboard
+                groupedTasks
                 :: (main.projects
                         |> DictList.values
                         |> List.map
@@ -50,8 +62,8 @@ viewMain configuration main =
             )
 
 
-viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> Html Page.LogicMsg
-viewDashboard statisticsLanguage dashboardLanguage dashboard =
+viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.Task) -> Html Page.LogicMsg
+viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
     section []
         [ table []
             [ Pages.Dashboards.View.tableHeader dashboardLanguage
@@ -69,8 +81,84 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard =
                     , th [] [ text <| .simulated <| statisticsLanguage ]
                     ]
                 ]
+            , tbody []
+                [ tr []
+                    [ td [] [ text <| .reachedAll <| statisticsLanguage ]
+                    , td []
+                        [ text <|
+                            BigInt.toString <|
+                                List.foldl BigInt.add (BigInt.fromInt 0) <|
+                                    List.map (reachedInProject { countedOnly = False }) <|
+                                        resolvedProjects
+                        ]
+                    , td []
+                        [ text <|
+                            BigInt.toString <|
+                                List.foldl BigInt.add (BigInt.fromInt 0) <|
+                                    List.map (reachedInProject { countedOnly = True }) <|
+                                        resolvedProjects
+                        ]
+                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    ]
+                , tr []
+                    [ td [] [ text <| .reachableAll <| statisticsLanguage ]
+                    , td []
+                        [ text <|
+                            BigInt.toString <|
+                                List.foldl BigInt.add (BigInt.fromInt 0) <|
+                                    List.map (reachableInProject { countedOnly = False }) <|
+                                        resolvedProjects
+                        ]
+                    , td []
+                        [ text <|
+                            BigInt.toString <|
+                                List.foldl BigInt.add (BigInt.fromInt 0) <|
+                                    List.map (reachableInProject { countedOnly = True }) <|
+                                        resolvedProjects
+                        ]
+                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    ]
+                ]
             ]
         ]
+
+
+reachableInProject : { countedOnly : Bool } -> List Page.Task -> BigInt
+reachableInProject ps ts =
+    let
+        predicate =
+            if ps.countedOnly then
+                .counting
+
+            else
+                always True
+    in
+    ts
+        |> List.filterMap
+            (Just
+                >> Maybe.Extra.filter predicate
+                >> Maybe.map (.progress >> .reachable)
+            )
+        |> Positive.sum
+
+
+reachedInProject : { countedOnly : Bool } -> List Page.Task -> BigInt
+reachedInProject ps ts =
+    let
+        predicate =
+            if ps.countedOnly then
+                .counting
+
+            else
+                always True
+    in
+    ts
+        |> List.filterMap
+            (Just
+                >> Maybe.Extra.filter predicate
+                >> Maybe.map (.progress >> .reached)
+            )
+        |> Natural.sum
 
 
 viewResolvedProject : Page.TaskEditorLanguage -> EditingResolvedProject -> Html Page.LogicMsg
@@ -88,14 +176,14 @@ viewResolvedProject taskEditorLanguage resolvedProject =
             :: (resolvedProject
                     |> .tasks
                     |> DictList.values
+                    |> List.sortBy (.original >> .name)
+                    -- todo: Use progress sorting
                     |> List.concatMap
-                        (\e ->
-                            Editing.unpack
-                                { onView = viewTask project.id taskEditorLanguage
-                                , onUpdate = updateTask taskEditorLanguage project.id
-                                , onDelete = \_ -> []
-                                }
-                                e
+                        (Editing.unpack
+                            { onView = viewTask project.id taskEditorLanguage
+                            , onUpdate = updateTask taskEditorLanguage project.id
+                            , onDelete = \_ -> []
+                            }
                         )
                )
         )
