@@ -1,4 +1,4 @@
-module Math.Positive exposing (Positive, fromString, integerValue, one, oneHundred, selection, tenToTheNth, toGraphQLInput, toString)
+module Math.Positive exposing (Positive, fromString, integerValue, one, oneHundred, selection, sum, tenToTheNth, toGraphQLInput, toString)
 
 import BigInt exposing (BigInt)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -12,6 +12,11 @@ import Maybe.Extra
 
 type Positive
     = Positive BigInt
+
+
+sum : List Positive -> BigInt
+sum =
+    List.foldl (\x acc -> BigInt.add acc (x |> integerValue)) (BigInt.fromInt 0)
 
 
 integerValue : Positive -> BigInt
