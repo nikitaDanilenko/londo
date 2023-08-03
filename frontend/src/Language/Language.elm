@@ -142,6 +142,8 @@ type alias Statistics =
     { total : String
     , counted : String
     , simulated : String
+    , reachableAll : String
+    , reachedAll : String
     }
 
 
@@ -261,6 +263,8 @@ english =
         { total = "Total"
         , counted = "Counted"
         , simulated = "Simulated"
+        , reachableAll = "Reachable (all)"
+        , reachedAll = "Reached (all)"
         }
     }
 
