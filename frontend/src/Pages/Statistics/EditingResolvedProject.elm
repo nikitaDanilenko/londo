@@ -5,7 +5,7 @@ import Types.Project.Project
 import Types.Task.Id
 import Types.Task.Task
 import Types.Task.Update
-import Util.DictList exposing (DictList)
+import Util.DictList as DictList exposing (DictList)
 import Util.Editing exposing (Editing)
 
 
@@ -13,6 +13,13 @@ type alias EditingResolvedProject =
     { project : Types.Project.Project.Project
     , tasks : DictList Types.Task.Id.Id (Editing Types.Task.Task.Task Types.Task.Update.ClientInput)
     }
+
+
+tasks : EditingResolvedProject -> List Types.Task.Task.Task
+tasks =
+    .tasks
+        >> DictList.values
+        >> List.map .original
 
 
 lenses :
