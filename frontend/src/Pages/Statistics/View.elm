@@ -82,6 +82,8 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
                     ]
                 ]
             , tbody []
+                --todo: reachableAll, and reachedAll are only meaningful for non-percent values,
+                -- because otherwise the values are misleading. Adjust that.
                 [ tr []
                     [ td [] [ text <| .reachedAll <| statisticsLanguage ]
                     , td []
