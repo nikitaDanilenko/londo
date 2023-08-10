@@ -1,13 +1,15 @@
 module Pages.Statistics.View exposing (view)
 
+import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
-import BigRational
+import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, h3, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.TaskKind as TaskKind
+import Math.Constants
 import Math.Natural as Natural
 import Math.Positive as Positive
 import Maybe.Extra
@@ -63,31 +65,84 @@ viewMain configuration main =
             )
 
 
+numberOfDecimalPlaces : Int
+numberOfDecimalPlaces =
+    6
+
+
+toRational : { numerator : BigInt, denominator : BigInt } -> BigRational
+toRational f =
+    BigRational.fromBigInts (BigInt.mul Math.Constants.oneHundredBigInt f.numerator) f.denominator
+
+
+toPercentage : { numerator : BigInt, denominator : BigInt } -> String
+toPercentage =
+    toRational
+        >> BigRational.toDecimalString numberOfDecimalPlaces
+
+
+sumWith : (a -> BigInt) -> List a -> BigInt
+sumWith f =
+    List.foldl (f >> BigInt.add) Math.Constants.zeroBigInt
+
+
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.Task) -> Html Page.LogicMsg
-viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
+viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
     let
         reachableAll =
-            List.foldl BigInt.add (BigInt.fromInt 0) <|
-                List.map (reachableInProject { countedOnly = False }) <|
-                    resolvedProjects
+            tasks
+                |> sumWith (reachableInProject { countedOnly = False })
 
         reachableAllCounted =
-            List.foldl BigInt.add (BigInt.fromInt 0) <|
-                List.map (reachableInProject { countedOnly = True }) <|
-                    resolvedProjects
+            tasks |> sumWith (reachableInProject { countedOnly = True })
 
         reachedAll =
-            List.foldl BigInt.add (BigInt.fromInt 0) <|
-                List.map (reachedInProject { countedOnly = False }) <|
-                    resolvedProjects
+            tasks |> sumWith (reachedInProject { countedOnly = False })
 
         reachedAllCounted =
-            List.foldl BigInt.add (BigInt.fromInt 0) <|
-                List.map (reachedInProject { countedOnly = True }) <|
-                    resolvedProjects
+            tasks |> sumWith (reachedInProject { countedOnly = True })
 
         meanAbsoluteTotal =
-            BigRational.fromBigInts reachedAll reachableAll |> BigRational.toDecimalString 6
+            toPercentage
+                { numerator = reachedAll
+                , denominator = reachableAll
+                }
+
+        meanAbsoluteCounted =
+            toPercentage
+                { numerator = reachedAllCounted
+                , denominator = reachableAllCounted
+                }
+
+        meanRelativeExact =
+            tasks
+                |> List.concat
+                |> List.map
+                    (\t ->
+                        toRational
+                            { numerator = t.progress.reached |> Natural.integerValue
+                            , denominator = t.progress.reachable |> Positive.integerValue
+                            }
+                    )
+                |> List.foldl BigRational.add (BigRational.fromInt 0)
+                |> flip BigRational.div (tasks |> List.length |> BigRational.fromInt)
+
+        countingTasks =
+            tasks
+                |> List.concat
+                |> List.filter .counting
+
+        meanRelativeExactCounted =
+            countingTasks
+                |> List.map
+                    (\t ->
+                        toRational
+                            { numerator = t.progress.reached |> Natural.integerValue
+                            , denominator = t.progress.reachable |> Positive.integerValue
+                            }
+                    )
+                |> List.foldl BigRational.add (BigRational.fromInt 0)
+                |> flip BigRational.div (countingTasks |> List.length |> BigRational.fromInt)
     in
     section []
         [ table []
@@ -131,7 +186,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
                             BigInt.toString <|
                                 List.foldl BigInt.add (BigInt.fromInt 0) <|
                                     List.map (reachableInProject { countedOnly = True }) <|
-                                        resolvedProjects
+                                        tasks
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
@@ -141,7 +196,17 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
                         [ text <| meanAbsoluteTotal
                         ]
                     , td []
-                        [ text <| BigInt.toString <| reachableAllCounted
+                        [ text <| meanAbsoluteCounted
+                        ]
+                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    ]
+                , tr []
+                    [ td [] [ text <| .meanRelativeExact <| statisticsLanguage ]
+                    , td []
+                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeExact
+                        ]
+                    , td []
+                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeExactCounted
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
