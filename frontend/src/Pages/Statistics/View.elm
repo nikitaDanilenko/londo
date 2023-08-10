@@ -1,6 +1,7 @@
 module Pages.Statistics.View exposing (view)
 
 import BigInt exposing (BigInt)
+import BigRational
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, h3, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, disabled, type_)
@@ -64,6 +65,30 @@ viewMain configuration main =
 
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.Task) -> Html Page.LogicMsg
 viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
+    let
+        reachableAll =
+            List.foldl BigInt.add (BigInt.fromInt 0) <|
+                List.map (reachableInProject { countedOnly = False }) <|
+                    resolvedProjects
+
+        reachableAllCounted =
+            List.foldl BigInt.add (BigInt.fromInt 0) <|
+                List.map (reachableInProject { countedOnly = True }) <|
+                    resolvedProjects
+
+        reachedAll =
+            List.foldl BigInt.add (BigInt.fromInt 0) <|
+                List.map (reachedInProject { countedOnly = False }) <|
+                    resolvedProjects
+
+        reachedAllCounted =
+            List.foldl BigInt.add (BigInt.fromInt 0) <|
+                List.map (reachedInProject { countedOnly = True }) <|
+                    resolvedProjects
+
+        meanAbsoluteTotal =
+            BigRational.fromBigInts reachedAll reachableAll |> BigRational.toDecimalString 6
+    in
     section []
         [ table []
             [ Pages.Dashboards.View.tableHeader dashboardLanguage
@@ -87,18 +112,10 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
                 [ tr []
                     [ td [] [ text <| .reachedAll <| statisticsLanguage ]
                     , td []
-                        [ text <|
-                            BigInt.toString <|
-                                List.foldl BigInt.add (BigInt.fromInt 0) <|
-                                    List.map (reachedInProject { countedOnly = False }) <|
-                                        resolvedProjects
+                        [ text <| BigInt.toString <| reachedAll
                         ]
                     , td []
-                        [ text <|
-                            BigInt.toString <|
-                                List.foldl BigInt.add (BigInt.fromInt 0) <|
-                                    List.map (reachedInProject { countedOnly = True }) <|
-                                        resolvedProjects
+                        [ text <| BigInt.toString <| reachedAllCounted
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
@@ -107,9 +124,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
                     , td []
                         [ text <|
                             BigInt.toString <|
-                                List.foldl BigInt.add (BigInt.fromInt 0) <|
-                                    List.map (reachableInProject { countedOnly = False }) <|
-                                        resolvedProjects
+                                reachableAll
                         ]
                     , td []
                         [ text <|
@@ -117,6 +132,16 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedProjects =
                                 List.foldl BigInt.add (BigInt.fromInt 0) <|
                                     List.map (reachableInProject { countedOnly = True }) <|
                                         resolvedProjects
+                        ]
+                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    ]
+                , tr []
+                    [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
+                    , td []
+                        [ text <| meanAbsoluteTotal
+                        ]
+                    , td []
+                        [ text <| BigInt.toString <| reachableAllCounted
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
