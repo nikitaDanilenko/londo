@@ -235,7 +235,7 @@ reachableInProject ps ts =
 
 
 reachedInProject : { countedOnly : Bool } -> List Page.Task -> BigInt
-reachedInProject ps ts =
+reachedInProject ps =
     let
         predicate =
             if ps.countedOnly then
@@ -244,13 +244,12 @@ reachedInProject ps ts =
             else
                 always True
     in
-    ts
-        |> List.filterMap
-            (Just
-                >> Maybe.Extra.filter predicate
-                >> Maybe.map (.progress >> .reached)
-            )
-        |> Natural.sum
+    List.filterMap
+        (Just
+            >> Maybe.Extra.filter predicate
+            >> Maybe.map (.progress >> .reached)
+        )
+        >> Natural.sum
 
 
 viewResolvedProject : Page.TaskEditorLanguage -> EditingResolvedProject -> Html Page.LogicMsg
