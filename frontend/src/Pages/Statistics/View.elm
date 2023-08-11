@@ -117,14 +117,16 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
         meanRelativeExact =
             tasks
                 |> List.concat
-                |> List.map
+                |> List.foldl
                     (\t ->
-                        toRational
-                            { numerator = t.progress.reached |> Natural.integerValue
-                            , denominator = t.progress.reachable |> Positive.integerValue
-                            }
+                        BigRational.add
+                            (toRational
+                                { numerator = t.progress.reached |> Natural.integerValue
+                                , denominator = t.progress.reachable |> Positive.integerValue
+                                }
+                            )
                     )
-                |> List.foldl BigRational.add (BigRational.fromInt 0)
+                    (BigRational.fromInt 0)
                 |> flip BigRational.div (tasks |> List.length |> BigRational.fromInt)
 
         countingTasks =
@@ -134,15 +136,22 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
 
         meanRelativeExactCounted =
             countingTasks
-                |> List.map
+                |> List.foldl
                     (\t ->
-                        toRational
-                            { numerator = t.progress.reached |> Natural.integerValue
-                            , denominator = t.progress.reachable |> Positive.integerValue
-                            }
+                        BigRational.add
+                            (toRational
+                                { numerator = t.progress.reached |> Natural.integerValue
+                                , denominator = t.progress.reachable |> Positive.integerValue
+                                }
+                            )
                     )
-                |> List.foldl BigRational.add (BigRational.fromInt 0)
+                    (BigRational.fromInt 0)
                 |> flip BigRational.div (countingTasks |> List.length |> BigRational.fromInt)
+
+        --meanRelativeRounded =
+        --    tasks
+        --    |> List.concat
+        --    |> List.map ()
     in
     section []
         [ table []
