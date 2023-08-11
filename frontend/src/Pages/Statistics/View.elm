@@ -86,6 +86,40 @@ sumWith f =
     List.foldl (f >> BigInt.add) Math.Constants.zeroBigInt
 
 
+relativeExact : Int -> List Page.Task -> BigRational
+relativeExact divisor tasks =
+    tasks
+        |> List.foldl
+            (\t ->
+                BigRational.add
+                    (toRational
+                        { numerator = t.progress.reached |> Natural.integerValue
+                        , denominator = t.progress.reachable |> Positive.integerValue
+                        }
+                    )
+            )
+            (BigRational.fromInt 0)
+        |> flip BigRational.div (divisor |> BigRational.fromInt)
+
+
+relativeRounded : Int -> List Page.Task -> BigRational
+relativeRounded divisor tasks =
+    tasks
+        |> List.foldl
+            (\t ->
+                BigInt.add
+                    (toRational
+                        { numerator = t.progress.reached |> Natural.integerValue
+                        , denominator = t.progress.reachable |> Positive.integerValue
+                        }
+                        |> BigRational.floor
+                    )
+            )
+            Math.Constants.zeroBigInt
+        |> BigRational.fromBigInt
+        |> flip BigRational.div (divisor |> BigRational.fromInt)
+
+
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.Task) -> Html Page.LogicMsg
 viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
     let
@@ -114,44 +148,33 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                 , denominator = reachableAllCounted
                 }
 
-        meanRelativeExact =
+        allTasks =
+            tasks |> List.concat
+
+        numberOfAllTasks =
             tasks
-                |> List.concat
-                |> List.foldl
-                    (\t ->
-                        BigRational.add
-                            (toRational
-                                { numerator = t.progress.reached |> Natural.integerValue
-                                , denominator = t.progress.reachable |> Positive.integerValue
-                                }
-                            )
-                    )
-                    (BigRational.fromInt 0)
-                |> flip BigRational.div (tasks |> List.length |> BigRational.fromInt)
+                |> List.map List.length
+                |> List.sum
+
+        meanRelativeExact =
+            relativeExact numberOfAllTasks allTasks
 
         countingTasks =
             tasks
                 |> List.concat
                 |> List.filter .counting
 
-        meanRelativeExactCounted =
-            countingTasks
-                |> List.foldl
-                    (\t ->
-                        BigRational.add
-                            (toRational
-                                { numerator = t.progress.reached |> Natural.integerValue
-                                , denominator = t.progress.reachable |> Positive.integerValue
-                                }
-                            )
-                    )
-                    (BigRational.fromInt 0)
-                |> flip BigRational.div (countingTasks |> List.length |> BigRational.fromInt)
+        numberOfCountingTasks =
+            countingTasks |> List.length
 
-        --meanRelativeRounded =
-        --    tasks
-        --    |> List.concat
-        --    |> List.map ()
+        meanRelativeExactCounted =
+            relativeExact numberOfCountingTasks countingTasks
+
+        meanRelativeRounded =
+            relativeRounded numberOfAllTasks allTasks
+
+        mealRelativeRoundedCounting =
+            relativeRounded numberOfCountingTasks countingTasks
     in
     section []
         [ table []
@@ -216,6 +239,16 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                         ]
                     , td []
                         [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeExactCounted
+                        ]
+                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    ]
+                , tr []
+                    [ td [] [ text <| .meanRelativeRounded <| statisticsLanguage ]
+                    , td []
+                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeRounded
+                        ]
+                    , td []
+                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| mealRelativeRoundedCounting
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
