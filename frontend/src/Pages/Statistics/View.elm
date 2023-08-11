@@ -258,7 +258,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
 
 
 reachableInProject : { countedOnly : Bool } -> List Page.Task -> BigInt
-reachableInProject ps ts =
+reachableInProject ps =
     let
         predicate =
             if ps.countedOnly then
@@ -267,13 +267,12 @@ reachableInProject ps ts =
             else
                 always True
     in
-    ts
-        |> List.filterMap
-            (Just
-                >> Maybe.Extra.filter predicate
-                >> Maybe.map (.progress >> .reachable)
-            )
-        |> Positive.sum
+    List.filterMap
+        (Just
+            >> Maybe.Extra.filter predicate
+            >> Maybe.map (.progress >> .reachable)
+        )
+        >> Positive.sum
 
 
 reachedInProject : { countedOnly : Bool } -> List Page.Task -> BigInt
