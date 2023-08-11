@@ -60,7 +60,7 @@ viewMain configuration main =
                 :: (main.projects
                         |> DictList.values
                         |> List.map
-                            (viewResolvedProject main.languages.taskEditor)
+                            (viewResolvedProject main.languages.taskEditor main.languages.statistics)
                    )
             )
 
@@ -293,8 +293,8 @@ reachedInProject ps =
         >> Natural.sum
 
 
-viewResolvedProject : Page.TaskEditorLanguage -> EditingResolvedProject -> Html Page.LogicMsg
-viewResolvedProject taskEditorLanguage resolvedProject =
+viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
     let
         project =
             resolvedProject.project
@@ -305,24 +305,43 @@ viewResolvedProject taskEditorLanguage resolvedProject =
     section []
         (h3 []
             [ text <| projectName ]
-            :: (resolvedProject
-                    |> .tasks
-                    |> DictList.values
-                    |> List.sortBy (.original >> .name)
-                    -- todo: Use progress sorting
-                    |> List.concatMap
-                        (Editing.unpack
-                            { onView = viewTask project.id taskEditorLanguage
-                            , onUpdate = updateTask taskEditorLanguage project.id
-                            , onDelete = \_ -> []
-                            }
+            :: [ table []
+                    [ taskInfoHeader taskEditorLanguage statisticsLanguage
+                    , tbody []
+                        (resolvedProject
+                            |> .tasks
+                            |> DictList.values
+                            |> List.sortBy (.original >> .name)
+                            -- todo: Use progress sorting
+                            |> List.concatMap
+                                (Editing.unpack
+                                    { onView = viewTask project.id taskEditorLanguage
+                                    , onUpdate = updateTask taskEditorLanguage project.id
+                                    , onDelete = \_ -> []
+                                    }
+                                )
                         )
-               )
+                    ]
+               ]
         )
 
 
 
 -- todo: Adjust columns
+
+
+taskInfoHeader : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Html msg
+taskInfoHeader taskEditorLanguage statisticsLanguage =
+    Pages.Util.ParentEditor.View.tableHeaderWith
+        { columns =
+            [ th [] [ text <| .taskName <| taskEditorLanguage ]
+            , th [] [ text <| .taskKind <| taskEditorLanguage ]
+            , th [] [ text <| .progress <| taskEditorLanguage ]
+            , th [] [ text <| .unit <| taskEditorLanguage ]
+            , th [] [ text <| .counting <| taskEditorLanguage ]
+            ]
+        , style = Style.classes.taskEditTable
+        }
 
 
 taskInfoColumns : Page.Task -> List (HtmlUtil.Column msg)
