@@ -146,6 +146,7 @@ type alias Statistics =
     , reachedAll : String
     , meanAbsolute : String
     , meanRelativeExact : String
+    , meanRelativeRounded : String
     }
 
 
@@ -269,6 +270,7 @@ english =
         , reachedAll = "Reached (all)"
         , meanAbsolute = "Mean (absolute)"
         , meanRelativeExact = "Mean (relative, exact)"
+        , meanRelativeRounded = "Mean (relative, rounded)"
         }
     }
 
