@@ -146,7 +146,11 @@ type alias Statistics =
     , reachedAll : String
     , meanAbsolute : String
     , meanRelativeExact : String
-    , meanRelativeRounded : String
+    , meanRelativeFloored : String
+    , meanExact : String
+    , meanFloored : String
+    , difference : String
+    , afterCompletion : String
     }
 
 
@@ -270,7 +274,11 @@ english =
         , reachedAll = "Reached (all)"
         , meanAbsolute = "Mean (absolute)"
         , meanRelativeExact = "Mean (relative, exact)"
-        , meanRelativeRounded = "Mean (relative, rounded)"
+        , meanRelativeFloored = "Mean (relative, floored)"
+        , meanExact = "Mean (exact)"
+        , meanFloored = "Mean (floored)"
+        , difference = "Delta"
+        , afterCompletion = "After completion"
         }
     }
 
