@@ -1,6 +1,7 @@
 module Types.Progress.Progress exposing (..)
 
 import BigInt
+import BigRational exposing (BigRational)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
 import LondoGQL.Object
@@ -9,6 +10,7 @@ import Math.Constants as Constants
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
+import Monocle.Lens exposing (Lens)
 
 
 type alias Progress =
@@ -17,9 +19,50 @@ type alias Progress =
     }
 
 
+lenses :
+    { reachable : Lens Progress Positive
+    , reached : Lens Progress Natural
+    }
+lenses =
+    { reachable = Lens .reachable (\b a -> { a | reachable = b })
+    , reached = Lens .reached (\b a -> { a | reached = b })
+    }
+
+
 isComplete : Progress -> Bool
 isComplete progress =
     (progress.reached |> Natural.integerValue) == (progress.reachable |> Positive.integerValue)
+
+
+
+-- todo: Check usefulness
+
+
+toRational : Progress -> BigRational
+toRational progress =
+    BigRational.fromBigInts
+        (progress
+            |> .reached
+            |> Natural.integerValue
+        )
+        (progress
+            |> .reachable
+            |> Positive.integerValue
+        )
+
+
+toPercentRational : Progress -> BigRational
+toPercentRational progress =
+    BigRational.fromBigInts
+        (progress
+            |> .reached
+            |> Natural.integerValue
+            |> BigInt.mul Constants.oneHundredBigInt
+        )
+        (progress
+            |> .reachable
+            |> Positive.integerValue
+        )
 
 
 selection : SelectionSet Progress LondoGQL.Object.Progress
