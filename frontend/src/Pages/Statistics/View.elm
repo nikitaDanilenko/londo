@@ -23,6 +23,7 @@ import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
+import Types.Progress.Progress
 import Types.Task.Update
 import Util.DictList as DictList
 import Util.Editing as Editing
@@ -70,15 +71,20 @@ numberOfDecimalPlaces =
     6
 
 
-toRational : { numerator : BigInt, denominator : BigInt } -> BigRational
-toRational f =
+rationalToString : BigRational -> String
+rationalToString =
+    BigRational.toDecimalString numberOfDecimalPlaces
+
+
+toPercentage : { numerator : BigInt, denominator : BigInt } -> BigRational
+toPercentage f =
     BigRational.fromBigInts (BigInt.mul Math.Constants.oneHundredBigInt f.numerator) f.denominator
 
 
-toPercentage : { numerator : BigInt, denominator : BigInt } -> String
-toPercentage =
-    toRational
-        >> BigRational.toDecimalString numberOfDecimalPlaces
+toPercentageString : { numerator : BigInt, denominator : BigInt } -> String
+toPercentageString =
+    toPercentage
+        >> rationalToString
 
 
 sumWith : (a -> BigInt) -> List a -> BigInt
@@ -86,19 +92,20 @@ sumWith f =
     List.foldl (f >> BigInt.add) Math.Constants.zeroBigInt
 
 
+bigRationalZero : BigRational
+bigRationalZero =
+    BigRational.fromInt 0
+
+
 relativeExact : Int -> List Page.Task -> BigRational
 relativeExact divisor tasks =
     tasks
         |> List.foldl
-            (\t ->
-                BigRational.add
-                    (toRational
-                        { numerator = t.progress.reached |> Natural.integerValue
-                        , denominator = t.progress.reachable |> Positive.integerValue
-                        }
-                    )
+            (.progress
+                >> Types.Progress.Progress.toPercentRational
+                >> BigRational.add
             )
-            (BigRational.fromInt 0)
+            bigRationalZero
         |> flip BigRational.div (divisor |> BigRational.fromInt)
 
 
@@ -106,18 +113,29 @@ relativeRounded : Int -> List Page.Task -> BigRational
 relativeRounded divisor tasks =
     tasks
         |> List.foldl
-            (\t ->
-                BigInt.add
-                    (toRational
-                        { numerator = t.progress.reached |> Natural.integerValue
-                        , denominator = t.progress.reachable |> Positive.integerValue
-                        }
-                        |> BigRational.floor
-                    )
+            (.progress
+                >> Types.Progress.Progress.toPercentRational
+                >> BigRational.floor
+                >> BigInt.add
             )
             Math.Constants.zeroBigInt
         |> BigRational.fromBigInt
         |> flip BigRational.div (divisor |> BigRational.fromInt)
+
+
+progressWith :
+    { process : BigRational -> a
+    , show : a -> String
+    }
+    -> Types.Progress.Progress.Progress
+    -> String
+progressWith ps p =
+    toPercentage
+        { numerator = p |> .reached |> Natural.integerValue
+        , denominator = p |> .reachable |> Positive.integerValue
+        }
+        |> ps.process
+        |> ps.show
 
 
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.Task) -> Html Page.LogicMsg
@@ -137,13 +155,13 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
             tasks |> sumWith (reachedInProject { countedOnly = True })
 
         meanAbsoluteTotal =
-            toPercentage
+            toPercentageString
                 { numerator = reachedAll
                 , denominator = reachableAll
                 }
 
         meanAbsoluteCounted =
-            toPercentage
+            toPercentageString
                 { numerator = reachedAllCounted
                 , denominator = reachableAllCounted
                 }
@@ -243,7 +261,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
                 , tr []
-                    [ td [] [ text <| .meanRelativeRounded <| statisticsLanguage ]
+                    [ td [] [ text <| .meanRelativeFloored <| statisticsLanguage ]
                     , td []
                         [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeRounded
                         ]
@@ -315,7 +333,8 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
                             -- todo: Use progress sorting
                             |> List.concatMap
                                 (Editing.unpack
-                                    { onView = viewTask project.id taskEditorLanguage
+                                    --todo: extract duplicate tasks computation
+                                    { onView = viewTask project.id taskEditorLanguage (resolvedProject |> .tasks |> DictList.values |> List.map .original)
                                     , onUpdate = updateTask taskEditorLanguage project.id
                                     , onDelete = \_ -> []
                                     }
@@ -339,13 +358,42 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
             , th [] [ text <| .progress <| taskEditorLanguage ]
             , th [] [ text <| .unit <| taskEditorLanguage ]
             , th [] [ text <| .counting <| taskEditorLanguage ]
+            , th [] [ text <| .meanExact <| statisticsLanguage ]
+            , th [] [ text <| .meanFloored <| statisticsLanguage ]
+            , th [] [ text <| .difference <| statisticsLanguage ]
+            , th [] [ text <| .afterCompletion <| statisticsLanguage ]
             ]
         , style = Style.classes.taskEditTable
         }
 
 
-taskInfoColumns : Page.Task -> List (HtmlUtil.Column msg)
-taskInfoColumns task =
+
+--todo: Only the number of tasks is relevant (at least it seems so)
+
+
+taskInfoColumns : List Page.Task -> Page.Task -> List (HtmlUtil.Column msg)
+taskInfoColumns allTasks task =
+    let
+        numberOfAllTasks =
+            allTasks |> List.length
+
+        progress =
+            task.progress
+
+        -- The difference if one additional reachable point is added is
+        -- 100 / (n * reachable)
+        -- where n is the number of all tasks.
+        difference =
+            progress
+                |> Just
+                |> Maybe.Extra.filter (Types.Progress.Progress.isComplete >> not)
+                |> Maybe.map
+                    (.reachable
+                        >> Positive.integerValue
+                        >> BigInt.mul (numberOfAllTasks |> BigInt.fromInt)
+                        >> BigRational.fromBigInts Math.Constants.oneHundredBigInt
+                    )
+    in
     [ { attributes = [ Style.classes.editable ]
       , children = [ text task.name ]
       }
@@ -361,15 +409,27 @@ taskInfoColumns task =
     , { attributes = [ Style.classes.editable ]
       , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
       }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| progressWith { process = identity, show = rationalToString } <| .progress <| task ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| progressWith { process = BigRational.floor, show = BigInt.toString } <| .progress <| task ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| difference ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text "after completion" ]
+      }
     ]
 
 
-viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> Page.Task -> Bool -> List (Html Page.LogicMsg)
-viewTask projectId language task showControls =
+viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> List Page.Task -> Page.Task -> Bool -> List (Html Page.LogicMsg)
+viewTask projectId language allTasks task showControls =
     Pages.Util.ParentEditor.View.lineWith
         { rowWithControls =
             \t ->
-                { display = taskInfoColumns t
+                { display = taskInfoColumns allTasks t
                 , controls =
                     [ td [ Style.classes.controls ]
                         [ button
