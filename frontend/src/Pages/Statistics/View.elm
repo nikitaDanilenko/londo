@@ -282,6 +282,11 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
 
         projectName =
             project.name ++ (project.description |> Maybe.Extra.unwrap "" (\description -> " (" ++ description ++ ")"))
+
+        tasks =
+            resolvedProject
+                |> .tasks
+                |> DictList.values
     in
     section []
         (h3 []
@@ -289,15 +294,12 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
             :: [ table []
                     [ taskInfoHeader taskEditorLanguage statisticsLanguage
                     , tbody []
-                        (resolvedProject
-                            |> .tasks
-                            |> DictList.values
+                        (tasks
                             |> List.sortBy (.original >> .name)
                             -- todo: Use progress sorting
                             |> List.concatMap
                                 (Editing.unpack
-                                    --todo: extract duplicate tasks computation
-                                    { onView = viewTask project.id taskEditorLanguage (resolvedProject |> .tasks |> DictList.values |> List.map .original)
+                                    { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
                                     , onUpdate = updateTask taskEditorLanguage project.id
                                     , onDelete = \_ -> []
                                     }
