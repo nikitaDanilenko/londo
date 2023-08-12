@@ -1,6 +1,5 @@
 module Pages.Statistics.View exposing (view)
 
-import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
@@ -12,6 +11,7 @@ import LondoGQL.Enum.TaskKind as TaskKind
 import Math.Constants
 import Math.Natural as Natural
 import Math.Positive as Positive
+import Math.Statistics
 import Maybe.Extra
 import Monocle.Lens as Lens
 import Pages.Dashboards.View
@@ -87,42 +87,6 @@ toPercentageString =
         >> rationalToString
 
 
-sumWith : (a -> BigInt) -> List a -> BigInt
-sumWith f =
-    List.foldl (f >> BigInt.add) Math.Constants.zeroBigInt
-
-
-bigRationalZero : BigRational
-bigRationalZero =
-    BigRational.fromInt 0
-
-
-relativeExact : Int -> List Page.Task -> BigRational
-relativeExact divisor tasks =
-    tasks
-        |> List.foldl
-            (.progress
-                >> Types.Progress.Progress.toPercentRational
-                >> BigRational.add
-            )
-            bigRationalZero
-        |> flip BigRational.div (divisor |> BigRational.fromInt)
-
-
-relativeRounded : Int -> List Page.Task -> BigRational
-relativeRounded divisor tasks =
-    tasks
-        |> List.foldl
-            (.progress
-                >> Types.Progress.Progress.toPercentRational
-                >> BigRational.floor
-                >> BigInt.add
-            )
-            Math.Constants.zeroBigInt
-        |> BigRational.fromBigInt
-        |> flip BigRational.div (divisor |> BigRational.fromInt)
-
-
 progressWith :
     { process : BigRational -> a
     , show : a -> String
@@ -143,16 +107,16 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
     let
         reachableAll =
             tasks
-                |> sumWith (reachableInProject { countedOnly = False })
+                |> Math.Statistics.sumWith (reachableInProject { countedOnly = False })
 
         reachableAllCounted =
-            tasks |> sumWith (reachableInProject { countedOnly = True })
+            tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = True })
 
         reachedAll =
-            tasks |> sumWith (reachedInProject { countedOnly = False })
+            tasks |> Math.Statistics.sumWith (reachedInProject { countedOnly = False })
 
         reachedAllCounted =
-            tasks |> sumWith (reachedInProject { countedOnly = True })
+            tasks |> Math.Statistics.sumWith (reachedInProject { countedOnly = True })
 
         meanAbsoluteTotal =
             toPercentageString
@@ -166,33 +130,32 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                 , denominator = reachableAllCounted
                 }
 
-        allTasks =
-            tasks |> List.concat
+        allProgresses =
+            tasks |> List.concat |> List.map .progress
 
         numberOfAllTasks =
-            tasks
-                |> List.map List.length
-                |> List.sum
+            allProgresses
+                |> List.length
 
-        meanRelativeExact =
-            relativeExact numberOfAllTasks allTasks
-
-        countingTasks =
+        countingProgresses =
             tasks
                 |> List.concat
-                |> List.filter .counting
+                |> List.filterMap (Just >> Maybe.Extra.filter .counting >> Maybe.map .progress)
+
+        meanRelativeExact =
+            Math.Statistics.relativeExact numberOfAllTasks allProgresses
 
         numberOfCountingTasks =
-            countingTasks |> List.length
+            countingProgresses |> List.length
 
         meanRelativeExactCounted =
-            relativeExact numberOfCountingTasks countingTasks
+            Math.Statistics.relativeExact numberOfCountingTasks countingProgresses
 
         meanRelativeRounded =
-            relativeRounded numberOfAllTasks allTasks
+            Math.Statistics.relativeRounded numberOfAllTasks allProgresses
 
         mealRelativeRoundedCounting =
-            relativeRounded numberOfCountingTasks countingTasks
+            Math.Statistics.relativeRounded numberOfCountingTasks countingProgresses
     in
     section []
         [ table []
