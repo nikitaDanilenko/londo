@@ -18,7 +18,7 @@ type Natural
 
 sum : List Natural -> BigInt
 sum =
-    List.foldl (\x acc -> BigInt.add acc (x |> integerValue)) (BigInt.fromInt 0)
+    List.foldl (\x acc -> x |> integerValue |> BigInt.add acc) (BigInt.fromInt 0)
 
 
 integerValue : Natural -> BigInt
