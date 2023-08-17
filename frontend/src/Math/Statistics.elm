@@ -61,6 +61,6 @@ differenceAfterCompletionExact ps =
         >> Maybe.Extra.filter (Types.Progress.Progress.isComplete >> not)
         >> Maybe.map
             (Types.Progress.Progress.toRational
-                >> flip BigRational.sub (BigRational.fromInt 1)
+                >> BigRational.sub (BigRational.fromInt 1)
                 >> BigRational.mul (BigRational.fromBigInts Math.Constants.oneHundredBigInt (ps.numberOfElements |> BigInt.fromInt))
             )
