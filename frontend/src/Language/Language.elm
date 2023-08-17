@@ -149,8 +149,10 @@ type alias Statistics =
     , meanRelativeFloored : String
     , meanExact : String
     , meanFloored : String
-    , difference : String
-    , afterCompletion : String
+    , differenceOneExactTotal : String
+    , differenceOneExactCounted : String
+    , differenceCompleteExactTotal : String
+    , differenceCompleteExactCounted : String
     }
 
 
@@ -277,8 +279,10 @@ english =
         , meanRelativeFloored = "Mean (relative, floored)"
         , meanExact = "Mean (exact)"
         , meanFloored = "Mean (floored)"
-        , difference = "Delta"
-        , afterCompletion = "After completion"
+        , differenceOneExactTotal = "Δ (exact, total)"
+        , differenceOneExactCounted = "Δ (exact, counted)"
+        , differenceCompleteExactTotal = "After completion (total)"
+        , differenceCompleteExactCounted = "After completion (counted)"
         }
     }
 
