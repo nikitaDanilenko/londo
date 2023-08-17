@@ -7,6 +7,7 @@ import Html exposing (Html, button, h3, input, section, table, tbody, td, text, 
 import Html.Attributes exposing (checked, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
+import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind
 import Math.Constants
 import Math.Natural as Natural
@@ -325,8 +326,10 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
             , th [] [ text <| .counting <| taskEditorLanguage ]
             , th [] [ text <| .meanExact <| statisticsLanguage ]
             , th [] [ text <| .meanFloored <| statisticsLanguage ]
-            , th [] [ text <| .difference <| statisticsLanguage ]
-            , th [] [ text <| .afterCompletion <| statisticsLanguage ]
+            , th [] [ text <| .differenceOneExactTotal <| statisticsLanguage ]
+            , th [] [ text <| .differenceOneExactCounted <| statisticsLanguage ]
+            , th [] [ text <| .differenceCompleteExactTotal <| statisticsLanguage ]
+            , th [] [ text <| .differenceCompleteExactCounted <| statisticsLanguage ]
             ]
         , style = Style.classes.taskEditTable
         }
@@ -342,22 +345,31 @@ taskInfoColumns allTasks task =
         numberOfAllTasks =
             allTasks |> List.length
 
+        numberOfCountedTasks =
+            allTasks |> List.Extra.count .counting
+
         progress =
             task.progress
 
-        -- The difference if one additional reachable point is added is
-        -- 100 / (n * reachable)
-        -- where n is the number of all tasks.
-        difference =
-            progress
-                |> Just
-                |> Maybe.Extra.filter (Types.Progress.Progress.isComplete >> not)
-                |> Maybe.map
-                    (.reachable
-                        >> Positive.integerValue
-                        >> BigInt.mul (numberOfAllTasks |> BigInt.fromInt)
-                        >> BigRational.fromBigInts Math.Constants.oneHundredBigInt
-                    )
+        differenceAfterOneMoreExactTotal =
+            Math.Statistics.differenceAfterOneMoreExact
+                { numberOfElements = numberOfAllTasks }
+                progress
+
+        differenceAfterOneMoreExactCounted =
+            Math.Statistics.differenceAfterOneMoreExact
+                { numberOfElements = numberOfCountedTasks }
+                progress
+
+        afterCompletionExactTotal =
+            Math.Statistics.differenceAfterCompletionExact
+                { numberOfElements = numberOfAllTasks }
+                progress
+
+        afterCompletionExactCounted =
+            Math.Statistics.differenceAfterCompletionExact
+                { numberOfElements = numberOfCountedTasks }
+                progress
     in
     [ { attributes = [ Style.classes.editable ]
       , children = [ text task.name ]
@@ -381,7 +393,16 @@ taskInfoColumns allTasks task =
       , children = [ text <| progressWith { process = BigRational.floor, show = BigInt.toString } <| .progress <| task ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| difference ]
+      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreExactTotal ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreExactCounted ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| afterCompletionExactTotal ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| afterCompletionExactCounted ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text "after completion" ]
