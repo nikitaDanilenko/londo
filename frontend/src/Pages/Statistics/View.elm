@@ -328,6 +328,8 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
             , th [] [ text <| .meanFloored <| statisticsLanguage ]
             , th [] [ text <| .differenceOneExactTotal <| statisticsLanguage ]
             , th [] [ text <| .differenceOneExactCounted <| statisticsLanguage ]
+            , th [] [ text <| .differenceOneFlooredTotal <| statisticsLanguage ]
+            , th [] [ text <| .differenceOneFlooredCounted <| statisticsLanguage ]
             , th [] [ text <| .differenceCompleteExactTotal <| statisticsLanguage ]
             , th [] [ text <| .differenceCompleteExactCounted <| statisticsLanguage ]
             ]
@@ -358,6 +360,16 @@ taskInfoColumns allTasks task =
 
         differenceAfterOneMoreExactCounted =
             Math.Statistics.differenceAfterOneMoreExact
+                { numberOfElements = numberOfCountedTasks }
+                progress
+
+        differenceAfterOneMoreFlooredTotal =
+            Math.Statistics.differenceAfterOneMoreFloored
+                { numberOfElements = numberOfAllTasks }
+                progress
+
+        differenceAfterOneMoreFlooredCounted =
+            Math.Statistics.differenceAfterOneMoreFloored
                 { numberOfElements = numberOfCountedTasks }
                 progress
 
@@ -399,13 +411,16 @@ taskInfoColumns allTasks task =
       , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreExactCounted ]
       }
     , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreFlooredTotal ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreFlooredCounted ]
+      }
+    , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| afterCompletionExactTotal ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| afterCompletionExactCounted ]
-      }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text "after completion" ]
       }
     ]
 

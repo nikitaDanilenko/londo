@@ -151,6 +151,8 @@ type alias Statistics =
     , meanFloored : String
     , differenceOneExactTotal : String
     , differenceOneExactCounted : String
+    , differenceOneFlooredTotal : String
+    , differenceOneFlooredCounted : String
     , differenceCompleteExactTotal : String
     , differenceCompleteExactCounted : String
     }
@@ -281,6 +283,8 @@ english =
         , meanFloored = "Mean (floored)"
         , differenceOneExactTotal = "Δ (exact, total)"
         , differenceOneExactCounted = "Δ (exact, counted)"
+        , differenceOneFlooredTotal = "Δ (floored, total)"
+        , differenceOneFlooredCounted = "Δ (floored, counted)"
         , differenceCompleteExactTotal = "After completion (total)"
         , differenceCompleteExactCounted = "After completion (counted)"
         }
