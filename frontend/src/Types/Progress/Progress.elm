@@ -1,6 +1,6 @@
 module Types.Progress.Progress exposing (..)
 
-import BigInt
+import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
@@ -16,6 +16,13 @@ import Monocle.Lens exposing (Lens)
 type alias Progress =
     { reachable : Positive
     , reached : Natural
+    }
+
+
+fromBigIntsOrDefaults : { numerator : BigInt, denominator : BigInt } -> Progress
+fromBigIntsOrDefaults ps =
+    { reachable = Positive.fromBigIntOrOne ps.denominator
+    , reached = Natural.fromBigIntOrZero ps.numerator
     }
 
 
