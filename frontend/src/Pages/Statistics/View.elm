@@ -9,7 +9,6 @@ import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind
-import Math.Constants
 import Math.Natural as Natural
 import Math.Positive as Positive
 import Math.Statistics
@@ -77,30 +76,11 @@ rationalToString =
     BigRational.toDecimalString numberOfDecimalPlaces
 
 
-toPercentage : { numerator : BigInt, denominator : BigInt } -> BigRational
-toPercentage f =
-    BigRational.fromBigInts (BigInt.mul Math.Constants.oneHundredBigInt f.numerator) f.denominator
-
-
 toPercentageString : { numerator : BigInt, denominator : BigInt } -> String
 toPercentageString =
-    toPercentage
+    Types.Progress.Progress.fromBigIntsOrDefaults
+        >> Types.Progress.Progress.toPercentRational
         >> rationalToString
-
-
-progressWith :
-    { process : BigRational -> a
-    , show : a -> String
-    }
-    -> Types.Progress.Progress.Progress
-    -> String
-progressWith ps p =
-    toPercentage
-        { numerator = p |> .reached |> Natural.integerValue
-        , denominator = p |> .reachable |> Positive.integerValue
-        }
-        |> ps.process
-        |> ps.show
 
 
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.Task) -> Html Page.LogicMsg
@@ -120,16 +100,16 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
             tasks |> Math.Statistics.sumWith (reachedInProject { countedOnly = True })
 
         meanAbsoluteTotal =
-            toPercentageString
-                { numerator = reachedAll
-                , denominator = reachableAll
-                }
+            { numerator = reachedAll
+            , denominator = reachableAll
+            }
+                |> toPercentageString
 
         meanAbsoluteCounted =
-            toPercentageString
-                { numerator = reachedAllCounted
-                , denominator = reachableAllCounted
-                }
+            { numerator = reachedAllCounted
+            , denominator = reachableAllCounted
+            }
+                |> toPercentageString
 
         allProgresses =
             tasks |> List.concat |> List.map .progress
@@ -143,13 +123,13 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                 |> List.concat
                 |> List.filterMap (Just >> Maybe.Extra.filter .counting >> Maybe.map .progress)
 
-        meanRelativeExact =
+        meanRelative =
             Math.Statistics.relative numberOfAllTasks allProgresses
 
         numberOfCountingTasks =
             countingProgresses |> List.length
 
-        meanRelativeExactCounted =
+        meanRelativeCounted =
             Math.Statistics.relative numberOfCountingTasks countingProgresses
     in
     section []
@@ -211,10 +191,10 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                 , tr []
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
                     , td []
-                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeExact
+                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelative
                         ]
                     , td []
-                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeExactCounted
+                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeCounted
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
@@ -334,6 +314,11 @@ taskInfoColumns allTasks task =
         progress =
             task.progress
 
+        mean =
+            progress
+                |> Types.Progress.Progress.toPercentRational
+                |> rationalToString
+
         differenceAfterOneMoreExactTotal =
             Math.Statistics.differenceAfterOneMoreExact
                 { numberOfElements = numberOfAllTasks }
@@ -370,10 +355,7 @@ taskInfoColumns allTasks task =
       , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| progressWith { process = identity, show = rationalToString } <| .progress <| task ]
-      }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text <| progressWith { process = BigRational.floor, show = BigInt.toString } <| .progress <| task ]
+      , children = [ text <| mean ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreExactTotal ]
