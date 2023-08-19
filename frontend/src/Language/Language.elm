@@ -145,16 +145,12 @@ type alias Statistics =
     , reachableAll : String
     , reachedAll : String
     , meanAbsolute : String
-    , meanRelativeExact : String
-    , meanRelativeFloored : String
-    , meanExact : String
-    , meanFloored : String
-    , differenceOneExactTotal : String
-    , differenceOneExactCounted : String
-    , differenceOneFlooredTotal : String
-    , differenceOneFlooredCounted : String
-    , differenceCompleteExactTotal : String
-    , differenceCompleteExactCounted : String
+    , meanRelative : String
+    , mean : String
+    , differenceOneTotal : String
+    , differenceOneCounted : String
+    , differenceCompleteTotal : String
+    , differenceCompleteCounted : String
     }
 
 
@@ -277,16 +273,12 @@ english =
         , reachableAll = "Reachable (all)"
         , reachedAll = "Reached (all)"
         , meanAbsolute = "Mean (absolute)"
-        , meanRelativeExact = "Mean (relative, exact)"
-        , meanRelativeFloored = "Mean (relative, floored)"
-        , meanExact = "Mean (exact)"
-        , meanFloored = "Mean (floored)"
-        , differenceOneExactTotal = "Δ (exact, total)"
-        , differenceOneExactCounted = "Δ (exact, counted)"
-        , differenceOneFlooredTotal = "Δ (floored, total)"
-        , differenceOneFlooredCounted = "Δ (floored, counted)"
-        , differenceCompleteExactTotal = "After completion (total)"
-        , differenceCompleteExactCounted = "After completion (counted)"
+        , meanRelative = "Mean (relative)"
+        , mean = "Mean"
+        , differenceOneTotal = "Δ (total)"
+        , differenceOneCounted = "Δ (counted)"
+        , differenceCompleteTotal = "After completion (total)"
+        , differenceCompleteCounted = "After completion (counted)"
         }
     }
 

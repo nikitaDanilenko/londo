@@ -144,19 +144,13 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                 |> List.filterMap (Just >> Maybe.Extra.filter .counting >> Maybe.map .progress)
 
         meanRelativeExact =
-            Math.Statistics.relativeExact numberOfAllTasks allProgresses
+            Math.Statistics.relative numberOfAllTasks allProgresses
 
         numberOfCountingTasks =
             countingProgresses |> List.length
 
         meanRelativeExactCounted =
-            Math.Statistics.relativeExact numberOfCountingTasks countingProgresses
-
-        meanRelativeRounded =
-            Math.Statistics.relativeRounded numberOfAllTasks allProgresses
-
-        mealRelativeRoundedCounting =
-            Math.Statistics.relativeRounded numberOfCountingTasks countingProgresses
+            Math.Statistics.relative numberOfCountingTasks countingProgresses
     in
     section []
         [ table []
@@ -215,22 +209,12 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
                 , tr []
-                    [ td [] [ text <| .meanRelativeExact <| statisticsLanguage ]
+                    [ td [] [ text <| .meanRelative <| statisticsLanguage ]
                     , td []
                         [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeExact
                         ]
                     , td []
                         [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeExactCounted
-                        ]
-                    , td [] [ text <| "tba" ] -- todo: Add simulation
-                    ]
-                , tr []
-                    [ td [] [ text <| .meanRelativeFloored <| statisticsLanguage ]
-                    , td []
-                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeRounded
-                        ]
-                    , td []
-                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| mealRelativeRoundedCounting
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
@@ -324,14 +308,11 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
             , th [] [ text <| .progress <| taskEditorLanguage ]
             , th [] [ text <| .unit <| taskEditorLanguage ]
             , th [] [ text <| .counting <| taskEditorLanguage ]
-            , th [] [ text <| .meanExact <| statisticsLanguage ]
-            , th [] [ text <| .meanFloored <| statisticsLanguage ]
-            , th [] [ text <| .differenceOneExactTotal <| statisticsLanguage ]
-            , th [] [ text <| .differenceOneExactCounted <| statisticsLanguage ]
-            , th [] [ text <| .differenceOneFlooredTotal <| statisticsLanguage ]
-            , th [] [ text <| .differenceOneFlooredCounted <| statisticsLanguage ]
-            , th [] [ text <| .differenceCompleteExactTotal <| statisticsLanguage ]
-            , th [] [ text <| .differenceCompleteExactCounted <| statisticsLanguage ]
+            , th [] [ text <| .mean <| statisticsLanguage ]
+            , th [] [ text <| .differenceOneTotal <| statisticsLanguage ]
+            , th [] [ text <| .differenceOneCounted <| statisticsLanguage ]
+            , th [] [ text <| .differenceCompleteTotal <| statisticsLanguage ]
+            , th [] [ text <| .differenceCompleteCounted <| statisticsLanguage ]
             ]
         , style = Style.classes.taskEditTable
         }
@@ -360,16 +341,6 @@ taskInfoColumns allTasks task =
 
         differenceAfterOneMoreExactCounted =
             Math.Statistics.differenceAfterOneMoreExact
-                { numberOfElements = numberOfCountedTasks }
-                progress
-
-        differenceAfterOneMoreFlooredTotal =
-            Math.Statistics.differenceAfterOneMoreFloored
-                { numberOfElements = numberOfAllTasks }
-                progress
-
-        differenceAfterOneMoreFlooredCounted =
-            Math.Statistics.differenceAfterOneMoreFloored
                 { numberOfElements = numberOfCountedTasks }
                 progress
 
@@ -409,12 +380,6 @@ taskInfoColumns allTasks task =
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreExactCounted ]
-      }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreFlooredTotal ]
-      }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreFlooredCounted ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| afterCompletionExactTotal ]
