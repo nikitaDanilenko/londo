@@ -3,8 +3,8 @@ module Pages.Statistics.View exposing (view)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, h3, input, section, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (checked, disabled, type_)
+import Html exposing (Html, button, h3, hr, input, section, table, tbody, td, text, th, thead, tr)
+import Html.Attributes exposing (checked, colspan, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
 import List.Extra
@@ -252,6 +252,28 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
             resolvedProject
                 |> .tasks
                 |> DictList.values
+
+        ( finished, unfinished ) =
+            tasks |> List.partition (.original >> .progress >> Types.Progress.Progress.isComplete)
+
+        display =
+            List.sortBy (.original >> .name)
+                >> List.concatMap
+                    (Editing.unpack
+                        { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
+                        , onUpdate = updateTask taskEditorLanguage project.id
+                        , onDelete = \_ -> []
+                        }
+                    )
+
+        separator =
+            if List.any List.isEmpty [ finished, unfinished ] then
+                []
+
+            else
+                -- todo: Consider a better way of supplying the number of columns
+                -- todo: A text hint may be a good idea.
+                [ tr [] [ td [ colspan <| 10 ] [ hr [] [] ] ] ]
     in
     section []
         (h3 []
@@ -259,16 +281,11 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
             :: [ table []
                     [ taskInfoHeader taskEditorLanguage statisticsLanguage
                     , tbody []
-                        (tasks
-                            |> List.sortBy (.original >> .name)
-                            -- todo: Use progress sorting
-                            |> List.concatMap
-                                (Editing.unpack
-                                    { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
-                                    , onUpdate = updateTask taskEditorLanguage project.id
-                                    , onDelete = \_ -> []
-                                    }
-                                )
+                        (List.concat
+                            [ unfinished |> display
+                            , separator
+                            , finished |> display
+                            ]
                         )
                     ]
                ]
