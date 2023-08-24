@@ -87,7 +87,7 @@ updateLogic msg model =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
                     (\task ->
-                        model |> updateTaskById projectId task.id (Editing.asViewWithElement task)
+                        model |> updateTaskById projectId task.id (Editing.asViewWithElement task >> Editing.toggleControls)
                     )
             , Cmd.none
             )
