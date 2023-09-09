@@ -28,6 +28,9 @@ class Live @Inject() (
   override def all(userId: UserId): Future[Seq[Project]] =
     db.runTransactionally(companion.all(userId))
 
+  override def allOf(userId: UserId, ids: Seq[ProjectId]): Future[Seq[Project]] =
+    db.runTransactionally(companion.allOf(userId, ids))
+
   override def get(userId: UserId, id: ProjectId): Future[Option[Project]] =
     db.runTransactionally(companion.get(userId, id))
 

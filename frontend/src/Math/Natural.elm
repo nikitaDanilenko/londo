@@ -1,4 +1,4 @@
-module Math.Natural exposing (Natural, fromPositive, fromString, integerValue, min, one, selection, toGraphQLInput, toString, zero)
+module Math.Natural exposing (Natural, fromBigIntOrZero, fromPositive, fromString, integerValue, min, one, selection, sum, toGraphQLInput, toString, zero)
 
 import BigInt exposing (BigInt)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -14,6 +14,11 @@ import Result.Extra
 
 type Natural
     = NonNegative BigInt
+
+
+sum : List Natural -> BigInt
+sum =
+    List.foldl (\x acc -> x |> integerValue |> BigInt.add acc) (BigInt.fromInt 0)
 
 
 integerValue : Natural -> BigInt
@@ -49,6 +54,15 @@ one : Natural
 one =
     Constants.oneBigInt
         |> NonNegative
+
+
+fromBigIntOrZero : BigInt -> Natural
+fromBigIntOrZero bi =
+    if BigInt.lt bi Constants.zeroBigInt then
+        one
+
+    else
+        NonNegative bi
 
 
 min : Natural -> Natural -> Natural

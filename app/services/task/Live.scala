@@ -34,6 +34,9 @@ class Live @Inject() (
   override def all(userId: UserId, projectId: ProjectId): Future[Seq[Task]] =
     db.runTransactionally(companion.all(userId, projectId))
 
+  override def allFor(userId: UserId, projectIds: Seq[ProjectId]): Future[Map[ProjectId, Seq[Task]]] =
+    db.runTransactionally(companion.allFor(userId, projectIds))
+
   override def create(
       userId: UserId,
       projectId: ProjectId,

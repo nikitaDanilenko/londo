@@ -10,6 +10,8 @@ trait TaskService {
 
   def all(userId: UserId, projectId: ProjectId): Future[Seq[Task]]
 
+  def allFor(userId: UserId, projectIds: Seq[ProjectId]): Future[Map[ProjectId, Seq[Task]]]
+
   def create(
       userId: UserId,
       projectId: ProjectId,

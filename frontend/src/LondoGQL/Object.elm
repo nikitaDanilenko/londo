@@ -17,6 +17,10 @@ type DashboardId
     = DashboardId
 
 
+type DeeplyResolvedDashboard
+    = DeeplyResolvedDashboard
+
+
 type FindUserResult
     = FindUserResult
 

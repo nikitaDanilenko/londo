@@ -11,6 +11,7 @@ type alias Language =
     , projectEditor : ProjectEditor
     , dashboardEditor : DashboardEditor
     , dashboardEntryEditor : DashboardEntryEditor
+    , statistics : Statistics
     }
 
 
@@ -137,6 +138,22 @@ type alias DashboardEntryEditor =
     }
 
 
+type alias Statistics =
+    { total : String
+    , counted : String
+    , simulated : String
+    , reachableAll : String
+    , reachedAll : String
+    , meanAbsolute : String
+    , meanRelative : String
+    , mean : String
+    , differenceOneTotal : String
+    , differenceOneCounted : String
+    , differenceCompleteTotal : String
+    , differenceCompleteCounted : String
+    }
+
+
 default : Language
 default =
     english
@@ -248,6 +265,20 @@ english =
         , select = "Select"
         , add = "Add"
         , added = "Added"
+        }
+    , statistics =
+        { total = "Total"
+        , counted = "Counted"
+        , simulated = "Simulated"
+        , reachableAll = "Reachable (all)"
+        , reachedAll = "Reached (all)"
+        , meanAbsolute = "Mean (absolute)"
+        , meanRelative = "Mean (relative)"
+        , mean = "Mean"
+        , differenceOneTotal = "Δ (total)"
+        , differenceOneCounted = "Δ (counted)"
+        , differenceCompleteTotal = "After completion (total)"
+        , differenceCompleteCounted = "After completion (counted)"
         }
     }
 
