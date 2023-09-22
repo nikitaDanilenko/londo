@@ -1,7 +1,7 @@
 module Pages.Util.Choice.View exposing (viewChoices, viewElements)
 
 import Basics.Extra exposing (flip)
-import Html exposing (Attribute, Html, button, div, h2, nav, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, h2, nav, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -172,7 +172,7 @@ viewChoices ps main =
                         )
                 )
             ]
-        , div [ Style.classes.pagination ]
+        , nav [ Style.classes.pagination ]
             [ ViewUtil.pagerButtons
                 { msg =
                     PaginationSettings.updateCurrentPage
