@@ -1,11 +1,10 @@
 module Pages.DashboardEntries.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, h1, label, text)
+import Html exposing (Html)
 import Pages.DashboardEntries.Dashboard.View
 import Pages.DashboardEntries.Entries.View
 import Pages.DashboardEntries.Page as Page
-import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 
