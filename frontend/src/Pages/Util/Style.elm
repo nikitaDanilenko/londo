@@ -1,7 +1,7 @@
 module Pages.Util.Style exposing (..)
 
 import Html exposing (Attribute)
-import Html.Attributes exposing (class, id)
+import Html.Attributes exposing (class, for, id)
 
 
 classes :
@@ -82,7 +82,7 @@ classes =
     , projectEditTable = class "project-edit-table"
     , search =
         { area = class "search-area"
-        , field = class "search-field"
+        , field = for "search-field"
         }
     , tableHeader = class "table-header"
     , taskEditTable = class "task-edit-table"
@@ -102,6 +102,7 @@ ids :
     , overview : Attribute msg
     , registrationRequestSent : Attribute msg
     , requestRegistration : Attribute msg
+    , searchField : Attribute msg
     , taskEditor : Attribute msg
     }
 ids =
@@ -116,5 +117,6 @@ ids =
     , overview = id "overview"
     , registrationRequestSent = id "registration-request-sent"
     , requestRegistration = id "request-registration"
+    , searchField = id "search-field"
     , taskEditor = id "task-editor"
     }
