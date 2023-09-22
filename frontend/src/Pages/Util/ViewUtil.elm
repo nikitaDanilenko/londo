@@ -2,7 +2,7 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, main_, nav, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -33,7 +33,7 @@ viewMainWith params html =
             ]
                 |> List.filter (always params.showNavigation)
     in
-    div []
+    main_ []
         (navigation
             ++ [ html ]
         )
@@ -177,7 +177,7 @@ navigationBarWith :
     }
     -> Html msg
 navigationBarWith ps =
-    div [ Style.ids.navigation ]
+    nav [ Style.ids.navigation ]
         [ table []
             [ thead []
                 [ tr []
