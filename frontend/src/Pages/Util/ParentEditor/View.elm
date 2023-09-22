@@ -72,13 +72,11 @@ viewParentsWith ps language configuration main =
             ( button, creationLine ) =
                 main.parentCreation
                     |> Maybe.Extra.unwrap
-                        ( [ div [ Style.classes.add ]
-                                [ creationButton
-                                    { defaultCreation = ps.create.default
-                                    , label = ps.create.label language
-                                    , updateCreationMsg = ps.create.update
-                                    }
-                                ]
+                        ( [ creationButton
+                                { defaultCreation = ps.create.default
+                                , label = ps.create.label language
+                                , updateCreationMsg = ps.create.update
+                                }
                           ]
                         , []
                         )
