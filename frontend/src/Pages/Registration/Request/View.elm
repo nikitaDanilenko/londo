@@ -2,7 +2,7 @@ module Pages.Registration.Request.View exposing (view)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, h1, input, label, table, tbody, td, text, tr)
+import Html exposing (Html, button, h1, input, label, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
