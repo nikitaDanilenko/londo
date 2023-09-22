@@ -3,7 +3,7 @@ module Pages.Login.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, input, label, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, input, label, table, tbody, td, text, tr)
 import Html.Attributes exposing (autocomplete, colspan, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -33,6 +33,7 @@ viewMain configuration main =
         }
     <|
         table []
+            -- todo: Reconsider the use of a table - a form may be a better choice
             [ tbody []
                 [ tr []
                     [ td [] [ label [] [ text <| main.language.nickname ] ]
