@@ -28,8 +28,6 @@ viewMain configuration main =
     <|
         [ Pages.DashboardEntries.Dashboard.View.viewMain configuration main.dashboard
             |> Html.map Page.DashboardMsg
-        , h1 [ Style.classes.elements ] [ label [] [ text <| main.entries.language.dashboardEntries ] ]
         , Pages.DashboardEntries.Entries.View.viewEntries configuration main.entries |> Html.map Page.EntriesMsg
-        , h1 [ Style.classes.elements ] [ label [] [ text <| main.entries.language.projects ] ]
         , Pages.DashboardEntries.Entries.View.viewProjects configuration main.entries |> Html.map Page.EntriesMsg
         ]

@@ -1,7 +1,7 @@
 module Pages.Util.Choice.View exposing (viewChoices, viewElements)
 
 import Basics.Extra exposing (flip)
-import Html exposing (Attribute, Html, button, div, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, div, h2, nav, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -21,7 +21,8 @@ import Util.SearchUtil as SearchUtil
 
 
 viewElements :
-    { nameOfChoice : choice -> String
+    { header : String
+    , nameOfChoice : choice -> String
     , choiceIdOfElement : element -> choiceId
     , idOfElement : element -> elementId
     , elementHeaderColumns : List (Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
@@ -78,8 +79,9 @@ viewElements ps main =
                     }
                     main
     in
-    div [ Style.classes.choices ]
-        [ HtmlUtil.searchAreaWith
+    section [ Style.classes.choices ]
+        [ h2 [] [ text <| ps.header ]
+        , HtmlUtil.searchAreaWith
             { msg = Pages.Util.Choice.Page.SetElementsSearchString
             , searchString = main.elementsSearchString
             }
@@ -96,7 +98,7 @@ viewElements ps main =
                     |> List.concatMap viewElementState
                 )
             ]
-        , div [ Style.classes.pagination ]
+        , nav [ Style.classes.pagination ]
             [ ViewUtil.pagerButtons
                 { msg =
                     PaginationSettings.updateCurrentPage
@@ -112,7 +114,8 @@ viewElements ps main =
 
 
 viewChoices :
-    { matchesSearchText : String -> choice -> Bool
+    { header : String
+    , matchesSearchText : String -> choice -> Bool
     , sortBy : choice -> comparable
     , choiceHeaderColumns : List (Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
     , idOfChoice : choice -> choiceId
@@ -136,51 +139,50 @@ viewChoices ps main =
                     }
                     main
     in
-    div [ Style.classes.addView ]
-        [ div [ Style.classes.addElement ]
-            [ HtmlUtil.searchAreaWith
-                { msg = Pages.Util.Choice.Page.SetChoicesSearchString
-                , searchString = main.choicesSearchString
-                }
-            , table [ Style.classes.elementsWithControlsTable ]
-                [ thead []
-                    [ tr [ Style.classes.tableHeader ]
-                        (ps.choiceHeaderColumns
-                            ++ [ th [ Style.classes.toggle ] [] ]
-                        )
-                    ]
-                , tbody []
-                    (paginatedChoices
-                        |> Paginate.page
-                        |> List.concatMap
-                            (Editing.unpack
-                                { onView =
-                                    viewChoiceLine
-                                        { idOfChoice = ps.idOfChoice
-                                        , choiceOnView = ps.viewChoiceLine
-                                        }
-                                , onUpdate =
-                                    editElementCreation
-                                        { idOfChoice = ps.idOfChoice
-                                        , elementCreationLine = ps.elementCreationLine
-                                        }
-                                , onDelete = always []
-                                }
-                            )
+    section [ Style.classes.addElement ]
+        [ h2 [] [ text <| ps.header ]
+        , HtmlUtil.searchAreaWith
+            { msg = Pages.Util.Choice.Page.SetChoicesSearchString
+            , searchString = main.choicesSearchString
+            }
+        , table [ Style.classes.elementsWithControlsTable ]
+            [ thead []
+                [ tr [ Style.classes.tableHeader ]
+                    (ps.choiceHeaderColumns
+                        ++ [ th [ Style.classes.toggle ] [] ]
                     )
                 ]
-            , div [ Style.classes.pagination ]
-                [ ViewUtil.pagerButtons
-                    { msg =
-                        PaginationSettings.updateCurrentPage
-                            { pagination = Pages.Util.Choice.Page.lenses.main.pagination
-                            , items = Pagination.lenses.choices
+            , tbody []
+                (paginatedChoices
+                    |> Paginate.page
+                    |> List.concatMap
+                        (Editing.unpack
+                            { onView =
+                                viewChoiceLine
+                                    { idOfChoice = ps.idOfChoice
+                                    , choiceOnView = ps.viewChoiceLine
+                                    }
+                            , onUpdate =
+                                editElementCreation
+                                    { idOfChoice = ps.idOfChoice
+                                    , elementCreationLine = ps.elementCreationLine
+                                    }
+                            , onDelete = always []
                             }
-                            main
-                            >> Pages.Util.Choice.Page.SetPagination
-                    , elements = paginatedChoices
-                    }
-                ]
+                        )
+                )
+            ]
+        , div [ Style.classes.pagination ]
+            [ ViewUtil.pagerButtons
+                { msg =
+                    PaginationSettings.updateCurrentPage
+                        { pagination = Pages.Util.Choice.Page.lenses.main.pagination
+                        , items = Pagination.lenses.choices
+                        }
+                        main
+                        >> Pages.Util.Choice.Page.SetPagination
+                , elements = paginatedChoices
+                }
             ]
         ]
 

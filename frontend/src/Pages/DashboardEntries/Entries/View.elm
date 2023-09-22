@@ -25,7 +25,8 @@ import Util.SearchUtil as SearchUtil
 viewEntries : Configuration -> Page.Main -> Html Page.LogicMsg
 viewEntries configuration main =
     Pages.Util.Choice.View.viewElements
-        { nameOfChoice = .name
+        { header = main.language.dashboardEntries
+        , nameOfChoice = .name
         , choiceIdOfElement = .projectId
         , idOfElement = .projectId
         , elementHeaderColumns = headerColumns main.language
@@ -46,7 +47,8 @@ viewEntries configuration main =
 viewProjects : Configuration -> Page.Main -> Html Page.LogicMsg
 viewProjects configuration main =
     Pages.Util.Choice.View.viewChoices
-        { matchesSearchText = \string project -> SearchUtil.search string project.name || SearchUtil.search string (project.description |> Maybe.withDefault "")
+        { header = main.language.projects
+        , matchesSearchText = \string project -> SearchUtil.search string project.name || SearchUtil.search string (project.description |> Maybe.withDefault "")
         , sortBy = .name
         , choiceHeaderColumns = headerColumns main.language
         , idOfChoice = .id
