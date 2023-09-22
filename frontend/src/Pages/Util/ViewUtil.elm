@@ -21,7 +21,7 @@ viewMainWith :
     , currentPage : Maybe Page
     , showNavigation : Bool
     }
-    -> Html msg
+    -> List (Html msg)
     -> Html msg
 viewMainWith params html =
     let
@@ -35,7 +35,7 @@ viewMainWith params html =
     in
     main_ []
         (navigation
-            ++ [ html ]
+            ++ html
         )
 
 

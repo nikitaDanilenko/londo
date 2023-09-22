@@ -1,7 +1,7 @@
 module Pages.Tasks.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, h1, label, main_, text)
+import Html exposing (Html, h1, label, text)
 import Pages.Tasks.Page as Page
 import Pages.Tasks.Project.View
 import Pages.Tasks.Tasks.View
@@ -26,9 +26,8 @@ viewMain configuration main =
         , showNavigation = True
         }
     <|
-        main_ [ Style.ids.taskEditor ]
-            [ Pages.Tasks.Project.View.viewMain configuration main.project
-                |> Html.map Page.ProjectMsg
-            , h1 [ Style.classes.elements ] [ label [] [ text <| main.tasks.language.tasks ] ]
-            , Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id configuration main.tasks |> Html.map Page.TasksMsg
-            ]
+        [ Pages.Tasks.Project.View.viewMain configuration main.project
+            |> Html.map Page.ProjectMsg
+        , h1 [ Style.classes.elements ] [ label [] [ text <| main.tasks.language.tasks ] ]
+        , Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id configuration main.tasks |> Html.map Page.TasksMsg
+        ]

@@ -53,17 +53,15 @@ viewMain configuration main =
                     |> DictList.values
                     |> List.map EditingResolvedProject.tasks
         in
-        section []
-            (viewDashboard main.languages.statistics
-                main.languages.dashboard
-                main.dashboard
-                groupedTasks
-                :: (main.projects
-                        |> DictList.values
-                        |> List.map
-                            (viewResolvedProject main.languages.taskEditor main.languages.statistics)
-                   )
-            )
+        viewDashboard main.languages.statistics
+            main.languages.dashboard
+            main.dashboard
+            groupedTasks
+            :: (main.projects
+                    |> DictList.values
+                    |> List.map
+                        (viewResolvedProject main.languages.taskEditor main.languages.statistics)
+               )
 
 
 numberOfDecimalPlaces : Int

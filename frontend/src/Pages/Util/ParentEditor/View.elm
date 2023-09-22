@@ -1,7 +1,7 @@
 module Pages.Util.ParentEditor.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, div, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, nav, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -82,34 +82,32 @@ viewParentsWith ps language configuration main =
                         )
                         (ps.create.ifCreating language >> Tuple.pair [])
         in
-        div [ ps.styling ]
-            (button
-                ++ [ HtmlUtil.searchAreaWith
-                        { msg = ps.setSearchString
-                        , searchString = main.searchString
+        button
+            ++ [ HtmlUtil.searchAreaWith
+                    { msg = ps.setSearchString
+                    , searchString = main.searchString
+                    }
+               , table [ Style.classes.elementsWithControlsTable ]
+                    (ps.tableHeader
+                        :: [ tbody []
+                                (creationLine
+                                    ++ (viewParents |> Paginate.page |> List.concatMap viewParent)
+                                )
+                           ]
+                    )
+               , nav [ Style.classes.pagination ]
+                    [ ViewUtil.pagerButtons
+                        { msg =
+                            PaginationSettings.updateCurrentPage
+                                { pagination = Page.lenses.main.pagination
+                                , items = Pagination.lenses.parents
+                                }
+                                main
+                                >> ps.setPagination
+                        , elements = viewParents
                         }
-                   , table [ Style.classes.elementsWithControlsTable ]
-                        (ps.tableHeader
-                            :: [ tbody []
-                                    (creationLine
-                                        ++ (viewParents |> Paginate.page |> List.concatMap viewParent)
-                                    )
-                               ]
-                        )
-                   , div [ Style.classes.pagination ]
-                        [ ViewUtil.pagerButtons
-                            { msg =
-                                PaginationSettings.updateCurrentPage
-                                    { pagination = Page.lenses.main.pagination
-                                    , items = Pagination.lenses.parents
-                                    }
-                                    main
-                                    >> ps.setPagination
-                            , elements = viewParents
-                            }
-                        ]
-                   ]
-            )
+                    ]
+               ]
 
 
 tableHeaderWith :

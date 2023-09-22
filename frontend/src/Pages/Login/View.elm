@@ -32,7 +32,7 @@ viewMain configuration main =
         , showNavigation = False
         }
     <|
-        table []
+        [ table []
             -- todo: Reconsider the use of a table - a form may be a better choice
             [ tbody []
                 [ tr []
@@ -104,3 +104,4 @@ viewMain configuration main =
                     ]
                 ]
             ]
+        ]

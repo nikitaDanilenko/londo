@@ -3,7 +3,7 @@ module Pages.View.Tristate exposing (Model, Msg(..), Status(..), createInitial, 
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Graphql.Http
-import Html exposing (Html, button, div, label, table, td, text, tr)
+import Html exposing (Html, button, label, main_, table, td, text, tr)
 import Html.Events exposing (onClick)
 import Maybe.Extra
 import Monocle.Optional exposing (Optional)
@@ -188,7 +188,7 @@ view :
 view ps t =
     case t.status of
         Initial _ ->
-            div [] [ Links.loadingSymbol ]
+            main_ [] [ Links.loadingSymbol ]
 
         Main main ->
             ps.viewMain t.configuration main |> Html.map Logic

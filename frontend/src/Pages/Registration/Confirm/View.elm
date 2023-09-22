@@ -37,10 +37,10 @@ viewMain configuration main =
     <|
         case main.mode of
             Page.Editing ->
-                viewEditing main
+                [ viewEditing main ]
 
             Page.Confirmed ->
-                viewConfirmed configuration main.language
+                [ viewConfirmed configuration main.language ]
 
 
 viewEditing : Page.Main -> Html Page.LogicMsg

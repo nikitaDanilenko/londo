@@ -26,26 +26,25 @@ viewMain configuration main =
         , showNavigation = False
         }
     <|
-        p [ Style.ids.overview ]
-            [ p []
-                [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.projects.address <| ()
-                    , attributes = [ Style.classes.button.overview ]
-                    , children = [ text <| main.language.projects ]
-                    }
-                ]
-            , p []
-                [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.dashboards.address <| ()
-                    , attributes = [ Style.classes.button.overview ]
-                    , children = [ text <| main.language.dashboards ]
-                    }
-                ]
-            , p []
-                [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.userSettings.address <| ()
-                    , attributes = [ Style.classes.button.overview ]
-                    , children = [ text <| main.language.settings ]
-                    }
-                ]
+        [ p []
+            [ Links.linkButton
+                { url = Links.frontendPage configuration <| Addresses.Frontend.projects.address <| ()
+                , attributes = [ Style.classes.button.overview ]
+                , children = [ text <| main.language.projects ]
+                }
             ]
+        , p []
+            [ Links.linkButton
+                { url = Links.frontendPage configuration <| Addresses.Frontend.dashboards.address <| ()
+                , attributes = [ Style.classes.button.overview ]
+                , children = [ text <| main.language.dashboards ]
+                }
+            ]
+        , p []
+            [ Links.linkButton
+                { url = Links.frontendPage configuration <| Addresses.Frontend.userSettings.address <| ()
+                , attributes = [ Style.classes.button.overview ]
+                , children = [ text <| main.language.settings ]
+                }
+            ]
+        ]
