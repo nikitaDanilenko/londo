@@ -2,7 +2,7 @@ module Pages.Registration.Request.View exposing (view)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, input, label, table, tbody, td, text, tr)
+import Html exposing (Html, button, div, h1, input, label, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -37,13 +37,13 @@ viewMain configuration main =
     <|
         case main.mode of
             Page.Editing ->
-                [ viewEditing main ]
+                viewEditing main
 
             Page.Confirmed ->
-                [ viewConfirmed configuration main.language ]
+                viewConfirmed configuration main.language
 
 
-viewEditing : Page.Main -> Html Page.LogicMsg
+viewEditing : Page.Main -> List (Html Page.LogicMsg)
 viewEditing main =
     let
         isValid =
@@ -52,63 +52,57 @@ viewEditing main =
         enterAction =
             MaybeUtil.optional isValid <| onEnter Page.Request
     in
-    div [ Style.ids.requestRegistration ]
-        [ div [] [ label [ Style.classes.info ] [ text <| main.language.header ] ]
-        , table []
-            [ tbody []
-                [ tr []
-                    [ td [] [ label [] [ text <| main.language.nickname ] ]
-                    , td []
-                        [ input
-                            ([ MaybeUtil.defined <|
-                                onInput <|
-                                    flip (ValidatedInput.lift LensUtil.identityLens).set main.nickname
-                                        >> Page.SetNickname
-                             , MaybeUtil.defined <| Style.classes.editable
-                             , enterAction
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            []
-                        ]
-                    ]
-                , tr []
-                    [ td [] [ label [] [ text <| main.language.email ] ]
-                    , td []
-                        [ input
-                            ([ MaybeUtil.defined <|
-                                onInput <|
-                                    flip (ValidatedInput.lift LensUtil.identityLens).set main.email
-                                        >> Page.SetEmail
-                             , MaybeUtil.defined <| Style.classes.editable
-                             , enterAction
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            []
-                        ]
+    [ h1 [] [ text <| main.language.header ]
+    , table []
+        [ tbody []
+            [ tr []
+                [ td [] [ label [] [ text <| main.language.nickname ] ]
+                , td []
+                    [ input
+                        ([ MaybeUtil.defined <|
+                            onInput <|
+                                flip (ValidatedInput.lift LensUtil.identityLens).set main.nickname
+                                    >> Page.SetNickname
+                         , MaybeUtil.defined <| Style.classes.editable
+                         , enterAction
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        []
                     ]
                 ]
-            ]
-        , div []
-            [ button
-                [ onClick Page.Request
-                , Style.classes.button.confirm
-                , disabled <| not <| isValid
+            , tr []
+                [ td [] [ label [] [ text <| main.language.email ] ]
+                , td []
+                    [ input
+                        ([ MaybeUtil.defined <|
+                            onInput <|
+                                flip (ValidatedInput.lift LensUtil.identityLens).set main.email
+                                    >> Page.SetEmail
+                         , MaybeUtil.defined <| Style.classes.editable
+                         , enterAction
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        []
+                    ]
                 ]
-                [ text <| main.language.register ]
             ]
         ]
+    , button
+        [ onClick Page.Request
+        , Style.classes.button.confirm
+        , disabled <| not <| isValid
+        ]
+        [ text <| main.language.register ]
+    ]
 
 
-viewConfirmed : Configuration -> Language.RequestRegistration -> Html Page.LogicMsg
+viewConfirmed : Configuration -> Language.RequestRegistration -> List (Html Page.LogicMsg)
 viewConfirmed configuration language =
-    div [ Style.ids.registrationRequestSent ]
-        [ div [] [ label [] [ text <| language.registrationSuccessful ] ]
-        , div []
-            [ Links.toLoginButton
-                { configuration = configuration
-                , buttonText = language.mainPage
-                }
-            ]
-        ]
+    [ text <| language.registrationSuccessful
+    , Links.toLoginButton
+        { configuration = configuration
+        , buttonText = language.mainPage
+        }
+    ]
