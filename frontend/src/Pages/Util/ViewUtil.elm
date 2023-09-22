@@ -2,7 +2,7 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, main_, nav, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, main_, nav, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -179,12 +179,12 @@ navigationBarWith :
 navigationBarWith ps =
     nav [ Style.ids.navigation ]
         [ table []
-            [ thead []
+            [ tbody []
                 [ tr []
                     (ps.navigationPages
                         |> List.map
                             (\page ->
-                                th []
+                                td []
                                     [ ps.pageToButton page
                                     ]
                             )
