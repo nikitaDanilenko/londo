@@ -1,0 +1,36 @@
+body, button, input {
+    font-family: Arial, sans-serif;
+}
+
+nav .navigation-button,
+.pager-button {
+    text-decoration: none;
+    text-align: center;
+    color: black;
+    transition-duration: 0.2s;
+    padding: 8px 16px;
+    margin: 3px 1px;
+    font-size: 12pt;
+}
+
+nav .disabled,
+.pager-button .disabled {
+    background-color: white;
+    border: 2px solid rgb(200 200 200);
+    color: rgb(100 100 100);
+}
+
+nav .navigation-button:not(.disabled),
+.pager-button:not(.disabled) {
+    border: 2px solid rgb(66 100 160);
+}
+
+.pager-button {
+    background-color: white;
+}
+
+nav .navigation-button:hover:not(.disabled),
+.pager-button:hover:not(.disabled) {
+    background-color: rgb(66 100 160);
+    color: white;
+}
