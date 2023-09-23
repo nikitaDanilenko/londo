@@ -132,25 +132,28 @@ navigationToPageButtonWith ps =
     let
         isDisabled =
             Maybe.Extra.unwrap False (\current -> current == ps.page) ps.currentPage
-    in
-    if isDisabled then
-        button
-            [ Style.classes.button.navigation
-            , Style.classes.disabled
-            , disabled True
-            ]
-            [ text <| ps.nameOf <| ps.page ]
 
-    else
-        Links.linkButton
-            { url =
+        attributes =
+            [ MaybeUtil.defined <| Style.classes.button.navigation
+            , MaybeUtil.optional isDisabled <| Style.classes.disabled
+            ]
+                |> Maybe.Extra.values
+
+        url =
+            if isDisabled then
+                ""
+
+            else
                 navigationLink
                     { mainPageURL = ps.mainPageURL
                     , page = ps.addressSuffix ps.page
                     }
-            , attributes = [ Style.classes.button.navigation ]
-            , children = [ text <| ps.nameOf <| ps.page ]
-            }
+    in
+    Links.linkButton
+        { url = url
+        , attributes = attributes
+        , children = [ text <| ps.nameOf <| ps.page ]
+        }
 
 
 navigationBar :
