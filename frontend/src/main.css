@@ -10,7 +10,8 @@ nav .navigation-button,
 .cancel-button,
 .edit-button,
 .editor-button,
-.delete-button {
+.delete-button,
+.menu-button {
     text-decoration: none;
     text-align: center;
     color: black;
@@ -52,7 +53,8 @@ nav .navigation-button:hover:not(.disabled),
 .cancel-button,
 .edit-button,
 .editor-button,
-.delete-button {
+.delete-button,
+.menu-button {
     padding: 8px 16px;
     margin: 16px 8px;
 }
@@ -101,5 +103,14 @@ nav .navigation-button:hover:not(.disabled),
 
 .editor-button:hover {
     background-color: rgb(69 55 255);
+    color: white;
+}
+
+.menu-button {
+    border: 2px solid rgb(0 200 175);
+}
+
+.menu-button:hover {
+    background-color: rgb(0 200 175);
     color: white;
 }
