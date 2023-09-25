@@ -200,7 +200,7 @@ view ps t =
                         []
 
                     else
-                        [ td [] [ label [] [ text "Try the following:" ] ]
+                        [ td [] [ label [] [ text "Try the following:" ] ] --todo: use language elements
                         , td [] [ label [] [ text <| errorState.errorExplanation.possibleSolution ] ]
                         ]
 
@@ -214,7 +214,7 @@ view ps t =
                                     [ td []
                                         [ Links.toLoginButtonWith
                                             { configuration = configuration
-                                            , buttonText = "Login"
+                                            , buttonText = "Login" -- todo: Use language elements
                                             , attributes = [ Style.classes.button.error ]
                                             }
                                         ]
@@ -225,7 +225,7 @@ view ps t =
                 reloadRow =
                     [ tr []
                         [ td []
-                            [ button [ onClick HandleError, Style.classes.button.error ] [ text "Retry" ]
+                            [ button [ onClick HandleError, Style.classes.button.error ] [ text "Retry" ] -- todo: Use language elements
                             ]
                         ]
                     ]
@@ -234,7 +234,7 @@ view ps t =
             table
                 [ Style.ids.error ]
                 ([ tr []
-                    [ td [] [ label [] [ text "An error occurred:" ] ]
+                    [ td [] [ label [] [ text "An error occurred:" ] ] -- todo: Use language elements
                     , td [] [ label [] [ text <| errorState.errorExplanation.cause ] ]
                     ]
                  , tr [] solutionBlock
