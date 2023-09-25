@@ -114,3 +114,8 @@ nav .navigation-button:hover:not(.disabled),
     background-color: rgb(0 200 175);
     color: white;
 }
+
+form input,
+form label {
+    font-size: 16pt;
+}
