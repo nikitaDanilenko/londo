@@ -3,7 +3,7 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 import Addresses.Frontend
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, main_, nav, table, tbody, td, text, tr)
-import Html.Attributes exposing (disabled)
+import Html.Attributes exposing (disabled, id)
 import Html.Events exposing (onClick)
 import Maybe.Extra
 import Monocle.Compose as Compose
@@ -209,7 +209,6 @@ pagerButtons ps =
                 ([ MaybeUtil.defined <| Style.classes.button.pager
                  , MaybeUtil.defined <| onClick <| ps.msg <| pageNum
                  , MaybeUtil.optional isCurrentPage <| disabled <| True
-                 , MaybeUtil.optional isCurrentPage <| Style.classes.disabled
                  ]
                     |> Maybe.Extra.values
                 )

@@ -31,7 +31,7 @@ searchAreaWith ps =
                 ]
                 []
             , input
-                [ Style.classes.button.cancel
+                [ Style.classes.button.clear
                 , value "Clear" -- todo: Use language element here
                 , type_ "reset"
                 , onClick <| ps.msg ""

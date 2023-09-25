@@ -11,12 +11,14 @@ classes :
     , button :
         { add : Attribute msg
         , cancel : Attribute msg
+        , clear : Attribute msg
         , confirm : Attribute msg
         , delete : Attribute msg
         , edit : Attribute msg
         , editor : Attribute msg
         , error : Attribute msg
         , menu : Attribute msg
+        , newElement : Attribute msg
         , navigation : Attribute msg
         , overview : Attribute msg
         , pager : Attribute msg
@@ -53,6 +55,7 @@ classes =
     , button =
         { add = class "add-button"
         , cancel = class "cancel-button"
+        , clear = class "clear-button "
         , confirm = class "confirm-button"
         , delete = class "delete-button"
         , edit = class "edit-button"
@@ -60,6 +63,7 @@ classes =
         , error = class "error-button"
         , menu = class "menu-button"
         , navigation = class "navigation-button"
+        , newElement = class "new-element-button"
         , overview = class "overview-button"
         , pager = class "pager-button"
         , select = class "select-button"

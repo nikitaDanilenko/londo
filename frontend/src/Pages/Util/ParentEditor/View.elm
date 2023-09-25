@@ -173,7 +173,7 @@ creationButton :
     -> Html msg
 creationButton ps =
     button
-        [ Style.classes.button.add
+        [ Style.classes.button.newElement
         , onClick <| ps.updateCreationMsg <| Just <| ps.defaultCreation
         ]
         [ text <| ps.label ]
