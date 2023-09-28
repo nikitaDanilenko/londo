@@ -23,9 +23,10 @@ nav .navigation-button,
 
 nav .navigation-button,
 .pager-button {
-    padding: 8px 16px;
-    margin: 4px 2px;
+    padding: 8px 0 8px 0;
     font-size: 12pt;
+    display: inline-block;
+    width: 99%;
 }
 
 nav .navigation-button.disabled,
@@ -35,6 +36,7 @@ nav .navigation-button.disabled,
 .cancel-button:disabled {
     border: 2px solid rgb(200 200 200);
     color: rgb(100 100 100);
+    cursor: not-allowed;
 }
 
 nav .navigation-button:not(.disabled),
@@ -118,4 +120,10 @@ nav .navigation-button:hover:not(.disabled),
 form input,
 form label {
     font-size: 16pt;
+}
+
+nav table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
 }
