@@ -127,3 +127,11 @@ nav table {
     table-layout: fixed;
     border-collapse: collapse;
 }
+
+@media screen and (width >= 1200px) {
+    body {
+        width: 70%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
