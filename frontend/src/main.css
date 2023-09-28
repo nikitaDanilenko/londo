@@ -55,10 +55,14 @@ nav .navigation-button:hover:not(.disabled),
 .cancel-button,
 .edit-button,
 .editor-button,
-.delete-button,
-.menu-button {
+.delete-button {
     padding: 8px 16px;
     margin: 16px 8px;
+}
+
+.menu-button {
+    padding: 2px 4px;
+    margin: 8px 0 8px 0;
 }
 
 .new-element-button,
@@ -128,10 +132,27 @@ nav table {
     border-collapse: collapse;
 }
 
-@media screen and (width >= 1200px) {
-    body {
-        width: 70%;
-        margin-left: auto;
-        margin-right: auto;
-    }
+.elements-with-controls-table {
+    border-spacing: 0;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    position: relative;
+}
+
+.elements-with-controls-table thead th {
+    font-weight: lighter;
+    color: rgb(35 35 35);
+    background-color: rgb(235 235 235);
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.toggle {
+    text-align: right;
+    width: 3%;
+}
+
+.editing:hover {
+    background-color: lightgray;
 }
