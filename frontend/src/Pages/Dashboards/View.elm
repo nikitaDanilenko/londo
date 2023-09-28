@@ -3,7 +3,7 @@ module Pages.Dashboards.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
+import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -67,8 +67,8 @@ tableHeader : Page.Language -> Html msg
 tableHeader language =
     Pages.Util.ParentEditor.View.tableHeaderWith
         { columns =
-            [ th [] [ label [] [ text <| language.header ] ]
-            , th [] [ label [] [ text <| language.description ] ]
+            [ th [] [ text <| language.header ]
+            , th [] [ text <| language.description ]
             ]
         , style = Style.classes.dashboardEditTable
         }
@@ -123,10 +123,10 @@ deleteDashboardLine language dashboard =
 dashboardInfoColumns : Page.Dashboard -> List (HtmlUtil.Column msg)
 dashboardInfoColumns dashboard =
     [ { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text dashboard.header ] ]
+      , children = [ text dashboard.header ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| Maybe.withDefault "" <| dashboard.description ] ]
+      , children = [ text <| Maybe.withDefault "" <| dashboard.description ]
       }
     ]
 

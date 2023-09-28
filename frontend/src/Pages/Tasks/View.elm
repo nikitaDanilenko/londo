@@ -1,7 +1,7 @@
 module Pages.Tasks.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, h1, label, text)
+import Html exposing (Html, h1, text)
 import Pages.Tasks.Page as Page
 import Pages.Tasks.Project.View
 import Pages.Tasks.Tasks.View
@@ -28,6 +28,6 @@ viewMain configuration main =
     <|
         [ Pages.Tasks.Project.View.viewMain configuration main.project
             |> Html.map Page.ProjectMsg
-        , h1 [ Style.classes.elements ] [ label [] [ text <| main.tasks.language.tasks ] ]
+        , h1 [ Style.classes.elements ] [ text <| main.tasks.language.tasks ]
         , Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id configuration main.tasks |> Html.map Page.TasksMsg
         ]

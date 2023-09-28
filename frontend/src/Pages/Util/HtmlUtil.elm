@@ -1,7 +1,7 @@
 module Pages.Util.HtmlUtil exposing (Column, RowWithControls, Structure, menuIcon, onEscape, searchAreaWith, toggleControlsCell, withAttributes, withExtraAttributes)
 
 import Html exposing (Attribute, Html, button, form, input, label, node, td, text)
-import Html.Attributes exposing (disabled, type_, value)
+import Html.Attributes exposing (disabled, for, type_, value)
 import Html.Events exposing (on, onClick, onInput)
 import Keyboard.Event exposing (KeyboardEvent)
 import Keyboard.Key as Key
@@ -22,7 +22,11 @@ searchAreaWith ps =
         []
         [ form
             []
-            [ label [ Style.classes.search.field ] [ text Links.lookingGlass ]
+            [ label
+                [ Style.classes.search.field
+                , for "search-field" -- todo: Extract sensibly
+                ]
+                [ text Links.lookingGlass ]
             , input
                 [ type_ "text"
                 , Style.ids.searchField

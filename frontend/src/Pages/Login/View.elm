@@ -3,7 +3,7 @@ module Pages.Login.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, input, label, table, tbody, td, text, tr)
+import Html exposing (Html, button, input, table, tbody, td, text, tr)
 import Html.Attributes exposing (autocomplete, colspan, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -36,7 +36,7 @@ viewMain configuration main =
             -- todo: Reconsider the use of a table - a form may be a better choice
             [ tbody []
                 [ tr []
-                    [ td [] [ label [] [ text <| main.language.nickname ] ]
+                    [ td [] [ text <| main.language.nickname ]
                     , td []
                         [ input
                             [ autocomplete True
@@ -51,7 +51,7 @@ viewMain configuration main =
                         ]
                     ]
                 , tr []
-                    [ td [] [ label [] [ text <| main.language.password ] ]
+                    [ td [] [ text <| main.language.password ]
                     , td []
                         [ input
                             [ type_ "password"
@@ -66,7 +66,7 @@ viewMain configuration main =
                         ]
                     ]
                 , tr []
-                    [ td [] [ label [] [ text <| main.language.keepMeLoggedIn ] ]
+                    [ td [] [ text <| main.language.keepMeLoggedIn ]
                     , td []
                         [ input
                             [ type_ "checkbox"

@@ -2,7 +2,7 @@ module Pages.Registration.Request.View exposing (view)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, h1, input, label, table, tbody, td, text, tr)
+import Html exposing (Html, button, h1, input, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -56,7 +56,7 @@ viewEditing main =
     , table []
         [ tbody []
             [ tr []
-                [ td [] [ label [] [ text <| main.language.nickname ] ]
+                [ td [] [ text <| main.language.nickname ]
                 , td []
                     [ input
                         ([ MaybeUtil.defined <|
@@ -72,7 +72,7 @@ viewEditing main =
                     ]
                 ]
             , tr []
-                [ td [] [ label [] [ text <| main.language.email ] ]
+                [ td [] [ text <| main.language.email ]
                 , td []
                     [ input
                         ([ MaybeUtil.defined <|

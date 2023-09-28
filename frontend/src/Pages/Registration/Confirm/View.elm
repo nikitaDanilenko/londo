@@ -2,7 +2,7 @@ module Pages.Registration.Confirm.View exposing (view)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, h1, input, label, table, tbody, td, text, tr)
+import Html exposing (Html, button, h1, input, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -64,15 +64,15 @@ viewEditing main =
     , table []
         [ tbody []
             [ tr []
-                [ td [] [ label [] [ text <| main.language.nickname ] ]
-                , td [] [ label [] [ text <| main.userIdentifier.nickname ] ]
+                [ td [] [ text <| main.language.nickname ]
+                , td [] [ text <| main.userIdentifier.nickname ]
                 ]
             , tr []
-                [ td [] [ label [] [ text <| main.language.email ] ]
-                , td [] [ label [] [ text <| main.userIdentifier.email ] ]
+                [ td [] [ text <| main.language.email ]
+                , td [] [ text <| main.userIdentifier.email ]
                 ]
             , tr []
-                [ td [] [ label [] [ text <| main.language.displayName ] ]
+                [ td [] [ text <| main.language.displayName ]
                 , td []
                     [ input
                         ([ MaybeUtil.defined <|
@@ -92,7 +92,7 @@ viewEditing main =
                     ]
                 ]
             , tr []
-                [ td [] [ label [] [ text <| main.language.password ] ]
+                [ td [] [ text <| main.language.password ]
                 , td []
                     [ input
                         ([ MaybeUtil.defined <|
@@ -111,7 +111,7 @@ viewEditing main =
                     ]
                 ]
             , tr []
-                [ td [] [ label [] [ text <| main.language.passwordRepetition ] ]
+                [ td [] [ text <| main.language.passwordRepetition ]
                 , td []
                     [ input
                         ([ MaybeUtil.defined <|

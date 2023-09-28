@@ -1,7 +1,7 @@
 module Pages.DashboardEntries.Entries.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, label, td, text, th)
+import Html exposing (Html, button, td, text, th)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -118,8 +118,8 @@ viewProjects configuration main =
 
 headerColumns : Page.Language -> List (Html msg)
 headerColumns language =
-    [ th [] [ label [] [ text <| .dashboardEntryName <| language ] ]
-    , th [] [ label [] [ text <| .dashboardEntryDescription <| language ] ]
+    [ th [] [ text <| .dashboardEntryName <| language ]
+    , th [] [ text <| .dashboardEntryDescription <| language ]
     ]
 
 

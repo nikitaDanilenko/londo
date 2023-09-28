@@ -2,7 +2,7 @@ module Pages.Projects.View exposing (editProjectLineWith, projectInfoColumns, pr
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
+import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -65,8 +65,8 @@ tableHeader : Page.Language -> Html msg
 tableHeader language =
     Pages.Util.ParentEditor.View.tableHeaderWith
         { columns =
-            [ th [] [ label [] [ text <| language.name ] ]
-            , th [] [ label [] [ text <| language.description ] ]
+            [ th [] [ text <| language.name ]
+            , th [] [ text <| language.description ]
             ]
         , style = Style.classes.projectEditTable
         }
@@ -117,10 +117,10 @@ deleteProjectLine language project =
 projectInfoColumns : Page.Project -> List (HtmlUtil.Column msg)
 projectInfoColumns project =
     [ { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text project.name ] ]
+      , children = [ text project.name ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| Maybe.withDefault "" <| project.description ] ]
+      , children = [ text <| Maybe.withDefault "" <| project.description ]
       }
     ]
 

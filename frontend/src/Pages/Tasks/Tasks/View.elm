@@ -3,7 +3,7 @@ module Pages.Tasks.Tasks.View exposing (..)
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Dropdown exposing (dropdown)
-import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
+import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (checked, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -61,11 +61,11 @@ tableHeader : Page.Language -> Html msg
 tableHeader language =
     Pages.Util.ParentEditor.View.tableHeaderWith
         { columns =
-            [ th [] [ label [] [ text <| language.taskName ] ]
-            , th [] [ label [] [ text <| language.taskKind ] ]
-            , th [] [ label [] [ text <| language.progress ] ]
-            , th [] [ label [] [ text <| language.unit ] ]
-            , th [] [ label [] [ text <| language.counting ] ]
+            [ th [] [ text <| language.taskName ]
+            , th [] [ text <| language.taskKind ]
+            , th [] [ text <| language.progress ]
+            , th [] [ text <| language.unit ]
+            , th [] [ text <| language.counting ]
             ]
         , style = Style.classes.taskEditTable
         }
@@ -113,16 +113,16 @@ deleteTaskLine language task =
 taskInfoColumns : Page.Task -> List (HtmlUtil.Column msg)
 taskInfoColumns task =
     [ { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text task.name ] ]
+      , children = [ text task.name ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| TaskKind.toString <| task.taskKind ] ]
+      , children = [ text <| TaskKind.toString <| task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ displayProgress task.progress task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| Maybe.withDefault "" <| task.unit ] ]
+      , children = [ text <| Maybe.withDefault "" <| task.unit ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
@@ -348,14 +348,10 @@ displayProgress progress taskKind =
                 []
 
         TaskKind.Percent ->
-            label []
-                [ text <| flip (++) "%" <| Progress.displayPercentage <| progress
-                ]
+            text <| flip (++) "%" <| Progress.displayPercentage <| progress
 
         TaskKind.Fraction ->
-            label []
-                [ text <| String.join "/" [ Natural.toString progress.reached, Positive.toString progress.reachable ]
-                ]
+            text <| String.join "/" [ Natural.toString progress.reached, Positive.toString progress.reachable ]
 
 
 editProgress :
@@ -427,9 +423,9 @@ editProgress ps taskKind editedValue =
                     ]
               , children = []
               }
-            , { constructor = label
+            , { constructor = \_ _ -> text <| "."
               , attributes = []
-              , children = [ text <| "." ]
+              , children = []
               }
             , { constructor = input
               , attributes =
@@ -464,9 +460,9 @@ editProgress ps taskKind editedValue =
                     ]
               , children = []
               }
-            , { constructor = label
+            , { constructor = \_ _ -> text <| "/"
               , attributes = []
-              , children = [ text <| "/" ]
+              , children = []
               }
             , { constructor = input
               , attributes =

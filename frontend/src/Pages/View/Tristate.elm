@@ -3,7 +3,7 @@ module Pages.View.Tristate exposing (Model, Msg(..), Status(..), createInitial, 
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Graphql.Http
-import Html exposing (Html, button, label, main_, table, td, text, tr)
+import Html exposing (Html, button, main_, table, td, text, tr)
 import Html.Events exposing (onClick)
 import Maybe.Extra
 import Monocle.Optional exposing (Optional)
@@ -200,8 +200,8 @@ view ps t =
                         []
 
                     else
-                        [ td [] [ label [] [ text "Try the following:" ] ] --todo: use language elements
-                        , td [] [ label [] [ text <| errorState.errorExplanation.possibleSolution ] ]
+                        [ td [] [ text "Try the following:" ] --todo: use language elements
+                        , td [] [ text <| errorState.errorExplanation.possibleSolution ]
                         ]
 
                 redirectRow =
@@ -234,8 +234,8 @@ view ps t =
             table
                 [ Style.ids.error ]
                 ([ tr []
-                    [ td [] [ label [] [ text "An error occurred:" ] ] -- todo: Use language elements
-                    , td [] [ label [] [ text <| errorState.errorExplanation.cause ] ]
+                    [ td [] [ text "An error occurred:" ] -- todo: Use language elements
+                    , td [] [ text <| errorState.errorExplanation.cause ]
                     ]
                  , tr [] solutionBlock
                  ]
