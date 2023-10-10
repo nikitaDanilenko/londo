@@ -3,7 +3,7 @@ module Pages.Statistics.View exposing (view)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, h3, hr, input, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, div, h1, h3, hr, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -131,14 +131,15 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
             Math.Statistics.relative numberOfCountingTasks countingProgresses
     in
     section []
-        [ table []
+        [ table [ Style.classes.elementsWithControlsTable ]
             [ Pages.Dashboards.View.tableHeader dashboardLanguage
-            , tr []
+            , tr [ Style.classes.statisticsLine ]
                 (Pages.Dashboards.View.dashboardInfoColumns dashboard
                     |> List.map (HtmlUtil.withExtraAttributes [])
                 )
             ]
-        , table []
+        , h1 [] [ text <| statisticsLanguage.statistics ]
+        , table [ Style.classes.elementsWithControlsTable ]
             [ thead []
                 [ tr []
                     [ th [] [ text <| "" ]
@@ -150,7 +151,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
             , tbody []
                 --todo: reachableAll, and reachedAll are only meaningful for non-percent values,
                 -- because otherwise the values are misleading. Adjust that.
-                [ tr []
+                [ tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachedAll <| statisticsLanguage ]
                     , td []
                         [ text <| BigInt.toString <| reachedAll
@@ -160,7 +161,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
-                , tr []
+                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachableAll <| statisticsLanguage ]
                     , td []
                         [ text <|
@@ -176,7 +177,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
-                , tr []
+                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
                     , td []
                         [ text <| meanAbsoluteTotal
@@ -186,7 +187,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
-                , tr []
+                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
                     , td []
                         [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelative
@@ -276,7 +277,7 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
     section []
         (h3 []
             [ text <| projectName ]
-            :: [ table []
+            :: [ table [ Style.classes.elementsWithControlsTable ]
                     [ taskInfoHeader taskEditorLanguage statisticsLanguage
                     , tbody []
                         (List.concat

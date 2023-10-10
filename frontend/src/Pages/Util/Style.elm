@@ -45,6 +45,7 @@ classes :
         { area : Attribute msg
         , field : Attribute msg
         }
+    , statisticsLine : Attribute msg
     , tableHeader : Attribute msg
     , taskEditTable : Attribute msg
     , toggle : Attribute msg
@@ -90,6 +91,7 @@ classes =
         { area = class "search-area"
         , field = for "search-field"
         }
+    , statisticsLine = class "statistics-line"
     , tableHeader = class "table-header"
     , taskEditTable = class "task-edit-table"
     , toggle = class "toggle"
