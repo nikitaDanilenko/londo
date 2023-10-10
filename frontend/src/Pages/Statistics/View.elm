@@ -3,7 +3,7 @@ module Pages.Statistics.View exposing (view)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, h1, h3, hr, input, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, div, h1, h2, hr, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -275,7 +275,7 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
                 [ tr [] [ td [ colspan <| 10 ] [ hr [] [] ] ] ]
     in
     section []
-        (h3 []
+        (h2 []
             [ text <| projectName ]
             :: [ table [ Style.classes.elementsWithControlsTable ]
                     [ taskInfoHeader taskEditorLanguage statisticsLanguage
@@ -367,7 +367,7 @@ taskInfoColumns allTasks task =
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.withDefault "" <| task.unit ]
       }
-    , { attributes = [ Style.classes.editable ]
+    , { attributes = []
       , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
       }
     , { attributes = [ Style.classes.editable ]
@@ -429,6 +429,10 @@ updateTask language projectId task update =
         saveMsg =
             Page.SaveEditTask projectId <| .id <| task
 
+        filler =
+            List.repeat 5 <| td [] []
+
+        --todo: Consider a more stable way of computing the number of values
         infoColumns =
             [ td [ Style.classes.editable ]
                 [ text <| .name <| task ]
@@ -466,6 +470,7 @@ updateTask language projectId task update =
                     []
                 ]
             ]
+                ++ filler
 
         controlsRow =
             Pages.Util.ParentEditor.View.controlsRowWith

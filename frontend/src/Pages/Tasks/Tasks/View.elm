@@ -117,7 +117,7 @@ taskInfoColumns task =
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.withDefault "" <| task.unit ]
       }
-    , { attributes = [ Style.classes.editable ]
+    , { attributes = []
       , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
       }
     ]
