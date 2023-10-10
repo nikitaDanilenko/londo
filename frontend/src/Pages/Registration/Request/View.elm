@@ -82,6 +82,7 @@ viewEditing main =
             )
             []
         , button
+            --todo: Use native validation support from email field, and use a form submit button here.
             [ onClick Page.Request
             , Style.classes.button.confirm
             , disabled <| not <| isValid
