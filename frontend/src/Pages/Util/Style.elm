@@ -37,6 +37,7 @@ classes :
     , ellipsis : Attribute msg
     , info : Attribute msg
     , numberCell : Attribute msg
+    , numberHalfCell : Attribute msg
     , numberLabel : Attribute msg
     , pagination : Attribute msg
     , projectEditTable : Attribute msg
@@ -81,6 +82,7 @@ classes =
     , ellipsis = class "ellipsis"
     , info = class "info"
     , numberCell = class "number-cell"
+    , numberHalfCell = class "number-half-cell"
     , numberLabel = class "number-label"
     , pagination = class "pagination"
     , projectEditTable = class "project-edit-table"

@@ -420,6 +420,7 @@ editProgress ps taskKind editedValue =
                                 |> ps.updateMsg
                     , value <| .whole <| percentageParts
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }
@@ -442,6 +443,7 @@ editProgress ps taskKind editedValue =
                                 |> ps.updateMsg
                     , value <| decimal
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }
@@ -457,6 +459,7 @@ editProgress ps taskKind editedValue =
                                 editedValue
                     , value <| .text <| reachedLens.get <| editedValue
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }
@@ -474,6 +477,7 @@ editProgress ps taskKind editedValue =
                                 editedValue
                     , value <| Positive.toString <| .value <| reachableLens.get <| editedValue
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }
