@@ -148,6 +148,11 @@ nav table {
     text-align: left;
 }
 
+.editable input {
+    box-sizing: border-box;
+    width: 100%;
+}
+
 .toggle {
     text-align: right;
     width: 3%;
