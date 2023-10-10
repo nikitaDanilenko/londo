@@ -85,8 +85,7 @@ viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashbo
 viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
     let
         reachableAll =
-            tasks
-                |> Math.Statistics.sumWith (reachableInProject { countedOnly = False })
+            tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = False })
 
         reachableAllCounted =
             tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = True })
