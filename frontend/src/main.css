@@ -148,9 +148,15 @@ nav table {
     text-align: left;
 }
 
-.editable input {
+.editable input,
+select {
     box-sizing: border-box;
     width: 100%;
+}
+
+.number-half-cell {
+    box-sizing: border-box;
+    width: 45%;
 }
 
 .toggle {
