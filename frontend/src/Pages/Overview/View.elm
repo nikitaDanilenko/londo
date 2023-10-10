@@ -2,7 +2,7 @@ module Pages.Overview.View exposing (view)
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, p, text)
+import Html exposing (Html, p)
 import Pages.Overview.Page as Page
 import Pages.Util.Links as Links
 import Pages.Util.Style as Style
@@ -30,21 +30,21 @@ viewMain configuration main =
             [ Links.linkButton
                 { url = Links.frontendPage configuration <| Addresses.Frontend.projects.address <| ()
                 , attributes = [ Style.classes.button.overview ]
-                , children = [ text <| main.language.projects ]
+                , linkText = main.language.projects
                 }
             ]
         , p []
             [ Links.linkButton
                 { url = Links.frontendPage configuration <| Addresses.Frontend.dashboards.address <| ()
                 , attributes = [ Style.classes.button.overview ]
-                , children = [ text <| main.language.dashboards ]
+                , linkText = main.language.dashboards
                 }
             ]
         , p []
             [ Links.linkButton
                 { url = Links.frontendPage configuration <| Addresses.Frontend.userSettings.address <| ()
                 , attributes = [ Style.classes.button.overview ]
-                , children = [ text <| main.language.settings ]
+                , linkText = main.language.settings
                 }
             ]
         ]

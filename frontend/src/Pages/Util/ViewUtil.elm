@@ -153,7 +153,7 @@ navigationToPageButtonWith ps =
         --todo: This should be properly inactive, when disabled!
         { url = url
         , attributes = attributes
-        , children = [ text <| ps.nameOf <| ps.page ]
+        , linkText = ps.nameOf <| ps.page
         }
 
 

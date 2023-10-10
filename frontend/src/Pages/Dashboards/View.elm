@@ -3,7 +3,7 @@ module Pages.Dashboards.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, input, p, td, text, th, tr)
+import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -84,7 +84,7 @@ viewDashboardLine language configuration dashboard showControls =
             , Links.linkButton
                 { url = Links.frontendPage configuration <| Addresses.Frontend.dashboardEntries.address <| dashboard.id
                 , attributes = [ Style.classes.button.editor ]
-                , children = [ text <| language.dashboardEntryEditor ]
+                , linkText = language.dashboardEntryEditor
                 }
             , button
                 [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| dashboard.id ]
