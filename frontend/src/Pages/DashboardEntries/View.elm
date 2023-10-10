@@ -25,8 +25,7 @@ viewMain configuration main =
         , showNavigation = True
         }
     <|
-        [ Pages.DashboardEntries.Dashboard.View.viewMain configuration main.dashboard
-            |> Html.map Page.DashboardMsg
+        [ Pages.DashboardEntries.Dashboard.View.viewMain configuration main.dashboard |> Html.map Page.DashboardMsg
         , Pages.DashboardEntries.Entries.View.viewEntries configuration main.entries |> Html.map Page.EntriesMsg
         , Pages.DashboardEntries.Entries.View.viewProjects configuration main.entries |> Html.map Page.EntriesMsg
         ]

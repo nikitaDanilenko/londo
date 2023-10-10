@@ -1,7 +1,7 @@
 module Pages.Tasks.Project.View exposing (viewMain)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, td, text)
+import Html exposing (Html, button, text)
 import Html.Events exposing (onClick)
 import Pages.Projects.View
 import Pages.Tasks.Project.Page as Page
@@ -19,13 +19,12 @@ viewMain _ main =
             \project showControls ->
                 Pages.Projects.View.projectLineWith
                     { controls =
-                        [ td [ Style.classes.controls ]
-                            [ button [ Style.classes.button.edit, Pages.Util.Parent.Page.EnterEdit |> onClick ] [ text <| main.language.edit ] ]
-                        , td [ Style.classes.controls ]
-                            [ button
-                                [ Style.classes.button.delete, Pages.Util.Parent.Page.RequestDelete |> onClick ]
-                                [ text <| main.language.delete ]
-                            ]
+                        [ button
+                            [ Style.classes.button.edit, Pages.Util.Parent.Page.EnterEdit |> onClick ]
+                            [ text <| main.language.edit ]
+                        , button
+                            [ Style.classes.button.delete, Pages.Util.Parent.Page.RequestDelete |> onClick ]
+                            [ text <| main.language.delete ]
                         ]
                     , toggleMsg = Pages.Util.Parent.Page.ToggleControls
                     , showControls = showControls
@@ -47,13 +46,12 @@ viewMain _ main =
         , onDelete =
             Pages.Projects.View.projectLineWith
                 { controls =
-                    [ td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.delete, onClick <| Pages.Util.Parent.Page.ConfirmDelete ] [ text <| main.language.confirmDelete ] ]
-                    , td [ Style.classes.controls ]
-                        [ button
-                            [ Style.classes.button.confirm, onClick <| Pages.Util.Parent.Page.CancelDelete ]
-                            [ text <| main.language.cancel ]
-                        ]
+                    [ button
+                        [ Style.classes.button.delete, onClick <| Pages.Util.Parent.Page.ConfirmDelete ]
+                        [ text <| main.language.confirmDelete ]
+                    , button
+                        [ Style.classes.button.confirm, onClick <| Pages.Util.Parent.Page.CancelDelete ]
+                        [ text <| main.language.cancel ]
                     ]
                 , toggleMsg = Pages.Util.Parent.Page.ToggleControls
                 , showControls = True

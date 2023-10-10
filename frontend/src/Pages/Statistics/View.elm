@@ -3,7 +3,7 @@ module Pages.Statistics.View exposing (view)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, h3, hr, input, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, div, h3, hr, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -394,7 +394,7 @@ viewTask projectId language allTasks task showControls =
             \t ->
                 { display = taskInfoColumns allTasks t
                 , controls =
-                    [ td [ Style.classes.controls ]
+                    [ div []
                         [ button
                             [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| .id <| t ]
                             [ text <| .edit <| language ]

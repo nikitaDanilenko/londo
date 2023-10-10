@@ -75,16 +75,12 @@ viewTaskLine : Page.Language -> Page.Task -> Bool -> List (Html Page.LogicMsg)
 viewTaskLine language task showControls =
     taskLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| task.id ]
-                    [ text <| language.edit ]
-                ]
-            , td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| task.id ]
-                    [ text <| language.delete ]
-                ]
+            [ button
+                [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| task.id ]
+                [ text <| language.edit ]
+            , button
+                [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| task.id ]
+                [ text <| language.delete ]
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls task.id
         , showControls = showControls
@@ -96,13 +92,10 @@ deleteTaskLine : Page.Language -> Page.Task -> List (Html Page.LogicMsg)
 deleteTaskLine language task =
     taskLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| task.id ] [ text <| language.confirmDelete ] ]
-            , td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.confirm, onClick <| Pages.Util.ParentEditor.Page.CancelDelete <| task.id ]
-                    [ text <| language.cancel ]
-                ]
+            [ button [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| task.id ] [ text <| language.confirmDelete ]
+            , button
+                [ Style.classes.button.confirm, onClick <| Pages.Util.ParentEditor.Page.CancelDelete <| task.id ]
+                [ text <| language.cancel ]
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls <| task.id
         , showControls = True

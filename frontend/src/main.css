@@ -11,7 +11,8 @@ nav .navigation-button,
 .edit-button,
 .editor-button,
 .delete-button,
-.menu-button {
+.menu-button,
+.select-button {
     text-decoration: none;
     text-align: center;
     color: black;
@@ -55,8 +56,13 @@ nav .navigation-button:hover:not(.disabled),
 .cancel-button,
 .edit-button,
 .editor-button,
-.delete-button {
+.delete-button,
+.select-button {
     padding: 8px 16px;
+    margin: 0 4px;
+}
+
+.new-element-button {
     margin: 16px 8px;
 }
 
@@ -66,12 +72,14 @@ nav .navigation-button:hover:not(.disabled),
 }
 
 .new-element-button,
-.confirm-button {
+.confirm-button,
+.select-button {
     border: 2px solid rgb(76 175 80);
 }
 
 .new-element-button:hover,
-.confirm-button:not(:disabled):hover {
+.confirm-button:not(:disabled):hover,
+.select-button:not(:disabled):hover {
     background-color: rgb(76 175 80);
     color: white;
 }
@@ -162,6 +170,11 @@ select {
 .toggle {
     text-align: right;
     width: 3%;
+}
+
+.controls div {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
 .editing:hover {

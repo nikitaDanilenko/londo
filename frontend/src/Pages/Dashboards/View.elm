@@ -3,7 +3,7 @@ module Pages.Dashboards.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, input, td, text, th, tr)
+import Html exposing (Attribute, Html, button, input, p, td, text, th, tr)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -78,23 +78,17 @@ viewDashboardLine : Page.Language -> Configuration -> Page.Dashboard -> Bool -> 
 viewDashboardLine language configuration dashboard showControls =
     dashboardLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| dashboard.id ]
-                    [ text <| language.edit ]
-                ]
-            , td [ Style.classes.controls ]
-                [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.dashboardEntries.address <| dashboard.id
-                    , attributes = [ Style.classes.button.editor ]
-                    , children = [ text <| language.dashboardEntryEditor ]
-                    }
-                ]
-            , td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| dashboard.id ]
-                    [ text <| language.delete ]
-                ]
+            [ button
+                [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| dashboard.id ]
+                [ text <| language.edit ]
+            , Links.linkButton
+                { url = Links.frontendPage configuration <| Addresses.Frontend.dashboardEntries.address <| dashboard.id
+                , attributes = [ Style.classes.button.editor ]
+                , children = [ text <| language.dashboardEntryEditor ]
+                }
+            , button
+                [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| dashboard.id ]
+                [ text <| language.delete ]
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls dashboard.id
         , showControls = showControls
@@ -106,13 +100,12 @@ deleteDashboardLine : Page.Language -> Page.Dashboard -> List (Html Page.LogicMs
 deleteDashboardLine language dashboard =
     dashboardLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| dashboard.id ] [ text <| language.confirmDelete ] ]
-            , td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.confirm, onClick <| Pages.Util.ParentEditor.Page.CancelDelete <| dashboard.id ]
-                    [ text <| language.cancel ]
-                ]
+            [ button
+                [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| dashboard.id ]
+                [ text <| language.confirmDelete ]
+            , button
+                [ Style.classes.button.confirm, onClick <| Pages.Util.ParentEditor.Page.CancelDelete <| dashboard.id ]
+                [ text <| language.cancel ]
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls <| dashboard.id
         , showControls = True

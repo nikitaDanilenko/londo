@@ -1,7 +1,7 @@
 module Pages.Util.ParentEditor.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, nav, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, div, nav, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -149,11 +149,9 @@ lineWith ps parent =
                 )
 
         controlsRow =
-            tr []
+            tr [ Style.classes.controls ]
                 [ td [ colspan <| List.length <| displayColumns ]
-                    [ table [ Style.classes.elementsWithControlsTable ]
-                        [ tr [] row.controls ]
-                    ]
+                    [ div [] row.controls ]
                 ]
     in
     infoRow
@@ -193,25 +191,19 @@ controlsRowWith :
     }
     -> Html msg
 controlsRowWith ps =
-    tr []
+    tr [ Style.classes.controls ]
         [ td [ colspan <| ps.colspan ]
-            [ table [ Style.classes.elementsWithControlsTable ]
-                [ tr []
-                    [ td [ Style.classes.controls ]
-                        [ button
-                            ([ MaybeUtil.defined <| Style.classes.button.confirm
-                             , MaybeUtil.defined <| disabled <| not <| ps.validInput
-                             , MaybeUtil.optional ps.validInput <| onClick ps.confirm.msg
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            [ text <| ps.confirm.name ]
-                        ]
-                    , td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.cancel, onClick <| ps.cancel.msg ]
-                            [ text <| ps.cancel.name ]
-                        ]
-                    ]
+            [ div []
+                [ button
+                    ([ MaybeUtil.defined <| Style.classes.button.confirm
+                     , MaybeUtil.defined <| disabled <| not <| ps.validInput
+                     , MaybeUtil.optional ps.validInput <| onClick ps.confirm.msg
+                     ]
+                        |> Maybe.Extra.values
+                    )
+                    [ text <| ps.confirm.name ]
+                , button [ Style.classes.button.cancel, onClick <| ps.cancel.msg ]
+                    [ text <| ps.cancel.name ]
                 ]
             ]
         ]

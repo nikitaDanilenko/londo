@@ -1,7 +1,7 @@
 module Pages.DashboardEntries.Entries.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, td, text, th)
+import Html exposing (Html, button, text, th)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -34,8 +34,10 @@ viewEntries configuration main =
             \entry ->
                 { display = projectInfoFromMap main.choices entry.projectId
                 , controls =
-                    [ td [ Style.classes.controls ] [ button [ Style.classes.button.delete, onClick <| Pages.Util.Choice.Page.RequestDelete <| entry.projectId ] [ text <| .delete <| main.language ] ]
-                    , td [ Style.classes.controls ] [ NavigationUtil.projectEditorLinkButton configuration entry.projectId <| .taskEditor <| main.language ]
+                    [ button
+                        [ Style.classes.button.delete, onClick <| Pages.Util.Choice.Page.RequestDelete <| entry.projectId ]
+                        [ text <| .delete <| main.language ]
+                    , NavigationUtil.projectEditorLinkButton configuration entry.projectId <| .taskEditor <| main.language
                     ]
                 }
         , isValidInput = always True
@@ -81,35 +83,27 @@ viewProjects configuration main =
                              }
                            ]
                 , controls =
-                    [ td [ Style.classes.controls ]
-                        [ button
-                            ([ MaybeUtil.defined <| confirmStyle
-                             , MaybeUtil.defined <| disabled <| not <| validInput
-                             , MaybeUtil.optional validInput <| onClick addMsg
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            [ text <| confirmName ]
-                        ]
-                    , td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.cancel, onClick <| cancelMsg ] [ text <| .cancel <| .language <| main ] ]
+                    [ button
+                        ([ MaybeUtil.defined <| confirmStyle
+                         , MaybeUtil.defined <| disabled <| not <| validInput
+                         , MaybeUtil.optional validInput <| onClick addMsg
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        [ text <| confirmName ]
+                    , button
+                        [ Style.classes.button.cancel, onClick <| cancelMsg ]
+                        [ text <| .cancel <| .language <| main ]
                     ]
                 }
         , viewChoiceLine =
             \project ->
-                { display =
-                    Pages.Projects.View.projectInfoColumns project
-                        ++ [ { attributes = [ Style.classes.editable, Style.classes.numberCell ]
-                             , children = []
-                             }
-                           ]
+                { display = Pages.Projects.View.projectInfoColumns project
                 , controls =
-                    [ td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.select, onClick <| Pages.Util.Choice.Page.SelectChoice <| project ]
-                            [ text <| .select <| .language <| main ]
-                        ]
-                    , td [ Style.classes.controls ]
-                        [ NavigationUtil.projectEditorLinkButton configuration project.id main.language.projects ]
+                    [ button
+                        [ Style.classes.button.select, onClick <| Pages.Util.Choice.Page.SelectChoice <| project ]
+                        [ text <| .select <| .language <| main ]
+                    , NavigationUtil.projectEditorLinkButton configuration project.id main.language.taskEditor
                     ]
                 }
         }

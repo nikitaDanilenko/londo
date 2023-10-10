@@ -1,7 +1,7 @@
 module Pages.Util.Choice.View exposing (viewChoices, viewElements)
 
 import Basics.Extra exposing (flip)
-import Html exposing (Attribute, Html, button, h2, nav, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, div, h2, nav, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -256,9 +256,8 @@ elementLineWith ps element =
                 )
 
         controlsRow =
-            tr []
-                [ td [ colspan <| List.length <| displayColumns ] [ table [ Style.classes.elementsWithControlsTable ] [ tr [] (.controls <| info) ] ]
-                ]
+            tr [ Style.classes.controls ]
+                [ td [ colspan <| List.length <| displayColumns ] [ div [] (.controls <| info) ] ]
     in
     infoRow
         :: (if ps.showControls then
@@ -314,23 +313,19 @@ editElementLine ps element elementUpdateClientInput =
         controlsRow =
             tr []
                 [ td [ colspan <| List.length <| editCells ]
-                    [ table [ Style.classes.elementsWithControlsTable ]
-                        [ tr []
-                            [ td [ Style.classes.controls ]
-                                [ button
-                                    ([ MaybeUtil.defined <| Style.classes.button.confirm
-                                     , MaybeUtil.defined <| disabled <| not <| validInput
-                                     , MaybeUtil.optional validInput <| onClick saveMsg
-                                     ]
-                                        |> Maybe.Extra.values
-                                    )
-                                    [ text <| "Save" ]
-                                ]
-                            , td [ Style.classes.controls ]
-                                [ button [ Style.classes.button.cancel, onClick cancelMsg ]
-                                    [ text <| "Cancel" ]
-                                ]
-                            ]
+                    [ div []
+                        [ button
+                            ([ MaybeUtil.defined <| Style.classes.button.confirm
+                             , MaybeUtil.defined <| disabled <| not <| validInput
+                             , MaybeUtil.optional validInput <| onClick saveMsg
+                             ]
+                                |> Maybe.Extra.values
+                            )
+                            [ text <| "Save" ]
+                        ]
+                    , td [ Style.classes.controls ]
+                        [ button [ Style.classes.button.cancel, onClick cancelMsg ]
+                            [ text <| "Cancel" ]
                         ]
                     ]
                 ]
@@ -361,8 +356,9 @@ viewChoiceLine ps choice showControls =
                 (columns ++ [ HtmlUtil.toggleControlsCell toggleCommand ])
 
         controlsRow =
-            tr []
-                [ td [ colspan <| List.length <| columns ] [ table [ Style.classes.elementsWithControlsTable ] [ tr [] rowWithControls.controls ] ]
+            tr [ Style.classes.controls ]
+                [ td [ colspan <| List.length <| columns ]
+                    [ div [] rowWithControls.controls ]
                 ]
     in
     infoRow
@@ -400,13 +396,9 @@ editElementCreation ps choice creation =
 
         -- Extra column because the name is fixed
         controlsRow =
-            tr []
+            tr [ Style.classes.controls ]
                 [ td [ colspan <| (+) 1 <| List.length <| rowWithControls.display ]
-                    [ table [ Style.classes.elementsWithControlsTable ]
-                        [ tr []
-                            rowWithControls.controls
-                        ]
-                    ]
+                    [ div [] rowWithControls.controls ]
                 ]
     in
     [ creationRow, controlsRow ]
