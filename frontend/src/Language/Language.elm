@@ -151,6 +151,7 @@ type alias Statistics =
     , differenceOneCounted : String
     , differenceCompleteTotal : String
     , differenceCompleteCounted : String
+    , statistics : String
     }
 
 
@@ -279,6 +280,7 @@ english =
         , differenceOneCounted = "Δ (counted)"
         , differenceCompleteTotal = "After completion (total)"
         , differenceCompleteCounted = "After completion (counted)"
+        , statistics = "Statistics"
         }
     }
 
