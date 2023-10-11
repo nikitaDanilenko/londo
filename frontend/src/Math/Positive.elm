@@ -1,4 +1,4 @@
-module Math.Positive exposing (Positive, fromBigIntOrOne, fromString, integerValue, one, oneHundred, selection, sum, tenToTheNth, toGraphQLInput, toString)
+module Math.Positive exposing (Positive, fromBigIntOrOne, fromInt, fromString, integerValue, one, oneHundred, selection, sum, tenToTheNth, toGraphQLInput, toString)
 
 import BigInt exposing (BigInt)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -30,10 +30,18 @@ toString =
 
 
 fromString : String -> Maybe Positive
-fromString s =
-    BigInt.fromIntString s
-        |> Maybe.Extra.filter (\x -> BigInt.gt x Constants.zeroBigInt)
-        |> Maybe.map Positive
+fromString =
+    BigInt.fromIntString
+        >> Maybe.Extra.filter (\x -> BigInt.gt x Constants.zeroBigInt)
+        >> Maybe.map Positive
+
+
+fromInt : Int -> Maybe Positive
+fromInt =
+    BigInt.fromInt
+        >> Just
+        >> Maybe.Extra.filter (\x -> BigInt.gt x Constants.zeroBigInt)
+        >> Maybe.map Positive
 
 
 one : Positive
