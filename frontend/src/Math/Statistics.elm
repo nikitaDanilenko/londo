@@ -4,7 +4,7 @@ import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Math.Constants
-import Math.Positive as Positive
+import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
 import Types.Progress.Progress
 
@@ -19,12 +19,12 @@ bigRationalZero =
     BigRational.fromInt 0
 
 
-relative : Int -> List Types.Progress.Progress.Progress -> BigRational
+relative : Positive -> List Types.Progress.Progress.Progress -> BigRational
 relative divisor =
     List.foldl
         (Types.Progress.Progress.toPercentRational >> BigRational.add)
         bigRationalZero
-        >> flip BigRational.div (divisor |> BigRational.fromInt)
+        >> flip BigRational.div (divisor |> Positive.integerValue |> BigRational.fromBigInt)
 
 
 {-| The difference if one additional reachable point is added is
