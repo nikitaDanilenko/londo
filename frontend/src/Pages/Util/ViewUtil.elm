@@ -2,7 +2,7 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, main_, nav, table, tbody, td, text, tr)
+import Html exposing (Html, button, header, main_, nav, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -34,8 +34,8 @@ viewMainWith params html =
                 |> List.filter (always params.showNavigation)
     in
     main_ []
-        (navigation
-            ++ html
+        (header [] navigation
+            :: html
         )
 
 
