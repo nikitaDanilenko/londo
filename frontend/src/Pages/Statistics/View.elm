@@ -56,7 +56,7 @@ viewMain configuration main =
         viewDashboard main.languages.statistics
             main.languages.dashboard
             main.dashboard
-            groupedTasks
+            (groupedTasks |> List.map (List.map .task))
             :: (main.projects
                     |> DictList.values
                     |> List.map
@@ -254,14 +254,14 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
                 |> DictList.values
 
         ( finished, unfinished ) =
-            tasks |> List.partition (.original >> .progress >> Types.Progress.Progress.isComplete)
+            tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
 
         display =
-            List.sortBy (.original >> .name)
+            List.sortBy (.original >> .task >> .name)
                 >> List.concatMap
                     (Editing.unpack
-                        { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
-                        , onUpdate = updateTask taskEditorLanguage project.id
+                        { onView = .task >> viewTask project.id taskEditorLanguage (tasks |> List.map (.original >> .task))
+                        , onUpdate = .task >> updateTask taskEditorLanguage project.id
                         , onDelete = \_ -> []
                         }
                     )

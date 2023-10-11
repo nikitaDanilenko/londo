@@ -14,6 +14,7 @@ import Types.Project.Id
 import Types.Project.Project
 import Types.Project.Resolved
 import Types.Task.Id
+import Types.Task.Resolved
 import Types.Task.Task
 import Types.Task.Update
 import Util.DictList as DictList exposing (DictList)
@@ -51,6 +52,10 @@ type alias ResolvedProject =
 
 type alias Task =
     Types.Task.Task.Task
+
+
+type alias ResolvedTask =
+    Types.Task.Resolved.Resolved
 
 
 type alias TaskUpdate =
@@ -126,7 +131,7 @@ initialToMain i =
                                 resolvedProject
                                     |> .tasks
                                     |> List.map Editing.asView
-                                    |> DictList.fromListWithKey (.original >> .id)
+                                    |> DictList.fromListWithKey (.original >> .task >> .id)
                             }
                         )
                     |> DictList.fromListWithKey (.project >> .id)

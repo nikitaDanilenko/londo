@@ -11,6 +11,7 @@ import Pages.Util.PaginationSettings as PaginationSettings
 import Pages.View.Tristate as Tristate
 import Result.Extra
 import Types.Dashboard.DeeplyResolved
+import Types.Task.Resolved
 import Types.Task.Update
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing exposing (Editing)
@@ -87,7 +88,8 @@ updateLogic msg model =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
                     (\task ->
-                        model |> updateTaskById projectId task.id (Editing.asViewWithElement task >> Editing.toggleControls)
+                        --todo: Handle simulation correctly
+                        model |> updateTaskById projectId task.id (Editing.asViewWithElement { task = task, simulation = Nothing } >> Editing.toggleControls)
                     )
             , Cmd.none
             )
@@ -100,7 +102,8 @@ updateLogic msg model =
 
         enterEditTask projectId taskId =
             ( model
-                |> updateTaskById projectId taskId (Editing.toUpdate Types.Task.Update.from)
+                |> updateTaskById projectId taskId (Editing.toUpdate (.task >> Types.Task.Update.from))
+              --todo: Handle simulation correctly
             , Cmd.none
             )
 
@@ -162,7 +165,7 @@ updateLogic msg model =
 updateTaskById :
     Page.ProjectId
     -> Page.TaskId
-    -> (Editing Page.Task Page.TaskUpdate -> Editing Page.Task Page.TaskUpdate)
+    -> (Editing Page.ResolvedTask Page.TaskUpdate -> Editing Page.ResolvedTask Page.TaskUpdate)
     -> Page.Model
     -> Page.Model
 updateTaskById projectId taskId =
