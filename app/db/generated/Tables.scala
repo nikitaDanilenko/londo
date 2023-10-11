@@ -193,18 +193,20 @@ trait Tables {
    *  @param taskId Database column task_id SqlType(uuid)
    *  @param projectId Database column project_id SqlType(uuid)
    *  @param dashboardId Database column dashboard_id SqlType(uuid)
-   *  @param reachedModifier Database column reached_modifier SqlType(int4) */
-  case class SimulationRow(taskId: java.util.UUID, projectId: java.util.UUID, dashboardId: java.util.UUID, reachedModifier: Int)
+   *  @param reachedModifier Database column reached_modifier SqlType(int4)
+   *  @param createdAt Database column created_at SqlType(timestamptz)
+   *  @param updatedAt Database column updated_at SqlType(timestamptz), Default(None) */
+  case class SimulationRow(taskId: java.util.UUID, projectId: java.util.UUID, dashboardId: java.util.UUID, reachedModifier: Int, createdAt: java.sql.Timestamp, updatedAt: Option[java.sql.Timestamp] = None)
   /** GetResult implicit for fetching SimulationRow objects using plain SQL queries */
-  implicit def GetResultSimulationRow(implicit e0: GR[java.util.UUID], e1: GR[Int]): GR[SimulationRow] = GR{
+  implicit def GetResultSimulationRow(implicit e0: GR[java.util.UUID], e1: GR[Int], e2: GR[java.sql.Timestamp], e3: GR[Option[java.sql.Timestamp]]): GR[SimulationRow] = GR{
     prs => import prs._
-    SimulationRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[java.util.UUID], <<[Int]))
+    SimulationRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[java.util.UUID], <<[Int], <<[java.sql.Timestamp], <<?[java.sql.Timestamp]))
   }
   /** Table description of table simulation. Objects of this class serve as prototypes for rows in queries. */
   class Simulation(_tableTag: Tag) extends profile.api.Table[SimulationRow](_tableTag, "simulation") {
-    def * = (taskId, projectId, dashboardId, reachedModifier) <> (SimulationRow.tupled, SimulationRow.unapply)
+    def * = (taskId, projectId, dashboardId, reachedModifier, createdAt, updatedAt) <> (SimulationRow.tupled, SimulationRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = ((Rep.Some(taskId), Rep.Some(projectId), Rep.Some(dashboardId), Rep.Some(reachedModifier))).shaped.<>({r=>import r._; _1.map(_=> SimulationRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = ((Rep.Some(taskId), Rep.Some(projectId), Rep.Some(dashboardId), Rep.Some(reachedModifier), Rep.Some(createdAt), updatedAt)).shaped.<>({r=>import r._; _1.map(_=> SimulationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column task_id SqlType(uuid) */
     val taskId: Rep[java.util.UUID] = column[java.util.UUID]("task_id")
@@ -214,6 +216,10 @@ trait Tables {
     val dashboardId: Rep[java.util.UUID] = column[java.util.UUID]("dashboard_id")
     /** Database column reached_modifier SqlType(int4) */
     val reachedModifier: Rep[Int] = column[Int]("reached_modifier")
+    /** Database column created_at SqlType(timestamptz) */
+    val createdAt: Rep[java.sql.Timestamp] = column[java.sql.Timestamp]("created_at")
+    /** Database column updated_at SqlType(timestamptz), Default(None) */
+    val updatedAt: Rep[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("updated_at", O.Default(None))
 
     /** Primary key of Simulation (database name simulation_pk) */
     val pk = primaryKey("simulation_pk", (taskId, dashboardId))
