@@ -3,13 +3,16 @@ package services.simulation
 import db.generated.Tables
 import db.{ DashboardId, ProjectId, TaskId }
 import io.scalaland.chimney.Transformer
+import io.scalaland.chimney.dsl._
 import utils.transformer.implicits._
 
+import java.time.LocalDateTime
+import java.util.UUID
+
 case class Simulation(
-    taskId: TaskId,
-    projectId: ProjectId,
-    dashboardId: DashboardId,
-    reachedModifier: Int
+    reachedModifier: Int,
+    createdAt: LocalDateTime,
+    updatedAt: Option[LocalDateTime]
 )
 
 object Simulation {
@@ -19,9 +22,16 @@ object Simulation {
       .define[Tables.SimulationRow, Simulation]
       .buildTransformer
 
-  implicit val toDB: Transformer[Simulation, Tables.SimulationRow] =
-    Transformer
-      .define[Simulation, Tables.SimulationRow]
-      .buildTransformer
+  implicit val toDB: Transformer[(Simulation, TaskId, DashboardId, ProjectId), Tables.SimulationRow] = {
+    case (simulation, taskId, dashboardId, projectId) =>
+      Tables.SimulationRow(
+        taskId = taskId.transformInto[UUID],
+        projectId = projectId.transformInto[UUID],
+        dashboardId = dashboardId.transformInto[UUID],
+        reachedModifier = simulation.reachedModifier,
+        createdAt = simulation.createdAt.transformInto[java.sql.Timestamp],
+        updatedAt = simulation.updatedAt.map(_.transformInto[java.sql.Timestamp])
+      )
+  }
 
 }
