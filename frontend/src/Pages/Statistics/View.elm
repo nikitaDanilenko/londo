@@ -121,13 +121,15 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                 |> List.filterMap (Just >> Maybe.Extra.filter .counting >> Maybe.map .progress)
 
         meanRelative =
-            Math.Statistics.relative numberOfAllTasks allProgresses
+            Positive.fromInt numberOfAllTasks
+                |> Maybe.Extra.unwrap (BigRational.fromInt 0) (\p -> Math.Statistics.relative p allProgresses)
 
         numberOfCountingTasks =
             countingProgresses |> List.length
 
         meanRelativeCounted =
-            Math.Statistics.relative numberOfCountingTasks countingProgresses
+            Positive.fromInt numberOfCountingTasks
+                |> Maybe.Extra.unwrap (BigRational.fromInt 0) (\p -> Math.Statistics.relative p countingProgresses)
     in
     section []
         [ table [ Style.classes.elementsWithControlsTable ]
