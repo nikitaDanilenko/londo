@@ -1,6 +1,5 @@
 module Util.DictListUtil exposing (..)
 
-import Maybe.Extra
 import Util.DictList as DictList exposing (DictList)
 
 
