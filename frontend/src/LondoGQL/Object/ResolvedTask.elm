@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.DeeplyResolvedDashboard exposing (..)
+module LondoGQL.Object.ResolvedTask exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,15 +19,15 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-dashboard :
-    SelectionSet decodesTo LondoGQL.Object.Dashboard
-    -> SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedDashboard
-dashboard object____ =
-    Object.selectionForCompositeField "dashboard" [] object____ Basics.identity
+task :
+    SelectionSet decodesTo LondoGQL.Object.Task
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedTask
+task object____ =
+    Object.selectionForCompositeField "task" [] object____ Basics.identity
 
 
-resolvedProjects :
-    SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedProject
-    -> SelectionSet (List decodesTo) LondoGQL.Object.DeeplyResolvedDashboard
-resolvedProjects object____ =
-    Object.selectionForCompositeField "resolvedProjects" [] object____ (Basics.identity >> Decode.list)
+simulation :
+    SelectionSet decodesTo LondoGQL.Object.Simulation
+    -> SelectionSet (Maybe decodesTo) LondoGQL.Object.ResolvedTask
+simulation object____ =
+    Object.selectionForCompositeField "simulation" [] object____ (Basics.identity >> Decode.nullable)
