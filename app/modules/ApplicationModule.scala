@@ -21,6 +21,7 @@ class ApplicationModule extends play.api.inject.Module {
       bind[db.daos.session.DAO].toInstance(db.daos.session.DAO.instance),
       bind[db.daos.task.DAO].toInstance(db.daos.task.DAO.instance),
       bind[db.daos.user.DAO].toInstance(db.daos.user.DAO.instance),
+      bind[db.daos.simulation.DAO].toInstance(db.daos.simulation.DAO.instance),
       bind[DashboardService.Companion].to[services.dashboard.Live.Companion],
       bind[DashboardService].to[services.dashboard.Live],
       bind[DashboardEntryService.Companion].to[services.dashboardEntry.Live.Companion],
