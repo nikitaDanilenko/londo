@@ -7,6 +7,7 @@ import services.dashboardEntry.DashboardEntryService
 import services.loginThrottle.LoginThrottleService
 import services.project.ProjectService
 import services.session.SessionService
+import services.simulation.SimulationService
 import services.task.TaskService
 import services.user.UserService
 
@@ -35,7 +36,9 @@ class ApplicationModule extends play.api.inject.Module {
       bind[TaskService.Companion].to[services.task.Live.Companion],
       bind[TaskService].to[services.task.Live],
       bind[UserService.Companion].to[services.user.Live.Companion],
-      bind[UserService].to[services.user.Live]
+      bind[UserService].to[services.user.Live],
+      bind[SimulationService.Companion].to[services.simulation.Live.Companion],
+      bind[SimulationService].to[services.simulation.Live]
     )
     settings
   }
