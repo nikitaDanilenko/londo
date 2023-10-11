@@ -1,6 +1,6 @@
 package services.simulation
 
-import db.{ DashboardId, ProjectId, TaskId, UserId }
+import db.{ DashboardId, TaskId, UserId }
 import errors.ServerError
 import services.DBError
 import slick.dbio.DBIO
@@ -9,7 +9,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 trait SimulationService {
 
-  def all(userId: UserId, dashboardId: DashboardId): Future[Map[ProjectId, Seq[Simulation]]]
+  def all(userId: UserId, dashboardId: DashboardId): Future[Map[TaskId, Simulation]]
 
   def create(
       userId: UserId,
@@ -40,7 +40,7 @@ object SimulationService {
     def all(
         userId: UserId,
         dashboardId: DashboardId
-    )(implicit ec: ExecutionContext): DBIO[Seq[Simulation]]
+    )(implicit ec: ExecutionContext): DBIO[Map[TaskId, Simulation]]
 
     def create(
         userId: UserId,
@@ -64,6 +64,6 @@ object SimulationService {
 
   }
 
-  def notFound[A]: DBIO[A] = DBIO.failed(DBError.Project.NotFound)
+  def notFound[A]: DBIO[A] = DBIO.failed(DBError.Simulation.NotFound)
 
 }

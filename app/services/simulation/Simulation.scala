@@ -22,11 +22,10 @@ object Simulation {
       .define[Tables.SimulationRow, Simulation]
       .buildTransformer
 
-  implicit val toDB: Transformer[(Simulation, TaskId, DashboardId, ProjectId), Tables.SimulationRow] = {
-    case (simulation, taskId, dashboardId, projectId) =>
+  implicit val toDB: Transformer[(Simulation, TaskId, DashboardId), Tables.SimulationRow] = {
+    case (simulation, taskId, dashboardId) =>
       Tables.SimulationRow(
         taskId = taskId.transformInto[UUID],
-        projectId = projectId.transformInto[UUID],
         dashboardId = dashboardId.transformInto[UUID],
         reachedModifier = simulation.reachedModifier,
         createdAt = simulation.createdAt.transformInto[java.sql.Timestamp],
