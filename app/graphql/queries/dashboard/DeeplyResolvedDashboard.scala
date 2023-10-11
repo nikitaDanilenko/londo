@@ -1,13 +1,12 @@
 package graphql.queries.dashboard
 
-import graphql.queries.project.ResolvedProject
 import graphql.types.dashboard.Dashboard
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.OutputType
 
 case class DeeplyResolvedDashboard(
     dashboard: Dashboard,
-    resolvedProjects: Seq[ResolvedProject]
+    resolvedProjects: Seq[DeeplyResolvedProject]
 )
 
 object DeeplyResolvedDashboard {
