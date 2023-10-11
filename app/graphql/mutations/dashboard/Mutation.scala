@@ -84,16 +84,5 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         )
         .handleServerError
     }
-//    for {
-//      _ <- validateDashboardWriteAccess(dashboardId) { _ => IO.pure(ServerError.result(())) }
-//      dashboard <- validateProjectAccess(graphQLServices.projectService, projectId, _.readAccessors.accessors) {
-//        (_, _) =>
-//          graphQLServices.dashboardService
-//            .removeProject(
-//              dashboardId = dashboardId.toInternal,
-//              projectId = projectId.toInternal
-//            )
-//      }
-//    } yield dashboard.fromInternal[Dashboard]
 
 }
