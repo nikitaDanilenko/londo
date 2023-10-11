@@ -1,6 +1,8 @@
 module Types.Simulation.Simulation exposing (..)
 
+import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import LondoGQL.Mutation
 import LondoGQL.Object
 import LondoGQL.Object.Simulation
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
@@ -26,12 +28,15 @@ deleteWith :
     -> Types.Dashboard.Id.Id
     -> Types.Task.Id.Id
     -> Cmd msg
-
-
-deleteWIth expect authorizedAccess dashboardId taskId =
+deleteWith expect authorizedAccess dashboardId taskId =
     LondoGQL.Mutation.deleteSimulation
-        expect
-        authorizedAccess
-        (HttpUtil.graphqlUrl ++ "/simulation")
-        (LondoGQL.Object.Simulation.delete dashboardId taskId)
-        ()
+        { input =
+            { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
+            , taskId = taskId |> Types.Task.Id.toGraphQLInput
+            }
+        }
+        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
+        |> HttpUtil.sendWithJWT
+            { jwt = authorizedAccess.jwt
+            , expect = expect dashboardId taskId
+            }
