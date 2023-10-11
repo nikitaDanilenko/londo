@@ -3,7 +3,7 @@ module Pages.View.Tristate exposing (Model, Msg(..), Status(..), createInitial, 
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Graphql.Http
-import Html exposing (Html, button, div, label, table, td, text, tr)
+import Html exposing (Html, button, main_, table, td, text, tr)
 import Html.Events exposing (onClick)
 import Maybe.Extra
 import Monocle.Optional exposing (Optional)
@@ -188,7 +188,7 @@ view :
 view ps t =
     case t.status of
         Initial _ ->
-            div [] [ Links.loadingSymbol ]
+            main_ [] [ Links.loadingSymbol ]
 
         Main main ->
             ps.viewMain t.configuration main |> Html.map Logic
@@ -200,8 +200,8 @@ view ps t =
                         []
 
                     else
-                        [ td [] [ label [] [ text "Try the following:" ] ]
-                        , td [] [ label [] [ text <| errorState.errorExplanation.possibleSolution ] ]
+                        [ td [] [ text "Try the following:" ] --todo: use language elements
+                        , td [] [ text <| errorState.errorExplanation.possibleSolution ]
                         ]
 
                 redirectRow =
@@ -214,7 +214,7 @@ view ps t =
                                     [ td []
                                         [ Links.toLoginButtonWith
                                             { configuration = configuration
-                                            , buttonText = "Login"
+                                            , buttonText = "Login" -- todo: Use language elements
                                             , attributes = [ Style.classes.button.error ]
                                             }
                                         ]
@@ -225,7 +225,7 @@ view ps t =
                 reloadRow =
                     [ tr []
                         [ td []
-                            [ button [ onClick HandleError, Style.classes.button.error ] [ text "Retry" ]
+                            [ button [ onClick HandleError, Style.classes.button.error ] [ text "Retry" ] -- todo: Use language elements
                             ]
                         ]
                     ]
@@ -234,8 +234,8 @@ view ps t =
             table
                 [ Style.ids.error ]
                 ([ tr []
-                    [ td [] [ label [] [ text "An error occurred:" ] ]
-                    , td [] [ label [] [ text <| errorState.errorExplanation.cause ] ]
+                    [ td [] [ text "An error occurred:" ] -- todo: Use language elements
+                    , td [] [ text <| errorState.errorExplanation.cause ]
                     ]
                  , tr [] solutionBlock
                  ]

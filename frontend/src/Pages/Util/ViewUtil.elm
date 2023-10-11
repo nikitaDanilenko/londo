@@ -2,7 +2,7 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, main_, nav, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -21,7 +21,7 @@ viewMainWith :
     , currentPage : Maybe Page
     , showNavigation : Bool
     }
-    -> Html msg
+    -> List (Html msg)
     -> Html msg
 viewMainWith params html =
     let
@@ -33,9 +33,9 @@ viewMainWith params html =
             ]
                 |> List.filter (always params.showNavigation)
     in
-    div []
+    main_ []
         (navigation
-            ++ [ html ]
+            ++ html
         )
 
 
@@ -132,25 +132,29 @@ navigationToPageButtonWith ps =
     let
         isDisabled =
             Maybe.Extra.unwrap False (\current -> current == ps.page) ps.currentPage
-    in
-    if isDisabled then
-        button
-            [ Style.classes.button.navigation
-            , Style.classes.disabled
-            , disabled True
-            ]
-            [ text <| ps.nameOf <| ps.page ]
 
-    else
-        Links.linkButton
-            { url =
+        attributes =
+            [ MaybeUtil.defined <| Style.classes.button.navigation
+            , MaybeUtil.optional isDisabled <| Style.classes.disabled
+            ]
+                |> Maybe.Extra.values
+
+        url =
+            if isDisabled then
+                ""
+
+            else
                 navigationLink
                     { mainPageURL = ps.mainPageURL
                     , page = ps.addressSuffix ps.page
                     }
-            , attributes = [ Style.classes.button.navigation ]
-            , children = [ text <| ps.nameOf <| ps.page ]
-            }
+    in
+    Links.linkButton
+        --todo: This should be properly inactive, when disabled!
+        { url = url
+        , attributes = attributes
+        , linkText = ps.nameOf <| ps.page
+        }
 
 
 navigationBar :
@@ -177,14 +181,14 @@ navigationBarWith :
     }
     -> Html msg
 navigationBarWith ps =
-    div [ Style.ids.navigation ]
+    nav [ Style.ids.navigation ]
         [ table []
-            [ thead []
+            [ tbody []
                 [ tr []
                     (ps.navigationPages
                         |> List.map
                             (\page ->
-                                th []
+                                td []
                                     [ ps.pageToButton page
                                     ]
                             )
@@ -206,7 +210,6 @@ pagerButtons ps =
                 ([ MaybeUtil.defined <| Style.classes.button.pager
                  , MaybeUtil.defined <| onClick <| ps.msg <| pageNum
                  , MaybeUtil.optional isCurrentPage <| disabled <| True
-                 , MaybeUtil.optional isCurrentPage <| Style.classes.disabled
                  ]
                     |> Maybe.Extra.values
                 )

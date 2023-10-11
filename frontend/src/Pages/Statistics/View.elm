@@ -3,7 +3,7 @@ module Pages.Statistics.View exposing (view)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, h3, hr, input, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, div, h1, h2, hr, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -53,17 +53,15 @@ viewMain configuration main =
                     |> DictList.values
                     |> List.map EditingResolvedProject.tasks
         in
-        section []
-            (viewDashboard main.languages.statistics
-                main.languages.dashboard
-                main.dashboard
-                groupedTasks
-                :: (main.projects
-                        |> DictList.values
-                        |> List.map
-                            (viewResolvedProject main.languages.taskEditor main.languages.statistics)
-                   )
-            )
+        viewDashboard main.languages.statistics
+            main.languages.dashboard
+            main.dashboard
+            groupedTasks
+            :: (main.projects
+                    |> DictList.values
+                    |> List.map
+                        (viewResolvedProject main.languages.taskEditor main.languages.statistics)
+               )
 
 
 numberOfDecimalPlaces : Int
@@ -87,8 +85,7 @@ viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashbo
 viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
     let
         reachableAll =
-            tasks
-                |> Math.Statistics.sumWith (reachableInProject { countedOnly = False })
+            tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = False })
 
         reachableAllCounted =
             tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = True })
@@ -133,14 +130,15 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
             Math.Statistics.relative numberOfCountingTasks countingProgresses
     in
     section []
-        [ table []
+        [ table [ Style.classes.elementsWithControlsTable ]
             [ Pages.Dashboards.View.tableHeader dashboardLanguage
-            , tr []
+            , tr [ Style.classes.statisticsLine ]
                 (Pages.Dashboards.View.dashboardInfoColumns dashboard
                     |> List.map (HtmlUtil.withExtraAttributes [])
                 )
             ]
-        , table []
+        , h1 [] [ text <| statisticsLanguage.statistics ]
+        , table [ Style.classes.elementsWithControlsTable ]
             [ thead []
                 [ tr []
                     [ th [] [ text <| "" ]
@@ -152,7 +150,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
             , tbody []
                 --todo: reachableAll, and reachedAll are only meaningful for non-percent values,
                 -- because otherwise the values are misleading. Adjust that.
-                [ tr []
+                [ tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachedAll <| statisticsLanguage ]
                     , td []
                         [ text <| BigInt.toString <| reachedAll
@@ -162,7 +160,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
-                , tr []
+                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachableAll <| statisticsLanguage ]
                     , td []
                         [ text <|
@@ -178,7 +176,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
-                , tr []
+                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
                     , td []
                         [ text <| meanAbsoluteTotal
@@ -188,7 +186,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                         ]
                     , td [] [ text <| "tba" ] -- todo: Add simulation
                     ]
-                , tr []
+                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
                     , td []
                         [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelative
@@ -276,9 +274,9 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
                 [ tr [] [ td [ colspan <| 10 ] [ hr [] [] ] ] ]
     in
     section []
-        (h3 []
+        (h2 []
             [ text <| projectName ]
-            :: [ table []
+            :: [ table [ Style.classes.elementsWithControlsTable ]
                     [ taskInfoHeader taskEditorLanguage statisticsLanguage
                     , tbody []
                         (List.concat
@@ -368,7 +366,7 @@ taskInfoColumns allTasks task =
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.withDefault "" <| task.unit ]
       }
-    , { attributes = [ Style.classes.editable ]
+    , { attributes = []
       , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
       }
     , { attributes = [ Style.classes.editable ]
@@ -396,7 +394,7 @@ viewTask projectId language allTasks task showControls =
             \t ->
                 { display = taskInfoColumns allTasks t
                 , controls =
-                    [ td [ Style.classes.controls ]
+                    [ div []
                         [ button
                             [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| .id <| t ]
                             [ text <| .edit <| language ]
@@ -430,6 +428,10 @@ updateTask language projectId task update =
         saveMsg =
             Page.SaveEditTask projectId <| .id <| task
 
+        filler =
+            List.repeat 5 <| td [] []
+
+        --todo: Consider a more stable way of computing the number of values
         infoColumns =
             [ td [ Style.classes.editable ]
                 [ text <| .name <| task ]
@@ -467,6 +469,7 @@ updateTask language projectId task update =
                     []
                 ]
             ]
+                ++ filler
 
         controlsRow =
             Pages.Util.ParentEditor.View.controlsRowWith

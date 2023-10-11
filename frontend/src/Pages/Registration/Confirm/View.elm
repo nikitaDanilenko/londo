@@ -2,7 +2,7 @@ module Pages.Registration.Confirm.View exposing (view)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, input, label, table, tbody, td, text, tr)
+import Html exposing (Html, button, h1, input, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -43,7 +43,7 @@ viewMain configuration main =
                 viewConfirmed configuration main.language
 
 
-viewEditing : Page.Main -> Html Page.LogicMsg
+viewEditing : Page.Main -> List (Html Page.LogicMsg)
 viewEditing main =
     let
         isValid =
@@ -60,97 +60,91 @@ viewEditing main =
             ComplementInput.lenses.passwordInput
                 |> Compose.lensWithLens PasswordInput.lenses.password2
     in
-    div [ Style.ids.confirmRegistration ]
-        [ div [] [ label [ Style.classes.info ] [ text <| main.language.header ] ]
-        , table []
-            [ tbody []
-                [ tr []
-                    [ td [] [ label [] [ text <| main.language.nickname ] ]
-                    , td [] [ label [] [ text <| main.userIdentifier.nickname ] ]
-                    ]
-                , tr []
-                    [ td [] [ label [] [ text <| main.language.email ] ]
-                    , td [] [ label [] [ text <| main.userIdentifier.email ] ]
-                    ]
-                , tr []
-                    [ td [] [ label [] [ text <| main.language.displayName ] ]
-                    , td []
-                        [ input
-                            ([ MaybeUtil.defined <|
-                                onInput <|
-                                    Just
-                                        >> Maybe.Extra.filter (String.isEmpty >> not)
-                                        >> (flip ComplementInput.lenses.displayName.set
-                                                main.complementInput
-                                                >> Page.SetComplementInput
-                                           )
-                             , MaybeUtil.defined <| Style.classes.editable
-                             , enterAction
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            []
-                        ]
-                    ]
-                , tr []
-                    [ td [] [ label [] [ text <| main.language.password ] ]
-                    , td []
-                        [ input
-                            ([ MaybeUtil.defined <|
-                                onInput <|
-                                    flip password1Lens.set
-                                        main.complementInput
-                                        >> Page.SetComplementInput
-                             , MaybeUtil.defined <| value <| password1Lens.get <| main.complementInput
-                             , MaybeUtil.defined <| type_ "password"
-                             , MaybeUtil.defined <| Style.classes.editable
-                             , enterAction
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            []
-                        ]
-                    ]
-                , tr []
-                    [ td [] [ label [] [ text <| main.language.passwordRepetition ] ]
-                    , td []
-                        [ input
-                            ([ MaybeUtil.defined <|
-                                onInput <|
-                                    flip password2Lens.set
-                                        main.complementInput
-                                        >> Page.SetComplementInput
-                             , MaybeUtil.defined <| value <| password2Lens.get <| main.complementInput
-                             , MaybeUtil.defined <| type_ "password"
-                             , MaybeUtil.defined <| Style.classes.editable
-                             , enterAction
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            []
-                        ]
+    [ h1 [ Style.classes.info ] [ text <| main.language.header ]
+    , table []
+        [ tbody []
+            [ tr []
+                [ td [] [ text <| main.language.nickname ]
+                , td [] [ text <| main.userIdentifier.nickname ]
+                ]
+            , tr []
+                [ td [] [ text <| main.language.email ]
+                , td [] [ text <| main.userIdentifier.email ]
+                ]
+            , tr []
+                [ td [] [ text <| main.language.displayName ]
+                , td []
+                    [ input
+                        ([ MaybeUtil.defined <|
+                            onInput <|
+                                Just
+                                    >> Maybe.Extra.filter (String.isEmpty >> not)
+                                    >> (flip ComplementInput.lenses.displayName.set
+                                            main.complementInput
+                                            >> Page.SetComplementInput
+                                       )
+                         , MaybeUtil.defined <| Style.classes.editable
+                         , enterAction
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        []
                     ]
                 ]
-            ]
-        , div []
-            [ button
-                [ onClick Page.Request
-                , Style.classes.button.confirm
-                , disabled <| not <| isValid
+            , tr []
+                [ td [] [ text <| main.language.password ]
+                , td []
+                    [ input
+                        ([ MaybeUtil.defined <|
+                            onInput <|
+                                flip password1Lens.set
+                                    main.complementInput
+                                    >> Page.SetComplementInput
+                         , MaybeUtil.defined <| value <| password1Lens.get <| main.complementInput
+                         , MaybeUtil.defined <| type_ "password"
+                         , MaybeUtil.defined <| Style.classes.editable
+                         , enterAction
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        []
+                    ]
                 ]
-                [ text <| main.language.confirm ]
+            , tr []
+                [ td [] [ text <| main.language.passwordRepetition ]
+                , td []
+                    [ input
+                        ([ MaybeUtil.defined <|
+                            onInput <|
+                                flip password2Lens.set
+                                    main.complementInput
+                                    >> Page.SetComplementInput
+                         , MaybeUtil.defined <| value <| password2Lens.get <| main.complementInput
+                         , MaybeUtil.defined <| type_ "password"
+                         , MaybeUtil.defined <| Style.classes.editable
+                         , enterAction
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        []
+                    ]
+                ]
             ]
         ]
+    , button
+        [ onClick Page.Request
+        , Style.classes.button.confirm
+        , disabled <| not <| isValid
+        ]
+        [ text <| main.language.confirm ]
+    ]
 
 
-viewConfirmed : Configuration -> Language.ConfirmRegistration -> Html Page.LogicMsg
+viewConfirmed : Configuration -> Language.ConfirmRegistration -> List (Html Page.LogicMsg)
 viewConfirmed configuration language =
-    div [ Style.ids.confirmRegistration ]
-        [ div [] [ label [] [ text <| language.successfullyCreatedUser ] ]
-        , div []
-            [ Links.toLoginButton
-                { configuration = configuration
-                , buttonText = language.mainPage
-                }
-            ]
-        ]
+    [ text <| language.successfullyCreatedUser
+    , Links.toLoginButton
+        { configuration = configuration
+        , buttonText = language.mainPage
+        }
+    ]

@@ -3,7 +3,7 @@ module Pages.Tasks.Tasks.View exposing (..)
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Dropdown exposing (dropdown)
-import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
+import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (checked, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -61,11 +61,11 @@ tableHeader : Page.Language -> Html msg
 tableHeader language =
     Pages.Util.ParentEditor.View.tableHeaderWith
         { columns =
-            [ th [] [ label [] [ text <| language.taskName ] ]
-            , th [] [ label [] [ text <| language.taskKind ] ]
-            , th [] [ label [] [ text <| language.progress ] ]
-            , th [] [ label [] [ text <| language.unit ] ]
-            , th [] [ label [] [ text <| language.counting ] ]
+            [ th [] [ text <| language.taskName ]
+            , th [] [ text <| language.taskKind ]
+            , th [] [ text <| language.progress ]
+            , th [] [ text <| language.unit ]
+            , th [] [ text <| language.counting ]
             ]
         , style = Style.classes.taskEditTable
         }
@@ -75,16 +75,12 @@ viewTaskLine : Page.Language -> Page.Task -> Bool -> List (Html Page.LogicMsg)
 viewTaskLine language task showControls =
     taskLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| task.id ]
-                    [ text <| language.edit ]
-                ]
-            , td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| task.id ]
-                    [ text <| language.delete ]
-                ]
+            [ button
+                [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| task.id ]
+                [ text <| language.edit ]
+            , button
+                [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| task.id ]
+                [ text <| language.delete ]
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls task.id
         , showControls = showControls
@@ -96,13 +92,10 @@ deleteTaskLine : Page.Language -> Page.Task -> List (Html Page.LogicMsg)
 deleteTaskLine language task =
     taskLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| task.id ] [ text <| language.confirmDelete ] ]
-            , td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.confirm, onClick <| Pages.Util.ParentEditor.Page.CancelDelete <| task.id ]
-                    [ text <| language.cancel ]
-                ]
+            [ button [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| task.id ] [ text <| language.confirmDelete ]
+            , button
+                [ Style.classes.button.confirm, onClick <| Pages.Util.ParentEditor.Page.CancelDelete <| task.id ]
+                [ text <| language.cancel ]
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls <| task.id
         , showControls = True
@@ -113,18 +106,18 @@ deleteTaskLine language task =
 taskInfoColumns : Page.Task -> List (HtmlUtil.Column msg)
 taskInfoColumns task =
     [ { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text task.name ] ]
+      , children = [ text task.name ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| TaskKind.toString <| task.taskKind ] ]
+      , children = [ text <| TaskKind.toString <| task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ displayProgress task.progress task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| Maybe.withDefault "" <| task.unit ] ]
+      , children = [ text <| Maybe.withDefault "" <| task.unit ]
       }
-    , { attributes = [ Style.classes.editable ]
+    , { attributes = []
       , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
       }
     ]
@@ -348,14 +341,10 @@ displayProgress progress taskKind =
                 []
 
         TaskKind.Percent ->
-            label []
-                [ text <| flip (++) "%" <| Progress.displayPercentage <| progress
-                ]
+            text <| flip (++) "%" <| Progress.displayPercentage <| progress
 
         TaskKind.Fraction ->
-            label []
-                [ text <| String.join "/" [ Natural.toString progress.reached, Positive.toString progress.reachable ]
-                ]
+            text <| String.join "/" [ Natural.toString progress.reached, Positive.toString progress.reachable ]
 
 
 editProgress :
@@ -424,12 +413,13 @@ editProgress ps taskKind editedValue =
                                 |> ps.updateMsg
                     , value <| .whole <| percentageParts
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }
-            , { constructor = label
+            , { constructor = \_ _ -> text <| "."
               , attributes = []
-              , children = [ text <| "." ]
+              , children = []
               }
             , { constructor = input
               , attributes =
@@ -446,6 +436,7 @@ editProgress ps taskKind editedValue =
                                 |> ps.updateMsg
                     , value <| decimal
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }
@@ -461,12 +452,13 @@ editProgress ps taskKind editedValue =
                                 editedValue
                     , value <| .text <| reachedLens.get <| editedValue
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }
-            , { constructor = label
+            , { constructor = \_ _ -> text <| "/"
               , attributes = []
-              , children = [ text <| "/" ]
+              , children = []
               }
             , { constructor = input
               , attributes =
@@ -478,6 +470,7 @@ editProgress ps taskKind editedValue =
                                 editedValue
                     , value <| Positive.toString <| .value <| reachableLens.get <| editedValue
                     , Style.classes.numberCell
+                    , Style.classes.numberHalfCell
                     ]
               , children = []
               }

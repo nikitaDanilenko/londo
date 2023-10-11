@@ -1,7 +1,7 @@
 module Pages.DashboardEntries.Dashboard.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, td, text)
+import Html exposing (Html, button, div, p, text)
 import Html.Events exposing (onClick)
 import Pages.DashboardEntries.Dashboard.Page as Page
 import Pages.Dashboards.View
@@ -19,10 +19,11 @@ viewMain _ main =
             \dashboard showControls ->
                 Pages.Dashboards.View.dashboardLineWith
                     { controls =
-                        [ td [ Style.classes.controls ]
-                            [ button [ Style.classes.button.edit, Pages.Util.Parent.Page.EnterEdit |> onClick ] [ text <| main.language.edit ] ]
-                        , td [ Style.classes.controls ]
+                        [ div []
                             [ button
+                                [ Style.classes.button.edit, Pages.Util.Parent.Page.EnterEdit |> onClick ]
+                                [ text <| main.language.edit ]
+                            , button
                                 [ Style.classes.button.delete, Pages.Util.Parent.Page.RequestDelete |> onClick ]
                                 [ text <| main.language.delete ]
                             ]
@@ -48,10 +49,11 @@ viewMain _ main =
         , onDelete =
             Pages.Dashboards.View.dashboardLineWith
                 { controls =
-                    [ td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.delete, onClick <| Pages.Util.Parent.Page.ConfirmDelete ] [ text <| main.language.confirmDelete ] ]
-                    , td [ Style.classes.controls ]
+                    [ p []
                         [ button
+                            [ Style.classes.button.delete, onClick <| Pages.Util.Parent.Page.ConfirmDelete ]
+                            [ text <| main.language.confirmDelete ]
+                        , button
                             [ Style.classes.button.confirm, onClick <| Pages.Util.Parent.Page.CancelDelete ]
                             [ text <| main.language.cancel ]
                         ]

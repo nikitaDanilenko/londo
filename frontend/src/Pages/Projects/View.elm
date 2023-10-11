@@ -2,7 +2,7 @@ module Pages.Projects.View exposing (editProjectLineWith, projectInfoColumns, pr
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, input, label, td, text, th, tr)
+import Html exposing (Attribute, Html, button, input, p, td, text, th, tr)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -65,8 +65,8 @@ tableHeader : Page.Language -> Html msg
 tableHeader language =
     Pages.Util.ParentEditor.View.tableHeaderWith
         { columns =
-            [ th [] [ label [] [ text <| language.name ] ]
-            , th [] [ label [] [ text <| language.description ] ]
+            [ th [] [ text <| language.name ]
+            , th [] [ text <| language.description ]
             ]
         , style = Style.classes.projectEditTable
         }
@@ -76,19 +76,13 @@ viewProjectLine : Page.Language -> Configuration -> Page.Project -> Bool -> List
 viewProjectLine language configuration project showControls =
     projectLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| project.id ]
-                    [ text <| language.edit ]
-                ]
-            , td [ Style.classes.controls ]
-                [ NavigationUtil.projectEditorLinkButton configuration project.id language.taskEditor
-                ]
-            , td [ Style.classes.controls ]
-                [ button
-                    [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| project.id ]
-                    [ text <| language.delete ]
-                ]
+            [ button
+                [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| project.id ]
+                [ text <| language.edit ]
+            , NavigationUtil.projectEditorLinkButton configuration project.id language.taskEditor
+            , button
+                [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| project.id ]
+                [ text <| language.delete ]
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls project.id
         , showControls = showControls
@@ -100,10 +94,11 @@ deleteProjectLine : Page.Language -> Page.Project -> List (Html Page.LogicMsg)
 deleteProjectLine language project =
     projectLineWith
         { controls =
-            [ td [ Style.classes.controls ]
-                [ button [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| project.id ] [ text <| language.confirmDelete ] ]
-            , td [ Style.classes.controls ]
+            [ p []
                 [ button
+                    [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.ConfirmDelete <| project.id ]
+                    [ text <| language.confirmDelete ]
+                , button
                     [ Style.classes.button.confirm, onClick <| Pages.Util.ParentEditor.Page.CancelDelete <| project.id ]
                     [ text <| language.cancel ]
                 ]
@@ -117,10 +112,10 @@ deleteProjectLine language project =
 projectInfoColumns : Page.Project -> List (HtmlUtil.Column msg)
 projectInfoColumns project =
     [ { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text project.name ] ]
+      , children = [ text project.name ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ label [] [ text <| Maybe.withDefault "" <| project.description ] ]
+      , children = [ text <| Maybe.withDefault "" <| project.description ]
       }
     ]
 
@@ -167,7 +162,7 @@ createProjectLine language =
         , nameLens = Types.Project.Creation.lenses.name
         , descriptionLens = Types.Project.Creation.lenses.description
         , updateMsg = Just >> Pages.Util.ParentEditor.Page.UpdateCreation
-        , confirmName = language.newProject
+        , confirmName = language.add
         , cancelMsg = Nothing |> Pages.Util.ParentEditor.Page.UpdateCreation
         , cancelName = language.cancel
         , rowStyles = [ Style.classes.editLine ]

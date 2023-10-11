@@ -1,7 +1,7 @@
 module Pages.Util.ParentEditor.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, div, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, div, nav, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -72,46 +72,42 @@ viewParentsWith ps language configuration main =
             ( button, creationLine ) =
                 main.parentCreation
                     |> Maybe.Extra.unwrap
-                        ( [ div [ Style.classes.add ]
-                                [ creationButton
-                                    { defaultCreation = ps.create.default
-                                    , label = ps.create.label language
-                                    , updateCreationMsg = ps.create.update
-                                    }
-                                ]
+                        ( [ creationButton
+                                { defaultCreation = ps.create.default
+                                , label = ps.create.label language
+                                , updateCreationMsg = ps.create.update
+                                }
                           ]
                         , []
                         )
                         (ps.create.ifCreating language >> Tuple.pair [])
         in
-        div [ ps.styling ]
-            (button
-                ++ [ HtmlUtil.searchAreaWith
-                        { msg = ps.setSearchString
-                        , searchString = main.searchString
+        button
+            ++ [ HtmlUtil.searchAreaWith
+                    { msg = ps.setSearchString
+                    , searchString = main.searchString
+                    }
+               , table [ Style.classes.elementsWithControlsTable ]
+                    (ps.tableHeader
+                        :: [ tbody []
+                                (creationLine
+                                    ++ (viewParents |> Paginate.page |> List.concatMap viewParent)
+                                )
+                           ]
+                    )
+               , nav [ Style.classes.pagination ]
+                    [ ViewUtil.pagerButtons
+                        { msg =
+                            PaginationSettings.updateCurrentPage
+                                { pagination = Page.lenses.main.pagination
+                                , items = Pagination.lenses.parents
+                                }
+                                main
+                                >> ps.setPagination
+                        , elements = viewParents
                         }
-                   , table [ Style.classes.elementsWithControlsTable ]
-                        (ps.tableHeader
-                            :: [ tbody []
-                                    (creationLine
-                                        ++ (viewParents |> Paginate.page |> List.concatMap viewParent)
-                                    )
-                               ]
-                        )
-                   , div [ Style.classes.pagination ]
-                        [ ViewUtil.pagerButtons
-                            { msg =
-                                PaginationSettings.updateCurrentPage
-                                    { pagination = Page.lenses.main.pagination
-                                    , items = Pagination.lenses.parents
-                                    }
-                                    main
-                                    >> ps.setPagination
-                            , elements = viewParents
-                            }
-                        ]
-                   ]
-            )
+                    ]
+               ]
 
 
 tableHeaderWith :
@@ -153,11 +149,9 @@ lineWith ps parent =
                 )
 
         controlsRow =
-            tr []
+            tr [ Style.classes.controls ]
                 [ td [ colspan <| List.length <| displayColumns ]
-                    [ table [ Style.classes.elementsWithControlsTable ]
-                        [ tr [] row.controls ]
-                    ]
+                    [ div [] row.controls ]
                 ]
     in
     infoRow
@@ -177,7 +171,7 @@ creationButton :
     -> Html msg
 creationButton ps =
     button
-        [ Style.classes.button.add
+        [ Style.classes.button.newElement
         , onClick <| ps.updateCreationMsg <| Just <| ps.defaultCreation
         ]
         [ text <| ps.label ]
@@ -197,25 +191,19 @@ controlsRowWith :
     }
     -> Html msg
 controlsRowWith ps =
-    tr []
+    tr [ Style.classes.controls ]
         [ td [ colspan <| ps.colspan ]
-            [ table [ Style.classes.elementsWithControlsTable ]
-                [ tr []
-                    [ td [ Style.classes.controls ]
-                        [ button
-                            ([ MaybeUtil.defined <| Style.classes.button.confirm
-                             , MaybeUtil.defined <| disabled <| not <| ps.validInput
-                             , MaybeUtil.optional ps.validInput <| onClick ps.confirm.msg
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            [ text <| ps.confirm.name ]
-                        ]
-                    , td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.cancel, onClick <| ps.cancel.msg ]
-                            [ text <| ps.cancel.name ]
-                        ]
-                    ]
+            [ div []
+                [ button
+                    ([ MaybeUtil.defined <| Style.classes.button.confirm
+                     , MaybeUtil.defined <| disabled <| not <| ps.validInput
+                     , MaybeUtil.optional ps.validInput <| onClick ps.confirm.msg
+                     ]
+                        |> Maybe.Extra.values
+                    )
+                    [ text <| ps.confirm.name ]
+                , button [ Style.classes.button.cancel, onClick <| ps.cancel.msg ]
+                    [ text <| ps.cancel.name ]
                 ]
             ]
         ]

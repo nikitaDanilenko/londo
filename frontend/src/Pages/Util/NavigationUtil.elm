@@ -2,7 +2,7 @@ module Pages.Util.NavigationUtil exposing (..)
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (text)
+import Html
 import Pages.Util.Links as Links
 import Pages.Util.Style as Style
 import Types.Project.Id
@@ -13,5 +13,5 @@ projectEditorLinkButton configuration projectId editorLabel =
     Links.linkButton
         { url = Links.frontendPage configuration <| Addresses.Frontend.tasks.address <| projectId
         , attributes = [ Style.classes.button.editor ]
-        , children = [ text <| editorLabel ]
+        , linkText = editorLabel
         }

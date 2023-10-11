@@ -1,7 +1,7 @@
 module Pages.Util.Style exposing (..)
 
 import Html exposing (Attribute)
-import Html.Attributes exposing (class, id)
+import Html.Attributes exposing (class, for, id)
 
 
 classes :
@@ -11,12 +11,14 @@ classes :
     , button :
         { add : Attribute msg
         , cancel : Attribute msg
+        , clear : Attribute msg
         , confirm : Attribute msg
         , delete : Attribute msg
         , edit : Attribute msg
         , editor : Attribute msg
         , error : Attribute msg
         , menu : Attribute msg
+        , newElement : Attribute msg
         , navigation : Attribute msg
         , overview : Attribute msg
         , pager : Attribute msg
@@ -35,6 +37,7 @@ classes :
     , ellipsis : Attribute msg
     , info : Attribute msg
     , numberCell : Attribute msg
+    , numberHalfCell : Attribute msg
     , numberLabel : Attribute msg
     , pagination : Attribute msg
     , projectEditTable : Attribute msg
@@ -42,6 +45,7 @@ classes :
         { area : Attribute msg
         , field : Attribute msg
         }
+    , statisticsLine : Attribute msg
     , tableHeader : Attribute msg
     , taskEditTable : Attribute msg
     , toggle : Attribute msg
@@ -53,6 +57,7 @@ classes =
     , button =
         { add = class "add-button"
         , cancel = class "cancel-button"
+        , clear = class "clear-button "
         , confirm = class "confirm-button"
         , delete = class "delete-button"
         , edit = class "edit-button"
@@ -60,6 +65,7 @@ classes =
         , error = class "error-button"
         , menu = class "menu-button"
         , navigation = class "navigation-button"
+        , newElement = class "new-element-button"
         , overview = class "overview-button"
         , pager = class "pager-button"
         , select = class "select-button"
@@ -77,13 +83,15 @@ classes =
     , ellipsis = class "ellipsis"
     , info = class "info"
     , numberCell = class "number-cell"
+    , numberHalfCell = class "number-half-cell"
     , numberLabel = class "number-label"
     , pagination = class "pagination"
     , projectEditTable = class "project-edit-table"
     , search =
         { area = class "search-area"
-        , field = class "search-field"
+        , field = for "search-field"
         }
+    , statisticsLine = class "statistics-line"
     , tableHeader = class "table-header"
     , taskEditTable = class "task-edit-table"
     , toggle = class "toggle"
@@ -102,6 +110,7 @@ ids :
     , overview : Attribute msg
     , registrationRequestSent : Attribute msg
     , requestRegistration : Attribute msg
+    , searchField : Attribute msg
     , taskEditor : Attribute msg
     }
 ids =
@@ -116,5 +125,6 @@ ids =
     , overview = id "overview"
     , registrationRequestSent = id "registration-request-sent"
     , requestRegistration = id "request-registration"
+    , searchField = id "search-field"
     , taskEditor = id "task-editor"
     }

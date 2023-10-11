@@ -15,14 +15,14 @@ import Url.Builder
 linkButton :
     { url : String
     , attributes : List (Attribute msg)
-    , children : List (Html msg)
+    , linkText : String
     }
     -> Html msg
 linkButton params =
     Bootstrap.Button.linkButton
         [ Bootstrap.Button.attrs (href params.url :: params.attributes)
         ]
-        params.children
+        [ text <| params.linkText ]
 
 
 special : Int -> String
@@ -75,5 +75,5 @@ toLoginButtonWith params =
     linkButton
         { url = frontendPage params.configuration <| Addresses.Frontend.login.address ()
         , attributes = params.attributes
-        , children = [ text <| params.buttonText ]
+        , linkText = params.buttonText
         }

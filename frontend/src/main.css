@@ -1,0 +1,223 @@
+body, button, input {
+    font-family: Arial, sans-serif;
+}
+
+nav .navigation-button,
+.pager-button,
+.clear-button,
+.new-element-button,
+.confirm-button,
+.cancel-button,
+.edit-button,
+.editor-button,
+.delete-button,
+.menu-button,
+.select-button,
+#login .navigation-button,
+#request-registration .navigation-button {
+    text-decoration: none;
+    text-align: center;
+    color: black;
+    transition-duration: 0.2s;
+    background-color: white;
+    font-size: 16pt;
+    cursor: default;
+}
+
+nav .navigation-button,
+.pager-button {
+    padding: 8px 0 8px 0;
+    font-size: 12pt;
+    display: inline-block;
+    width: 99%;
+}
+
+nav .navigation-button.disabled,
+.pager-button:disabled,
+.confirm-button:disabled,
+.clear-button:disabled,
+.cancel-button:disabled {
+    border: 2px solid rgb(200 200 200);
+    color: rgb(100 100 100);
+    cursor: not-allowed;
+}
+
+nav .navigation-button:not(.disabled),
+.pager-button:not(:disabled),
+#login .navigation-button,
+#request-registration .navigation-button {
+    border: 2px solid rgb(0 140 186);
+}
+
+nav .navigation-button:hover:not(.disabled),
+.pager-button:hover:not(:disabled),
+#login .navigation-button:hover:not(.disabled),
+#request-registration .navigation-button:hover:not(.disabled) {
+    background-color: rgb(0 140 186);
+    color: white;
+}
+
+.new-element-button,
+.confirm-button,
+.cancel-button,
+.edit-button,
+.editor-button,
+.delete-button,
+.select-button,
+.navigation-button {
+    padding: 8px 16px;
+    margin: 0 4px;
+}
+
+.new-element-button {
+    margin: 16px 8px;
+}
+
+.menu-button {
+    padding: 2px 4px;
+    margin: 8px 0 8px 0;
+}
+
+.new-element-button,
+.confirm-button,
+.select-button {
+    border: 2px solid rgb(76 175 80);
+}
+
+.new-element-button:hover,
+.confirm-button:not(:disabled):hover,
+.select-button:not(:disabled):hover {
+    background-color: rgb(76 175 80);
+    color: white;
+}
+
+.clear-button {
+    margin: 8px 4px;
+}
+
+.clear-button:not(:disabled),
+.cancel-button:not(:disabled),
+.delete-button {
+    border: 2px solid rgb(244 67 54);
+}
+
+.clear-button:hover:not(:disabled),
+.cancel-button:hover:not(:disabled),
+.delete-button:hover {
+    background-color: rgb(244 67 54);
+    color: white;
+}
+
+.edit-button {
+    border: 2px solid rgb(248 196 127);
+}
+
+.edit-button:hover {
+    background-color: rgb(248 196 127);
+    color: white;
+}
+
+.editor-button {
+    border: 2px solid rgb(69 55 255);
+}
+
+
+.editor-button:hover {
+    background-color: rgb(69 55 255);
+    color: white;
+}
+
+.menu-button {
+    border: 2px solid rgb(0 200 175);
+}
+
+.menu-button:hover {
+    background-color: rgb(0 200 175);
+    color: white;
+}
+
+form input,
+form label {
+    font-size: 16pt;
+}
+
+nav table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.elements-with-controls-table {
+    border-spacing: 0;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    position: relative;
+}
+
+.elements-with-controls-table thead th {
+    font-weight: lighter;
+    color: rgb(35 35 35);
+    background-color: rgb(235 235 235);
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.editable input,
+select {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.number-half-cell {
+    box-sizing: border-box;
+    width: 45%;
+}
+
+.toggle {
+    text-align: right;
+    width: 3%;
+}
+
+.controls div {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10px, 1fr));
+}
+
+.editing:hover {
+    background-color: lightgray;
+}
+
+.statistics-line td {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+#login,
+#request-registration {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#login input[type=text],
+#login input[type=password],
+#request-registration input[type=text],
+#request-registration input[type=email] {
+    width: 100%;
+    padding: 8px 16px;
+    margin: 8px 0;
+    box-sizing: border-box;
+}
+
+#login button,
+#request-registration button,
+#request-registration a[role=button],
+#login a[role=button] {
+    cursor: default;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 8px;
+    margin-left: 0;
+}

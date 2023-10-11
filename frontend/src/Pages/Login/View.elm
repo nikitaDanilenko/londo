@@ -3,15 +3,14 @@ module Pages.Login.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (autocomplete, colspan, type_, value)
+import Html exposing (Html, button, form, h1, input, label, main_, text)
+import Html.Attributes exposing (autocomplete, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Monocle.Lens as Lens
 import Pages.Login.Page as Page
 import Pages.Util.Links as Links
 import Pages.Util.Style as Style
-import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Types.Credentials as Credentials
 
@@ -26,88 +25,74 @@ view =
 
 viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
 viewMain configuration main =
-    ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Just ViewUtil.Login
-        , showNavigation = False
-        }
-    <|
-        div [ Style.ids.login ]
-            [ table []
-                [ thead []
-                    [ tr []
-                        [ th [] []
-                        , th [] []
-                        ]
-                    ]
-                , tbody []
-                    [ tr []
-                        [ td [] [ label [] [ text <| main.language.nickname ] ]
-                        , td []
-                            [ input
-                                [ autocomplete True
-                                , value <| Credentials.lenses.nickname.get <| main.credentials
-                                , onInput <|
-                                    Page.SetCredentials
-                                        << flip Credentials.lenses.nickname.set main.credentials
-                                , onEnter Page.Login
-                                , Style.classes.editable
-                                ]
-                                []
-                            ]
-                        ]
-                    , tr []
-                        [ td [] [ label [] [ text <| main.language.password ] ]
-                        , td []
-                            [ input
-                                [ type_ "password"
-                                , autocomplete True
-                                , onInput <|
-                                    Page.SetCredentials
-                                        << flip Credentials.lenses.password.set main.credentials
-                                , onEnter Page.Login
-                                , Style.classes.editable
-                                ]
-                                []
-                            ]
-                        ]
-                    , tr []
-                        [ td [] [ label [] [ text <| main.language.keepMeLoggedIn ] ]
-                        , td []
-                            [ input
-                                [ type_ "checkbox"
-                                , onClick <|
-                                    Page.SetCredentials <|
-                                        Lens.modify Credentials.lenses.isValidityUnrestricted not main.credentials
-                                , onEnter Page.Login
-                                , Style.classes.editable
-                                ]
-                                []
-                            ]
-                        ]
-                    , tr []
-                        [ td [ colspan 2 ]
-                            [ button [ onClick Page.Login, Style.classes.button.confirm ] [ text <| main.language.login ]
-                            ]
-                        ]
-                    , tr []
-                        [ td [ colspan 2 ]
-                            [ Links.linkButton
-                                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRegistration.address ()
-                                , attributes = [ Style.classes.button.navigation ]
-                                , children = [ text <| main.language.createAccount ]
-                                }
-                            ]
-                        ]
-                    , tr []
-                        [ td [ colspan 2 ]
-                            [ Links.linkButton
-                                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRecovery.address ()
-                                , attributes = [ Style.classes.button.navigation ]
-                                , children = [ text <| main.language.recoverAccount ]
-                                }
-                            ]
-                        ]
-                    ]
+    let
+        username =
+            "username"
+
+        password =
+            "password"
+
+        keepLoggedIn =
+            "keep-logged-in"
+    in
+    main_ [ Style.ids.login ]
+        [ h1 [] [ text "Londo" ]
+        , form
+            []
+            [ label
+                [ for username ]
+                [ text <| main.language.nickname ]
+            , input
+                [ autocomplete True
+                , value <| Credentials.lenses.nickname.get <| main.credentials
+                , onInput <|
+                    Page.SetCredentials
+                        << flip Credentials.lenses.nickname.set main.credentials
+                , onEnter Page.Login
+                , Style.classes.editable
+                , id username
+                , type_ "text"
                 ]
+                []
+            , label
+                [ for password ]
+                [ text <| main.language.password ]
+            , input
+                [ type_ "password"
+                , autocomplete True
+                , onInput <|
+                    Page.SetCredentials
+                        << flip Credentials.lenses.password.set main.credentials
+                , onEnter Page.Login
+                , Style.classes.editable
+                , id password
+                ]
+                []
+            , label
+                [ for keepLoggedIn
+                ]
+                [ text <| main.language.keepMeLoggedIn
+                ]
+            , input
+                [ type_ "checkbox"
+                , onClick <|
+                    Page.SetCredentials <|
+                        Lens.modify Credentials.lenses.isValidityUnrestricted not main.credentials
+                , onEnter Page.Login
+                , Style.classes.editable
+                , id keepLoggedIn
+                ]
+                []
+            , button [ onClick Page.Login, Style.classes.button.confirm ] [ text <| main.language.login ]
+            , Links.linkButton
+                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRegistration.address ()
+                , attributes = [ Style.classes.button.navigation ]
+                , linkText = main.language.createAccount
+                }
+            , Links.linkButton
+                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRecovery.address ()
+                , attributes = [ Style.classes.button.navigation ]
+                , linkText = main.language.recoverAccount
+                }
             ]
+        ]

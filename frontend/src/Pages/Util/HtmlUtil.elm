@@ -1,7 +1,7 @@
 module Pages.Util.HtmlUtil exposing (Column, RowWithControls, Structure, menuIcon, onEscape, searchAreaWith, toggleControlsCell, withAttributes, withExtraAttributes)
 
-import Html exposing (Attribute, Html, button, div, input, label, td, text)
-import Html.Attributes exposing (disabled, value)
+import Html exposing (Attribute, Html, button, form, input, label, node, td, text)
+import Html.Attributes exposing (disabled, for, type_, value)
 import Html.Events exposing (on, onClick, onInput)
 import Keyboard.Event exposing (KeyboardEvent)
 import Keyboard.Key as Key
@@ -18,20 +18,31 @@ searchAreaWith :
     }
     -> Html msg
 searchAreaWith ps =
-    div [ Style.classes.search.area ]
-        [ label [] [ text Links.lookingGlass ]
-        , input
-            [ onInput <| ps.msg
-            , value <| ps.searchString
-            , Style.classes.search.field
-            ]
+    node "search"
+        []
+        [ form
             []
-        , button
-            [ Style.classes.button.cancel
-            , onClick <| ps.msg ""
-            , disabled <| String.isEmpty <| ps.searchString
+            [ label
+                [ Style.classes.search.field
+                , for "search-field" -- todo: Extract sensibly
+                ]
+                [ text Links.lookingGlass ]
+            , input
+                [ type_ "text"
+                , Style.ids.searchField
+                , onInput <| ps.msg
+                , value <| ps.searchString
+                ]
+                []
+            , input
+                [ Style.classes.button.clear
+                , value "Clear" -- todo: Use language element here
+                , type_ "reset"
+                , onClick <| ps.msg ""
+                , disabled <| String.isEmpty <| ps.searchString
+                ]
+                []
             ]
-            [ text "Clear" ]
         ]
 
 

@@ -151,6 +151,7 @@ type alias Statistics =
     , differenceOneCounted : String
     , differenceCompleteTotal : String
     , differenceCompleteCounted : String
+    , statistics : String
     }
 
 
@@ -195,7 +196,7 @@ english =
     , login =
         { nickname = "User name"
         , password = "Password"
-        , login = "Log In"
+        , login = "Log in"
         , keepMeLoggedIn = "Keep me logged in"
         , createAccount = "Create account"
         , recoverAccount = "Recover account"
@@ -279,6 +280,7 @@ english =
         , differenceOneCounted = "Δ (counted)"
         , differenceCompleteTotal = "After completion (total)"
         , differenceCompleteCounted = "After completion (counted)"
+        , statistics = "Statistics"
         }
     }
 
