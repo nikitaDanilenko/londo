@@ -89,6 +89,11 @@ viewDashboardLine language configuration dashboard showControls =
             , button
                 [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| dashboard.id ]
                 [ text <| language.delete ]
+            , Links.linkButton
+                { url = Links.frontendPage configuration <| Addresses.Frontend.statistics.address <| dashboard.id
+                , attributes = [ Style.classes.button.navigation ]
+                , linkText = "Statistics"
+                }
             ]
         , toggleMsg = Pages.Util.ParentEditor.Page.ToggleControls dashboard.id
         , showControls = showControls
