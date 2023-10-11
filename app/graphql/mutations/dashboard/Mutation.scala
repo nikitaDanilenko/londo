@@ -5,6 +5,7 @@ import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.dashboard.inputs._
 import graphql.types.dashboard.Dashboard
 import graphql.types.dashboardEntry.DashboardEntry
+import graphql.types.simulation.Simulation
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
@@ -81,6 +82,52 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
             input.dashboardId.transformInto[db.DashboardId],
             input.projectId.transformInto[db.ProjectId]
           )
+        )
+        .handleServerError
+    }
+
+  @GraphQLField
+  def createSimulation(input: CreateSimulationInput): Future[Simulation] =
+    withUserId { userId =>
+      EitherT(
+        graphQLServices.simulationService
+          .create(
+            userId = userId,
+            dashboardId = input.dashboardId.transformInto[db.DashboardId],
+            taskId = input.taskId.transformInto[db.TaskId],
+            creation = input.simulationCreation.transformInto[services.simulation.Creation]
+          )
+      )
+        .map(_.transformInto[Simulation])
+        .value
+        .handleServerError
+    }
+
+  @GraphQLField
+  def updateSimulation(input: UpdateSimulationInput): Future[Simulation] =
+    withUserId { userId =>
+      EitherT(
+        graphQLServices.simulationService
+          .update(
+            userId = userId,
+            dashboardId = input.dashboardId.transformInto[db.DashboardId],
+            taskId = input.taskId.transformInto[db.TaskId],
+            update = input.simulationUpdate.transformInto[services.simulation.Update]
+          )
+      )
+        .map(_.transformInto[Simulation])
+        .value
+        .handleServerError
+    }
+
+  @GraphQLField
+  def deleteSimulation(input: DeleteSimulationInput): Future[Boolean] =
+    withUserId { userId =>
+      graphQLServices.simulationService
+        .delete(
+          userId = userId,
+          dashboardId = input.dashboardId.transformInto[db.DashboardId],
+          taskId = input.taskId.transformInto[db.TaskId]
         )
         .handleServerError
     }
