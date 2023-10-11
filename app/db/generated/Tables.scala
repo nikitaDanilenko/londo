@@ -14,7 +14,7 @@ trait Tables {
   import slick.jdbc.{GetResult => GR}
 
   /** DDL for all tables. Call .create to execute. */
-  lazy val schema: profile.SchemaDescription = Array(Dashboard.schema, DashboardEntry.schema, LoginThrottle.schema, Project.schema, Session.schema, Task.schema, User.schema).reduceLeft(_ ++ _)
+  lazy val schema: profile.SchemaDescription = Array(Dashboard.schema, DashboardEntry.schema, LoginThrottle.schema, Project.schema, Session.schema, Simulation.schema, Task.schema, User.schema).reduceLeft(_ ++ _)
   @deprecated("Use .schema instead of .ddl", "3.0")
   def ddl = schema
 
@@ -54,7 +54,7 @@ trait Tables {
     val updatedAt: Rep[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("updated_at", O.Default(None))
 
     /** Foreign key referencing User (database name dashboard_owner_id_fk) */
-    lazy val userFk = foreignKey("dashboard_owner_id_fk", ownerId, User)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.NoAction)
+    lazy val userFk = foreignKey("dashboard_owner_id_fk", ownerId, User)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table Dashboard */
   lazy val Dashboard = new TableQuery(tag => new Dashboard(tag))
@@ -188,6 +188,45 @@ trait Tables {
   }
   /** Collection-like TableQuery object for table Session */
   lazy val Session = new TableQuery(tag => new Session(tag))
+
+  /** Entity class storing rows of table Simulation
+   *  @param taskId Database column task_id SqlType(uuid)
+   *  @param projectId Database column project_id SqlType(uuid)
+   *  @param dashboardId Database column dashboard_id SqlType(uuid)
+   *  @param reachedModifier Database column reached_modifier SqlType(int4) */
+  case class SimulationRow(taskId: java.util.UUID, projectId: java.util.UUID, dashboardId: java.util.UUID, reachedModifier: Int)
+  /** GetResult implicit for fetching SimulationRow objects using plain SQL queries */
+  implicit def GetResultSimulationRow(implicit e0: GR[java.util.UUID], e1: GR[Int]): GR[SimulationRow] = GR{
+    prs => import prs._
+    SimulationRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[java.util.UUID], <<[Int]))
+  }
+  /** Table description of table simulation. Objects of this class serve as prototypes for rows in queries. */
+  class Simulation(_tableTag: Tag) extends profile.api.Table[SimulationRow](_tableTag, "simulation") {
+    def * = (taskId, projectId, dashboardId, reachedModifier) <> (SimulationRow.tupled, SimulationRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = ((Rep.Some(taskId), Rep.Some(projectId), Rep.Some(dashboardId), Rep.Some(reachedModifier))).shaped.<>({r=>import r._; _1.map(_=> SimulationRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column task_id SqlType(uuid) */
+    val taskId: Rep[java.util.UUID] = column[java.util.UUID]("task_id")
+    /** Database column project_id SqlType(uuid) */
+    val projectId: Rep[java.util.UUID] = column[java.util.UUID]("project_id")
+    /** Database column dashboard_id SqlType(uuid) */
+    val dashboardId: Rep[java.util.UUID] = column[java.util.UUID]("dashboard_id")
+    /** Database column reached_modifier SqlType(int4) */
+    val reachedModifier: Rep[Int] = column[Int]("reached_modifier")
+
+    /** Primary key of Simulation (database name simulation_pk) */
+    val pk = primaryKey("simulation_pk", (taskId, dashboardId))
+
+    /** Foreign key referencing Dashboard (database name simulation_dashboard_id_fk) */
+    lazy val dashboardFk = foreignKey("simulation_dashboard_id_fk", dashboardId, Dashboard)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+    /** Foreign key referencing Project (database name simulation_project_id_fk) */
+    lazy val projectFk = foreignKey("simulation_project_id_fk", projectId, Project)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+    /** Foreign key referencing Task (database name simulation_task_id_fk) */
+    lazy val taskFk = foreignKey("simulation_task_id_fk", (taskId, projectId), Task)(r => (r.id, r.projectId), onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+  }
+  /** Collection-like TableQuery object for table Simulation */
+  lazy val Simulation = new TableQuery(tag => new Simulation(tag))
 
   /** Entity class storing rows of table Task
    *  @param id Database column id SqlType(uuid)
