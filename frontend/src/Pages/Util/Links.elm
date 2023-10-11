@@ -5,8 +5,8 @@ import Basics.Extra exposing (flip)
 import Bootstrap.Button
 import Browser.Navigation
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, form, input, text)
-import Html.Attributes exposing (action, href, method, type_, value)
+import Html exposing (Attribute, Html, text)
+import Html.Attributes exposing (href)
 import Loading
 import Pages.Util.Style as Style
 import Url.Builder

@@ -1,7 +1,7 @@
 module Pages.DashboardEntries.Dashboard.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, p, td, text)
+import Html exposing (Html, button, div, p, text)
 import Html.Events exposing (onClick)
 import Pages.DashboardEntries.Dashboard.Page as Page
 import Pages.Dashboards.View
