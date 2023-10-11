@@ -3,7 +3,7 @@ module Pages.Registration.Request.View exposing (view)
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, form, h1, input, label, main_, text)
-import Html.Attributes exposing (disabled, for, type_)
+import Html.Attributes exposing (disabled, for, id, type_)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Language.Language as Language
@@ -64,6 +64,7 @@ viewEditing main =
              , MaybeUtil.defined <| Style.classes.editable
              , enterAction
              , MaybeUtil.defined <| type_ "text"
+             , MaybeUtil.defined <| id username
              ]
                 |> Maybe.Extra.values
             )
@@ -77,6 +78,7 @@ viewEditing main =
              , MaybeUtil.defined <| Style.classes.editable
              , enterAction
              , MaybeUtil.defined <| type_ "email"
+             , MaybeUtil.defined <| id email
              ]
                 |> Maybe.Extra.values
             )
