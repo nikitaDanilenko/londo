@@ -3,15 +3,14 @@ module Pages.Login.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, form, h1, input, label, main_, menu, table, tbody, td, text, tr)
-import Html.Attributes exposing (autocomplete, colspan, for, name, type_, value)
+import Html exposing (Html, button, form, h1, input, label, main_, text)
+import Html.Attributes exposing (autocomplete, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Monocle.Lens as Lens
 import Pages.Login.Page as Page
 import Pages.Util.Links as Links
 import Pages.Util.Style as Style
-import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Types.Credentials as Credentials
 
@@ -40,7 +39,9 @@ viewMain configuration main =
         [ h1 [] [ text "Londo" ]
         , form
             []
-            [ label [ for username ] [ text <| main.language.nickname ]
+            [ label
+                [ for username ]
+                [ text <| main.language.nickname ]
             , input
                 [ autocomplete True
                 , value <| Credentials.lenses.nickname.get <| main.credentials
@@ -49,11 +50,13 @@ viewMain configuration main =
                         << flip Credentials.lenses.nickname.set main.credentials
                 , onEnter Page.Login
                 , Style.classes.editable
-                , name username
+                , id username
                 , type_ "text"
                 ]
                 []
-            , label [ for password ] [ text <| main.language.password ]
+            , label
+                [ for password ]
+                [ text <| main.language.password ]
             , input
                 [ type_ "password"
                 , autocomplete True
@@ -62,10 +65,12 @@ viewMain configuration main =
                         << flip Credentials.lenses.password.set main.credentials
                 , onEnter Page.Login
                 , Style.classes.editable
-                , name password
+                , id password
                 ]
                 []
-            , label [ for keepLoggedIn ]
+            , label
+                [ for keepLoggedIn
+                ]
                 [ text <| main.language.keepMeLoggedIn
                 ]
             , input
@@ -75,7 +80,7 @@ viewMain configuration main =
                         Lens.modify Credentials.lenses.isValidityUnrestricted not main.credentials
                 , onEnter Page.Login
                 , Style.classes.editable
-                , name keepLoggedIn
+                , id keepLoggedIn
                 ]
                 []
             , button [ onClick Page.Login, Style.classes.button.confirm ] [ text <| main.language.login ]
