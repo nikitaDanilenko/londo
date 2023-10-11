@@ -33,7 +33,6 @@ object Project {
       createdAt = project.createdAt.transformInto[java.sql.Timestamp],
       updatedAt = project.updatedAt.map(_.transformInto[java.sql.Timestamp])
     )
-
   }
 
 }
