@@ -6,6 +6,7 @@ import services.email.EmailService
 import services.loginThrottle.LoginThrottleService
 import services.project.ProjectService
 import services.session.SessionService
+import services.simulation.SimulationService
 import services.task.TaskService
 import services.user.UserService
 
@@ -20,7 +21,8 @@ case class GraphQLServices @Inject() (
     dashboardEntryService: DashboardEntryService,
     sessionService: SessionService,
     loginThrottleService: LoginThrottleService,
-    emailService: EmailService
+    emailService: EmailService,
+    simulationService: SimulationService
 )(implicit
     val executionContext: ExecutionContext
 )
