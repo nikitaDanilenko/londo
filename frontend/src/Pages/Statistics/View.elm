@@ -56,7 +56,7 @@ viewMain configuration main =
         viewDashboard main.languages.statistics
             main.languages.dashboard
             main.dashboard
-            (groupedTasks |> List.map (List.map .task))
+            groupedTasks
             :: (main.projects
                     |> DictList.values
                     |> List.map
@@ -81,9 +81,12 @@ toPercentageString =
         >> rationalToString
 
 
-viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.Task) -> Html Page.LogicMsg
-viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
+viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.ResolvedTask) -> Html Page.LogicMsg
+viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
     let
+        tasks =
+            resolvedTasks |> List.map (List.map .task)
+
         reachableAll =
             tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = False })
 
@@ -96,6 +99,22 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
         reachedAllCounted =
             tasks |> Math.Statistics.sumWith (reachedInProject { countedOnly = True })
 
+        reachedSimulatedAll =
+            resolvedTasks
+                |> List.concatMap (List.map (.simulation >> Maybe.map .reachedModifier))
+                |> Maybe.Extra.values
+                |> List.sum
+                |> BigInt.fromInt
+                |> BigInt.add reachedAll
+
+        reachedSimulatedAllCounted =
+            resolvedTasks
+                |> List.concat
+                |> List.filterMap (\resolved -> resolved.simulation |> Maybe.map .reachedModifier |> Maybe.Extra.filter (\_ -> resolved.task.counting))
+                |> List.sum
+                |> BigInt.fromInt
+                |> BigInt.add reachedAllCounted
+
         meanAbsoluteTotal =
             { numerator = reachedAll
             , denominator = reachableAll
@@ -104,6 +123,18 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
 
         meanAbsoluteCounted =
             { numerator = reachedAllCounted
+            , denominator = reachableAllCounted
+            }
+                |> toPercentageString
+
+        meanAbsoluteSimulatedTotal =
+            { numerator = reachedSimulatedAll
+            , denominator = reachableAll
+            }
+                |> toPercentageString
+
+        meanAbsoluteSimulatedCounted =
+            { numerator = reachedSimulatedAllCounted
             , denominator = reachableAllCounted
             }
                 |> toPercentageString
@@ -146,7 +177,8 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                     [ th [] [ text <| "" ]
                     , th [] [ text <| .total <| statisticsLanguage ]
                     , th [] [ text <| .counted <| statisticsLanguage ]
-                    , th [] [ text <| .simulated <| statisticsLanguage ]
+                    , th [] [ text <| .simulatedTotal <| statisticsLanguage ]
+                    , th [] [ text <| .simulatedCounted <| statisticsLanguage ]
                     ]
                 ]
             , tbody []
@@ -160,7 +192,8 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                     , td []
                         [ text <| BigInt.toString <| reachedAllCounted
                         ]
-                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    , td [] [ text <| BigInt.toString <| reachedSimulatedAll ]
+                    , td [] [ text <| BigInt.toString <| reachedSimulatedAllCounted ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachableAll <| statisticsLanguage ]
@@ -176,27 +209,20 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard tasks =
                                     List.map (reachableInProject { countedOnly = True }) <|
                                         tasks
                         ]
-                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    , td [] []
+                    , td [] []
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
-                    , td []
-                        [ text <| meanAbsoluteTotal
-                        ]
-                    , td []
-                        [ text <| meanAbsoluteCounted
-                        ]
-                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    , td [] [ text <| meanAbsoluteTotal ]
+                    , td [] [ text <| meanAbsoluteCounted ]
+                    , td [] [ text <| meanAbsoluteSimulatedTotal ]
+                    , td [] [ text <| meanAbsoluteSimulatedCounted ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
-                    , td []
-                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelative
-                        ]
-                    , td []
-                        [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeCounted
-                        ]
-                    , td [] [ text <| "tba" ] -- todo: Add simulation
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelative ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeCounted ]
                     ]
                 ]
             ]
@@ -260,7 +286,7 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
             List.sortBy (.original >> .task >> .name)
                 >> List.concatMap
                     (Editing.unpack
-                        { onView = .task >> viewTask project.id taskEditorLanguage (tasks |> List.map (.original >> .task))
+                        { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
                         , onUpdate = .task >> updateTask taskEditorLanguage project.id
                         , onDelete = \_ -> []
                         }
@@ -303,6 +329,7 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
             [ th [] [ text <| .taskName <| taskEditorLanguage ]
             , th [] [ text <| .taskKind <| taskEditorLanguage ]
             , th [] [ text <| .progress <| taskEditorLanguage ]
+            , th [] [ text <| .simulation <| statisticsLanguage ]
             , th [] [ text <| .unit <| taskEditorLanguage ]
             , th [] [ text <| .counting <| taskEditorLanguage ]
             , th [] [ text <| .mean <| statisticsLanguage ]
@@ -319,17 +346,17 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
 --todo: Only the number of tasks is relevant (at least it seems so)
 
 
-taskInfoColumns : List Page.Task -> Page.Task -> List (HtmlUtil.Column msg)
-taskInfoColumns allTasks task =
+taskInfoColumns : List Page.ResolvedTask -> Page.ResolvedTask -> List (HtmlUtil.Column msg)
+taskInfoColumns allTasks resolvedTask =
     let
         numberOfAllTasks =
             allTasks |> List.length
 
         numberOfCountedTasks =
-            allTasks |> List.Extra.count .counting
+            allTasks |> List.Extra.count (.task >> .counting)
 
         progress =
-            task.progress
+            resolvedTask.task.progress
 
         mean =
             progress
@@ -357,19 +384,22 @@ taskInfoColumns allTasks task =
                 progress
     in
     [ { attributes = [ Style.classes.editable ]
-      , children = [ text task.name ]
+      , children = [ text <| .name <| .task <| resolvedTask ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| TaskKind.toString <| task.taskKind ]
+      , children = [ text <| TaskKind.toString <| .taskKind <| .task <| resolvedTask ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ Pages.Tasks.Tasks.View.displayProgress task.progress task.taskKind ]
+      , children = [ Pages.Tasks.Tasks.View.displayProgress resolvedTask.task.progress resolvedTask.task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.withDefault "" <| task.unit ]
+      , children = [ text <| Maybe.Extra.unwrap "" (.reachedModifier >> String.fromInt) <| .simulation <| resolvedTask ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Maybe.withDefault "" <| .unit <| .task <| resolvedTask ]
       }
     , { attributes = []
-      , children = [ input [ type_ "checkbox", checked <| task.counting, disabled True ] [] ]
+      , children = [ input [ type_ "checkbox", checked <| .counting <| .task <| resolvedTask, disabled True ] [] ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| mean ]
@@ -389,8 +419,8 @@ taskInfoColumns allTasks task =
     ]
 
 
-viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> List Page.Task -> Page.Task -> Bool -> List (Html Page.LogicMsg)
-viewTask projectId language allTasks task showControls =
+viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> List Page.ResolvedTask -> Page.ResolvedTask -> Bool -> List (Html Page.LogicMsg)
+viewTask projectId language allTasks resolvedTask showControls =
     Pages.Util.ParentEditor.View.lineWith
         { rowWithControls =
             \t ->
@@ -398,15 +428,15 @@ viewTask projectId language allTasks task showControls =
                 , controls =
                     [ div []
                         [ button
-                            [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| .id <| t ]
+                            [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| .id <| .task <| t ]
                             [ text <| .edit <| language ]
                         ]
                     ]
                 }
-        , toggleMsg = Page.ToggleControls projectId task.id
+        , toggleMsg = Page.ToggleControls projectId resolvedTask.task.id
         , showControls = showControls
         }
-        task
+        resolvedTask
 
 
 updateTask : Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
