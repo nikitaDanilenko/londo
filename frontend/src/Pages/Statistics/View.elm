@@ -299,7 +299,7 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
             else
                 -- todo: Consider a better way of supplying the number of columns
                 -- todo: A text hint may be a good idea.
-                [ tr [] [ td [ colspan <| 10 ] [ hr [] [] ] ] ]
+                [ tr [] [ td [ colspan <| 11 ] [ hr [] [] ] ] ]
     in
     section []
         (h2 []
