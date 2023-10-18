@@ -1,6 +1,7 @@
 package graphql.mutations.dashboard
 
 import cats.data.EitherT
+import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.dashboard.inputs._
 import graphql.queries.dashboard.ResolvedTask
@@ -119,16 +120,21 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
                 update = input.taskUpdate.transformInto[services.task.Update]
               )
           )
-          simulation <- EitherT(
-            graphQLServices.simulationService
-              .update(
-                userId = userId,
-                dashboardId = input.dashboardId.transformInto[db.DashboardId],
-                taskId = input.taskId.transformInto[db.TaskId],
-                update = input.simulationUpdate.transformInto[services.simulation.Update]
-              )
-          )
-        } yield ResolvedTask(task.transformInto[Task], Some(simulation.transformInto[Simulation]))
+          simulation <-
+            input.simulationUpdate.fold(
+              EitherT.pure[Future, ServerError](Option.empty[services.simulation.Simulation])
+            ) { simulationUpdate =>
+              EitherT(
+                graphQLServices.simulationService
+                  .update(
+                    userId = userId,
+                    dashboardId = input.dashboardId.transformInto[db.DashboardId],
+                    taskId = input.taskId.transformInto[db.TaskId],
+                    update = simulationUpdate.transformInto[services.simulation.Update]
+                  )
+              ).map(Some(_))
+            }
+        } yield ResolvedTask(task.transformInto[Task], simulation.map(_.transformInto[Simulation]))
 
       transformer.value.handleServerError
     }

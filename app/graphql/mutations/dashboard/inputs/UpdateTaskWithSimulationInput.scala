@@ -12,7 +12,7 @@ case class UpdateTaskWithSimulationInput(
     dashboardId: DashboardId,
     taskId: TaskId,
     taskUpdate: TaskUpdate,
-    simulationUpdate: SimulationUpdate
+    simulationUpdate: Option[SimulationUpdate]
 )
 
 object UpdateTaskWithSimulationInput {
