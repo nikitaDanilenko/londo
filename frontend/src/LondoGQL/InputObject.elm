@@ -1200,37 +1200,6 @@ encodeUpdateProjectInput input____ =
         [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ), ( "name", Encode.string input____.name |> Just ), ( "description", Encode.string |> Encode.optional input____.description ) ]
 
 
-buildUpdateSimulationInput :
-    UpdateSimulationInputRequiredFields
-    -> UpdateSimulationInput
-buildUpdateSimulationInput required____ =
-    { dashboardId = required____.dashboardId, taskId = required____.taskId, simulationUpdate = required____.simulationUpdate }
-
-
-type alias UpdateSimulationInputRequiredFields =
-    { dashboardId : DashboardIdInput
-    , taskId : TaskIdInput
-    , simulationUpdate : SimulationUpdate
-    }
-
-
-{-| Type for the UpdateSimulationInput input object.
--}
-type alias UpdateSimulationInput =
-    { dashboardId : DashboardIdInput
-    , taskId : TaskIdInput
-    , simulationUpdate : SimulationUpdate
-    }
-
-
-{-| Encode a UpdateSimulationInput into a value that can be used as an argument.
--}
-encodeUpdateSimulationInput : UpdateSimulationInput -> Value
-encodeUpdateSimulationInput input____ =
-    Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "simulationUpdate", encodeSimulationUpdate input____.simulationUpdate |> Just ) ]
-
-
 buildUpdateTaskInput :
     UpdateTaskInputRequiredFields
     -> UpdateTaskInput
@@ -1258,6 +1227,48 @@ encodeUpdateTaskInput : UpdateTaskInput -> Value
 encodeUpdateTaskInput input____ =
     Encode.maybeObject
         [ ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ) ]
+
+
+buildUpdateTaskWithSimulationInput :
+    UpdateTaskWithSimulationInputRequiredFields
+    -> (UpdateTaskWithSimulationInputOptionalFields -> UpdateTaskWithSimulationInputOptionalFields)
+    -> UpdateTaskWithSimulationInput
+buildUpdateTaskWithSimulationInput required____ fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { simulationUpdate = Absent }
+    in
+    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulationUpdate = optionals____.simulationUpdate }
+
+
+type alias UpdateTaskWithSimulationInputRequiredFields =
+    { dashboardId : DashboardIdInput
+    , taskId : TaskIdInput
+    , taskUpdate : TaskUpdate
+    }
+
+
+type alias UpdateTaskWithSimulationInputOptionalFields =
+    { simulationUpdate : OptionalArgument SimulationUpdate }
+
+
+{-| Type for the UpdateTaskWithSimulationInput input object.
+-}
+type alias UpdateTaskWithSimulationInput =
+    { dashboardId : DashboardIdInput
+    , taskId : TaskIdInput
+    , taskUpdate : TaskUpdate
+    , simulationUpdate : OptionalArgument SimulationUpdate
+    }
+
+
+{-| Encode a UpdateTaskWithSimulationInput into a value that can be used as an argument.
+-}
+encodeUpdateTaskWithSimulationInput : UpdateTaskWithSimulationInput -> Value
+encodeUpdateTaskWithSimulationInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulationUpdate", encodeSimulationUpdate |> Encode.optional input____.simulationUpdate ) ]
 
 
 buildUpdateUserInput :

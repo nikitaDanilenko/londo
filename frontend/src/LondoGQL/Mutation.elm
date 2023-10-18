@@ -265,16 +265,16 @@ createSimulation requiredArgs____ object____ =
     Object.selectionForCompositeField "createSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeCreateSimulationInput ] object____ Basics.identity
 
 
-type alias UpdateSimulationRequiredArguments =
-    { input : LondoGQL.InputObject.UpdateSimulationInput }
+type alias UpdateTaskWithSimulationRequiredArguments =
+    { input : LondoGQL.InputObject.UpdateTaskWithSimulationInput }
 
 
-updateSimulation :
-    UpdateSimulationRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Simulation
+updateTaskWithSimulation :
+    UpdateTaskWithSimulationRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedTask
     -> SelectionSet decodesTo RootMutation
-updateSimulation requiredArgs____ object____ =
-    Object.selectionForCompositeField "updateSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateSimulationInput ] object____ Basics.identity
+updateTaskWithSimulation requiredArgs____ object____ =
+    Object.selectionForCompositeField "updateTaskWithSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateTaskWithSimulationInput ] object____ Basics.identity
 
 
 type alias DeleteSimulationRequiredArguments =
