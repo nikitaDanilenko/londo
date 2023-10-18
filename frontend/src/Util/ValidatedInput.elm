@@ -4,6 +4,7 @@ module Util.ValidatedInput exposing
     , isValid
     , lenses
     , lift
+    , maybeInt
     , natural
     , nonEmptyString
     , positive
@@ -172,4 +173,35 @@ nonEmptyString =
             >> Maybe.Extra.filter (String.isEmpty >> not)
             >> Result.fromMaybe "Error: Empty string"
     , partial = always True
+    }
+
+
+partialInt : String -> Bool
+partialInt str =
+    let
+        tailCorrect =
+            str |> String.dropLeft 1 |> String.all Char.isDigit
+
+        headCorrect =
+            str |> String.toList |> List.take 1 |> List.all (\c -> c == '-' || Char.isDigit c)
+    in
+    headCorrect && tailCorrect
+
+
+maybeInt : ValidatedInput (Maybe Int)
+maybeInt =
+    { value = Nothing
+    , ifEmptyValue = Nothing
+    , text = ""
+    , parse =
+        \str ->
+            if String.isEmpty str then
+                Ok Nothing
+
+            else
+                str
+                    |> String.toInt
+                    |> Result.fromMaybe "Error: Not an integer"
+                    |> Result.map Just
+    , partial = partialInt
     }
