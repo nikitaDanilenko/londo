@@ -3,9 +3,11 @@ package graphql.mutations.dashboard
 import cats.data.EitherT
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.dashboard.inputs._
+import graphql.queries.dashboard.ResolvedTask
 import graphql.types.dashboard.Dashboard
 import graphql.types.dashboardEntry.DashboardEntry
 import graphql.types.simulation.Simulation
+import graphql.types.task.Task
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
@@ -104,20 +106,31 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def updateSimulation(input: UpdateSimulationInput): Future[Simulation] =
+  def updateTaskWithSimulation(input: UpdateTaskWithSimulationInput): Future[ResolvedTask] =
     withUserId { userId =>
-      EitherT(
-        graphQLServices.simulationService
-          .update(
-            userId = userId,
-            dashboardId = input.dashboardId.transformInto[db.DashboardId],
-            taskId = input.taskId.transformInto[db.TaskId],
-            update = input.simulationUpdate.transformInto[services.simulation.Update]
+      // TODO #29: Make this update transactional
+      val transformer =
+        for {
+          task <- EitherT(
+            graphQLServices.taskService
+              .update(
+                userId = userId,
+                taskId = input.taskId.transformInto[db.TaskId],
+                update = input.taskUpdate.transformInto[services.task.Update]
+              )
           )
-      )
-        .map(_.transformInto[Simulation])
-        .value
-        .handleServerError
+          simulation <- EitherT(
+            graphQLServices.simulationService
+              .update(
+                userId = userId,
+                dashboardId = input.dashboardId.transformInto[db.DashboardId],
+                taskId = input.taskId.transformInto[db.TaskId],
+                update = input.simulationUpdate.transformInto[services.simulation.Update]
+              )
+          )
+        } yield ResolvedTask(task.transformInto[Task], Some(simulation.transformInto[Simulation]))
+
+      transformer.value.handleServerError
     }
 
   @GraphQLField
