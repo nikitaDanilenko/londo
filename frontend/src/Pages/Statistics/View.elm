@@ -13,6 +13,7 @@ import Math.Natural as Natural
 import Math.Positive as Positive
 import Math.Statistics
 import Maybe.Extra
+import Monocle.Compose as Compose
 import Monocle.Lens as Lens
 import Pages.Dashboards.View
 import Pages.Statistics.EditingResolvedProject as EditingResolvedProject exposing (EditingResolvedProject)
@@ -24,6 +25,7 @@ import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Types.Progress.Progress
+import Types.Task.TaskWithSimulation
 import Types.Task.Update
 import Util.DictList as DictList
 import Util.Editing as Editing
@@ -444,8 +446,10 @@ viewTask projectId language allTasks resolvedTask showControls =
 updateTask : Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
 updateTask language projectId task update =
     let
+        --todo: Add validation of simulation
         validInput =
             update
+                |> Types.Task.TaskWithSimulation.lenses.taskUpdate.get
                 |> Types.Task.Update.lenses.progressUpdate.get
                 |> .reached
                 |> ValidatedInput.isValid
@@ -473,10 +477,10 @@ updateTask language projectId task update =
                 [ text <| TaskKind.toString <| .taskKind <| task ]
             , td []
                 (Pages.Tasks.Tasks.View.editProgress
-                    { progressLens = Types.Task.Update.lenses.progressUpdate
+                    { progressLens = Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.progressUpdate
                     , updateMsg = updateMsg
                     }
-                    (update |> Types.Task.Update.lenses.taskKind.get)
+                    (update |> (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.taskKind).get)
                     update
                     |> List.map
                         (HtmlUtil.withAttributes
@@ -492,10 +496,10 @@ updateTask language projectId task update =
             , td []
                 [ input
                     [ type_ "checkbox"
-                    , checked <| Types.Task.Update.lenses.counting.get <| update
+                    , checked <| (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.counting).get <| update
                     , onClick <|
                         updateMsg <|
-                            Lens.modify Types.Task.Update.lenses.counting not <|
+                            Lens.modify (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.counting) not <|
                                 update
                     , onEnter <| saveMsg
                     , HtmlUtil.onEscape cancelMsg

@@ -177,7 +177,7 @@ type LogicMsg
     = GotFetchDeeplyDashboardResponse (HttpUtil.GraphQLResult DeeplyResolvedDashboard)
     | EditTask ProjectId TaskId TaskUpdate
     | SaveEditTask ProjectId TaskId
-    | GotSaveEditTaskResponse ( ProjectId, HttpUtil.GraphQLResult Task )
+    | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult ResolvedTask)
     | ToggleControls ProjectId TaskId
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId
