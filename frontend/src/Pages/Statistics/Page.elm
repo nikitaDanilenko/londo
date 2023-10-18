@@ -16,7 +16,7 @@ import Types.Project.Resolved
 import Types.Task.Id
 import Types.Task.Resolved
 import Types.Task.Task
-import Types.Task.Update
+import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing exposing (Editing)
 import Util.HttpUtil as HttpUtil
@@ -59,7 +59,7 @@ type alias ResolvedTask =
 
 
 type alias TaskUpdate =
-    Types.Task.Update.ClientInput
+    Types.Task.TaskWithSimulation.ClientInput
 
 
 type alias TaskId =
