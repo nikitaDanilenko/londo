@@ -99,6 +99,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
         reachedAllCounted =
             tasks |> Math.Statistics.sumWith (reachedInProject { countedOnly = True })
 
+        -- todo: Consider extraction for better testability
         reachedSimulatedAll =
             resolvedTasks
                 |> List.concatMap (List.map (.simulation >> Maybe.map .reachedModifier))
@@ -107,6 +108,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
                 |> BigInt.fromInt
                 |> BigInt.add reachedAll
 
+        -- todo: Consider extraction for better testability
         reachedSimulatedAllCounted =
             resolvedTasks
                 |> List.concat
