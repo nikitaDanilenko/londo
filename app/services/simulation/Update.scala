@@ -4,7 +4,7 @@ import cats.effect.IO
 import utils.date.DateUtil
 
 case class Update(
-    reachedModifier: Int
+    reachedModifier: BigInt
 )
 
 object Update {
