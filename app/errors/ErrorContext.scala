@@ -131,11 +131,8 @@ object ErrorContext {
 
   object Simulation {
 
-    case class Create(errorMessage: String)
-        extends ServerErrorInstance(s"Error while creating a simulation: $errorMessage")
-
-    case class Update(errorMessage: String)
-        extends ServerErrorInstance(s"Error while updating a simulation: $errorMessage")
+    case class Upsert(errorMessage: String)
+        extends ServerErrorInstance(s"Error while upserting a simulation: $errorMessage")
 
     case class Delete(errorMessage: String)
         extends ServerErrorInstance(s"Error while deleting a simulation: $errorMessage")

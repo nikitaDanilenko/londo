@@ -11,18 +11,11 @@ trait SimulationService {
 
   def all(userId: UserId, dashboardId: DashboardId): Future[Map[TaskId, Simulation]]
 
-  def create(
+  def upsert(
       userId: UserId,
       dashboardId: DashboardId,
       taskId: TaskId,
-      creation: Creation
-  ): Future[ServerError.Or[Simulation]]
-
-  def update(
-      userId: UserId,
-      dashboardId: DashboardId,
-      taskId: TaskId,
-      update: Update
+      simulation: IncomingSimulation
   ): Future[ServerError.Or[Simulation]]
 
   def delete(
@@ -42,18 +35,11 @@ object SimulationService {
         dashboardId: DashboardId
     )(implicit ec: ExecutionContext): DBIO[Map[TaskId, Simulation]]
 
-    def create(
+    def upsert(
         userId: UserId,
         dashboardId: DashboardId,
         taskId: TaskId,
-        creation: Creation
-    )(implicit ec: ExecutionContext): DBIO[Simulation]
-
-    def update(
-        userId: UserId,
-        dashboardId: DashboardId,
-        taskId: TaskId,
-        update: Update
+        simulation: IncomingSimulation
     )(implicit ec: ExecutionContext): DBIO[Simulation]
 
     def delete(

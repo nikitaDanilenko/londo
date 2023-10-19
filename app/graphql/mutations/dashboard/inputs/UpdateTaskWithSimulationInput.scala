@@ -2,6 +2,7 @@ package graphql.mutations.dashboard.inputs
 
 import graphql.mutations.project.inputs.TaskUpdate
 import graphql.types.dashboard.DashboardId
+import graphql.types.simulation.Simulation
 import graphql.types.task.TaskId
 import io.circe.generic.JsonCodec
 import sangria.macros.derive.deriveInputObjectType
@@ -12,7 +13,7 @@ case class UpdateTaskWithSimulationInput(
     dashboardId: DashboardId,
     taskId: TaskId,
     taskUpdate: TaskUpdate,
-    simulationUpdate: Option[SimulationUpdate]
+    simulation: Option[Simulation]
 )
 
 object UpdateTaskWithSimulationInput {

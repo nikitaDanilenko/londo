@@ -9,6 +9,11 @@ case class Update(
 
 object Update {
 
+  def from(simulation: IncomingSimulation): Update =
+    Update(
+      reachedModifier = simulation.reachedModifier
+    )
+
   def update(simulation: Simulation, update: Update): IO[Simulation] =
     for {
       now <- DateUtil.now

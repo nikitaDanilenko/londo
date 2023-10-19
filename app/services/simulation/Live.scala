@@ -33,28 +33,16 @@ class Live @Inject() (
   override def all(userId: UserId, dashboardId: DashboardId): Future[Map[TaskId, Simulation]] =
     db.runTransactionally(companion.all(userId, dashboardId))
 
-  override def create(
+  override def upsert(
       userId: UserId,
       dashboardId: DashboardId,
       taskId: TaskId,
-      creation: Creation
+      simulation: IncomingSimulation
   ): Future[ServerError.Or[Simulation]] =
-    db.runTransactionally(companion.create(userId, dashboardId, taskId, creation))
+    db.runTransactionally(companion.upsert(userId, dashboardId, taskId, simulation))
       .map(Right(_))
       .recover { case error =>
-        Left(ErrorContext.Simulation.Create(error.getMessage).asServerError)
-      }
-
-  override def update(
-      userId: UserId,
-      dashboardId: DashboardId,
-      taskId: TaskId,
-      update: Update
-  ): Future[ServerError.Or[Simulation]] =
-    db.runTransactionally(companion.update(userId, dashboardId, taskId, update))
-      .map(Right(_))
-      .recover { case error =>
-        Left(ErrorContext.Simulation.Update(error.getMessage).asServerError)
+        Left(ErrorContext.Simulation.Upsert(error.getMessage).asServerError)
       }
 
   override def delete(
@@ -95,42 +83,32 @@ object Live {
         .map(simulation => simulation.taskId.transformInto[TaskId] -> simulation.transformInto[Simulation])
         .toMap
 
-    override def create(
+    override def upsert(
         userId: UserId,
         dashboardId: DashboardId,
         taskId: TaskId,
-        creation: Creation
-    )(implicit
-        ec: ExecutionContext
-    ): DBIO[Simulation] = ifTaskExists(userId, dashboardId, taskId) {
-      for {
-        simulation <- Creation.create(creation).to[DBIO]
-        simulationRow = (simulation, taskId, dashboardId).transformInto[Tables.SimulationRow]
-        inserted <- simulationDao.insert(simulationRow)
-      } yield inserted.transformInto[Simulation]
-    }
-
-    override def update(
-        userId: UserId,
-        dashboardId: DashboardId,
-        taskId: TaskId,
-        update: Update
+        simulation: IncomingSimulation
     )(implicit
         ec: ExecutionContext
     ): DBIO[Simulation] = {
-      val findAction =
-        OptionT(simulationDao.find(SimulationKey(taskId, dashboardId))).getOrElseF(SimulationService.notFound)
-      for {
-        simulationRow <- findAction
-        _ <- ifTaskExists(userId, dashboardId, taskId) {
-          for {
-            updated <- Update.update(simulationRow.transformInto[Simulation], update).to[DBIO]
-            updatedRow = (updated, taskId, dashboardId).transformInto[Tables.SimulationRow]
-            _ <- simulationDao.update(updatedRow)
-          } yield ()
-        }
-        updatedSimulationRow <- findAction
-      } yield updatedSimulationRow.transformInto[Simulation]
+      ifTaskExists(userId, dashboardId, taskId) {
+        for {
+          maybeRow <- simulationDao.find(SimulationKey(taskId, dashboardId))
+          simulation <- maybeRow.fold {
+            for {
+              simulation <- Creation.create(Creation.from(simulation)).to[DBIO]
+              simulationRow = (simulation, taskId, dashboardId).transformInto[Tables.SimulationRow]
+              inserted <- simulationDao.insert(simulationRow)
+            } yield inserted.transformInto[Simulation]
+          } { simulationRow =>
+            for {
+              updated <- Update.update(simulationRow.transformInto[Simulation], Update.from(simulation)).to[DBIO]
+              updatedRow = (updated, taskId, dashboardId).transformInto[Tables.SimulationRow]
+              _ <- simulationDao.update(updatedRow)
+            } yield updatedRow.transformInto[Simulation]
+          }
+        } yield simulation
+      }
     }
 
     override def delete(

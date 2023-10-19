@@ -1,7 +1,6 @@
 package graphql.mutations.dashboard
 
 import cats.data.EitherT
-import errors.ServerError
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.dashboard.inputs._
 import graphql.queries.dashboard.ResolvedTask
@@ -90,23 +89,6 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def createSimulation(input: CreateSimulationInput): Future[Simulation] =
-    withUserId { userId =>
-      EitherT(
-        graphQLServices.simulationService
-          .create(
-            userId = userId,
-            dashboardId = input.dashboardId.transformInto[db.DashboardId],
-            taskId = input.taskId.transformInto[db.TaskId],
-            creation = input.simulationCreation.transformInto[services.simulation.Creation]
-          )
-      )
-        .map(_.transformInto[Simulation])
-        .value
-        .handleServerError
-    }
-
-  @GraphQLField
   def updateTaskWithSimulation(input: UpdateTaskWithSimulationInput): Future[ResolvedTask] =
     withUserId { userId =>
       // TODO #29: Make this update transactional
@@ -121,34 +103,30 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
               )
           )
           simulation <-
-            input.simulationUpdate.fold(
-              EitherT.pure[Future, ServerError](Option.empty[services.simulation.Simulation])
-            ) { simulationUpdate =>
+            input.simulation.fold {
               EitherT(
                 graphQLServices.simulationService
-                  .update(
+                  .delete(
+                    userId = userId,
+                    dashboardId = input.dashboardId.transformInto[db.DashboardId],
+                    taskId = input.taskId.transformInto[db.TaskId]
+                  )
+              )
+                .map(_ => Option.empty[services.simulation.Simulation])
+            } { simulation =>
+              EitherT(
+                graphQLServices.simulationService
+                  .upsert(
                     userId = userId,
                     dashboardId = input.dashboardId.transformInto[db.DashboardId],
                     taskId = input.taskId.transformInto[db.TaskId],
-                    update = simulationUpdate.transformInto[services.simulation.Update]
+                    simulation = simulation.transformInto[services.simulation.IncomingSimulation]
                   )
               ).map(Some(_))
             }
         } yield ResolvedTask(task.transformInto[Task], simulation.map(_.transformInto[Simulation]))
 
       transformer.value.handleServerError
-    }
-
-  @GraphQLField
-  def deleteSimulation(input: DeleteSimulationInput): Future[Boolean] =
-    withUserId { userId =>
-      graphQLServices.simulationService
-        .delete(
-          userId = userId,
-          dashboardId = input.dashboardId.transformInto[db.DashboardId],
-          taskId = input.taskId.transformInto[db.TaskId]
-        )
-        .handleServerError
     }
 
 }
