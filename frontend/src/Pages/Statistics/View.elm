@@ -446,17 +446,34 @@ viewTask projectId language allTasks resolvedTask showControls =
 updateTask : Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
 updateTask language projectId task update =
     let
-        --todo: Add validation of simulation
-        validInput =
-            update
-                |> Types.Task.TaskWithSimulation.lenses.taskUpdate.get
-                |> Types.Task.Update.lenses.progressUpdate.get
-                |> .reached
-                |> ValidatedInput.isValid
+        progressUpdateLens =
+            Types.Task.TaskWithSimulation.lenses.taskUpdate
+                |> Compose.lensWithLens
+                    Types.Task.Update.lenses.progressUpdate
 
         reachedModifierLens =
             Types.Task.TaskWithSimulation.lenses.simulation
                 |> Compose.lensWithLens Types.Simulation.Update.lenses.reachedModifier
+
+        validReached =
+            update
+                |> progressUpdateLens.get
+                |> .reached
+                |> ValidatedInput.isValid
+
+        validReachable =
+            update
+                |> progressUpdateLens.get
+                |> .reachable
+                |> ValidatedInput.isValid
+
+        validSimulation =
+            update
+                |> reachedModifierLens.get
+                |> ValidatedInput.isValid
+
+        validInput =
+            validReached && validReachable && validSimulation
 
         validatedSaveAction =
             MaybeUtil.optional validInput <| onEnter <| Page.SaveEditTask projectId <| .id <| task
@@ -481,7 +498,7 @@ updateTask language projectId task update =
                 [ text <| TaskKind.toString <| .taskKind <| task ]
             , td []
                 (Pages.Tasks.Tasks.View.editProgress
-                    { progressLens = Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.progressUpdate
+                    { progressLens = progressUpdateLens
                     , updateMsg = updateMsg
                     }
                     (update |> (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.taskKind).get)

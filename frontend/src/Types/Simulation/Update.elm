@@ -42,7 +42,7 @@ from ps =
             }
         <|
             ValidatedInput.maybeBoundedBigInt
-                { lower = ps |> .progress |> .reached |> Math.Natural.integerValue
+                { lower = ps |> .progress |> .reached |> Math.Natural.integerValue |> BigInt.negate
                 , upper = ps |> .progress |> (\p -> BigInt.sub (p.reachable |> Math.Positive.integerValue) (p.reached |> Math.Natural.integerValue))
                 }
     }
