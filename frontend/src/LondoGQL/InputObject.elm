@@ -194,37 +194,6 @@ encodeCreateProjectInput input____ =
         [ ( "name", Encode.string input____.name |> Just ), ( "description", Encode.string |> Encode.optional input____.description ) ]
 
 
-buildCreateSimulationInput :
-    CreateSimulationInputRequiredFields
-    -> CreateSimulationInput
-buildCreateSimulationInput required____ =
-    { dashboardId = required____.dashboardId, taskId = required____.taskId, simulationCreation = required____.simulationCreation }
-
-
-type alias CreateSimulationInputRequiredFields =
-    { dashboardId : DashboardIdInput
-    , taskId : TaskIdInput
-    , simulationCreation : SimulationCreation
-    }
-
-
-{-| Type for the CreateSimulationInput input object.
--}
-type alias CreateSimulationInput =
-    { dashboardId : DashboardIdInput
-    , taskId : TaskIdInput
-    , simulationCreation : SimulationCreation
-    }
-
-
-{-| Encode a CreateSimulationInput into a value that can be used as an argument.
--}
-encodeCreateSimulationInput : CreateSimulationInput -> Value
-encodeCreateSimulationInput input____ =
-    Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "simulationCreation", encodeSimulationCreation input____.simulationCreation |> Just ) ]
-
-
 buildCreateTaskInput :
     CreateTaskInputRequiredFields
     -> CreateTaskInput
@@ -498,35 +467,6 @@ encodeDeleteProjectInput : DeleteProjectInput -> Value
 encodeDeleteProjectInput input____ =
     Encode.maybeObject
         [ ( "projectId", encodeProjectIdInput input____.projectId |> Just ) ]
-
-
-buildDeleteSimulationInput :
-    DeleteSimulationInputRequiredFields
-    -> DeleteSimulationInput
-buildDeleteSimulationInput required____ =
-    { dashboardId = required____.dashboardId, taskId = required____.taskId }
-
-
-type alias DeleteSimulationInputRequiredFields =
-    { dashboardId : DashboardIdInput
-    , taskId : TaskIdInput
-    }
-
-
-{-| Type for the DeleteSimulationInput input object.
--}
-type alias DeleteSimulationInput =
-    { dashboardId : DashboardIdInput
-    , taskId : TaskIdInput
-    }
-
-
-{-| Encode a DeleteSimulationInput into a value that can be used as an argument.
--}
-encodeDeleteSimulationInput : DeleteSimulationInput -> Value
-encodeDeleteSimulationInput input____ =
-    Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ) ]
 
 
 buildDeleteTaskInput :
@@ -943,52 +883,27 @@ encodeRequestRegistrationInput input____ =
         [ ( "userIdentifier", encodeUserIdentifier input____.userIdentifier |> Just ) ]
 
 
-buildSimulationCreation :
-    SimulationCreationRequiredFields
-    -> SimulationCreation
-buildSimulationCreation required____ =
+buildSimulationInput :
+    SimulationInputRequiredFields
+    -> SimulationInput
+buildSimulationInput required____ =
     { reachedModifier = required____.reachedModifier }
 
 
-type alias SimulationCreationRequiredFields =
-    { reachedModifier : Int }
-
-
-{-| Type for the SimulationCreation input object.
--}
-type alias SimulationCreation =
-    { reachedModifier : Int }
-
-
-{-| Encode a SimulationCreation into a value that can be used as an argument.
--}
-encodeSimulationCreation : SimulationCreation -> Value
-encodeSimulationCreation input____ =
-    Encode.maybeObject
-        [ ( "reachedModifier", Encode.int input____.reachedModifier |> Just ) ]
-
-
-buildSimulationUpdate :
-    SimulationUpdateRequiredFields
-    -> SimulationUpdate
-buildSimulationUpdate required____ =
-    { reachedModifier = required____.reachedModifier }
-
-
-type alias SimulationUpdateRequiredFields =
+type alias SimulationInputRequiredFields =
     { reachedModifier : LondoGQL.ScalarCodecs.BigInt }
 
 
-{-| Type for the SimulationUpdate input object.
+{-| Type for the SimulationInput input object.
 -}
-type alias SimulationUpdate =
+type alias SimulationInput =
     { reachedModifier : LondoGQL.ScalarCodecs.BigInt }
 
 
-{-| Encode a SimulationUpdate into a value that can be used as an argument.
+{-| Encode a SimulationInput into a value that can be used as an argument.
 -}
-encodeSimulationUpdate : SimulationUpdate -> Value
-encodeSimulationUpdate input____ =
+encodeSimulationInput : SimulationInput -> Value
+encodeSimulationInput input____ =
     Encode.maybeObject
         [ ( "reachedModifier", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecBigInt) input____.reachedModifier |> Just ) ]
 
@@ -1237,9 +1152,9 @@ buildUpdateTaskWithSimulationInput required____ fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
-                { simulationUpdate = Absent }
+                { simulation = Absent }
     in
-    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulationUpdate = optionals____.simulationUpdate }
+    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation }
 
 
 type alias UpdateTaskWithSimulationInputRequiredFields =
@@ -1250,7 +1165,7 @@ type alias UpdateTaskWithSimulationInputRequiredFields =
 
 
 type alias UpdateTaskWithSimulationInputOptionalFields =
-    { simulationUpdate : OptionalArgument SimulationUpdate }
+    { simulation : OptionalArgument SimulationInput }
 
 
 {-| Type for the UpdateTaskWithSimulationInput input object.
@@ -1259,7 +1174,7 @@ type alias UpdateTaskWithSimulationInput =
     { dashboardId : DashboardIdInput
     , taskId : TaskIdInput
     , taskUpdate : TaskUpdate
-    , simulationUpdate : OptionalArgument SimulationUpdate
+    , simulation : OptionalArgument SimulationInput
     }
 
 
@@ -1268,7 +1183,7 @@ type alias UpdateTaskWithSimulationInput =
 encodeUpdateTaskWithSimulationInput : UpdateTaskWithSimulationInput -> Value
 encodeUpdateTaskWithSimulationInput input____ =
     Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulationUpdate", encodeSimulationUpdate |> Encode.optional input____.simulationUpdate ) ]
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ) ]
 
 
 buildUpdateUserInput :

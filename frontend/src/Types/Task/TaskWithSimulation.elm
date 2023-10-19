@@ -46,7 +46,7 @@ toGraphQLInput dashboardId taskId clientInput =
     { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
     , taskId = taskId |> Types.Task.Id.toGraphQLInput
     , taskUpdate = clientInput.taskUpdate |> Types.Task.Update.toGraphQLInput
-    , simulationUpdate =
+    , simulation =
         clientInput.simulation
             |> Types.Simulation.Update.toGraphQLInput
             |> Graphql.OptionalArgument.fromMaybe
@@ -66,7 +66,7 @@ updateWith expect authorizedAccess dashboardId taskId update =
             { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
             , taskId = taskId |> Types.Task.Id.toGraphQLInput
             , taskUpdate = update.taskUpdate |> Types.Task.Update.toGraphQLInput
-            , simulationUpdate =
+            , simulation =
                 update.simulation
                     |> Types.Simulation.Update.toGraphQLInput
                     |> Graphql.OptionalArgument.fromMaybe

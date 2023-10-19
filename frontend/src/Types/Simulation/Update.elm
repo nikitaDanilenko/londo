@@ -48,8 +48,8 @@ from ps =
     }
 
 
-toGraphQLInput : ClientInput -> Maybe LondoGQL.InputObject.SimulationUpdate
+toGraphQLInput : ClientInput -> Maybe LondoGQL.InputObject.SimulationInput
 toGraphQLInput input =
     input.reachedModifier
         |> .value
-        |> Maybe.map (GraphQLUtil.bigIntToGraphQL >> LondoGQL.InputObject.SimulationUpdate)
+        |> Maybe.map (GraphQLUtil.bigIntToGraphQL >> LondoGQL.InputObject.SimulationInput)

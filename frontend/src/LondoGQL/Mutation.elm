@@ -253,18 +253,6 @@ deleteDashboardEntry requiredArgs____ =
     Object.selectionForField "Bool" "deleteDashboardEntry" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeDeleteDashboardEntryInput ] Decode.bool
 
 
-type alias CreateSimulationRequiredArguments =
-    { input : LondoGQL.InputObject.CreateSimulationInput }
-
-
-createSimulation :
-    CreateSimulationRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.Simulation
-    -> SelectionSet decodesTo RootMutation
-createSimulation requiredArgs____ object____ =
-    Object.selectionForCompositeField "createSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeCreateSimulationInput ] object____ Basics.identity
-
-
 type alias UpdateTaskWithSimulationRequiredArguments =
     { input : LondoGQL.InputObject.UpdateTaskWithSimulationInput }
 
@@ -275,14 +263,3 @@ updateTaskWithSimulation :
     -> SelectionSet decodesTo RootMutation
 updateTaskWithSimulation requiredArgs____ object____ =
     Object.selectionForCompositeField "updateTaskWithSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateTaskWithSimulationInput ] object____ Basics.identity
-
-
-type alias DeleteSimulationRequiredArguments =
-    { input : LondoGQL.InputObject.DeleteSimulationInput }
-
-
-deleteSimulation :
-    DeleteSimulationRequiredArguments
-    -> SelectionSet Bool RootMutation
-deleteSimulation requiredArgs____ =
-    Object.selectionForField "Bool" "deleteSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeDeleteSimulationInput ] Decode.bool
