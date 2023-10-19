@@ -4,7 +4,7 @@ module Util.ValidatedInput exposing
     , isValid
     , lenses
     , lift
-    , maybeInt
+    , maybeBoundedInt
     , natural
     , nonEmptyString
     , positive
@@ -188,8 +188,8 @@ partialInt str =
     headCorrect && tailCorrect
 
 
-maybeInt : ValidatedInput (Maybe Int)
-maybeInt =
+maybeBoundedInt : { lower : Int, upper : Int } -> ValidatedInput (Maybe Int)
+maybeBoundedInt bounds =
     { value = Nothing
     , ifEmptyValue = Nothing
     , text = ""
@@ -201,7 +201,8 @@ maybeInt =
             else
                 str
                     |> String.toInt
-                    |> Result.fromMaybe "Error: Not an integer"
+                    |> Maybe.Extra.filter (\int -> int >= bounds.lower && int <= bounds.upper)
+                    |> Result.fromMaybe ("Error: Not an integer in the range between " ++ String.fromInt bounds.lower ++ " and " ++ String.fromInt bounds.upper)
                     |> Result.map Just
     , partial = partialInt
     }
