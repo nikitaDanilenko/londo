@@ -6,7 +6,7 @@ create table simulation
 (
     task_id          uuid                     not null,
     dashboard_id     uuid                     not null,
-    reached_modifier bigint                   not null,
+    reached_modifier numeric(1000)            not null,
     created_at       timestamp with time zone not null,
     updated_at       timestamp with time zone
 );

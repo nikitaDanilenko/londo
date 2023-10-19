@@ -4,10 +4,11 @@ import io.circe.generic.JsonCodec
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
+import utils.graphql.SangriaUtil.instances._
 
 @JsonCodec
 case class Simulation(
-    reachedModifier: Int
+    reachedModifier: BigInt
 )
 
 object Simulation {
