@@ -1,7 +1,9 @@
 module Types.Simulation.Update exposing (..)
 
 import LondoGQL.InputObject
+import Maybe.Extra
 import Monocle.Lens exposing (Lens)
+import Types.Simulation.Simulation
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
@@ -18,9 +20,18 @@ lenses =
     }
 
 
-initial : ClientInput
-initial =
-    { reachedModifier = ValidatedInput.maybeInt
+from : Maybe Types.Simulation.Simulation.Simulation -> ClientInput
+from simulation =
+    let
+        maybeModifier =
+            simulation |> Maybe.map .reachedModifier
+    in
+    { reachedModifier =
+        ValidatedInput.set
+            { value = maybeModifier
+            , toString = Maybe.Extra.unwrap "" String.fromInt
+            }
+            ValidatedInput.maybeInt
     }
 
 

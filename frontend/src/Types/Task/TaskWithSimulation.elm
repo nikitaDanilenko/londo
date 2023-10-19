@@ -10,7 +10,6 @@ import Types.Dashboard.Id
 import Types.Simulation.Update
 import Types.Task.Id
 import Types.Task.Resolved
-import Types.Task.Task
 import Types.Task.Update
 import Util.HttpUtil as HttpUtil
 
@@ -31,10 +30,10 @@ lenses =
     }
 
 
-from : Types.Task.Task.Task -> ClientInput
-from task =
-    { taskUpdate = task |> Types.Task.Update.from
-    , simulation = Types.Simulation.Update.initial
+from : Types.Task.Resolved.Resolved -> ClientInput
+from resolved =
+    { taskUpdate = resolved |> .task |> Types.Task.Update.from
+    , simulation = Types.Simulation.Update.from resolved.simulation
     }
 
 
