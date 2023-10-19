@@ -29,7 +29,7 @@ object Simulation {
       Tables.SimulationRow(
         taskId = taskId.transformInto[UUID],
         dashboardId = dashboardId.transformInto[UUID],
-        reachedModifier = 5L,
+        reachedModifier = BigDecimal(simulation.reachedModifier),
         createdAt = simulation.createdAt.transformInto[java.sql.Timestamp],
         updatedAt = simulation.updatedAt.map(_.transformInto[java.sql.Timestamp])
       )
