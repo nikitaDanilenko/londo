@@ -19,6 +19,6 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-reachedModifier : SelectionSet Int LondoGQL.Object.Simulation
+reachedModifier : SelectionSet LondoGQL.ScalarCodecs.BigInt LondoGQL.Object.Simulation
 reachedModifier =
-    Object.selectionForField "Int" "reachedModifier" [] Decode.int
+    Object.selectionForField "ScalarCodecs.BigInt" "reachedModifier" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigInt |> .decoder)

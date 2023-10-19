@@ -8,6 +8,7 @@ import LondoGQL.Object.Positive
 import LondoGQL.Scalar
 import Math.Constants as Constants
 import Maybe.Extra
+import Util.GraphQLUtil as GraphQLUtil
 
 
 type Positive
@@ -82,8 +83,5 @@ toGraphQLInput =
 selection : SelectionSet Positive LondoGQL.Object.Positive
 selection =
     SelectionSet.map
-        --todo: Extract conversion from BigInt to Integer?
-        ((\(LondoGQL.Scalar.BigInt str) -> BigInt.fromIntString str)
-            >> Maybe.Extra.unwrap one Positive
-        )
+        (GraphQLUtil.bigIntFromGraphQL >> Maybe.Extra.unwrap one Positive)
         LondoGQL.Object.Positive.positive

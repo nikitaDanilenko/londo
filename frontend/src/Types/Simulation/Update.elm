@@ -1,37 +1,50 @@
 module Types.Simulation.Update exposing (..)
 
+import BigInt exposing (BigInt)
 import LondoGQL.InputObject
+import Math.Natural
+import Math.Positive
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
+import Types.Progress.Progress
 import Types.Simulation.Simulation
+import Util.GraphQLUtil as GraphQLUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 type alias ClientInput =
-    { reachedModifier : ValidatedInput (Maybe Int)
+    { reachedModifier : ValidatedInput (Maybe BigInt)
     }
 
 
 lenses :
-    { reachedModifier : Lens ClientInput (ValidatedInput (Maybe Int))
+    { reachedModifier : Lens ClientInput (ValidatedInput (Maybe BigInt))
     }
 lenses =
     { reachedModifier = Lens .reachedModifier (\b a -> { a | reachedModifier = b })
     }
 
 
-from : Maybe Types.Simulation.Simulation.Simulation -> ClientInput
-from simulation =
+from :
+    { progress : Types.Progress.Progress.Progress
+    , simulation : Maybe Types.Simulation.Simulation.Simulation
+    }
+    -> ClientInput
+from ps =
     let
         maybeModifier =
-            simulation |> Maybe.map .reachedModifier
+            ps |> .simulation |> Maybe.map .reachedModifier
     in
     { reachedModifier =
         ValidatedInput.set
             { value = maybeModifier
-            , toString = Maybe.Extra.unwrap "" String.fromInt
+            , toString = Maybe.Extra.unwrap "" BigInt.toString
             }
-            ValidatedInput.maybeInt
+        <|
+            ValidatedInput.maybeBoundedBigInt
+                { lower = ps |> .progress |> .reached |> Math.Natural.integerValue
+                , upper = ps |> .progress |> (\p -> BigInt.sub (p.reachable |> Math.Positive.integerValue) (p.reached |> Math.Natural.integerValue))
+                }
     }
 
 
@@ -39,4 +52,4 @@ toGraphQLInput : ClientInput -> Maybe LondoGQL.InputObject.SimulationUpdate
 toGraphQLInput input =
     input.reachedModifier
         |> .value
-        |> Maybe.map LondoGQL.InputObject.SimulationUpdate
+        |> Maybe.map (GraphQLUtil.bigIntToGraphQL >> LondoGQL.InputObject.SimulationUpdate)

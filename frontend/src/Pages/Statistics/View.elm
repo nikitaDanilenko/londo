@@ -1,11 +1,12 @@
 module Pages.Statistics.View exposing (view)
 
+import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, div, h1, h2, hr, input, section, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (checked, colspan, disabled, type_)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (checked, colspan, disabled, type_, value)
+import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind
@@ -25,6 +26,7 @@ import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 import Types.Progress.Progress
+import Types.Simulation.Update
 import Types.Task.TaskWithSimulation
 import Types.Task.Update
 import Util.DictList as DictList
@@ -106,8 +108,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
             resolvedTasks
                 |> List.concatMap (List.map (.simulation >> Maybe.map .reachedModifier))
                 |> Maybe.Extra.values
-                |> List.sum
-                |> BigInt.fromInt
+                |> Math.Statistics.sumWith identity
                 |> BigInt.add reachedAll
 
         -- todo: Consider extraction for better testability
@@ -115,8 +116,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
             resolvedTasks
                 |> List.concat
                 |> List.filterMap (\resolved -> resolved.simulation |> Maybe.map .reachedModifier |> Maybe.Extra.filter (\_ -> resolved.task.counting))
-                |> List.sum
-                |> BigInt.fromInt
+                |> Math.Statistics.sumWith identity
                 |> BigInt.add reachedAllCounted
 
         meanAbsoluteTotal =
@@ -397,7 +397,7 @@ taskInfoColumns allTasks resolvedTask =
       , children = [ Pages.Tasks.Tasks.View.displayProgress resolvedTask.task.progress resolvedTask.task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" (.reachedModifier >> String.fromInt) <| .simulation <| resolvedTask ]
+      , children = [ text <| Maybe.Extra.unwrap "" (.reachedModifier >> BigInt.toString) <| .simulation <| resolvedTask ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.withDefault "" <| .unit <| .task <| resolvedTask ]
@@ -454,6 +454,10 @@ updateTask language projectId task update =
                 |> .reached
                 |> ValidatedInput.isValid
 
+        reachedModifierLens =
+            Types.Task.TaskWithSimulation.lenses.simulation
+                |> Compose.lensWithLens Types.Simulation.Update.lenses.reachedModifier
+
         validatedSaveAction =
             MaybeUtil.optional validInput <| onEnter <| Page.SaveEditTask projectId <| .id <| task
 
@@ -491,6 +495,22 @@ updateTask language projectId task update =
                             )
                         )
                 )
+            , td [ Style.classes.editable ]
+                [ input
+                    ([ MaybeUtil.defined <| value <| .text <| reachedModifierLens.get <| update
+                     , MaybeUtil.defined <|
+                        onInput <|
+                            flip
+                                (ValidatedInput.lift reachedModifierLens).set
+                                update
+                                >> updateMsg
+                     , MaybeUtil.defined <| HtmlUtil.onEscape <| cancelMsg
+                     , validatedSaveAction
+                     ]
+                        |> Maybe.Extra.values
+                    )
+                    []
+                ]
             , td [ Style.classes.editable ]
                 [ text <| Maybe.withDefault "" <| task.unit ]
             , td []

@@ -33,7 +33,11 @@ lenses =
 from : Types.Task.Resolved.Resolved -> ClientInput
 from resolved =
     { taskUpdate = resolved |> .task |> Types.Task.Update.from
-    , simulation = Types.Simulation.Update.from resolved.simulation
+    , simulation =
+        Types.Simulation.Update.from
+            { progress = resolved.task.progress
+            , simulation = resolved.simulation
+            }
     }
 
 

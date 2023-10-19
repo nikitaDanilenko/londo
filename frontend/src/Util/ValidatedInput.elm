@@ -4,7 +4,7 @@ module Util.ValidatedInput exposing
     , isValid
     , lenses
     , lift
-    , maybeBoundedInt
+    , maybeBoundedBigInt
     , natural
     , nonEmptyString
     , positive
@@ -13,6 +13,7 @@ module Util.ValidatedInput exposing
     )
 
 import Basics.Extra exposing (flip)
+import BigInt exposing (BigInt)
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
@@ -188,8 +189,8 @@ partialInt str =
     headCorrect && tailCorrect
 
 
-maybeBoundedInt : { lower : Int, upper : Int } -> ValidatedInput (Maybe Int)
-maybeBoundedInt bounds =
+maybeBoundedBigInt : { lower : BigInt, upper : BigInt } -> ValidatedInput (Maybe BigInt)
+maybeBoundedBigInt bounds =
     { value = Nothing
     , ifEmptyValue = Nothing
     , text = ""
@@ -200,9 +201,9 @@ maybeBoundedInt bounds =
 
             else
                 str
-                    |> String.toInt
-                    |> Maybe.Extra.filter (\int -> int >= bounds.lower && int <= bounds.upper)
-                    |> Result.fromMaybe ("Error: Not an integer in the range between " ++ String.fromInt bounds.lower ++ " and " ++ String.fromInt bounds.upper)
+                    |> BigInt.fromIntString
+                    |> Maybe.Extra.filter (\int -> BigInt.gte int bounds.lower && BigInt.lte int bounds.upper)
+                    |> Result.fromMaybe ("Error: Not an integer in the range between " ++ BigInt.toString bounds.lower ++ " and " ++ BigInt.toString bounds.upper)
                     |> Result.map Just
     , partial = partialInt
     }

@@ -976,13 +976,13 @@ buildSimulationUpdate required____ =
 
 
 type alias SimulationUpdateRequiredFields =
-    { reachedModifier : Int }
+    { reachedModifier : LondoGQL.ScalarCodecs.BigInt }
 
 
 {-| Type for the SimulationUpdate input object.
 -}
 type alias SimulationUpdate =
-    { reachedModifier : Int }
+    { reachedModifier : LondoGQL.ScalarCodecs.BigInt }
 
 
 {-| Encode a SimulationUpdate into a value that can be used as an argument.
@@ -990,7 +990,7 @@ type alias SimulationUpdate =
 encodeSimulationUpdate : SimulationUpdate -> Value
 encodeSimulationUpdate input____ =
     Encode.maybeObject
-        [ ( "reachedModifier", Encode.int input____.reachedModifier |> Just ) ]
+        [ ( "reachedModifier", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecBigInt) input____.reachedModifier |> Just ) ]
 
 
 buildTaskCreation :

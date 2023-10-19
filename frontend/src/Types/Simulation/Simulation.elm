@@ -1,24 +1,29 @@
 module Types.Simulation.Simulation exposing (..)
 
+import BigInt exposing (BigInt)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Mutation
 import LondoGQL.Object
 import LondoGQL.Object.Simulation
+import Math.Constants
+import Maybe.Extra
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Dashboard.Id
 import Types.Task.Id
+import Util.GraphQLUtil as GraphQLUtil
 import Util.HttpUtil as HttpUtil
 
 
 type alias Simulation =
-    { reachedModifier : Int
+    { reachedModifier : BigInt
     }
 
 
 selection : SelectionSet Simulation LondoGQL.Object.Simulation
 selection =
-    SelectionSet.map Simulation
+    SelectionSet.map
+        (GraphQLUtil.bigIntFromGraphQL >> Maybe.withDefault Math.Constants.zeroBigInt >> Simulation)
         LondoGQL.Object.Simulation.reachedModifier
 
 
