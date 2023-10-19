@@ -192,14 +192,14 @@ trait Tables {
   /** Entity class storing rows of table Simulation
    *  @param taskId Database column task_id SqlType(uuid)
    *  @param dashboardId Database column dashboard_id SqlType(uuid)
-   *  @param reachedModifier Database column reached_modifier SqlType(int4)
+   *  @param reachedModifier Database column reached_modifier SqlType(int8)
    *  @param createdAt Database column created_at SqlType(timestamptz)
    *  @param updatedAt Database column updated_at SqlType(timestamptz), Default(None) */
-  case class SimulationRow(taskId: java.util.UUID, dashboardId: java.util.UUID, reachedModifier: Int, createdAt: java.sql.Timestamp, updatedAt: Option[java.sql.Timestamp] = None)
+  case class SimulationRow(taskId: java.util.UUID, dashboardId: java.util.UUID, reachedModifier: Long, createdAt: java.sql.Timestamp, updatedAt: Option[java.sql.Timestamp] = None)
   /** GetResult implicit for fetching SimulationRow objects using plain SQL queries */
-  implicit def GetResultSimulationRow(implicit e0: GR[java.util.UUID], e1: GR[Int], e2: GR[java.sql.Timestamp], e3: GR[Option[java.sql.Timestamp]]): GR[SimulationRow] = GR{
+  implicit def GetResultSimulationRow(implicit e0: GR[java.util.UUID], e1: GR[Long], e2: GR[java.sql.Timestamp], e3: GR[Option[java.sql.Timestamp]]): GR[SimulationRow] = GR{
     prs => import prs._
-    SimulationRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[Int], <<[java.sql.Timestamp], <<?[java.sql.Timestamp]))
+    SimulationRow.tupled((<<[java.util.UUID], <<[java.util.UUID], <<[Long], <<[java.sql.Timestamp], <<?[java.sql.Timestamp]))
   }
   /** Table description of table simulation. Objects of this class serve as prototypes for rows in queries. */
   class Simulation(_tableTag: Tag) extends profile.api.Table[SimulationRow](_tableTag, "simulation") {
@@ -211,8 +211,8 @@ trait Tables {
     val taskId: Rep[java.util.UUID] = column[java.util.UUID]("task_id")
     /** Database column dashboard_id SqlType(uuid) */
     val dashboardId: Rep[java.util.UUID] = column[java.util.UUID]("dashboard_id")
-    /** Database column reached_modifier SqlType(int4) */
-    val reachedModifier: Rep[Int] = column[Int]("reached_modifier")
+    /** Database column reached_modifier SqlType(int8) */
+    val reachedModifier: Rep[Long] = column[Long]("reached_modifier")
     /** Database column created_at SqlType(timestamptz) */
     val createdAt: Rep[java.sql.Timestamp] = column[java.sql.Timestamp]("created_at")
     /** Database column updated_at SqlType(timestamptz), Default(None) */
