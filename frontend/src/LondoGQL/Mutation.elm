@@ -251,3 +251,15 @@ deleteDashboardEntry :
     -> SelectionSet Bool RootMutation
 deleteDashboardEntry requiredArgs____ =
     Object.selectionForField "Bool" "deleteDashboardEntry" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeDeleteDashboardEntryInput ] Decode.bool
+
+
+type alias UpdateTaskWithSimulationRequiredArguments =
+    { input : LondoGQL.InputObject.UpdateTaskWithSimulationInput }
+
+
+updateTaskWithSimulation :
+    UpdateTaskWithSimulationRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.ResolvedTask
+    -> SelectionSet decodesTo RootMutation
+updateTaskWithSimulation requiredArgs____ object____ =
+    Object.selectionForCompositeField "updateTaskWithSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateTaskWithSimulationInput ] object____ Basics.identity

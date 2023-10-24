@@ -14,8 +14,9 @@ import Types.Project.Id
 import Types.Project.Project
 import Types.Project.Resolved
 import Types.Task.Id
+import Types.Task.Resolved
 import Types.Task.Task
-import Types.Task.Update
+import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing exposing (Editing)
 import Util.HttpUtil as HttpUtil
@@ -53,8 +54,12 @@ type alias Task =
     Types.Task.Task.Task
 
 
+type alias ResolvedTask =
+    Types.Task.Resolved.Resolved
+
+
 type alias TaskUpdate =
-    Types.Task.Update.ClientInput
+    Types.Task.TaskWithSimulation.ClientInput
 
 
 type alias TaskId =
@@ -126,7 +131,7 @@ initialToMain i =
                                 resolvedProject
                                     |> .tasks
                                     |> List.map Editing.asView
-                                    |> DictList.fromListWithKey (.original >> .id)
+                                    |> DictList.fromListWithKey (.original >> .task >> .id)
                             }
                         )
                     |> DictList.fromListWithKey (.project >> .id)
@@ -172,7 +177,7 @@ type LogicMsg
     = GotFetchDeeplyDashboardResponse (HttpUtil.GraphQLResult DeeplyResolvedDashboard)
     | EditTask ProjectId TaskId TaskUpdate
     | SaveEditTask ProjectId TaskId
-    | GotSaveEditTaskResponse ( ProjectId, HttpUtil.GraphQLResult Task )
+    | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult ResolvedTask)
     | ToggleControls ProjectId TaskId
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId

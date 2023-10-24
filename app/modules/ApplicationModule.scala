@@ -7,6 +7,7 @@ import services.dashboardEntry.DashboardEntryService
 import services.loginThrottle.LoginThrottleService
 import services.project.ProjectService
 import services.session.SessionService
+import services.simulation.SimulationService
 import services.task.TaskService
 import services.user.UserService
 
@@ -21,6 +22,7 @@ class ApplicationModule extends play.api.inject.Module {
       bind[db.daos.session.DAO].toInstance(db.daos.session.DAO.instance),
       bind[db.daos.task.DAO].toInstance(db.daos.task.DAO.instance),
       bind[db.daos.user.DAO].toInstance(db.daos.user.DAO.instance),
+      bind[db.daos.simulation.DAO].toInstance(db.daos.simulation.DAO.instance),
       bind[DashboardService.Companion].to[services.dashboard.Live.Companion],
       bind[DashboardService].to[services.dashboard.Live],
       bind[DashboardEntryService.Companion].to[services.dashboardEntry.Live.Companion],
@@ -34,7 +36,9 @@ class ApplicationModule extends play.api.inject.Module {
       bind[TaskService.Companion].to[services.task.Live.Companion],
       bind[TaskService].to[services.task.Live],
       bind[UserService.Companion].to[services.user.Live.Companion],
-      bind[UserService].to[services.user.Live]
+      bind[UserService].to[services.user.Live],
+      bind[SimulationService.Companion].to[services.simulation.Live.Companion],
+      bind[SimulationService].to[services.simulation.Live]
     )
     settings
   }

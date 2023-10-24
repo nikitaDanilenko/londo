@@ -1,4 +1,4 @@
-module Math.Positive exposing (Positive, fromBigIntOrOne, fromString, integerValue, one, oneHundred, selection, sum, tenToTheNth, toGraphQLInput, toString)
+module Math.Positive exposing (Positive, fromBigIntOrOne, fromInt, fromString, integerValue, one, oneHundred, selection, sum, tenToTheNth, toGraphQLInput, toString)
 
 import BigInt exposing (BigInt)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -8,6 +8,7 @@ import LondoGQL.Object.Positive
 import LondoGQL.Scalar
 import Math.Constants as Constants
 import Maybe.Extra
+import Util.GraphQLUtil as GraphQLUtil
 
 
 type Positive
@@ -30,10 +31,18 @@ toString =
 
 
 fromString : String -> Maybe Positive
-fromString s =
-    BigInt.fromIntString s
-        |> Maybe.Extra.filter (\x -> BigInt.gt x Constants.zeroBigInt)
-        |> Maybe.map Positive
+fromString =
+    BigInt.fromIntString
+        >> Maybe.Extra.filter (\x -> BigInt.gt x Constants.zeroBigInt)
+        >> Maybe.map Positive
+
+
+fromInt : Int -> Maybe Positive
+fromInt =
+    BigInt.fromInt
+        >> Just
+        >> Maybe.Extra.filter (\x -> BigInt.gt x Constants.zeroBigInt)
+        >> Maybe.map Positive
 
 
 one : Positive
@@ -74,8 +83,5 @@ toGraphQLInput =
 selection : SelectionSet Positive LondoGQL.Object.Positive
 selection =
     SelectionSet.map
-        --todo: Extract conversion from BigInt to Integer?
-        ((\(LondoGQL.Scalar.BigInt str) -> BigInt.fromIntString str)
-            >> Maybe.Extra.unwrap one Positive
-        )
+        (GraphQLUtil.bigIntFromGraphQL >> Maybe.Extra.unwrap one Positive)
         LondoGQL.Object.Positive.positive

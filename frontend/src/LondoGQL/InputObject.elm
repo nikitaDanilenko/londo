@@ -883,6 +883,31 @@ encodeRequestRegistrationInput input____ =
         [ ( "userIdentifier", encodeUserIdentifier input____.userIdentifier |> Just ) ]
 
 
+buildSimulationInput :
+    SimulationInputRequiredFields
+    -> SimulationInput
+buildSimulationInput required____ =
+    { reachedModifier = required____.reachedModifier }
+
+
+type alias SimulationInputRequiredFields =
+    { reachedModifier : LondoGQL.ScalarCodecs.BigInt }
+
+
+{-| Type for the SimulationInput input object.
+-}
+type alias SimulationInput =
+    { reachedModifier : LondoGQL.ScalarCodecs.BigInt }
+
+
+{-| Encode a SimulationInput into a value that can be used as an argument.
+-}
+encodeSimulationInput : SimulationInput -> Value
+encodeSimulationInput input____ =
+    Encode.maybeObject
+        [ ( "reachedModifier", (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapEncoder .codecBigInt) input____.reachedModifier |> Just ) ]
+
+
 buildTaskCreation :
     TaskCreationRequiredFields
     -> (TaskCreationOptionalFields -> TaskCreationOptionalFields)
@@ -1117,6 +1142,48 @@ encodeUpdateTaskInput : UpdateTaskInput -> Value
 encodeUpdateTaskInput input____ =
     Encode.maybeObject
         [ ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ) ]
+
+
+buildUpdateTaskWithSimulationInput :
+    UpdateTaskWithSimulationInputRequiredFields
+    -> (UpdateTaskWithSimulationInputOptionalFields -> UpdateTaskWithSimulationInputOptionalFields)
+    -> UpdateTaskWithSimulationInput
+buildUpdateTaskWithSimulationInput required____ fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { simulation = Absent }
+    in
+    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation }
+
+
+type alias UpdateTaskWithSimulationInputRequiredFields =
+    { dashboardId : DashboardIdInput
+    , taskId : TaskIdInput
+    , taskUpdate : TaskUpdate
+    }
+
+
+type alias UpdateTaskWithSimulationInputOptionalFields =
+    { simulation : OptionalArgument SimulationInput }
+
+
+{-| Type for the UpdateTaskWithSimulationInput input object.
+-}
+type alias UpdateTaskWithSimulationInput =
+    { dashboardId : DashboardIdInput
+    , taskId : TaskIdInput
+    , taskUpdate : TaskUpdate
+    , simulation : OptionalArgument SimulationInput
+    }
+
+
+{-| Encode a UpdateTaskWithSimulationInput into a value that can be used as an argument.
+-}
+encodeUpdateTaskWithSimulationInput : UpdateTaskWithSimulationInput -> Value
+encodeUpdateTaskWithSimulationInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ) ]
 
 
 buildUpdateUserInput :

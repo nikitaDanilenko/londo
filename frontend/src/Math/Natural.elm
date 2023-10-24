@@ -10,6 +10,7 @@ import Math.Constants as Constants
 import Math.Positive
 import Maybe.Extra
 import Result.Extra
+import Util.GraphQLUtil as GraphQLUtil
 
 
 type Natural
@@ -82,7 +83,5 @@ toGraphQLInput =
 selection : SelectionSet Natural LondoGQL.Object.Natural
 selection =
     SelectionSet.map
-        ((\(LondoGQL.Scalar.BigInt str) -> BigInt.fromIntString str)
-            >> Maybe.Extra.unwrap zero NonNegative
-        )
+        (GraphQLUtil.bigIntFromGraphQL >> Maybe.Extra.unwrap zero NonNegative)
         LondoGQL.Object.Natural.nonNegative

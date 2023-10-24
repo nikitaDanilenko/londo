@@ -3,6 +3,7 @@ package services.task
 import cats.Applicative
 import cats.data.OptionT
 import cats.effect.unsafe.implicits.global
+import cats.syntax.traverse._
 import db.daos.project.ProjectKey
 import db.daos.task.DAO
 import db.generated.Tables
@@ -73,7 +74,8 @@ object Live {
 
   class Companion @Inject() (
       taskDao: DAO,
-      projectDao: db.daos.project.DAO
+      projectDao: db.daos.project.DAO,
+      simulationDao: db.daos.simulation.DAO
   ) extends TaskService.Companion {
 
     override def all(
@@ -135,6 +137,24 @@ object Live {
     )(implicit
         ec: ExecutionContext
     ): DBIO[Task] = {
+
+      def updateSimulations(progress: Progress): DBIO[Unit] = for {
+        simulations <- simulationDao.findAllByTaskId(taskId)
+        // TODO: traverse is complex, but the updates are not constant. Is there a more efficient implementation?
+        _ <- simulations.traverse(simulation =>
+          simulationDao.update(
+            simulation.copy(
+              reachedModifier = BigDecimal(
+                services.simulation.Simulation.clampedModifier(
+                  progress,
+                  simulation.reachedModifier.toBigInt
+                )
+              )
+            )
+          )
+        )
+      } yield ()
+
       val findAction =
         OptionT(taskDao.find(taskId))
           .getOrElseF(DBIO.failed(DBError.Project.TaskNotFound))
@@ -146,9 +166,10 @@ object Live {
             updatedRow = (updated, taskRow.projectId.transformInto[ProjectId]).transformInto[Tables.TaskRow]
             _ <- taskDao.update(updatedRow)
           } yield ()
-
         }
         updatedTaskRow <- findAction
+        updatedTask = updatedTaskRow.transformInto[Task]
+        _ <- updateSimulations(updatedTask.progress)
       } yield updatedTaskRow.transformInto[Task]
     }
 

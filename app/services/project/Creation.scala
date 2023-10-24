@@ -1,7 +1,7 @@
 package services.project
 
 import cats.effect.IO
-import db.{ ProjectId, UserId }
+import db.ProjectId
 import io.scalaland.chimney.dsl._
 import utils.date.DateUtil
 import utils.random.RandomGenerator
@@ -14,7 +14,7 @@ case class Creation(
 
 object Creation {
 
-  def create(creation: Creation): IO[Project] = {
+  def create(creation: Creation): IO[Project] =
     for {
       id  <- RandomGenerator.randomUUID.map(_.transformInto[ProjectId])
       now <- DateUtil.now
@@ -25,7 +25,5 @@ object Creation {
       createdAt = now,
       updatedAt = None
     )
-
-  }
 
 }

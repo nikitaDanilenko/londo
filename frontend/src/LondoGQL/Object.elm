@@ -21,6 +21,10 @@ type DeeplyResolvedDashboard
     = DeeplyResolvedDashboard
 
 
+type DeeplyResolvedProject
+    = DeeplyResolvedProject
+
+
 type FindUserResult
     = FindUserResult
 
@@ -51,6 +55,14 @@ type ResolvedDashboard
 
 type ResolvedProject
     = ResolvedProject
+
+
+type ResolvedTask
+    = ResolvedTask
+
+
+type Simulation
+    = Simulation
 
 
 type Task

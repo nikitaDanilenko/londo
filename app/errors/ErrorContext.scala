@@ -129,4 +129,14 @@ object ErrorContext {
     case object SendingFailed extends ServerErrorInstance("Sending of message failed")
   }
 
+  object Simulation {
+
+    case class Upsert(errorMessage: String)
+        extends ServerErrorInstance(s"Error while upserting a simulation: $errorMessage")
+
+    case class Delete(errorMessage: String)
+        extends ServerErrorInstance(s"Error while deleting a simulation: $errorMessage")
+
+  }
+
 }

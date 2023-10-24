@@ -5,7 +5,7 @@ import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 
-@JsonCodec
+@JsonCodec(encodeOnly = true)
 case class Project(
     id: ProjectId,
     name: String,
@@ -19,6 +19,6 @@ object Project {
       .define[services.project.Project, Project]
       .buildTransformer
 
-  implicit val projectObjectType: ObjectType[Unit, Project] = deriveObjectType[Unit, Project]()
+  implicit val objectType: ObjectType[Unit, Project] = deriveObjectType[Unit, Project]()
 
 }

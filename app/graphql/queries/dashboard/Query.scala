@@ -8,10 +8,10 @@ import graphql.queries.dashboard.inputs.{
   FetchDeeplyResolvedDashboardInput,
   FetchResolvedDashboardInput
 }
-import graphql.queries.project.ResolvedProject
 import graphql.types.dashboard.Dashboard
 import graphql.types.dashboardEntry.DashboardEntry
 import graphql.types.project.Project
+import graphql.types.simulation.Simulation
 import graphql.types.task.Task
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl._
@@ -77,11 +77,19 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
         tasksByProjectId <- EitherT.liftF[Future, ServerError, Map[db.ProjectId, Seq[services.task.Task]]](
           graphQLServices.taskService.allFor(userId, projectIds)
         )
+        simulations <- EitherT.liftF[Future, ServerError, Map[db.TaskId, services.simulation.Simulation]](
+          graphQLServices.simulationService.all(userId, dashboardId)
+        )
       } yield {
         val resolvedProjects = projects.map(project =>
-          ResolvedProject(
+          DeeplyResolvedProject(
             project = project.transformInto[Project],
-            tasks = tasksByProjectId.getOrElse(project.id, Seq.empty).map(_.transformInto[Task])
+            tasks = tasksByProjectId.getOrElse(project.id, Seq.empty).map { task =>
+              ResolvedTask(
+                task = task.transformInto[Task],
+                simulation = simulations.get(task.id).map(_.transformInto[Simulation])
+              )
+            }
           )
         )
         DeeplyResolvedDashboard(
@@ -91,7 +99,6 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
       }
 
       transformer.value.handleServerError
-
     }
 
   @GraphQLField

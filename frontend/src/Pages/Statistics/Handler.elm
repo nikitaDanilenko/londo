@@ -11,7 +11,8 @@ import Pages.Util.PaginationSettings as PaginationSettings
 import Pages.View.Tristate as Tristate
 import Result.Extra
 import Types.Dashboard.DeeplyResolved
-import Types.Task.Update
+import Types.Task.Resolved
+import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing exposing (Editing)
 import Util.LensUtil as LensUtil
@@ -73,21 +74,30 @@ updateLogic msg model =
                             |> Maybe.andThen Editing.extractUpdate
                             |> Maybe.Extra.unwrap
                                 Cmd.none
-                                (Types.Task.Update.updateWith
-                                    (\result -> ( projectId, result ) |> Page.GotSaveEditTaskResponse)
+                                (Types.Task.TaskWithSimulation.updateWith
+                                    (Page.GotSaveEditTaskResponse projectId)
                                     { configuration = model.configuration
                                     , jwt = main.jwt
                                     }
+                                    main.dashboard.id
                                     taskId
                                 )
                     )
             )
 
-        gotSaveEditTaskResponse ( projectId, result ) =
+        gotSaveEditTaskResponse projectId result =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
-                    (\task ->
-                        model |> updateTaskById projectId task.id (Editing.asViewWithElement task >> Editing.toggleControls)
+                    (\resolvedTask ->
+                        model
+                            |> updateTaskById projectId
+                                resolvedTask.task.id
+                                (Editing.asViewWithElement
+                                    { task = resolvedTask.task
+                                    , simulation = resolvedTask.simulation
+                                    }
+                                    >> Editing.toggleControls
+                                )
                     )
             , Cmd.none
             )
@@ -100,7 +110,7 @@ updateLogic msg model =
 
         enterEditTask projectId taskId =
             ( model
-                |> updateTaskById projectId taskId (Editing.toUpdate Types.Task.Update.from)
+                |> updateTaskById projectId taskId (Editing.toUpdate Types.Task.TaskWithSimulation.from)
             , Cmd.none
             )
 
@@ -140,8 +150,8 @@ updateLogic msg model =
         Page.SaveEditTask projectId taskId ->
             saveEditTask projectId taskId
 
-        Page.GotSaveEditTaskResponse result ->
-            gotSaveEditTaskResponse result
+        Page.GotSaveEditTaskResponse projectId result ->
+            gotSaveEditTaskResponse projectId result
 
         Page.ToggleControls projectId taskId ->
             toggleControls projectId taskId
@@ -162,7 +172,7 @@ updateLogic msg model =
 updateTaskById :
     Page.ProjectId
     -> Page.TaskId
-    -> (Editing Page.Task Page.TaskUpdate -> Editing Page.Task Page.TaskUpdate)
+    -> (Editing Page.ResolvedTask Page.TaskUpdate -> Editing Page.ResolvedTask Page.TaskUpdate)
     -> Page.Model
     -> Page.Model
 updateTaskById projectId taskId =

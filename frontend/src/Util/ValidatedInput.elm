@@ -4,6 +4,7 @@ module Util.ValidatedInput exposing
     , isValid
     , lenses
     , lift
+    , maybeBoundedBigInt
     , natural
     , nonEmptyString
     , positive
@@ -12,6 +13,7 @@ module Util.ValidatedInput exposing
     )
 
 import Basics.Extra exposing (flip)
+import BigInt exposing (BigInt)
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
@@ -172,4 +174,36 @@ nonEmptyString =
             >> Maybe.Extra.filter (String.isEmpty >> not)
             >> Result.fromMaybe "Error: Empty string"
     , partial = always True
+    }
+
+
+partialInt : String -> Bool
+partialInt str =
+    let
+        tailCorrect =
+            str |> String.dropLeft 1 |> String.all Char.isDigit
+
+        headCorrect =
+            str |> String.toList |> List.take 1 |> List.all (\c -> c == '-' || Char.isDigit c)
+    in
+    headCorrect && tailCorrect
+
+
+maybeBoundedBigInt : { lower : BigInt, upper : BigInt } -> ValidatedInput (Maybe BigInt)
+maybeBoundedBigInt bounds =
+    { value = Nothing
+    , ifEmptyValue = Nothing
+    , text = ""
+    , parse =
+        \str ->
+            if String.isEmpty str then
+                Ok Nothing
+
+            else
+                str
+                    |> BigInt.fromIntString
+                    |> Maybe.Extra.filter (\int -> BigInt.gte int bounds.lower && BigInt.lte int bounds.upper)
+                    |> Result.fromMaybe ("Error: Not an integer in the range between " ++ BigInt.toString bounds.lower ++ " and " ++ BigInt.toString bounds.upper)
+                    |> Result.map Just
+    , partial = partialInt
     }

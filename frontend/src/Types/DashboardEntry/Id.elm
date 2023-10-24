@@ -4,10 +4,6 @@ import Types.Dashboard.Id
 import Types.Project.Id
 
 
-
--- todo: check uses
-
-
 type Id
     = Id
         { dashboardId : Types.Dashboard.Id.Id

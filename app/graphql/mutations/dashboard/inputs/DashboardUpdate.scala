@@ -6,7 +6,7 @@ import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveInputObjectType
 import sangria.schema.InputObjectType
 
-@JsonCodec
+@JsonCodec(decodeOnly = true)
 case class DashboardUpdate(
     header: String,
     description: Option[String],

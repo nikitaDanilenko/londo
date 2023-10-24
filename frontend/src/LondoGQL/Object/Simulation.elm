@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.DeeplyResolvedDashboard exposing (..)
+module LondoGQL.Object.Simulation exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -19,15 +19,6 @@ import LondoGQL.ScalarCodecs
 import LondoGQL.Union
 
 
-dashboard :
-    SelectionSet decodesTo LondoGQL.Object.Dashboard
-    -> SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedDashboard
-dashboard object____ =
-    Object.selectionForCompositeField "dashboard" [] object____ Basics.identity
-
-
-resolvedProjects :
-    SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedProject
-    -> SelectionSet (List decodesTo) LondoGQL.Object.DeeplyResolvedDashboard
-resolvedProjects object____ =
-    Object.selectionForCompositeField "resolvedProjects" [] object____ (Basics.identity >> Decode.list)
+reachedModifier : SelectionSet LondoGQL.ScalarCodecs.BigInt LondoGQL.Object.Simulation
+reachedModifier =
+    Object.selectionForField "ScalarCodecs.BigInt" "reachedModifier" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigInt |> .decoder)

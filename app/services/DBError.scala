@@ -7,7 +7,6 @@ object DBError {
   object Dashboard {
     case object NotFound extends DBError("No dashboard with the given id for the given user found")
 
-    case object EntryNotFound extends DBError("No dashboard entry with the given id found")
   }
 
   object Project {
@@ -22,6 +21,10 @@ object DBError {
 
   object Login {
     case object NotFound extends DBError("No login for user with the given id found")
+  }
+
+  object Simulation {
+    case object NotFound extends DBError("No simulation with the given id found")
   }
 
 }
