@@ -37,7 +37,7 @@ viewSubMain projectId configuration subMain =
         , matchesSearchText =
             \string task ->
                 SearchUtil.search string task.name
-        , sort = List.sortBy (.original >> .name)
+        , sort = List.sortBy (.original >> .name >> String.toLower)
         , tableHeader = tableHeader subMain.language
         , viewLine = \language _ -> viewTaskLine language
         , updateLine = \language task -> updateTaskLine language task.id
