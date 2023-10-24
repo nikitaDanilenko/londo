@@ -4,6 +4,8 @@ import db.generated.Tables
 import db.{ DashboardId, TaskId }
 import io.scalaland.chimney.Transformer
 import io.scalaland.chimney.dsl._
+import services.task.Progress
+import utils.math.MathUtil
 import utils.transformer.implicits._
 
 import java.time.LocalDateTime
@@ -34,5 +36,11 @@ object Simulation {
         updatedAt = simulation.updatedAt.map(_.transformInto[java.sql.Timestamp])
       )
   }
+
+  def clampedModifier(progress: Progress, reachedModifier: BigInt): BigInt =
+    MathUtil.clamp(
+      min = -progress.reached.toBigInt,
+      max = progress.reachable.natural.toBigInt - progress.reached.toBigInt
+    )(reachedModifier)
 
 }

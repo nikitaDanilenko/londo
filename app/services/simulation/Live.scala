@@ -93,18 +93,20 @@ object Live {
         ec: ExecutionContext
     ): DBIO[Simulation] = {
       ifTaskExists(userId, dashboardId, taskId) { taskRow =>
-        val task = taskRow.transformInto[Task]
+        val progress = taskRow.transformInto[Task].progress
         for {
           maybeRow <- simulationDao.find(SimulationKey(taskId, dashboardId))
           simulation <- maybeRow.fold {
             for {
-              simulation <- Creation.create(task.progress, Creation.from(simulation)).to[DBIO]
+              simulation <- Creation.create(progress, Creation.from(simulation)).to[DBIO]
               simulationRow = (simulation, taskId, dashboardId).transformInto[Tables.SimulationRow]
               inserted <- simulationDao.insert(simulationRow)
             } yield inserted.transformInto[Simulation]
           } { simulationRow =>
             for {
-              updated <- Update.update(simulationRow.transformInto[Simulation], Update.from(simulation)).to[DBIO]
+              updated <- Update
+                .update(simulationRow.transformInto[Simulation], progress, Update.from(simulation))
+                .to[DBIO]
               updatedRow = (updated, taskId, dashboardId).transformInto[Tables.SimulationRow]
               _ <- simulationDao.update(updatedRow)
             } yield updatedRow.transformInto[Simulation]

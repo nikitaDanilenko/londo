@@ -1,6 +1,7 @@
 package services.simulation
 
 import cats.effect.IO
+import services.task.Progress
 import utils.date.DateUtil
 
 case class Update(
@@ -14,11 +15,11 @@ object Update {
       reachedModifier = simulation.reachedModifier
     )
 
-  def update(simulation: Simulation, update: Update): IO[Simulation] =
+  def update(simulation: Simulation, progress: Progress, update: Update): IO[Simulation] =
     for {
       now <- DateUtil.now
     } yield simulation.copy(
-      reachedModifier = update.reachedModifier,
+      reachedModifier = Simulation.clampedModifier(progress, update.reachedModifier),
       updatedAt = Some(now)
     )
 
