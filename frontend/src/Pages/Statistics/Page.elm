@@ -96,6 +96,7 @@ type alias Main =
     , projects : DictList ProjectId EditingResolvedProject
     , searchString : String
     , pagination : Pagination
+    , projectPaginationMap : DictList ProjectId Pagination
     , languages : Languages
     }
 
@@ -137,6 +138,15 @@ initialToMain i =
                     |> DictList.fromListWithKey (.project >> .id)
             , searchString = ""
             , pagination = Pagination.initial
+            , projectPaginationMap =
+                deeplyResolvedDashboard.resolvedProjects
+                    |> List.map
+                        (\resolvedProject ->
+                            ( resolvedProject.project.id
+                            , Pagination.initial
+                            )
+                        )
+                    |> DictList.fromList
             , languages = i.languages
             }
         )
@@ -152,6 +162,7 @@ lenses :
         , projects : Lens Main (DictList ProjectId EditingResolvedProject)
         , searchString : Lens Main String
         , pagination : Lens Main Pagination
+        , projectPaginationMap : Lens Main (DictList ProjectId Pagination)
         }
     }
 lenses =
@@ -163,6 +174,7 @@ lenses =
         , projects = Lens .projects (\b a -> { a | projects = b })
         , searchString = Lens .searchString (\b a -> { a | searchString = b })
         , pagination = Lens .pagination (\b a -> { a | pagination = b })
+        , projectPaginationMap = Lens .projectPaginationMap (\b a -> { a | projectPaginationMap = b })
         }
     }
 
@@ -182,6 +194,7 @@ type LogicMsg
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId
     | SetProjectsPagination Pagination
+    | SetProjectPagination ProjectId Pagination
     | SetSearchString String
 
 

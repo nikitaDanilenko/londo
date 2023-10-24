@@ -3,7 +3,7 @@ module Pages.Statistics.Handler exposing (init, update, updateLogic)
 import Language.Language
 import Maybe.Extra
 import Monocle.Compose as Compose
-import Monocle.Lens exposing (Lens)
+import Monocle.Lens as Lens exposing (Lens)
 import Pages.Statistics.EditingResolvedProject as EditingResolvedProject
 import Pages.Statistics.Page as Page
 import Pages.Statistics.Pagination as Pagination
@@ -139,6 +139,23 @@ updateLogic msg model =
                 |> Tristate.mapMain (Page.lenses.main.pagination.set pagination)
             , Cmd.none
             )
+
+        setProjectPagination projectId pagination =
+            ( model
+                |> Tristate.mapMain
+                    (Lens.modify Page.lenses.main.projectPaginationMap
+                        (DictList.update
+                            (\key currentPagination ->
+                                if key == projectId then
+                                    pagination
+
+                                else
+                                    currentPagination
+                            )
+                        )
+                    )
+            , Cmd.none
+            )
     in
     case msg of
         Page.GotFetchDeeplyDashboardResponse result ->
@@ -164,6 +181,9 @@ updateLogic msg model =
 
         Page.SetProjectsPagination pagination ->
             setProjectsPagination pagination
+
+        Page.SetProjectPagination projectId pagination ->
+            setProjectPagination projectId pagination
 
         Page.SetSearchString string ->
             setSearchString string
