@@ -4,6 +4,7 @@ import Basics.Extra
 import List.Extra
 import Maybe.Extra
 import Monocle.Lens as Lens exposing (Lens)
+import Util.Ordering exposing (Ordering)
 
 
 type DictList k v
@@ -23,10 +24,6 @@ lenses =
 orderingOf : DictList k v -> Ordering k
 orderingOf (DictList ps) =
     ps.ordering
-
-
-type alias Ordering k =
-    k -> k -> Order
 
 
 empty : Ordering k -> DictList k v
