@@ -181,7 +181,7 @@ type LogicMsg
     | ToggleControls ProjectId TaskId
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId
-    | SetPagination Pagination
+    | SetProjectsPagination Pagination
     | SetSearchString String
 
 

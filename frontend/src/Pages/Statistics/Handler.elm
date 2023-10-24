@@ -134,7 +134,7 @@ updateLogic msg model =
             , Cmd.none
             )
 
-        setPagination pagination =
+        setProjectsPagination pagination =
             ( model
                 |> Tristate.mapMain (Page.lenses.main.pagination.set pagination)
             , Cmd.none
@@ -162,8 +162,8 @@ updateLogic msg model =
         Page.ExitEditTask projectId taskId ->
             exitEditTask projectId taskId
 
-        Page.SetPagination pagination ->
-            setPagination pagination
+        Page.SetProjectsPagination pagination ->
+            setProjectsPagination pagination
 
         Page.SetSearchString string ->
             setSearchString string
