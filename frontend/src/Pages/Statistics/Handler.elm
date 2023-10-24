@@ -111,7 +111,6 @@ updateLogic msg model =
         enterEditTask projectId taskId =
             ( model
                 |> updateTaskById projectId taskId (Editing.toUpdate Types.Task.TaskWithSimulation.from)
-              --todo: Handle simulation correctly
             , Cmd.none
             )
 
