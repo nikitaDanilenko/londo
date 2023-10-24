@@ -140,11 +140,11 @@ updateLogic msg model =
             , Cmd.none
             )
 
-        setProjectPagination projectId pagination =
+        setProjectPagination projectId taskStatus pagination =
             ( model
                 |> Tristate.mapMain
                     (Lens.modify Page.lenses.main.projectPaginationMap
-                        (DictList.update
+                        (DictList.mapWithKey
                             (\key currentPagination ->
                                 if key == projectId then
                                     pagination
@@ -182,7 +182,7 @@ updateLogic msg model =
         Page.SetProjectsPagination pagination ->
             setProjectsPagination pagination
 
-        Page.SetProjectPagination projectId pagination ->
+        Page.SetProjectPagination projectId taskStatus pagination ->
             setProjectPagination projectId pagination
 
         Page.SetSearchString string ->

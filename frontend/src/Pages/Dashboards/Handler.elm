@@ -8,6 +8,7 @@ import Pages.Util.ParentEditor.Page
 import Pages.View.Tristate as Tristate
 import Types.Dashboard.Creation
 import Types.Dashboard.Dashboard
+import Types.Dashboard.Id
 import Types.Dashboard.Update
 
 
@@ -30,6 +31,7 @@ updateLogic : Page.LogicMsg -> Page.Model -> ( Page.Model, Cmd Page.LogicMsg )
 updateLogic =
     Pages.Util.ParentEditor.Handler.updateLogic
         { idOfParent = .id
+        , parentIdOrdering = Types.Dashboard.Id.ordering
         , toUpdate = Types.Dashboard.Update.from
         , navigateToAddress = Addresses.Frontend.dashboardEntries.address >> Just
         , create = Types.Dashboard.Creation.createWith Pages.Util.ParentEditor.Page.GotCreateResponse

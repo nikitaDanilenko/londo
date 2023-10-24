@@ -4,7 +4,7 @@ import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, h1, h2, hr, input, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, div, h1, h2, hr, input, nav, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -19,17 +19,20 @@ import Monocle.Lens as Lens
 import Pages.Dashboards.View
 import Pages.Statistics.EditingResolvedProject as EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Page as Page
+import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Tasks.Tasks.View
 import Pages.Util.HtmlUtil as HtmlUtil
+import Pages.Util.PaginationSettings as PaginationSettings
 import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
+import Paginate
 import Types.Progress.Progress
 import Types.Simulation.Update
 import Types.Task.TaskWithSimulation
 import Types.Task.Update
-import Util.DictList as DictList
+import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing
 import Util.MaybeUtil as MaybeUtil
 import Util.ValidatedInput as ValidatedInput
@@ -64,7 +67,7 @@ viewMain configuration main =
             :: (main.projects
                     |> DictList.values
                     |> List.map
-                        (viewResolvedProject main.languages.taskEditor main.languages.statistics)
+                        (viewResolvedProject main.languages.taskEditor main.languages.statistics main.pagination)
                )
 
 
@@ -269,8 +272,8 @@ reachedInProject ps =
         >> Natural.sum
 
 
-viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> EditingResolvedProject -> Html Page.LogicMsg
-viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
+viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> DictList Page.ProjectId Pagination -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject taskEditorLanguage statisticsLanguage projectPaginationMap resolvedProject =
     let
         project =
             resolvedProject.project
@@ -286,8 +289,38 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
         ( finished, unfinished ) =
             tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
 
-        display =
+        projectPagination =
+            DictList.get project.id
+                >> Maybe.withDefault Pagination.initial
+
+        paginate =
             List.sortBy (.original >> .task >> .name >> String.toLower)
+                >> ViewUtil.paginate
+                    { pagination = projectPagination >> .projects }
+                    projectPaginationMap
+
+        unfinishedPaginated =
+            unfinished |> paginate
+
+        finishedPaginated =
+            finished |> paginate
+
+        pager elements =
+            nav [ Style.classes.pagination ]
+                [ ViewUtil.pagerButtons
+                    { msg =
+                        PaginationSettings.updateCurrentPage
+                            { pagination = Lens.Lens identity always -- todo: Extract identity lens
+                            , items = Pagination.lenses.projects
+                            }
+                            (projectPaginationMap |> projectPagination)
+                            >> Page.SetProjectPagination project.id
+                    , elements = elements
+                    }
+                ]
+
+        display =
+            Paginate.page
                 >> List.concatMap
                     (Editing.unpack
                         { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
@@ -312,9 +345,11 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
                     [ taskInfoHeader taskEditorLanguage statisticsLanguage
                     , tbody []
                         (List.concat
-                            [ unfinished |> display
+                            [ unfinishedPaginated |> display
+                            , [ unfinishedPaginated |> pager ]
                             , separator
-                            , finished |> display
+                            , finishedPaginated |> display
+                            , [ finishedPaginated |> pager ]
                             ]
                         )
                     ]

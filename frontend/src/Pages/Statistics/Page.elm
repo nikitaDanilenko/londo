@@ -131,10 +131,10 @@ initialToMain i =
                                 resolvedProject
                                     |> .tasks
                                     |> List.map Editing.asView
-                                    |> DictList.fromListWithKey (.original >> .task >> .id)
+                                    |> DictList.fromListWithKey Types.Task.Id.ordering (.original >> .task >> .id)
                             }
                         )
-                    |> DictList.fromListWithKey (.project >> .id)
+                    |> DictList.fromListWithKey Types.Project.Id.ordering (.project >> .id)
             , searchString = ""
             , pagination = Pagination.initial
             , languages = i.languages
@@ -182,8 +182,13 @@ type LogicMsg
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId
     | SetProjectsPagination Pagination
-    | SetProjectPagination ProjectId Pagination
+    | SetProjectPagination ProjectId TaskStatus Pagination
     | SetSearchString String
+
+
+type TaskStatus
+    = Finished
+    | Unfinished
 
 
 type alias Msg =

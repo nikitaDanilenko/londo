@@ -16,8 +16,8 @@ type alias Pagination =
 initial : Pagination
 initial =
     { projects = PaginationSettings.initial
-    , unfinishedTasks = DictList.empty
-    , finishedTasks = DictList.empty
+    , unfinishedTasks = DictList.empty Types.Project.Id.ordering
+    , finishedTasks = DictList.empty Types.Project.Id.ordering
     }
 
 

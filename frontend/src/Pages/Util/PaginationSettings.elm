@@ -13,7 +13,7 @@ type alias PaginationSettings =
 initial : PaginationSettings
 initial =
     { currentPage = 1
-    , itemsPerPage = 25
+    , itemsPerPage = 2
     }
 
 
