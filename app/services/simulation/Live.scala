@@ -2,26 +2,27 @@ package services.simulation
 
 import cats.Applicative
 import cats.data.OptionT
+import cats.effect.unsafe.implicits.global
 import db.daos.dashboard.DashboardKey
+import db.daos.dashboardEntry.DashboardEntryKey
 import db.daos.project.ProjectKey
+import db.daos.simulation.SimulationKey
 import db.generated.Tables
 import db.{ DashboardId, ProjectId, TaskId, UserId }
 import errors.{ ErrorContext, ServerError }
 import io.scalaland.chimney.dsl.TransformerOps
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import services.DBError
+import services.common.Transactionally.syntax._
+import services.task.Task
+import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
-import cats.effect.unsafe.implicits.global
-import db.daos.dashboardEntry.DashboardEntryKey
-import db.daos.simulation.SimulationKey
+import slickeffect.catsio.implicits._
+import utils.DBIOUtil.instances._
+import utils.transformer.implicits._
 
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
-import slickeffect.catsio.implicits._
-import utils.DBIOUtil.instances._
-import services.common.Transactionally.syntax._
-import slick.dbio.DBIO
-import utils.transformer.implicits._
 
 class Live @Inject() (
     override protected val dbConfigProvider: DatabaseConfigProvider,
@@ -91,12 +92,13 @@ object Live {
     )(implicit
         ec: ExecutionContext
     ): DBIO[Simulation] = {
-      ifTaskExists(userId, dashboardId, taskId) {
+      ifTaskExists(userId, dashboardId, taskId) { taskRow =>
+        val task = taskRow.transformInto[Task]
         for {
           maybeRow <- simulationDao.find(SimulationKey(taskId, dashboardId))
           simulation <- maybeRow.fold {
             for {
-              simulation <- Creation.create(Creation.from(simulation)).to[DBIO]
+              simulation <- Creation.create(task.progress, Creation.from(simulation)).to[DBIO]
               simulationRow = (simulation, taskId, dashboardId).transformInto[Tables.SimulationRow]
               inserted <- simulationDao.insert(simulationRow)
             } yield inserted.transformInto[Simulation]
@@ -120,7 +122,7 @@ object Live {
     ): DBIO[Boolean] = OptionT(
       simulationDao.find(SimulationKey(taskId, dashboardId))
     ).semiflatMap { _ =>
-      ifTaskExists(userId, dashboardId, taskId) {
+      ifTaskExists(userId, dashboardId, taskId) { _ =>
         simulationDao.delete(SimulationKey(taskId, dashboardId)).map(_ > 0)
       }
     }.getOrElseF(DBIO.successful(false))
@@ -129,14 +131,15 @@ object Live {
         userId: UserId,
         dashboardId: DashboardId,
         taskId: TaskId
-    )(action: => DBIO[A])(implicit ec: ExecutionContext): DBIO[A] =
+    )(action: Tables.TaskRow => DBIO[A])(implicit ec: ExecutionContext): DBIO[A] =
       for {
         dashboardExists <- dashboardDao.exists(DashboardKey(userId, dashboardId))
         task            <- OptionT(taskDao.find(taskId)).getOrElseF(DBIO.failed(DBError.Project.TaskNotFound))
         projectId = task.projectId.transformInto[ProjectId]
         projectExists      <- projectDao.exists(ProjectKey(userId, projectId))
         projectOnDashboard <- dashboardEntryDao.exists(DashboardEntryKey(dashboardId, projectId))
-        result <- if (dashboardExists && projectExists && projectOnDashboard) action else SimulationService.notFound
+        result <-
+          if (dashboardExists && projectExists && projectOnDashboard) action(task) else SimulationService.notFound
       } yield result
 
   }
