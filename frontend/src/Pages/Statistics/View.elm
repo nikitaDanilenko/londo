@@ -287,7 +287,7 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
             tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
 
         display =
-            List.sortBy (.original >> .task >> .name)
+            List.sortBy (.original >> .task >> .name >> String.toLower)
                 >> List.concatMap
                     (Editing.unpack
                         { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
