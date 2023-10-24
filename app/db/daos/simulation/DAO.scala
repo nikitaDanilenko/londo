@@ -1,7 +1,7 @@
 package db.daos.simulation
 
 import db.generated.Tables
-import db.{ DAOActions, DashboardId }
+import db.{ DAOActions, DashboardId, generated }
 import io.scalaland.chimney.dsl._
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile.api._
@@ -13,6 +13,8 @@ trait DAO extends DAOActions[Tables.SimulationRow, SimulationKey] {
   override def keyOf: Tables.SimulationRow => SimulationKey = SimulationKey.of
 
   def findAllFor(dashboardId: DashboardId): DBIO[Seq[Tables.SimulationRow]]
+
+  def findAllByTaskId(taskId: UUID): DBIO[Seq[Tables.SimulationRow]]
 
 }
 
@@ -31,6 +33,11 @@ object DAO {
           .filter(
             _.dashboardId === dashboardId.transformInto[UUID]
           )
+          .result
+
+      override def findAllByTaskId(taskId: UUID): DBIO[Seq[generated.Tables.SimulationRow]] =
+        Tables.Simulation
+          .filter(_.taskId === taskId)
           .result
 
     }
