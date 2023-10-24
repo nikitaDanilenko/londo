@@ -74,8 +74,9 @@ viewElements ps main =
                     )
                 |> ViewUtil.paginate
                     { pagination =
-                        Pages.Util.Choice.Page.lenses.main.pagination
+                        (Pages.Util.Choice.Page.lenses.main.pagination
                             |> Compose.lensWithLens Pagination.lenses.elements
+                        ).get
                     }
                     main
     in
@@ -134,8 +135,9 @@ viewChoices ps main =
                 |> List.sortBy (.original >> ps.sortBy)
                 |> ViewUtil.paginate
                     { pagination =
-                        Pages.Util.Choice.Page.lenses.main.pagination
+                        (Pages.Util.Choice.Page.lenses.main.pagination
                             |> Compose.lensWithLens Pagination.lenses.choices
+                        ).get
                     }
                     main
     in

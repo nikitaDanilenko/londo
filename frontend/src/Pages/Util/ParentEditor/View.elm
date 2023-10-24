@@ -65,7 +65,7 @@ viewParentsWith ps language configuration main =
                     |> DictList.values
                     |> ps.sort
                     |> ViewUtil.paginate
-                        { pagination = Page.lenses.main.pagination |> Compose.lensWithLens Pagination.lenses.parents
+                        { pagination = (Page.lenses.main.pagination |> Compose.lensWithLens Pagination.lenses.parents).get
                         }
                         main
 

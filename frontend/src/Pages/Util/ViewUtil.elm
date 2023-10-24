@@ -236,11 +236,11 @@ pagerButtons ps =
 
 
 paginate :
-    { pagination : Lens model PaginationSettings
+    { pagination : model -> PaginationSettings
     }
     -> model
     -> List a
     -> PaginatedList a
 paginate ps model =
-    Paginate.fromList ((ps.pagination |> Compose.lensWithLens PaginationSettings.lenses.itemsPerPage).get model)
-        >> Paginate.goTo (model |> (ps.pagination |> Compose.lensWithLens PaginationSettings.lenses.currentPage).get)
+    Paginate.fromList ((ps.pagination >> PaginationSettings.lenses.itemsPerPage.get) model)
+        >> Paginate.goTo (model |> (ps.pagination >> PaginationSettings.lenses.currentPage.get))
