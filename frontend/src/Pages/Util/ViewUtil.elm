@@ -6,7 +6,6 @@ import Html exposing (Html, button, header, main_, nav, table, tbody, td, text, 
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
-import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
 import Pages.Util.Links as Links
 import Pages.Util.PaginationSettings as PaginationSettings exposing (PaginationSettings)
