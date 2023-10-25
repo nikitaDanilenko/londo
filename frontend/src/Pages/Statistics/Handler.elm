@@ -134,24 +134,28 @@ updateLogic msg model =
             , Cmd.none
             )
 
-        setProjectsPagination pagination =
+        setProjectsPagination paginationSettings =
             ( model
-                |> Tristate.mapMain (Page.lenses.main.pagination.set pagination)
+                |> Tristate.mapMain ((Page.lenses.main.pagination |> Compose.lensWithLens Pagination.lenses.projects).set paginationSettings)
             , Cmd.none
             )
 
-        setProjectPagination projectId taskStatus pagination =
+        setProjectPagination projectId taskStatus paginationSettings =
             ( model
                 |> Tristate.mapMain
-                    (Lens.modify Page.lenses.main.projectPaginationMap
-                        (DictList.mapWithKey
-                            (\key currentPagination ->
-                                if key == projectId then
-                                    pagination
+                    (Lens.modify Page.lenses.main.pagination
+                        (case taskStatus of
+                            Page.Unfinished ->
+                                (Pagination.lenses.unfinishedTasks
+                                    |> Compose.lensWithOptional (LensUtil.dictByKey projectId)
+                                ).set
+                                    paginationSettings
 
-                                else
-                                    currentPagination
-                            )
+                            Page.Finished ->
+                                (Pagination.lenses.finishedTasks
+                                    |> Compose.lensWithOptional (LensUtil.dictByKey projectId)
+                                ).set
+                                    paginationSettings
                         )
                     )
             , Cmd.none
@@ -183,7 +187,7 @@ updateLogic msg model =
             setProjectsPagination pagination
 
         Page.SetProjectPagination projectId taskStatus pagination ->
-            setProjectPagination projectId pagination
+            setProjectPagination projectId taskStatus pagination
 
         Page.SetSearchString string ->
             setSearchString string

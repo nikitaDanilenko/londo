@@ -34,6 +34,7 @@ import Types.Task.TaskWithSimulation
 import Types.Task.Update
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing
+import Util.LensUtil as LensUtil
 import Util.MaybeUtil as MaybeUtil
 import Util.ValidatedInput as ValidatedInput
 
@@ -60,7 +61,8 @@ viewMain configuration main =
                     |> DictList.values
                     |> List.map EditingResolvedProject.tasks
         in
-        viewDashboard main.languages.statistics
+        viewDashboard
+            main.languages.statistics
             main.languages.dashboard
             main.dashboard
             groupedTasks
@@ -272,8 +274,8 @@ reachedInProject ps =
         >> Natural.sum
 
 
-viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> DictList Page.ProjectId Pagination -> EditingResolvedProject -> Html Page.LogicMsg
-viewResolvedProject taskEditorLanguage statisticsLanguage projectPaginationMap resolvedProject =
+viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Pagination -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject taskEditorLanguage statisticsLanguage pagination resolvedProject =
     let
         project =
             resolvedProject.project
@@ -289,32 +291,44 @@ viewResolvedProject taskEditorLanguage statisticsLanguage projectPaginationMap r
         ( finished, unfinished ) =
             tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
 
-        projectPagination =
-            DictList.get project.id
-                >> Maybe.withDefault Pagination.initial
+        paginationSettingsLens taskStatus =
+            (case taskStatus of
+                Page.Finished ->
+                    Pagination.lenses.finishedTasks
 
-        paginate =
+                Page.Unfinished ->
+                    Pagination.lenses.unfinishedTasks
+            )
+                |> Compose.lensWithLens (LensUtil.dictByKeyWithDefault project.id PaginationSettings.initial)
+
+        paginate taskStatus =
             List.sortBy (.original >> .task >> .name >> String.toLower)
                 >> ViewUtil.paginate
-                    { pagination = projectPagination >> .projects }
-                    projectPaginationMap
+                    { pagination = (taskStatus |> paginationSettingsLens).get
+                    }
+                    pagination
 
         unfinishedPaginated =
-            unfinished |> paginate
+            unfinished |> paginate Page.Unfinished
 
         finishedPaginated =
-            finished |> paginate
+            finished |> paginate Page.Finished
 
-        pager elements =
+        pager taskStatus elements =
+            let
+                lens =
+                    paginationSettingsLens taskStatus
+            in
             nav [ Style.classes.pagination ]
                 [ ViewUtil.pagerButtons
                     { msg =
                         PaginationSettings.updateCurrentPage
-                            { pagination = Lens.Lens identity always -- todo: Extract identity lens
-                            , items = Pagination.lenses.projects
+                            { pagination = LensUtil.identityLens
+                            , items = lens
                             }
-                            (projectPaginationMap |> projectPagination)
-                            >> Page.SetProjectPagination project.id
+                            pagination
+                            >> lens.get
+                            >> Page.SetProjectPagination project.id taskStatus
                     , elements = elements
                     }
                 ]
@@ -346,10 +360,10 @@ viewResolvedProject taskEditorLanguage statisticsLanguage projectPaginationMap r
                     , tbody []
                         (List.concat
                             [ unfinishedPaginated |> display
-                            , [ unfinishedPaginated |> pager ]
+                            , [ unfinishedPaginated |> pager Page.Unfinished ]
                             , separator
                             , finishedPaginated |> display
-                            , [ finishedPaginated |> pager ]
+                            , [ finishedPaginated |> pager Page.Finished ]
                             ]
                         )
                     ]

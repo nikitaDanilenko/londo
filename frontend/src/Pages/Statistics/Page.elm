@@ -5,6 +5,7 @@ import Monocle.Lens exposing (Lens)
 import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
+import Pages.Util.PaginationSettings exposing (PaginationSettings)
 import Pages.View.Tristate as Tristate
 import Types.Auxiliary exposing (JWT)
 import Types.Dashboard.Dashboard
@@ -181,8 +182,8 @@ type LogicMsg
     | ToggleControls ProjectId TaskId
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId
-    | SetProjectsPagination Pagination
-    | SetProjectPagination ProjectId TaskStatus Pagination
+    | SetProjectsPagination PaginationSettings
+    | SetProjectPagination ProjectId TaskStatus PaginationSettings
     | SetSearchString String
 
 
