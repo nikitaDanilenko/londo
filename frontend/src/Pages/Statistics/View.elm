@@ -59,7 +59,7 @@ viewMain configuration main =
             groupedTasks =
                 main.projects
                     |> DictList.values
-                    |> List.map EditingResolvedProject.tasks
+                    |> List.concatMap EditingResolvedProject.tasks
         in
         viewDashboard
             main.languages.statistics
@@ -90,28 +90,28 @@ toPercentageString =
         >> rationalToString
 
 
-viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List (List Page.ResolvedTask) -> Html Page.LogicMsg
+viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List Page.ResolvedTask -> Html Page.LogicMsg
 viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
     let
         tasks =
-            resolvedTasks |> List.map (List.map .task)
+            resolvedTasks |> List.map .task
 
         reachableAll =
-            tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = False })
+            tasks |> reachableIn { countedOnly = False }
 
         reachableAllCounted =
-            tasks |> Math.Statistics.sumWith (reachableInProject { countedOnly = True })
+            tasks |> reachableIn { countedOnly = True }
 
         reachedAll =
-            tasks |> Math.Statistics.sumWith (reachedInProject { countedOnly = False })
+            tasks |> reachedIn { countedOnly = False }
 
         reachedAllCounted =
-            tasks |> Math.Statistics.sumWith (reachedInProject { countedOnly = True })
+            tasks |> reachedIn { countedOnly = True }
 
         -- todo: Consider extraction for better testability
         reachedSimulatedAll =
             resolvedTasks
-                |> List.concatMap (List.map (.simulation >> Maybe.map .reachedModifier))
+                |> List.map (.simulation >> Maybe.map .reachedModifier)
                 |> Maybe.Extra.values
                 |> Math.Statistics.sumWith identity
                 |> BigInt.add reachedAll
@@ -119,7 +119,6 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
         -- todo: Consider extraction for better testability
         reachedSimulatedAllCounted =
             resolvedTasks
-                |> List.concat
                 |> List.filterMap (\resolved -> resolved.simulation |> Maybe.map .reachedModifier |> Maybe.Extra.filter (\_ -> resolved.task.counting))
                 |> Math.Statistics.sumWith identity
                 |> BigInt.add reachedAllCounted
@@ -149,7 +148,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
                 |> toPercentageString
 
         allProgresses =
-            tasks |> List.concat |> List.map .progress
+            tasks |> List.map .progress
 
         numberOfAllTasks =
             allProgresses
@@ -157,7 +156,6 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
 
         countingProgresses =
             tasks
-                |> List.concat
                 |> List.filterMap (Just >> Maybe.Extra.filter .counting >> Maybe.map .progress)
 
         meanRelative =
@@ -214,9 +212,8 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
                     , td []
                         [ text <|
                             BigInt.toString <|
-                                List.foldl BigInt.add (BigInt.fromInt 0) <|
-                                    List.map (reachableInProject { countedOnly = True }) <|
-                                        tasks
+                                reachableIn { countedOnly = True } <|
+                                    tasks
                         ]
                     , td [] []
                     , td [] []
@@ -238,8 +235,8 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
         ]
 
 
-reachableInProject : { countedOnly : Bool } -> List Page.Task -> BigInt
-reachableInProject ps =
+reachableIn : { countedOnly : Bool } -> List Page.Task -> BigInt
+reachableIn ps =
     let
         predicate =
             if ps.countedOnly then
@@ -256,8 +253,8 @@ reachableInProject ps =
         >> Positive.sum
 
 
-reachedInProject : { countedOnly : Bool } -> List Page.Task -> BigInt
-reachedInProject ps =
+reachedIn : { countedOnly : Bool } -> List Page.Task -> BigInt
+reachedIn ps =
     let
         predicate =
             if ps.countedOnly then
