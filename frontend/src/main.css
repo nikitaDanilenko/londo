@@ -184,6 +184,7 @@ select {
 
 .editing:hover {
     background-color: lightgray;
+    transition-duration: 0.2s;
 }
 
 .statistics-line td {
