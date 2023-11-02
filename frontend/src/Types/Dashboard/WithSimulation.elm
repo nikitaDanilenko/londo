@@ -53,11 +53,6 @@ selectionNatural =
         }
 
 
-x =
-    LondoGQL.Object.Rational.denominator Math.Positive.selection
-        |> SelectionSet.map Math.Positive.integerValue
-
-
 bigRationalSelection : SelectionSet BigRational LondoGQL.Object.Rational
 bigRationalSelection =
     SelectionSet.map2 BigRational.fromBigInts
