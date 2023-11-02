@@ -17,6 +17,10 @@ type DashboardId
     = DashboardId
 
 
+type DashboardStatistics
+    = DashboardStatistics
+
+
 type DeeplyResolvedDashboard
     = DeeplyResolvedDashboard
 
@@ -49,6 +53,10 @@ type ProjectId
     = ProjectId
 
 
+type Rational
+    = Rational
+
+
 type ResolvedDashboard
     = ResolvedDashboard
 
@@ -79,3 +87,15 @@ type User
 
 type UserId
     = UserId
+
+
+type WithSimulationNatural
+    = WithSimulationNatural
+
+
+type WithSimulationRational
+    = WithSimulationRational
+
+
+type WithoutSimulation
+    = WithoutSimulation

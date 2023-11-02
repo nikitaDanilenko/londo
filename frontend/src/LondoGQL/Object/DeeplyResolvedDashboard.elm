@@ -31,3 +31,10 @@ resolvedProjects :
     -> SelectionSet (List decodesTo) LondoGQL.Object.DeeplyResolvedDashboard
 resolvedProjects object____ =
     Object.selectionForCompositeField "resolvedProjects" [] object____ (Basics.identity >> Decode.list)
+
+
+dashboardStatistics :
+    SelectionSet decodesTo LondoGQL.Object.DashboardStatistics
+    -> SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedDashboard
+dashboardStatistics object____ =
+    Object.selectionForCompositeField "dashboardStatistics" [] object____ Basics.identity
