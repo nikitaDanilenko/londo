@@ -92,9 +92,21 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
             }
           )
         )
+        val allTasks = resolvedProjects
+          .flatMap(_.tasks)
+          .map(resolvedTask =>
+            processing.statistics.TaskWithSimulation(
+              task = resolvedTask.task.transformInto[processing.statistics.Task],
+              simulation = resolvedTask.simulation.map(_.reachedModifier)
+            )
+          )
+
+        val dashboardStatistics = processing.statistics.StatisticsService.ofTasks(allTasks)
+
         DeeplyResolvedDashboard(
           dashboard.transformInto[Dashboard],
-          resolvedProjects
+          resolvedProjects,
+          dashboardStatistics.transformInto[DashboardStatistics]
         )
       }
 
