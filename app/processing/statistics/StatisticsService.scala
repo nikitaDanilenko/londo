@@ -11,28 +11,28 @@ object StatisticsService {
       simulation: Option[BigInt]
   )
 
-  // TODO: Minor nitpick: The number of tasks is computed twice () for the sake of simplicity.
-  //       Computing it once is possible, but requires passing it around into every related function.
   def ofTasks(tasks: Seq[TaskWithSimulation]): DashboardStatistics = {
     val statsInTotal   = statsInCollection(tasks)
     val statsInCounted = statsInCollection(tasks.filter(_.task.counting))
 
     DashboardStatistics(
-      total = Progress(
-        reached = statsInTotal.reached,
-        reachable = statsInTotal.reachable
+      reached = WithSimulation(
+        total = statsInTotal.reached,
+        counted = statsInCounted.reached,
+        simulatedTotal = statsInTotal.reachedSimulated,
+        simulatedCounted = statsInCounted.reachedSimulated
       ),
-      counted = Progress(
-        reached = statsInCounted.reached,
-        reachable = statsInCounted.reachable
+      reachable = WithoutSimulation(
+        total = statsInTotal.reachable,
+        counted = statsInCounted.reachable
       ),
-      absoluteMeans = Means(
+      absoluteMeans = WithSimulation(
         total = statsInTotal.meanAbsolute,
         counted = statsInCounted.meanAbsolute,
         simulatedTotal = statsInTotal.meanAbsoluteSimulated,
         simulatedCounted = statsInCounted.meanAbsoluteSimulated
       ),
-      relativeMeans = Means(
+      relativeMeans = WithSimulation(
         total = statsInTotal.meanRelative,
         counted = statsInCounted.meanRelative,
         simulatedTotal = statsInTotal.meanRelativeSimulated,
@@ -43,6 +43,7 @@ object StatisticsService {
 
   case class StatsInCollection(
       reached: Natural,
+      reachedSimulated: Natural,
       reachable: Natural,
       meanAbsolute: Rational,
       meanAbsoluteSimulated: Rational,
@@ -63,6 +64,7 @@ object StatisticsService {
     StatsInCollection(
       reached = reached,
       reachable = reachable,
+      reachedSimulated = reached + Natural(allSimulations(tasksWithSimulation)),
       meanAbsolute = meanAbsolute,
       meanAbsoluteSimulated = meanAbsolute + Rational(allSimulations(tasksWithSimulation), numberOfProgresses),
       meanRelative = meanRelative,

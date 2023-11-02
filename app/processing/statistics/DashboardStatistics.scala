@@ -1,8 +1,10 @@
 package processing.statistics
 
+import spire.math.{ Natural, Rational }
+
 case class DashboardStatistics(
-    total: Progress,
-    counted: Progress,
-    absoluteMeans: Means,
-    relativeMeans: Means
+    reached: WithSimulation[Natural],
+    reachable: WithoutSimulation,
+    absoluteMeans: WithSimulation[Rational],
+    relativeMeans: WithSimulation[Rational]
 )
