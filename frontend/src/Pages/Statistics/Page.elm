@@ -11,6 +11,7 @@ import Types.Auxiliary exposing (JWT)
 import Types.Dashboard.Dashboard
 import Types.Dashboard.DeeplyResolved
 import Types.Dashboard.Id
+import Types.Dashboard.Statistics
 import Types.Project.Id
 import Types.Project.Project
 import Types.Project.Resolved
@@ -83,6 +84,10 @@ type alias StatisticsLanguage =
     Language.Statistics
 
 
+type alias DashboardStatistics =
+    Types.Dashboard.Statistics.Statistics
+
+
 type alias Languages =
     { taskEditor : TaskEditorLanguage
     , project : ProjectLanguage
@@ -94,6 +99,7 @@ type alias Languages =
 type alias Main =
     { jwt : JWT
     , dashboard : Dashboard
+    , dashboardStatistics : DashboardStatistics
     , projects : DictList ProjectId EditingResolvedProject
     , searchString : String
     , pagination : Pagination
@@ -123,6 +129,7 @@ initialToMain i =
         (\deeplyResolvedDashboard ->
             { jwt = i.jwt
             , dashboard = deeplyResolvedDashboard.dashboard
+            , dashboardStatistics = deeplyResolvedDashboard.dashboardStatistics
             , projects =
                 deeplyResolvedDashboard.resolvedProjects
                     |> List.map
