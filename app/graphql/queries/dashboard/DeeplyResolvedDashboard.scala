@@ -6,7 +6,8 @@ import sangria.schema.OutputType
 
 case class DeeplyResolvedDashboard(
     dashboard: Dashboard,
-    resolvedProjects: Seq[DeeplyResolvedProject]
+    resolvedProjects: Seq[DeeplyResolvedProject],
+    dashboardStatistics: DashboardStatistics
 )
 
 object DeeplyResolvedDashboard {
