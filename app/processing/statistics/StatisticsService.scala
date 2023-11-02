@@ -6,11 +6,6 @@ import spire.syntax.all._
 
 object StatisticsService {
 
-  case class TaskWithSimulation(
-      task: services.task.Task,
-      simulation: Option[BigInt]
-  )
-
   def ofTasks(tasks: Seq[TaskWithSimulation]): DashboardStatistics = {
     val statsInTotal   = statsInCollection(tasks)
     val statsInCounted = statsInCollection(tasks.filter(_.task.counting))
@@ -40,16 +35,6 @@ object StatisticsService {
       )
     )
   }
-
-  case class StatsInCollection(
-      reached: Natural,
-      reachedSimulated: Natural,
-      reachable: Natural,
-      meanAbsolute: Rational,
-      meanAbsoluteSimulated: Rational,
-      meanRelative: Rational,
-      meanRelativeSimulated: Rational
-  )
 
   def statsInCollection(tasksWithSimulation: Seq[TaskWithSimulation]): StatsInCollection = {
     val tasks                 = tasksWithSimulation.map(_.task)
