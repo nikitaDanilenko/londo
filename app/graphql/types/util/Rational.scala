@@ -9,7 +9,7 @@ import sangria.schema.ObjectType
 @JsonCodec(encodeOnly = true)
 case class Rational(
     numerator: BigInt,
-    denominator: Natural
+    denominator: Positive
 )
 
 object Rational {
@@ -17,7 +17,9 @@ object Rational {
   implicit val fromInternal: Transformer[spire.math.Rational, Rational] = rational =>
     Rational(
       numerator = rational.numerator.toBigInt,
-      denominator = spire.math.Natural(rational.denominator.toBigInt).transformInto[Natural]
+      denominator = math.Positive
+        .nextOf(spire.math.Natural(rational.denominator.toBigInt) - spire.math.Natural.one)
+        .transformInto[Positive]
     )
 
   implicit val objectType: ObjectType[Unit, Rational] = deriveObjectType[Unit, Rational]()
