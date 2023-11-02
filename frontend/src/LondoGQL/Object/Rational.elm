@@ -25,7 +25,7 @@ numerator =
 
 
 denominator :
-    SelectionSet decodesTo LondoGQL.Object.Natural
+    SelectionSet decodesTo LondoGQL.Object.Positive
     -> SelectionSet decodesTo LondoGQL.Object.Rational
 denominator object____ =
     Object.selectionForCompositeField "denominator" [] object____ Basics.identity
