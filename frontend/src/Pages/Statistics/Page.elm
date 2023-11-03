@@ -157,6 +157,7 @@ lenses :
         }
     , main :
         { dashboard : Lens Main Dashboard
+        , dashboardStatistics : Lens Main DashboardStatistics
         , projects : Lens Main (DictList ProjectId EditingResolvedProject)
         , searchString : Lens Main String
         , pagination : Lens Main Pagination
@@ -168,6 +169,7 @@ lenses =
         }
     , main =
         { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
+        , dashboardStatistics = Lens .dashboardStatistics (\b a -> { a | dashboardStatistics = b })
         , projects = Lens .projects (\b a -> { a | projects = b })
         , searchString = Lens .searchString (\b a -> { a | searchString = b })
         , pagination = Lens .pagination (\b a -> { a | pagination = b })
@@ -186,6 +188,7 @@ type LogicMsg
     | EditTask ProjectId TaskId TaskUpdate
     | SaveEditTask ProjectId TaskId
     | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult ResolvedTask)
+    | GotFetchUpdatedStatisticsResponse ProjectId ResolvedTask (HttpUtil.GraphQLResult DashboardStatistics)
     | ToggleControls ProjectId TaskId
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId

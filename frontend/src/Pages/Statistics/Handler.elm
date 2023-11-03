@@ -86,9 +86,29 @@ updateLogic msg model =
             )
 
         gotSaveEditTaskResponse projectId result =
+            result
+                |> Result.Extra.unpack (\error -> ( Tristate.toError model error, Cmd.none ))
+                    (\resolvedTask ->
+                        ( model
+                        , model
+                            |> Tristate.foldMain Cmd.none
+                                (\main ->
+                                    Types.Dashboard.DeeplyResolved.fetchWithSelection
+                                        { expect = Page.GotFetchUpdatedStatisticsResponse projectId resolvedTask
+                                        , selection = Types.Dashboard.DeeplyResolved.statisticsSelection
+                                        }
+                                        { configuration = model.configuration
+                                        , jwt = main.jwt
+                                        }
+                                        main.dashboard.id
+                                )
+                        )
+                    )
+
+        gotFetchUpdatedStatisticsResponse projectId resolvedTask result =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
-                    (\resolvedTask ->
+                    (\dashboardStatistics ->
                         model
                             |> updateTaskById projectId
                                 resolvedTask.task.id
@@ -98,6 +118,7 @@ updateLogic msg model =
                                     }
                                     >> Editing.toggleControls
                                 )
+                            |> Tristate.mapMain (Page.lenses.main.dashboardStatistics.set dashboardStatistics)
                     )
             , Cmd.none
             )
@@ -173,6 +194,9 @@ updateLogic msg model =
 
         Page.GotSaveEditTaskResponse projectId result ->
             gotSaveEditTaskResponse projectId result
+
+        Page.GotFetchUpdatedStatisticsResponse projectId resolvedTask result ->
+            gotFetchUpdatedStatisticsResponse projectId resolvedTask result
 
         Page.ToggleControls projectId taskId ->
             toggleControls projectId taskId
