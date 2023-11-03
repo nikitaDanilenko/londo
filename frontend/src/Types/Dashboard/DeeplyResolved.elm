@@ -25,7 +25,12 @@ selection =
         DeeplyResolved
         (LondoGQL.Object.DeeplyResolvedDashboard.dashboard Types.Dashboard.Dashboard.selection)
         (LondoGQL.Object.DeeplyResolvedDashboard.resolvedProjects Types.Project.DeeplyResolved.selection)
-        (LondoGQL.Object.DeeplyResolvedDashboard.dashboardStatistics Types.Dashboard.Statistics.selection)
+        statisticsSelection
+
+
+statisticsSelection : SelectionSet Types.Dashboard.Statistics.Statistics LondoGQL.Object.DeeplyResolvedDashboard
+statisticsSelection =
+    LondoGQL.Object.DeeplyResolvedDashboard.dashboardStatistics Types.Dashboard.Statistics.selection
 
 
 fetchWith :
@@ -33,13 +38,27 @@ fetchWith :
     -> AuthorizedAccess
     -> Types.Dashboard.Id.Id
     -> Cmd msg
-fetchWith expect authorizedAccess dashboardId =
+fetchWith expect =
+    fetchWithSelection
+        { expect = expect
+        , selection = selection
+        }
+
+
+fetchWithSelection :
+    { expect : HttpUtil.GraphQLResult a -> msg
+    , selection : SelectionSet a LondoGQL.Object.DeeplyResolvedDashboard
+    }
+    -> AuthorizedAccess
+    -> Types.Dashboard.Id.Id
+    -> Cmd msg
+fetchWithSelection ps authorizedAccess dashboardId =
     LondoGQL.Query.fetchDeeplyResolvedDashboard
         { input =
             { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
             }
         }
-        selection
+        ps.selection
         |> HttpUtil.queryWith
-            expect
+            ps.expect
             authorizedAccess
