@@ -1,30 +1,11 @@
 module Math.Statistics exposing (..)
 
-import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import BigRational exposing (BigRational)
 import Math.Constants
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
 import Types.Progress.Progress
-
-
-sumWith : (a -> BigInt) -> List a -> BigInt
-sumWith f =
-    List.foldl (f >> BigInt.add) Math.Constants.zeroBigInt
-
-
-bigRationalZero : BigRational
-bigRationalZero =
-    BigRational.fromInt 0
-
-
-relative : Positive -> List Types.Progress.Progress.Progress -> BigRational
-relative divisor =
-    List.foldl
-        (Types.Progress.Progress.toPercentRational >> BigRational.add)
-        bigRationalZero
-        >> flip BigRational.div (divisor |> Positive.integerValue |> BigRational.fromBigInt)
 
 
 {-| The difference if one additional reachable point is added is
