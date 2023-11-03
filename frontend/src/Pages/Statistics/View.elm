@@ -11,13 +11,12 @@ import Html.Events.Extra exposing (onEnter)
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind
 import Math.Natural as Natural
-import Math.Positive as Positive
 import Math.Statistics
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens as Lens
 import Pages.Dashboards.View
-import Pages.Statistics.EditingResolvedProject as EditingResolvedProject exposing (EditingResolvedProject)
+import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Page as Page
 import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Tasks.Tasks.View
@@ -55,17 +54,11 @@ viewMain configuration main =
         , showNavigation = True
         }
     <|
-        let
-            groupedTasks =
-                main.projects
-                    |> DictList.values
-                    |> List.concatMap EditingResolvedProject.tasks
-        in
         viewDashboard
             main.languages.statistics
             main.languages.dashboard
             main.dashboard
-            groupedTasks
+            main.dashboardStatistics
             :: (main.projects
                     |> DictList.values
                     |> List.map
@@ -83,92 +76,8 @@ rationalToString =
     BigRational.toDecimalString numberOfDecimalPlaces
 
 
-toPercentageString : { numerator : BigInt, denominator : BigInt } -> String
-toPercentageString =
-    Types.Progress.Progress.fromBigIntsOrDefaults
-        >> Types.Progress.Progress.toPercentRational
-        >> rationalToString
-
-
-viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> List Page.ResolvedTask -> Html Page.LogicMsg
-viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
-    let
-        tasks =
-            resolvedTasks |> List.map .task
-
-        reachableAll =
-            tasks |> reachableIn { countedOnly = False }
-
-        reachableAllCounted =
-            tasks |> reachableIn { countedOnly = True }
-
-        reachedAll =
-            tasks |> reachedIn { countedOnly = False }
-
-        reachedAllCounted =
-            tasks |> reachedIn { countedOnly = True }
-
-        -- todo: Consider extraction for better testability
-        reachedSimulatedAll =
-            resolvedTasks
-                |> List.map (.simulation >> Maybe.map .reachedModifier)
-                |> Maybe.Extra.values
-                |> Math.Statistics.sumWith identity
-                |> BigInt.add reachedAll
-
-        -- todo: Consider extraction for better testability
-        reachedSimulatedAllCounted =
-            resolvedTasks
-                |> List.filterMap (\resolved -> resolved.simulation |> Maybe.map .reachedModifier |> Maybe.Extra.filter (\_ -> resolved.task.counting))
-                |> Math.Statistics.sumWith identity
-                |> BigInt.add reachedAllCounted
-
-        meanAbsoluteTotal =
-            { numerator = reachedAll
-            , denominator = reachableAll
-            }
-                |> toPercentageString
-
-        meanAbsoluteCounted =
-            { numerator = reachedAllCounted
-            , denominator = reachableAllCounted
-            }
-                |> toPercentageString
-
-        meanAbsoluteSimulatedTotal =
-            { numerator = reachedSimulatedAll
-            , denominator = reachableAll
-            }
-                |> toPercentageString
-
-        meanAbsoluteSimulatedCounted =
-            { numerator = reachedSimulatedAllCounted
-            , denominator = reachableAllCounted
-            }
-                |> toPercentageString
-
-        allProgresses =
-            tasks |> List.map .progress
-
-        numberOfAllTasks =
-            allProgresses
-                |> List.length
-
-        countingProgresses =
-            tasks
-                |> List.filterMap (Just >> Maybe.Extra.filter .counting >> Maybe.map .progress)
-
-        meanRelative =
-            Positive.fromInt numberOfAllTasks
-                |> Maybe.Extra.unwrap (BigRational.fromInt 0) (\p -> Math.Statistics.relative p allProgresses)
-
-        numberOfCountingTasks =
-            countingProgresses |> List.length
-
-        meanRelativeCounted =
-            Positive.fromInt numberOfCountingTasks
-                |> Maybe.Extra.unwrap (BigRational.fromInt 0) (\p -> Math.Statistics.relative p countingProgresses)
-    in
+viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
+viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
     section []
         [ table [ Style.classes.elementsWithControlsTable ]
             [ Pages.Dashboards.View.tableHeader dashboardLanguage
@@ -194,81 +103,42 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard resolvedTasks =
                 [ tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachedAll <| statisticsLanguage ]
                     , td []
-                        [ text <| BigInt.toString <| reachedAll
+                        [ text <| Natural.toString <| .total <| .reached <| statistics
                         ]
                     , td []
-                        [ text <| BigInt.toString <| reachedAllCounted
+                        [ text <| Natural.toString <| .counted <| .reached <| statistics
                         ]
-                    , td [] [ text <| BigInt.toString <| reachedSimulatedAll ]
-                    , td [] [ text <| BigInt.toString <| reachedSimulatedAllCounted ]
+                    , td [] [ text <| Natural.toString <| .simulatedTotal <| .reached <| statistics ]
+                    , td [] [ text <| Natural.toString <| .simulatedCounted <| .reached <| statistics ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachableAll <| statisticsLanguage ]
                     , td []
-                        [ text <|
-                            BigInt.toString <|
-                                reachableAll
+                        [ text <| Natural.toString <| .total <| .reachable <| statistics
                         ]
                     , td []
-                        [ text <|
-                            BigInt.toString <|
-                                reachableIn { countedOnly = True } <|
-                                    tasks
+                        [ text <| Natural.toString <| .counted <| .reachable <| statistics
                         ]
                     , td [] []
                     , td [] []
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
-                    , td [] [ text <| meanAbsoluteTotal ]
-                    , td [] [ text <| meanAbsoluteCounted ]
-                    , td [] [ text <| meanAbsoluteSimulatedTotal ]
-                    , td [] [ text <| meanAbsoluteSimulatedCounted ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .total <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .counted <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedTotal <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedCounted <| .absoluteMeans <| statistics ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelative ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| meanRelativeCounted ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .total <| .relativeMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .counted <| .relativeMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedTotal <| .relativeMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedCounted <| .relativeMeans <| statistics ]
                     ]
                 ]
             ]
         ]
-
-
-reachableIn : { countedOnly : Bool } -> List Page.Task -> BigInt
-reachableIn ps =
-    let
-        predicate =
-            if ps.countedOnly then
-                .counting
-
-            else
-                always True
-    in
-    List.filterMap
-        (Just
-            >> Maybe.Extra.filter predicate
-            >> Maybe.map (.progress >> .reachable)
-        )
-        >> Positive.sum
-
-
-reachedIn : { countedOnly : Bool } -> List Page.Task -> BigInt
-reachedIn ps =
-    let
-        predicate =
-            if ps.countedOnly then
-                .counting
-
-            else
-                always True
-    in
-    List.filterMap
-        (Just
-            >> Maybe.Extra.filter predicate
-            >> Maybe.map (.progress >> .reached)
-        )
-        >> Natural.sum
 
 
 viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Pagination -> EditingResolvedProject -> Html Page.LogicMsg
@@ -330,11 +200,16 @@ viewResolvedProject taskEditorLanguage statisticsLanguage pagination resolvedPro
                     }
                 ]
 
+        taskNumbers =
+            { numberOfAllTasks = tasks |> List.length
+            , numberOfCountedTasks = tasks |> List.Extra.count (.original >> .task >> .counting)
+            }
+
         display =
             Paginate.page
                 >> List.concatMap
                     (Editing.unpack
-                        { onView = viewTask project.id taskEditorLanguage (tasks |> List.map .original)
+                        { onView = viewTask project.id taskEditorLanguage taskNumbers
                         , onUpdate = .task >> updateTask taskEditorLanguage project.id
                         , onDelete = \_ -> []
                         }
@@ -392,19 +267,18 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
         }
 
 
+type alias TaskNumbers =
+    { numberOfAllTasks : Int
+    , numberOfCountedTasks : Int
+    }
 
---todo: Only the number of tasks is relevant (at least it seems so)
 
-
-taskInfoColumns : List Page.ResolvedTask -> Page.ResolvedTask -> List (HtmlUtil.Column msg)
-taskInfoColumns allTasks resolvedTask =
+taskInfoColumns :
+    TaskNumbers
+    -> Page.ResolvedTask
+    -> List (HtmlUtil.Column msg)
+taskInfoColumns ps resolvedTask =
     let
-        numberOfAllTasks =
-            allTasks |> List.length
-
-        numberOfCountedTasks =
-            allTasks |> List.Extra.count (.task >> .counting)
-
         progress =
             resolvedTask.task.progress
 
@@ -415,22 +289,22 @@ taskInfoColumns allTasks resolvedTask =
 
         differenceAfterOneMoreExactTotal =
             Math.Statistics.differenceAfterOneMoreExact
-                { numberOfElements = numberOfAllTasks }
+                { numberOfElements = ps.numberOfAllTasks }
                 progress
 
         differenceAfterOneMoreExactCounted =
             Math.Statistics.differenceAfterOneMoreExact
-                { numberOfElements = numberOfCountedTasks }
+                { numberOfElements = ps.numberOfCountedTasks }
                 progress
 
         afterCompletionExactTotal =
             Math.Statistics.differenceAfterCompletionExact
-                { numberOfElements = numberOfAllTasks }
+                { numberOfElements = ps.numberOfAllTasks }
                 progress
 
         afterCompletionExactCounted =
             Math.Statistics.differenceAfterCompletionExact
-                { numberOfElements = numberOfCountedTasks }
+                { numberOfElements = ps.numberOfCountedTasks }
                 progress
     in
     [ { attributes = [ Style.classes.editable ]
@@ -469,12 +343,12 @@ taskInfoColumns allTasks resolvedTask =
     ]
 
 
-viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> List Page.ResolvedTask -> Page.ResolvedTask -> Bool -> List (Html Page.LogicMsg)
-viewTask projectId language allTasks resolvedTask showControls =
+viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> TaskNumbers -> Page.ResolvedTask -> Bool -> List (Html Page.LogicMsg)
+viewTask projectId language taskNumbers resolvedTask showControls =
     Pages.Util.ParentEditor.View.lineWith
         { rowWithControls =
             \t ->
-                { display = taskInfoColumns allTasks t
+                { display = taskInfoColumns taskNumbers t
                 , controls =
                     [ div []
                         [ button
