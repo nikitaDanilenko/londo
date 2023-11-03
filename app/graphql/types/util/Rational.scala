@@ -6,6 +6,8 @@ import io.scalaland.chimney.dsl._
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 
+import utils.graphql.SangriaUtil.instances._
+
 @JsonCodec(encodeOnly = true)
 case class Rational(
     numerator: BigInt,
