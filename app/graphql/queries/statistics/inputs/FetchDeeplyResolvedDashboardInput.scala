@@ -1,4 +1,4 @@
-package graphql.queries.dashboard.inputs
+package graphql.queries.statistics.inputs
 
 import graphql.types.dashboard.DashboardId
 import io.circe.generic.JsonCodec

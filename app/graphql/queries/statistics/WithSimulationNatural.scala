@@ -1,4 +1,4 @@
-package graphql.queries.dashboard
+package graphql.queries.statistics
 
 import graphql.types.util.Natural
 import io.scalaland.chimney.Transformer

@@ -1,4 +1,4 @@
-package graphql.queries.dashboard
+package graphql.queries.statistics
 
 import graphql.types.simulation.Simulation
 import graphql.types.task.Task

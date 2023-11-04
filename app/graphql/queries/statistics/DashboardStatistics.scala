@@ -1,4 +1,4 @@
-package graphql.queries.dashboard
+package graphql.queries.statistics
 
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveObjectType

@@ -1,4 +1,4 @@
-package graphql.queries.dashboard
+package graphql.queries.statistics
 
 import graphql.types.dashboard.Dashboard
 import sangria.macros.derive.deriveObjectType

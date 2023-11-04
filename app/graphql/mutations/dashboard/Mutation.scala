@@ -3,7 +3,7 @@ package graphql.mutations.dashboard
 import cats.data.EitherT
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.dashboard.inputs._
-import graphql.queries.dashboard.ResolvedTask
+import graphql.queries.statistics.ResolvedTask
 import graphql.types.dashboard.Dashboard
 import graphql.types.dashboardEntry.DashboardEntry
 import graphql.types.simulation.Simulation
