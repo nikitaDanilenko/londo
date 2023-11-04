@@ -1,6 +1,6 @@
-package processing.statistics
+package processing.statistics.dashboard
 
-import spire.math.{ Natural, Rational }
+import spire.math.{Natural, Rational}
 
 case class DashboardStatistics(
     reached: WithSimulation[Natural],

@@ -2,6 +2,7 @@ package graphql.queries.statistics
 
 import graphql.types.util.Natural
 import io.scalaland.chimney.Transformer
+import processing.statistics.dashboard.WithSimulation
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 
@@ -15,9 +16,9 @@ case class WithSimulationNatural(
 object WithSimulationNatural {
 
   implicit val fromInternal
-      : Transformer[processing.statistics.WithSimulation[spire.math.Natural], WithSimulationNatural] =
+      : Transformer[WithSimulation[spire.math.Natural], WithSimulationNatural] =
     Transformer
-      .define[processing.statistics.WithSimulation[spire.math.Natural], WithSimulationNatural]
+      .define[WithSimulation[spire.math.Natural], WithSimulationNatural]
       .buildTransformer
 
   implicit val objectType: ObjectType[Unit, WithSimulationNatural] = deriveObjectType[Unit, WithSimulationNatural]()

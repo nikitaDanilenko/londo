@@ -13,9 +13,9 @@ case class DashboardStatistics(
 
 object DashboardStatistics {
 
-  implicit val fromInternal: Transformer[processing.statistics.DashboardStatistics, DashboardStatistics] =
+  implicit val fromInternal: Transformer[processing.statistics.dashboard.DashboardStatistics, DashboardStatistics] =
     Transformer
-      .define[processing.statistics.DashboardStatistics, DashboardStatistics]
+      .define[processing.statistics.dashboard.DashboardStatistics, DashboardStatistics]
       .buildTransformer
 
   implicit val objectType: ObjectType[Unit, DashboardStatistics] = deriveObjectType[Unit, DashboardStatistics]()

@@ -1,4 +1,4 @@
-package processing.statistics
+package processing.statistics.dashboard
 
 case class Task(
     counting: Boolean,

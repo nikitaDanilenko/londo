@@ -22,9 +22,9 @@ object Task {
       .define[services.task.Task, Task]
       .buildTransformer
 
-  implicit val toProcessing: Transformer[Task, processing.statistics.Task] =
+  implicit val toProcessing: Transformer[Task, processing.statistics.dashboard.Task] =
     Transformer
-      .define[Task, processing.statistics.Task]
+      .define[Task, processing.statistics.dashboard.Task]
       .buildTransformer
 
   implicit val objectType: ObjectType[Unit, Task] = deriveObjectType[Unit, Task]()
