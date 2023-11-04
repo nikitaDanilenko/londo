@@ -7,7 +7,8 @@ import sangria.schema.OutputType
 
 case class TaskAnalysis(
     task: Task,
-    simulation: Option[Simulation]
+    simulation: Option[Simulation],
+    incompleteStatistics: Option[IncompleteTaskStatistics]
 )
 
 object TaskAnalysis {
