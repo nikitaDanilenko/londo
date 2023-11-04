@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.DeeplyResolvedProject exposing (..)
+module LondoGQL.Object.ProjectAnalysis exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -21,13 +21,13 @@ import LondoGQL.Union
 
 project :
     SelectionSet decodesTo LondoGQL.Object.Project
-    -> SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedProject
+    -> SelectionSet decodesTo LondoGQL.Object.ProjectAnalysis
 project object____ =
     Object.selectionForCompositeField "project" [] object____ Basics.identity
 
 
 tasks :
-    SelectionSet decodesTo LondoGQL.Object.ResolvedTask
-    -> SelectionSet (List decodesTo) LondoGQL.Object.DeeplyResolvedProject
+    SelectionSet decodesTo LondoGQL.Object.TaskAnalysis
+    -> SelectionSet (List decodesTo) LondoGQL.Object.ProjectAnalysis
 tasks object____ =
     Object.selectionForCompositeField "tasks" [] object____ (Basics.identity >> Decode.list)

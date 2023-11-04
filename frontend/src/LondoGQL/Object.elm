@@ -9,6 +9,10 @@ type Dashboard
     = Dashboard
 
 
+type DashboardAnalysis
+    = DashboardAnalysis
+
+
 type DashboardEntry
     = DashboardEntry
 
@@ -19,14 +23,6 @@ type DashboardId
 
 type DashboardStatistics
     = DashboardStatistics
-
-
-type DeeplyResolvedDashboard
-    = DeeplyResolvedDashboard
-
-
-type DeeplyResolvedProject
-    = DeeplyResolvedProject
 
 
 type FindUserResult
@@ -49,6 +45,10 @@ type Project
     = Project
 
 
+type ProjectAnalysis
+    = ProjectAnalysis
+
+
 type ProjectId
     = ProjectId
 
@@ -65,16 +65,16 @@ type ResolvedProject
     = ResolvedProject
 
 
-type ResolvedTask
-    = ResolvedTask
-
-
 type Simulation
     = Simulation
 
 
 type Task
     = Task
+
+
+type TaskAnalysis
+    = TaskAnalysis
 
 
 type TaskId

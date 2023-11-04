@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module LondoGQL.Object.DeeplyResolvedDashboard exposing (..)
+module LondoGQL.Object.DashboardAnalysis exposing (..)
 
 import Graphql.Internal.Builder.Argument as Argument exposing (Argument)
 import Graphql.Internal.Builder.Object as Object
@@ -21,20 +21,20 @@ import LondoGQL.Union
 
 dashboard :
     SelectionSet decodesTo LondoGQL.Object.Dashboard
-    -> SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedDashboard
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardAnalysis
 dashboard object____ =
     Object.selectionForCompositeField "dashboard" [] object____ Basics.identity
 
 
-resolvedProjects :
-    SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedProject
-    -> SelectionSet (List decodesTo) LondoGQL.Object.DeeplyResolvedDashboard
-resolvedProjects object____ =
-    Object.selectionForCompositeField "resolvedProjects" [] object____ (Basics.identity >> Decode.list)
+projectAnalyses :
+    SelectionSet decodesTo LondoGQL.Object.ProjectAnalysis
+    -> SelectionSet (List decodesTo) LondoGQL.Object.DashboardAnalysis
+projectAnalyses object____ =
+    Object.selectionForCompositeField "projectAnalyses" [] object____ (Basics.identity >> Decode.list)
 
 
 dashboardStatistics :
     SelectionSet decodesTo LondoGQL.Object.DashboardStatistics
-    -> SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedDashboard
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardAnalysis
 dashboardStatistics object____ =
     Object.selectionForCompositeField "dashboardStatistics" [] object____ Basics.identity

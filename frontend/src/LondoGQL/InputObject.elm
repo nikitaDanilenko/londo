@@ -494,6 +494,31 @@ encodeDeleteTaskInput input____ =
         [ ( "taskId", encodeTaskIdInput input____.taskId |> Just ) ]
 
 
+buildFetchDashboardAnalysisInput :
+    FetchDashboardAnalysisInputRequiredFields
+    -> FetchDashboardAnalysisInput
+buildFetchDashboardAnalysisInput required____ =
+    { dashboardId = required____.dashboardId }
+
+
+type alias FetchDashboardAnalysisInputRequiredFields =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Type for the FetchDashboardAnalysisInput input object.
+-}
+type alias FetchDashboardAnalysisInput =
+    { dashboardId : DashboardIdInput }
+
+
+{-| Encode a FetchDashboardAnalysisInput into a value that can be used as an argument.
+-}
+encodeFetchDashboardAnalysisInput : FetchDashboardAnalysisInput -> Value
+encodeFetchDashboardAnalysisInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
+
+
 buildFetchDashboardInput :
     FetchDashboardInputRequiredFields
     -> FetchDashboardInput
@@ -515,31 +540,6 @@ type alias FetchDashboardInput =
 -}
 encodeFetchDashboardInput : FetchDashboardInput -> Value
 encodeFetchDashboardInput input____ =
-    Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
-
-
-buildFetchDeeplyResolvedDashboardInput :
-    FetchDeeplyResolvedDashboardInputRequiredFields
-    -> FetchDeeplyResolvedDashboardInput
-buildFetchDeeplyResolvedDashboardInput required____ =
-    { dashboardId = required____.dashboardId }
-
-
-type alias FetchDeeplyResolvedDashboardInputRequiredFields =
-    { dashboardId : DashboardIdInput }
-
-
-{-| Type for the FetchDeeplyResolvedDashboardInput input object.
--}
-type alias FetchDeeplyResolvedDashboardInput =
-    { dashboardId : DashboardIdInput }
-
-
-{-| Encode a FetchDeeplyResolvedDashboardInput into a value that can be used as an argument.
--}
-encodeFetchDeeplyResolvedDashboardInput : FetchDeeplyResolvedDashboardInput -> Value
-encodeFetchDeeplyResolvedDashboardInput input____ =
     Encode.maybeObject
         [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
 
