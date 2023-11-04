@@ -8,15 +8,15 @@ import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.PaginationSettings exposing (PaginationSettings)
 import Pages.View.Tristate as Tristate
 import Types.Auxiliary exposing (JWT)
+import Types.Dashboard.Analysis
 import Types.Dashboard.Dashboard
-import Types.Dashboard.DeeplyResolved
 import Types.Dashboard.Id
 import Types.Dashboard.Statistics
 import Types.Project.Id
 import Types.Project.Project
 import Types.Project.Resolved
+import Types.Task.Analysis
 import Types.Task.Id
-import Types.Task.Resolved
 import Types.Task.Task
 import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
@@ -36,8 +36,8 @@ type alias Dashboard =
     Types.Dashboard.Dashboard.Dashboard
 
 
-type alias DeeplyResolvedDashboard =
-    Types.Dashboard.DeeplyResolved.DeeplyResolved
+type alias DashboardAnalysis =
+    Types.Dashboard.Analysis.Analysis
 
 
 type alias ProjectId =
@@ -57,7 +57,7 @@ type alias Task =
 
 
 type alias ResolvedTask =
-    Types.Task.Resolved.Resolved
+    Types.Task.Analysis.Analysis
 
 
 type alias TaskUpdate =
@@ -109,7 +109,7 @@ type alias Main =
 
 type alias Initial =
     { jwt : JWT
-    , deeplyResolvedDashboard : Maybe DeeplyResolvedDashboard
+    , dashboardAnalysis : Maybe DashboardAnalysis
     , languages : Languages
     }
 
@@ -117,7 +117,7 @@ type alias Initial =
 initial : Languages -> AuthorizedAccess -> Model
 initial languages authorizedAccess =
     { jwt = authorizedAccess.jwt
-    , deeplyResolvedDashboard = Nothing
+    , dashboardAnalysis = Nothing
     , languages = languages
     }
         |> Tristate.createInitial authorizedAccess.configuration
@@ -126,12 +126,12 @@ initial languages authorizedAccess =
 initialToMain : Initial -> Maybe Main
 initialToMain i =
     Maybe.map
-        (\deeplyResolvedDashboard ->
+        (\dashboardAnalysis ->
             { jwt = i.jwt
-            , dashboard = deeplyResolvedDashboard.dashboard
-            , dashboardStatistics = deeplyResolvedDashboard.dashboardStatistics
+            , dashboard = dashboardAnalysis.dashboard
+            , dashboardStatistics = dashboardAnalysis.dashboardStatistics
             , projects =
-                deeplyResolvedDashboard.resolvedProjects
+                dashboardAnalysis.projectAnalyses
                     |> List.map
                         (\resolvedProject ->
                             { project = resolvedProject.project
@@ -148,12 +148,12 @@ initialToMain i =
             , languages = i.languages
             }
         )
-        i.deeplyResolvedDashboard
+        i.dashboardAnalysis
 
 
 lenses :
     { initial :
-        { deeplyResolvedDashboard : Lens Initial (Maybe DeeplyResolvedDashboard)
+        { dashboardAnalysis : Lens Initial (Maybe DashboardAnalysis)
         }
     , main :
         { dashboard : Lens Main Dashboard
@@ -165,7 +165,7 @@ lenses :
     }
 lenses =
     { initial =
-        { deeplyResolvedDashboard = Lens .deeplyResolvedDashboard (\b a -> { a | deeplyResolvedDashboard = b })
+        { dashboardAnalysis = Lens .dashboardAnalysis (\b a -> { a | dashboardAnalysis = b })
         }
     , main =
         { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
@@ -184,7 +184,7 @@ type alias Flags =
 
 
 type LogicMsg
-    = GotFetchDeeplyDashboardResponse (HttpUtil.GraphQLResult DeeplyResolvedDashboard)
+    = GotFetchDashboardAnalysisResponse (HttpUtil.GraphQLResult DashboardAnalysis)
     | EditTask ProjectId TaskId TaskUpdate
     | SaveEditTask ProjectId TaskId
     | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult ResolvedTask)

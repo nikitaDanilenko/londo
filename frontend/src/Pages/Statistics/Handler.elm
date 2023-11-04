@@ -10,8 +10,8 @@ import Pages.Statistics.Pagination as Pagination
 import Pages.Util.PaginationSettings as PaginationSettings
 import Pages.View.Tristate as Tristate
 import Result.Extra
-import Types.Dashboard.DeeplyResolved
-import Types.Task.Resolved
+import Types.Dashboard.Analysis
+import Types.Task.Analysis
 import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing exposing (Editing)
@@ -32,8 +32,8 @@ init flags =
         , statistics = Language.Language.default.statistics
         }
         flags.authorizedAccess
-    , Types.Dashboard.DeeplyResolved.fetchWith
-        Page.GotFetchDeeplyDashboardResponse
+    , Types.Dashboard.Analysis.fetchWith
+        Page.GotFetchDashboardAnalysisResponse
         flags.authorizedAccess
         flags.dashboardId
         |> Cmd.map Tristate.Logic
@@ -43,13 +43,13 @@ init flags =
 updateLogic : Page.LogicMsg -> Page.Model -> ( Page.Model, Cmd Page.LogicMsg )
 updateLogic msg model =
     let
-        gotFetchDeeplyResolvedDashboardResponse result =
+        gotFetchDashboardAnalysisResponse result =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
                     (\serverResponse ->
                         model
                             |> Tristate.mapInitial
-                                (Page.lenses.initial.deeplyResolvedDashboard.set
+                                (Page.lenses.initial.dashboardAnalysis.set
                                     (serverResponse |> Just)
                                 )
                             |> Tristate.fromInitToMain Page.initialToMain
@@ -93,9 +93,9 @@ updateLogic msg model =
                         , model
                             |> Tristate.foldMain Cmd.none
                                 (\main ->
-                                    Types.Dashboard.DeeplyResolved.fetchWithSelection
+                                    Types.Dashboard.Analysis.fetchWithSelection
                                         { expect = Page.GotFetchUpdatedStatisticsResponse projectId resolvedTask
-                                        , selection = Types.Dashboard.DeeplyResolved.statisticsSelection
+                                        , selection = Types.Dashboard.Analysis.statisticsSelection
                                         }
                                         { configuration = model.configuration
                                         , jwt = main.jwt
@@ -183,8 +183,8 @@ updateLogic msg model =
             )
     in
     case msg of
-        Page.GotFetchDeeplyDashboardResponse result ->
-            gotFetchDeeplyResolvedDashboardResponse result
+        Page.GotFetchDashboardAnalysisResponse result ->
+            gotFetchDashboardAnalysisResponse result
 
         Page.EditTask projectId taskId taskUpdate ->
             editTask projectId taskId taskUpdate

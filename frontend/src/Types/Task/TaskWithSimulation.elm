@@ -8,8 +8,8 @@ import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Dashboard.Id
 import Types.Simulation.Update
+import Types.Task.Analysis
 import Types.Task.Id
-import Types.Task.Resolved
 import Types.Task.Update
 import Util.HttpUtil as HttpUtil
 
@@ -30,7 +30,7 @@ lenses =
     }
 
 
-from : Types.Task.Resolved.Resolved -> ClientInput
+from : Types.Task.Analysis.Analysis -> ClientInput
 from resolved =
     { taskUpdate = resolved |> .task |> Types.Task.Update.from
     , simulation =
@@ -54,7 +54,7 @@ toGraphQLInput dashboardId taskId clientInput =
 
 
 updateWith :
-    (HttpUtil.GraphQLResult Types.Task.Resolved.Resolved -> msg)
+    (HttpUtil.GraphQLResult Types.Task.Analysis.Analysis -> msg)
     -> AuthorizedAccess
     -> Types.Dashboard.Id.Id
     -> Types.Task.Id.Id
@@ -72,7 +72,7 @@ updateWith expect authorizedAccess dashboardId taskId update =
                     |> Graphql.OptionalArgument.fromMaybe
             }
         }
-        Types.Task.Resolved.selection
+        Types.Task.Analysis.selection
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
         |> HttpUtil.sendWithJWT
             { jwt = authorizedAccess.jwt
