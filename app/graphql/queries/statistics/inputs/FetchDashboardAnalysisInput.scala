@@ -6,13 +6,13 @@ import sangria.macros.derive.deriveInputObjectType
 import sangria.schema.InputObjectType
 
 @JsonCodec(decodeOnly = true)
-case class FetchDeeplyResolvedDashboardInput(
+case class FetchDashboardAnalysisInput(
     dashboardId: DashboardId
 )
 
-object FetchDeeplyResolvedDashboardInput {
+object FetchDashboardAnalysisInput {
 
-  implicit val inputObjectType: InputObjectType[FetchDeeplyResolvedDashboardInput] =
-    deriveInputObjectType[FetchDeeplyResolvedDashboardInput]()
+  implicit val inputObjectType: InputObjectType[FetchDashboardAnalysisInput] =
+    deriveInputObjectType[FetchDashboardAnalysisInput]()
 
 }

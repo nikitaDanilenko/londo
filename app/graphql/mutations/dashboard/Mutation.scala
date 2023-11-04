@@ -3,7 +3,7 @@ package graphql.mutations.dashboard
 import cats.data.EitherT
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.dashboard.inputs._
-import graphql.queries.statistics.ResolvedTask
+import graphql.queries.statistics.TaskAnalysis
 import graphql.types.dashboard.Dashboard
 import graphql.types.dashboardEntry.DashboardEntry
 import graphql.types.simulation.Simulation
@@ -89,7 +89,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     }
 
   @GraphQLField
-  def updateTaskWithSimulation(input: UpdateTaskWithSimulationInput): Future[ResolvedTask] =
+  def updateTaskWithSimulation(input: UpdateTaskWithSimulationInput): Future[TaskAnalysis] =
     withUserId { userId =>
       // TODO #29: Make this update transactional
       val transformer =
@@ -124,7 +124,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
                   )
               ).map(Some(_))
             }
-        } yield ResolvedTask(task.transformInto[Task], simulation.map(_.transformInto[Simulation]))
+        } yield TaskAnalysis(task.transformInto[Task], simulation.map(_.transformInto[Simulation]))
 
       transformer.value.handleServerError
     }

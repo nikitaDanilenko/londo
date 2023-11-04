@@ -5,13 +5,13 @@ import graphql.types.task.Task
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.OutputType
 
-case class ResolvedTask(
+case class TaskAnalysis(
     task: Task,
     simulation: Option[Simulation]
 )
 
-object ResolvedTask {
+object TaskAnalysis {
 
-  implicit lazy val outputType: OutputType[ResolvedTask] = deriveObjectType[Unit, ResolvedTask]()
+  implicit lazy val outputType: OutputType[TaskAnalysis] = deriveObjectType[Unit, TaskAnalysis]()
 
 }

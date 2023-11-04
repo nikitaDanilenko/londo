@@ -3,7 +3,7 @@ package graphql.queries.statistics
 import cats.data.EitherT
 import errors.{ ErrorContext, ServerError }
 import graphql.HasGraphQLServices.syntax._
-import graphql.queries.statistics.inputs.FetchDeeplyResolvedDashboardInput
+import graphql.queries.statistics.inputs.FetchDashboardAnalysisInput
 import graphql.types.dashboard.Dashboard
 import graphql.types.project.Project
 import graphql.types.simulation.Simulation
@@ -17,7 +17,7 @@ import scala.concurrent.Future
 trait Query extends HasGraphQLServices with HasLoggedInUser {
 
   @GraphQLField
-  def fetchDeeplyResolvedDashboard(input: FetchDeeplyResolvedDashboardInput): Future[DeeplyResolvedDashboard] =
+  def fetchDashboardAnalysis(input: FetchDashboardAnalysisInput): Future[DashboardAnalysis] =
     withUserId { userId =>
       val dashboardId = input.dashboardId.transformInto[db.DashboardId]
       val transformer = for {
@@ -40,10 +40,10 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
         )
       } yield {
         val resolvedProjects = projects.map(project =>
-          DeeplyResolvedProject(
+          ProjectAnalysis(
             project = project.transformInto[Project],
             tasks = tasksByProjectId.getOrElse(project.id, Seq.empty).map { task =>
-              ResolvedTask(
+              TaskAnalysis(
                 task = task.transformInto[Task],
                 simulation = simulations.get(task.id).map(_.transformInto[Simulation])
               )
@@ -61,7 +61,7 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
 
         val dashboardStatistics = processing.statistics.StatisticsService.ofTasks(allTasks)
 
-        DeeplyResolvedDashboard(
+        DashboardAnalysis(
           dashboard.transformInto[Dashboard],
           resolvedProjects,
           dashboardStatistics.transformInto[DashboardStatistics]
@@ -70,7 +70,5 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
 
       transformer.value.handleServerError
     }
-
-
 
 }
