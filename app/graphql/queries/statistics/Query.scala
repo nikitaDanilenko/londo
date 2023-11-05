@@ -6,8 +6,6 @@ import graphql.HasGraphQLServices.syntax._
 import graphql.queries.statistics.inputs.FetchDashboardAnalysisInput
 import graphql.types.dashboard.Dashboard
 import graphql.types.project.Project
-import graphql.types.simulation.Simulation
-import graphql.types.task.Task
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl._
 import math.Positive
