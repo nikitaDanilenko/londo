@@ -7,18 +7,21 @@ import spire.math.Rational
 
 object StatisticsService {
 
+  // TODO: The options are evaluated every time, but are actually constant over a collection of tasks.
   def incompleteOfTask(
       taskWithSimulation: TaskWithSimulation,
-      numberOfTasks: Positive,
+      numberOfTasks: Option[Positive],
       numberOfCountedTasks: Option[Positive]
   ): IncompleteTaskStatistics = {
     val progress = taskWithSimulation.task.progress
     val mean     = Rational(progress.reached.toBigInt, progress.reachable.natural.toBigInt)
 
+    def withZeroDefault(number: Option[Positive]): After = number.fold(After.zero)(afterForTask(taskWithSimulation, _))
+
     IncompleteTaskStatistics(
       mean = 100 * mean,
-      total = afterForTask(taskWithSimulation, numberOfTasks),
-      counted = numberOfCountedTasks.fold(After.zero)(afterForTask(taskWithSimulation, _))
+      total = withZeroDefault(numberOfTasks),
+      counted = withZeroDefault(numberOfCountedTasks)
     )
   }
 
