@@ -8,6 +8,10 @@ import Json.Decode as Decode exposing (Decoder)
 import LondoGQL.Scalar exposing (defaultCodecs)
 
 
+type alias BigDecimal =
+    LondoGQL.Scalar.BigDecimal
+
+
 type alias BigInt =
     LondoGQL.Scalar.BigInt
 
@@ -20,10 +24,11 @@ type alias Uuid =
     LondoGQL.Scalar.Uuid
 
 
-codecs : LondoGQL.Scalar.Codecs BigInt Unit Uuid
+codecs : LondoGQL.Scalar.Codecs BigDecimal BigInt Unit Uuid
 codecs =
     LondoGQL.Scalar.defineCodecs
-        { codecBigInt = defaultCodecs.codecBigInt
+        { codecBigDecimal = defaultCodecs.codecBigDecimal
+        , codecBigInt = defaultCodecs.codecBigInt
         , codecUnit = defaultCodecs.codecUnit
         , codecUuid = defaultCodecs.codecUuid
         }

@@ -5,6 +5,10 @@
 module LondoGQL.Object exposing (..)
 
 
+type After
+    = After
+
+
 type Dashboard
     = Dashboard
 
@@ -27,6 +31,10 @@ type DashboardStatistics
 
 type FindUserResult
     = FindUserResult
+
+
+type IncompleteTaskStatistics
+    = IncompleteTaskStatistics
 
 
 type Natural

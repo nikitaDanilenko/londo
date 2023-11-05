@@ -31,3 +31,10 @@ simulation :
     -> SelectionSet (Maybe decodesTo) LondoGQL.Object.TaskAnalysis
 simulation object____ =
     Object.selectionForCompositeField "simulation" [] object____ (Basics.identity >> Decode.nullable)
+
+
+incompleteStatistics :
+    SelectionSet decodesTo LondoGQL.Object.IncompleteTaskStatistics
+    -> SelectionSet (Maybe decodesTo) LondoGQL.Object.TaskAnalysis
+incompleteStatistics object____ =
+    Object.selectionForCompositeField "incompleteStatistics" [] object____ (Basics.identity >> Decode.nullable)

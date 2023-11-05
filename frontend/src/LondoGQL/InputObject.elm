@@ -498,17 +498,21 @@ buildFetchDashboardAnalysisInput :
     FetchDashboardAnalysisInputRequiredFields
     -> FetchDashboardAnalysisInput
 buildFetchDashboardAnalysisInput required____ =
-    { dashboardId = required____.dashboardId }
+    { dashboardId = required____.dashboardId, numberOfDecimalPlaces = required____.numberOfDecimalPlaces }
 
 
 type alias FetchDashboardAnalysisInputRequiredFields =
-    { dashboardId : DashboardIdInput }
+    { dashboardId : DashboardIdInput
+    , numberOfDecimalPlaces : PositiveInput
+    }
 
 
 {-| Type for the FetchDashboardAnalysisInput input object.
 -}
 type alias FetchDashboardAnalysisInput =
-    { dashboardId : DashboardIdInput }
+    { dashboardId : DashboardIdInput
+    , numberOfDecimalPlaces : PositiveInput
+    }
 
 
 {-| Encode a FetchDashboardAnalysisInput into a value that can be used as an argument.
@@ -516,7 +520,7 @@ type alias FetchDashboardAnalysisInput =
 encodeFetchDashboardAnalysisInput : FetchDashboardAnalysisInput -> Value
 encodeFetchDashboardAnalysisInput input____ =
     Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "numberOfDecimalPlaces", encodePositiveInput input____.numberOfDecimalPlaces |> Just ) ]
 
 
 buildFetchDashboardInput :
@@ -1152,20 +1156,24 @@ buildUpdateTaskWithSimulationInput required____ fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
-                { simulation = Absent }
+                { simulation = Absent, numberOfTotalTasks = Absent, numberOfCountedTasks = Absent }
     in
-    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation }
+    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation, numberOfTotalTasks = optionals____.numberOfTotalTasks, numberOfCountedTasks = optionals____.numberOfCountedTasks, numberOfDecimalPlaces = required____.numberOfDecimalPlaces }
 
 
 type alias UpdateTaskWithSimulationInputRequiredFields =
     { dashboardId : DashboardIdInput
     , taskId : TaskIdInput
     , taskUpdate : TaskUpdate
+    , numberOfDecimalPlaces : PositiveInput
     }
 
 
 type alias UpdateTaskWithSimulationInputOptionalFields =
-    { simulation : OptionalArgument SimulationInput }
+    { simulation : OptionalArgument SimulationInput
+    , numberOfTotalTasks : OptionalArgument PositiveInput
+    , numberOfCountedTasks : OptionalArgument PositiveInput
+    }
 
 
 {-| Type for the UpdateTaskWithSimulationInput input object.
@@ -1175,6 +1183,9 @@ type alias UpdateTaskWithSimulationInput =
     , taskId : TaskIdInput
     , taskUpdate : TaskUpdate
     , simulation : OptionalArgument SimulationInput
+    , numberOfTotalTasks : OptionalArgument PositiveInput
+    , numberOfCountedTasks : OptionalArgument PositiveInput
+    , numberOfDecimalPlaces : PositiveInput
     }
 
 
@@ -1183,7 +1194,7 @@ type alias UpdateTaskWithSimulationInput =
 encodeUpdateTaskWithSimulationInput : UpdateTaskWithSimulationInput -> Value
 encodeUpdateTaskWithSimulationInput input____ =
     Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ) ]
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ), ( "numberOfTotalTasks", encodePositiveInput |> Encode.optional input____.numberOfTotalTasks ), ( "numberOfCountedTasks", encodePositiveInput |> Encode.optional input____.numberOfCountedTasks ), ( "numberOfDecimalPlaces", encodePositiveInput input____.numberOfDecimalPlaces |> Just ) ]
 
 
 buildUpdateUserInput :
