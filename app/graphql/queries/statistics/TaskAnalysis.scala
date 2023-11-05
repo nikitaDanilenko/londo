@@ -2,8 +2,11 @@ package graphql.queries.statistics
 
 import graphql.types.simulation.Simulation
 import graphql.types.task.Task
+import io.scalaland.chimney.dsl._
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.OutputType
+
+import java.math.MathContext
 
 case class TaskAnalysis(
     task: Task,
@@ -12,6 +15,17 @@ case class TaskAnalysis(
 )
 
 object TaskAnalysis {
+
+  def from(
+      task: services.task.Task,
+      simulation: Option[services.simulation.Simulation],
+      incompleteStatistics: Option[processing.statistics.task.IncompleteTaskStatistics],
+      mathContext: MathContext
+  ): TaskAnalysis = TaskAnalysis(
+    task = task.transformInto[Task],
+    simulation = simulation.map(_.transformInto[Simulation]),
+    incompleteStatistics = incompleteStatistics.map(s => (s, mathContext).transformInto[IncompleteTaskStatistics])
+  )
 
   implicit lazy val outputType: OutputType[TaskAnalysis] = deriveObjectType[Unit, TaskAnalysis]()
 

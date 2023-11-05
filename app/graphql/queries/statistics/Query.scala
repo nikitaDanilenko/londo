@@ -64,11 +64,11 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
                     numberOfCountedTasks
                   )
                 )
-              TaskAnalysis(
-                task = task.transformInto[Task],
-                simulation = simulation.map(_.transformInto[Simulation]),
-                incompleteStatistics =
-                  incompleteStatistics.map(s => (s, mathContext).transformInto[IncompleteTaskStatistics])
+              TaskAnalysis.from(
+                task = task,
+                simulation = simulation,
+                incompleteStatistics = incompleteStatistics,
+                mathContext = mathContext
               )
             }
           )
