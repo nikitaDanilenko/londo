@@ -11,6 +11,7 @@ import graphql.types.task.Task
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
+import utils.math.MathUtil
 
 import scala.concurrent.Future
 
@@ -124,7 +125,23 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
                   )
               ).map(Some(_))
             }
-        } yield TaskAnalysis(task.transformInto[Task], simulation.map(_.transformInto[Simulation]))
+        } yield {
+          val incompleteTaskStatistics = processing.statistics.task.StatisticsService.incompleteOfTask(
+            processing.statistics.TaskWithSimulation(
+              task.transformInto[processing.statistics.Task],
+              simulation.map(_.reachedModifier)
+            ),
+            numberOfTasks = input.numberOfTotalTasks.map(_.transformInto[math.Positive]),
+            numberOfCountedTasks = input.numberOfCountedTasks.map(_.transformInto[math.Positive])
+          )
+          val mathContext = MathUtil.mathContextBy(input.numberOfDecimalPlaces.transformInto[math.Positive])
+          TaskAnalysis(
+            task.transformInto[Task],
+            simulation.map(_.transformInto[Simulation]),
+            incompleteStatistics = (incompleteTaskStatistics, mathContext)
+              .transformInto[processing.statistics.task.IncompleteTaskStatistics]
+          )
+        }
 
       transformer.value.handleServerError
     }
