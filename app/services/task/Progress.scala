@@ -50,6 +50,9 @@ object Progress {
   def missing(progress: Progress): Natural =
     progress.reachable.natural - progress.reached
 
+  def isComplete(progress: Progress): Boolean =
+    progress.reached == progress.reachable.natural
+
   private def clampMax[A: Order](value: A, max: A): A =
     Order[A].min(max, value)
 
