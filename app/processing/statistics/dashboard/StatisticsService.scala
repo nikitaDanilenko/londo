@@ -1,6 +1,7 @@
 package processing.statistics.dashboard
 
 import math.Positive
+import processing.statistics.TaskWithSimulation
 import spire.math.{ Natural, Rational }
 import spire.syntax.all._
 
