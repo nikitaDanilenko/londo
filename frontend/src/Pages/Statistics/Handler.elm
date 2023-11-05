@@ -1,6 +1,7 @@
 module Pages.Statistics.Handler exposing (init, update, updateLogic)
 
 import Language.Language
+import Math.Positive
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens as Lens exposing (Lens)
@@ -36,6 +37,7 @@ init flags =
         Page.GotFetchDashboardAnalysisResponse
         flags.authorizedAccess
         flags.dashboardId
+        Page.numberOfDecimalPlaces
         |> Cmd.map Tristate.Logic
     )
 
@@ -67,6 +69,21 @@ updateLogic msg model =
             , model
                 |> Tristate.foldMain Cmd.none
                     (\main ->
+                        let
+                            numberOf filter =
+                                main
+                                    |> Page.lenses.main.projects.get
+                                    |> DictList.values
+                                    |> List.concatMap (.tasks >> DictList.values >> filter)
+                                    |> List.length
+                                    |> Math.Positive.fromInt
+
+                            numberOfTotalTasks =
+                                numberOf identity
+
+                            numberOfCountedTasks =
+                                numberOf (List.filter (.original >> .task >> .counting))
+                        in
                         main
                             |> Page.lenses.main.projects.get
                             |> DictList.get projectId
@@ -79,8 +96,12 @@ updateLogic msg model =
                                     { configuration = model.configuration
                                     , jwt = main.jwt
                                     }
-                                    main.dashboard.id
-                                    taskId
+                                    { dashboardId = main.dashboard.id
+                                    , taskId = taskId
+                                    , numberOfTotalTasks = numberOfTotalTasks
+                                    , numberOfCountedTasks = numberOfCountedTasks
+                                    , numberOfDecimalPlaces = Page.numberOfDecimalPlaces
+                                    }
                                 )
                     )
             )
@@ -101,6 +122,7 @@ updateLogic msg model =
                                         , jwt = main.jwt
                                         }
                                         main.dashboard.id
+                                        Page.numberOfDecimalPlaces
                                 )
                         )
                     )

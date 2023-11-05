@@ -66,14 +66,9 @@ viewMain configuration main =
                )
 
 
-numberOfDecimalPlaces : Int
-numberOfDecimalPlaces =
-    6
-
-
 rationalToString : BigRational -> String
 rationalToString =
-    BigRational.toDecimalString numberOfDecimalPlaces
+    BigRational.toDecimalString Page.numberOfDecimalPlaces
 
 
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
@@ -124,17 +119,17 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .total <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .counted <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedTotal <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedCounted <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .total <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .counted <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedTotal <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedCounted <| .absoluteMeans <| statistics ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .total <| .relativeMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .counted <| .relativeMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedTotal <| .relativeMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString numberOfDecimalPlaces <| .simulatedCounted <| .relativeMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .total <| .relativeMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .counted <| .relativeMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedTotal <| .relativeMeans <| statistics ]
+                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedCounted <| .relativeMeans <| statistics ]
                     ]
                 ]
             ]

@@ -1,9 +1,10 @@
 module Types.Task.TaskWithSimulation exposing (..)
 
 import Graphql.Http
-import Graphql.OptionalArgument
+import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject
 import LondoGQL.Mutation
+import Math.Positive
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Dashboard.Id
@@ -41,35 +42,68 @@ from resolved =
     }
 
 
-toGraphQLInput : Types.Dashboard.Id.Id -> Types.Task.Id.Id -> ClientInput -> LondoGQL.InputObject.UpdateTaskWithSimulationInput
-toGraphQLInput dashboardId taskId clientInput =
-    { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
-    , taskId = taskId |> Types.Task.Id.toGraphQLInput
+type alias ArgumentComplement =
+    { dashboardId : Types.Dashboard.Id.Id
+    , taskId : Types.Task.Id.Id
+    , numberOfTotalTasks : Maybe Math.Positive.Positive
+    , numberOfCountedTasks : Maybe Math.Positive.Positive
+    , numberOfDecimalPlaces : Math.Positive.Positive
+    }
+
+
+toGraphQLInput :
+    ArgumentComplement
+    -> ClientInput
+    -> LondoGQL.InputObject.UpdateTaskWithSimulationInput
+toGraphQLInput complement clientInput =
+    { dashboardId = complement |> .dashboardId |> Types.Dashboard.Id.toGraphQLInput
+    , taskId = complement |> .taskId |> Types.Task.Id.toGraphQLInput
     , taskUpdate = clientInput.taskUpdate |> Types.Task.Update.toGraphQLInput
     , simulation =
         clientInput.simulation
             |> Types.Simulation.Update.toGraphQLInput
-            |> Graphql.OptionalArgument.fromMaybe
+            |> OptionalArgument.fromMaybe
+    , numberOfTotalTasks =
+        complement.numberOfTotalTasks
+            |> Maybe.map Math.Positive.toGraphQLInput
+            |> OptionalArgument.fromMaybe
+    , numberOfCountedTasks =
+        complement.numberOfCountedTasks
+            |> Maybe.map Math.Positive.toGraphQLInput
+            |> OptionalArgument.fromMaybe
+    , numberOfDecimalPlaces =
+        complement.numberOfDecimalPlaces
+            |> Math.Positive.toGraphQLInput
     }
 
 
 updateWith :
     (HttpUtil.GraphQLResult Types.Task.Analysis.Analysis -> msg)
     -> AuthorizedAccess
-    -> Types.Dashboard.Id.Id
-    -> Types.Task.Id.Id
+    -> ArgumentComplement
     -> ClientInput
     -> Cmd msg
-updateWith expect authorizedAccess dashboardId taskId update =
+updateWith expect authorizedAccess complement update =
     LondoGQL.Mutation.updateTaskWithSimulation
         { input =
-            { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
-            , taskId = taskId |> Types.Task.Id.toGraphQLInput
+            { dashboardId = complement |> .dashboardId |> Types.Dashboard.Id.toGraphQLInput
+            , taskId = complement |> .taskId |> Types.Task.Id.toGraphQLInput
             , taskUpdate = update.taskUpdate |> Types.Task.Update.toGraphQLInput
             , simulation =
                 update.simulation
                     |> Types.Simulation.Update.toGraphQLInput
-                    |> Graphql.OptionalArgument.fromMaybe
+                    |> OptionalArgument.fromMaybe
+            , numberOfTotalTasks =
+                complement.numberOfTotalTasks
+                    |> Maybe.map Math.Positive.toGraphQLInput
+                    |> OptionalArgument.fromMaybe
+            , numberOfCountedTasks =
+                complement.numberOfCountedTasks
+                    |> Maybe.map Math.Positive.toGraphQLInput
+                    |> OptionalArgument.fromMaybe
+            , numberOfDecimalPlaces =
+                complement.numberOfDecimalPlaces
+                    |> Math.Positive.toGraphQLInput
             }
         }
         Types.Task.Analysis.selection

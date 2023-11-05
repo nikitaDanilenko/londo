@@ -4,6 +4,7 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Object
 import LondoGQL.Object.DashboardAnalysis
 import LondoGQL.Query
+import Math.Positive
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.Dashboard.Dashboard
 import Types.Dashboard.Id
@@ -37,6 +38,7 @@ fetchWith :
     (HttpUtil.GraphQLResult Analysis -> msg)
     -> AuthorizedAccess
     -> Types.Dashboard.Id.Id
+    -> Math.Positive.Positive
     -> Cmd msg
 fetchWith expect =
     fetchWithSelection
@@ -51,11 +53,13 @@ fetchWithSelection :
     }
     -> AuthorizedAccess
     -> Types.Dashboard.Id.Id
+    -> Math.Positive.Positive
     -> Cmd msg
-fetchWithSelection ps authorizedAccess dashboardId =
+fetchWithSelection ps authorizedAccess dashboardId numberOfDecimalPlaces =
     LondoGQL.Query.fetchDashboardAnalysis
         { input =
             { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
+            , numberOfDecimalPlaces = numberOfDecimalPlaces |> Math.Positive.toGraphQLInput
             }
         }
         ps.selection
