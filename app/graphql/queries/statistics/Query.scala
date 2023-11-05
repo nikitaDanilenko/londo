@@ -10,9 +10,13 @@ import graphql.types.simulation.Simulation
 import graphql.types.task.Task
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl._
+import math.Positive
 import processing.statistics.TaskWithSimulation
 import processing.statistics.dashboard.StatisticsService
 import sangria.macros.derive.GraphQLField
+import services.task.Progress
+import spire.math.Natural
+import utils.math.MathUtil
 
 import scala.concurrent.Future
 
@@ -41,14 +45,30 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
           graphQLServices.simulationService.all(userId, dashboardId)
         )
       } yield {
+        val numberOfTasks        = Positive(Natural(tasksByProjectId.values.map(_.size).sum)).toOption
+        val numberOfCountedTasks = Positive(Natural(tasksByProjectId.values.flatten.count(_.counting))).toOption
+        val mathContext          = MathUtil.mathContextBy(input.numberOfDecimalPlaces.transformInto[math.Positive])
         val resolvedProjects = projects.map(project =>
           ProjectAnalysis(
             project = project.transformInto[Project],
             tasks = tasksByProjectId.getOrElse(project.id, Seq.empty).map { task =>
+              val simulation = simulations.get(task.id)
+              val incompleteStatistics = Option
+                .when(!Progress.isComplete(task.progress))(
+                  processing.statistics.task.StatisticsService.incompleteOfTask(
+                    processing.statistics.TaskWithSimulation(
+                      task.transformInto[processing.statistics.Task],
+                      simulation.map(_.reachedModifier)
+                    ),
+                    numberOfTasks,
+                    numberOfCountedTasks
+                  )
+                )
               TaskAnalysis(
                 task = task.transformInto[Task],
-                simulation = simulations.get(task.id).map(_.transformInto[Simulation]),
-                ???
+                simulation = simulation.map(_.transformInto[Simulation]),
+                incompleteStatistics =
+                  incompleteStatistics.map(s => (s, mathContext).transformInto[IncompleteTaskStatistics])
               )
             }
           )
