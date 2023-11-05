@@ -10,7 +10,8 @@ import graphql.types.simulation.Simulation
 import graphql.types.task.Task
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl._
-import processing.statistics.dashboard.{ StatisticsService, TaskWithSimulation }
+import processing.statistics.TaskWithSimulation
+import processing.statistics.dashboard.StatisticsService
 import sangria.macros.derive.GraphQLField
 
 import scala.concurrent.Future
@@ -56,7 +57,7 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
           .flatMap(_.tasks)
           .map(resolvedTask =>
             TaskWithSimulation(
-              task = resolvedTask.task.transformInto[processing.statistics.dashboard.Task],
+              task = resolvedTask.task.transformInto[processing.statistics.Task],
               simulation = resolvedTask.simulation.map(_.reachedModifier)
             )
           )
