@@ -5,8 +5,8 @@ import enumeratum.Enum
 
 sealed trait Bucket extends EnumEntry
 
-object Bucket extends Enum[EnumEntry] {
-  override lazy val values: IndexedSeq[EnumEntry] = findValues
+object Bucket extends Enum[Bucket] {
+  override lazy val values: IndexedSeq[Bucket] = findValues
 
   case object B10 extends Bucket
   case object B20 extends Bucket
