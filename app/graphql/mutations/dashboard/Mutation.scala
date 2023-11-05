@@ -3,11 +3,9 @@ package graphql.mutations.dashboard
 import cats.data.EitherT
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.dashboard.inputs._
-import graphql.queries.statistics.{ IncompleteTaskStatistics, TaskAnalysis }
+import graphql.queries.statistics.TaskAnalysis
 import graphql.types.dashboard.Dashboard
 import graphql.types.dashboardEntry.DashboardEntry
-import graphql.types.simulation.Simulation
-import graphql.types.task.Task
 import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
