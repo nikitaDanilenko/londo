@@ -2,7 +2,7 @@ package utils.graphql
 
 import sangria.ast.{ StringValue, Value }
 import sangria.schema.ScalarType
-import sangria.validation.{ ValueCoercionViolation, Violation }
+import sangria.validation.{ BigDecimalCoercionViolation, ValueCoercionViolation, Violation }
 
 import java.util.UUID
 import scala.util.Try
@@ -44,6 +44,17 @@ object SangriaUtil {
         BigIntCoercionViolation
       )
 
+    implicit val bigDecimal: ScalarType[BigDecimal] =
+      createScalarType(
+        name = "BigDecimal",
+        matcher = { case StringValue(s, _, _, _, _) =>
+          s
+        },
+        parse = parseBigDecimal,
+        parseString = parseBigDecimal,
+        BigDecimalCoercionViolation
+      )
+
   }
 
   private def createScalarType[A, Rep](
@@ -82,10 +93,15 @@ object SangriaUtil {
     Try(BigInt(string)).toEither.left
       .map(_ => BigIntCoercionViolation)
 
+  private def parseBigDecimal(string: String): Either[Violation, BigDecimal] =
+    Try(BigDecimal(string)).toEither.left
+      .map(_ => BigDecimalCoercionViolation)
+
   case object UUIDCoercionViolation extends ValueCoercionViolation("Not a valid UUID representation")
 
   case object UnitCoercionViolation extends ValueCoercionViolation("Not a valid unit representation")
 
   case object BigIntCoercionViolation extends ValueCoercionViolation("Not a valid BigInt representation")
+//  case object BigDecimalCoercionViolation extends ValueCoercionViolation("Not a valid BigInt representation")
 
 }

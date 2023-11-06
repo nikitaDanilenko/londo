@@ -85,7 +85,7 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
         DashboardAnalysis(
           dashboard.transformInto[Dashboard],
           resolvedProjects,
-          dashboardStatistics.transformInto[DashboardStatistics]
+          (dashboardStatistics, mathContext).transformInto[DashboardStatistics]
         )
       }
 
