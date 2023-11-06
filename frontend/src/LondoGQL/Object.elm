@@ -61,10 +61,6 @@ type ProjectId
     = ProjectId
 
 
-type Rational
-    = Rational
-
-
 type ResolvedDashboard
     = ResolvedDashboard
 
@@ -97,12 +93,12 @@ type UserId
     = UserId
 
 
+type WithSimulationBigDecimal
+    = WithSimulationBigDecimal
+
+
 type WithSimulationNatural
     = WithSimulationNatural
-
-
-type WithSimulationRational
-    = WithSimulationRational
 
 
 type WithoutSimulation

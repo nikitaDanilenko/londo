@@ -34,14 +34,14 @@ reachable object____ =
 
 
 absoluteMeans :
-    SelectionSet decodesTo LondoGQL.Object.WithSimulationRational
+    SelectionSet decodesTo LondoGQL.Object.WithSimulationBigDecimal
     -> SelectionSet decodesTo LondoGQL.Object.DashboardStatistics
 absoluteMeans object____ =
     Object.selectionForCompositeField "absoluteMeans" [] object____ Basics.identity
 
 
 relativeMeans :
-    SelectionSet decodesTo LondoGQL.Object.WithSimulationRational
+    SelectionSet decodesTo LondoGQL.Object.WithSimulationBigDecimal
     -> SelectionSet decodesTo LondoGQL.Object.DashboardStatistics
 relativeMeans object____ =
     Object.selectionForCompositeField "relativeMeans" [] object____ Basics.identity
