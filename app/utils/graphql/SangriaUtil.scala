@@ -2,7 +2,7 @@ package utils.graphql
 
 import sangria.ast.{ StringValue, Value }
 import sangria.schema.ScalarType
-import sangria.validation.{ BigDecimalCoercionViolation, ValueCoercionViolation, Violation }
+import sangria.validation.{ ValueCoercionViolation, Violation }
 
 import java.util.UUID
 import scala.util.Try
@@ -101,7 +101,7 @@ object SangriaUtil {
 
   case object UnitCoercionViolation extends ValueCoercionViolation("Not a valid unit representation")
 
-  case object BigIntCoercionViolation extends ValueCoercionViolation("Not a valid BigInt representation")
-//  case object BigDecimalCoercionViolation extends ValueCoercionViolation("Not a valid BigInt representation")
+  case object BigIntCoercionViolation     extends ValueCoercionViolation("Not a valid BigInt representation")
+  case object BigDecimalCoercionViolation extends ValueCoercionViolation("Not a valid BigInt representation")
 
 }
