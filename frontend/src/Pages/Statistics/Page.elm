@@ -57,7 +57,7 @@ type alias Task =
     Types.Task.Task.Task
 
 
-type alias ResolvedTask =
+type alias TaskAnalysis =
     Types.Task.Analysis.Analysis
 
 
@@ -188,8 +188,8 @@ type LogicMsg
     = GotFetchDashboardAnalysisResponse (HttpUtil.GraphQLResult DashboardAnalysis)
     | EditTask ProjectId TaskId TaskUpdate
     | SaveEditTask ProjectId TaskId
-    | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult ResolvedTask)
-    | GotFetchUpdatedStatisticsResponse ProjectId ResolvedTask (HttpUtil.GraphQLResult DashboardStatistics)
+    | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult TaskAnalysis)
+    | GotFetchUpdatedStatisticsResponse ProjectId TaskAnalysis (HttpUtil.GraphQLResult DashboardStatistics)
     | ToggleControls ProjectId TaskId
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId

@@ -2,7 +2,6 @@ module Pages.Statistics.View exposing (view)
 
 import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
-import BigRational exposing (BigRational)
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, div, h1, h2, hr, input, nav, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
@@ -10,8 +9,8 @@ import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind
+import LondoGQL.Scalar
 import Math.Natural as Natural
-import Math.Statistics
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens as Lens
@@ -66,9 +65,9 @@ viewMain configuration main =
                )
 
 
-rationalToString : BigRational -> String
-rationalToString =
-    BigRational.toDecimalString Page.numberOfDecimalPlaces
+bigDecimalToString : LondoGQL.Scalar.BigDecimal -> String
+bigDecimalToString (LondoGQL.Scalar.BigDecimal string) =
+    string
 
 
 viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
@@ -119,17 +118,17 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .total <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .counted <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedTotal <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedCounted <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .total <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .counted <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .simulatedTotal <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .simulatedCounted <| .absoluteMeans <| statistics ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .total <| .relativeMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .counted <| .relativeMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedTotal <| .relativeMeans <| statistics ]
-                    , td [] [ text <| BigRational.toDecimalString Page.numberOfDecimalPlaces <| .simulatedCounted <| .relativeMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .total <| .relativeMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .counted <| .relativeMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .simulatedTotal <| .relativeMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .simulatedCounted <| .relativeMeans <| statistics ]
                     ]
                 ]
             ]
@@ -270,75 +269,66 @@ type alias TaskNumbers =
 
 taskInfoColumns :
     TaskNumbers
-    -> Page.ResolvedTask
+    -> Page.TaskAnalysis
     -> List (HtmlUtil.Column msg)
-taskInfoColumns ps resolvedTask =
+taskInfoColumns ps taskAnalysis =
     let
-        progress =
-            resolvedTask.task.progress
-
         mean =
-            progress
-                |> Types.Progress.Progress.toPercentRational
-                |> rationalToString
+            taskAnalysis.incompleteTaskStatistics |> Maybe.Extra.unwrap "" (.mean >> bigDecimalToString)
 
         differenceAfterOneMoreExactTotal =
-            Math.Statistics.differenceAfterOneMoreExact
-                { numberOfElements = ps.numberOfAllTasks }
-                progress
+            taskAnalysis.incompleteTaskStatistics
+                |> Maybe.Extra.unwrap "" (.total >> .one >> bigDecimalToString)
 
         differenceAfterOneMoreExactCounted =
-            Math.Statistics.differenceAfterOneMoreExact
-                { numberOfElements = ps.numberOfCountedTasks }
-                progress
+            taskAnalysis.incompleteTaskStatistics
+                |> Maybe.Extra.unwrap "" (.counted >> .one >> bigDecimalToString)
 
         afterCompletionExactTotal =
-            Math.Statistics.differenceAfterCompletionExact
-                { numberOfElements = ps.numberOfAllTasks }
-                progress
+            taskAnalysis.incompleteTaskStatistics
+                |> Maybe.Extra.unwrap "" (.total >> .completion >> bigDecimalToString)
 
         afterCompletionExactCounted =
-            Math.Statistics.differenceAfterCompletionExact
-                { numberOfElements = ps.numberOfCountedTasks }
-                progress
+            taskAnalysis.incompleteTaskStatistics
+                |> Maybe.Extra.unwrap "" (.counted >> .completion >> bigDecimalToString)
     in
     [ { attributes = [ Style.classes.editable ]
-      , children = [ text <| .name <| .task <| resolvedTask ]
+      , children = [ text <| .name <| .task <| taskAnalysis ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| TaskKind.toString <| .taskKind <| .task <| resolvedTask ]
+      , children = [ text <| TaskKind.toString <| .taskKind <| .task <| taskAnalysis ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ Pages.Tasks.Tasks.View.displayProgress resolvedTask.task.progress resolvedTask.task.taskKind ]
+      , children = [ Pages.Tasks.Tasks.View.displayProgress taskAnalysis.task.progress taskAnalysis.task.taskKind ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" (.reachedModifier >> BigInt.toString) <| .simulation <| resolvedTask ]
+      , children = [ text <| Maybe.Extra.unwrap "" (.reachedModifier >> BigInt.toString) <| .simulation <| taskAnalysis ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.withDefault "" <| .unit <| .task <| resolvedTask ]
+      , children = [ text <| Maybe.withDefault "" <| .unit <| .task <| taskAnalysis ]
       }
     , { attributes = []
-      , children = [ input [ type_ "checkbox", checked <| .counting <| .task <| resolvedTask, disabled True ] [] ]
+      , children = [ input [ type_ "checkbox", checked <| .counting <| .task <| taskAnalysis, disabled True ] [] ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| mean ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreExactTotal ]
+      , children = [ text <| differenceAfterOneMoreExactTotal ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| differenceAfterOneMoreExactCounted ]
+      , children = [ text <| differenceAfterOneMoreExactCounted ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| afterCompletionExactTotal ]
+      , children = [ text <| afterCompletionExactTotal ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| Maybe.Extra.unwrap "" rationalToString <| afterCompletionExactCounted ]
+      , children = [ text <| afterCompletionExactCounted ]
       }
     ]
 
 
-viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> TaskNumbers -> Page.ResolvedTask -> Bool -> List (Html Page.LogicMsg)
+viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> TaskNumbers -> Page.TaskAnalysis -> Bool -> List (Html Page.LogicMsg)
 viewTask projectId language taskNumbers resolvedTask showControls =
     Pages.Util.ParentEditor.View.lineWith
         { rowWithControls =

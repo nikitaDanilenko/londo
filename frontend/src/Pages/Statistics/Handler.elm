@@ -137,6 +137,7 @@ updateLogic msg model =
                                 (Editing.asViewWithElement
                                     { task = resolvedTask.task
                                     , simulation = resolvedTask.simulation
+                                    , incompleteTaskStatistics = resolvedTask.incompleteTaskStatistics
                                     }
                                     >> Editing.toggleControls
                                 )
@@ -242,7 +243,7 @@ updateLogic msg model =
 updateTaskById :
     Page.ProjectId
     -> Page.TaskId
-    -> (Editing Page.ResolvedTask Page.TaskUpdate -> Editing Page.ResolvedTask Page.TaskUpdate)
+    -> (Editing Page.TaskAnalysis Page.TaskUpdate -> Editing Page.TaskAnalysis Page.TaskUpdate)
     -> Page.Model
     -> Page.Model
 updateTaskById projectId taskId =
