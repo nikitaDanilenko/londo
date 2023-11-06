@@ -7,7 +7,6 @@ import Html exposing (Html, button, div, h1, h2, hr, input, nav, section, table,
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
-import List.Extra
 import LondoGQL.Enum.TaskKind as TaskKind
 import LondoGQL.Scalar
 import Math.Natural as Natural
@@ -194,16 +193,11 @@ viewResolvedProject taskEditorLanguage statisticsLanguage pagination resolvedPro
                     }
                 ]
 
-        taskNumbers =
-            { numberOfAllTasks = tasks |> List.length
-            , numberOfCountedTasks = tasks |> List.Extra.count (.original >> .task >> .counting)
-            }
-
         display =
             Paginate.page
                 >> List.concatMap
                     (Editing.unpack
-                        { onView = viewTask project.id taskEditorLanguage taskNumbers
+                        { onView = viewTask project.id taskEditorLanguage
                         , onUpdate = .task >> updateTask taskEditorLanguage project.id
                         , onDelete = \_ -> []
                         }
@@ -261,17 +255,10 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
         }
 
 
-type alias TaskNumbers =
-    { numberOfAllTasks : Int
-    , numberOfCountedTasks : Int
-    }
-
-
 taskInfoColumns :
-    TaskNumbers
-    -> Page.TaskAnalysis
+    Page.TaskAnalysis
     -> List (HtmlUtil.Column msg)
-taskInfoColumns ps taskAnalysis =
+taskInfoColumns taskAnalysis =
     let
         mean =
             taskAnalysis.incompleteTaskStatistics |> Maybe.Extra.unwrap "" (.mean >> bigDecimalToString)
@@ -328,12 +315,12 @@ taskInfoColumns ps taskAnalysis =
     ]
 
 
-viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> TaskNumbers -> Page.TaskAnalysis -> Bool -> List (Html Page.LogicMsg)
-viewTask projectId language taskNumbers resolvedTask showControls =
+viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> Page.TaskAnalysis -> Bool -> List (Html Page.LogicMsg)
+viewTask projectId language resolvedTask showControls =
     Pages.Util.ParentEditor.View.lineWith
         { rowWithControls =
             \t ->
-                { display = taskInfoColumns taskNumbers t
+                { display = taskInfoColumns t
                 , controls =
                     [ div []
                         [ button

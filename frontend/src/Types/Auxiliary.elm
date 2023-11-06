@@ -7,8 +7,5 @@ type alias UserIdentifier =
     }
 
 
-
-
-
 type alias JWT =
     String

@@ -1,4 +1,4 @@
-module Math.Positive exposing (Positive, fromBigIntOrOne, fromInt, fromString, integerValue, one, oneHundred, selection, tenToTheNth, toGraphQLInput, toString)
+module Math.Positive exposing (Positive, fromInt, fromString, integerValue, one, oneHundred, selection, tenToTheNth, toGraphQLInput, toString)
 
 import BigInt exposing (BigInt)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -43,15 +43,6 @@ fromInt =
 one : Positive
 one =
     Constants.oneBigInt |> Positive
-
-
-fromBigIntOrOne : BigInt -> Positive
-fromBigIntOrOne bi =
-    if BigInt.lt bi Constants.oneBigInt then
-        one
-
-    else
-        Positive bi
 
 
 {-| todo: This is awkward - it should only work with natural numbers.

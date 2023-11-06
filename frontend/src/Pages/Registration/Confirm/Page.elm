@@ -19,7 +19,7 @@ type alias Main =
     , complementInput : ComplementInput
     , registrationJWT : JWT
     , mode : Mode
-    , language: Language.ConfirmRegistration
+    , language : Language.ConfirmRegistration
     }
 
 

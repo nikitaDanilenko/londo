@@ -207,6 +207,10 @@ type alias Msg =
     Tristate.Msg LogicMsg
 
 
+
+-- todo: The number of decimal places should be a user setting that is fetched (regularly?).
+
+
 numberOfDecimalPlaces : Math.Positive.Positive
 numberOfDecimalPlaces =
     Math.Positive.fromInt 6 |> Maybe.withDefault Math.Positive.one
