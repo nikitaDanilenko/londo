@@ -43,9 +43,9 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
           graphQLServices.simulationService.all(userId, dashboardId)
         )
       } yield {
-        val numberOfTasks        = Positive(Natural(tasksByProjectId.values.map(_.size).sum)).toOption
-        val numberOfCountedTasks = Positive(Natural(tasksByProjectId.values.flatten.count(_.counting))).toOption
-        val mathContext          = MathUtil.mathContextBy(input.numberOfDecimalPlaces.transformInto[math.Positive])
+        val numberOfTasks         = Positive(Natural(tasksByProjectId.values.map(_.size).sum)).toOption
+        val numberOfCountedTasks  = Positive(Natural(tasksByProjectId.values.flatten.count(_.counting))).toOption
+        val numberOfDecimalPlaces = input.numberOfDecimalPlaces.transformInto[math.Positive]
         val resolvedProjects = projects.map(project =>
           ProjectAnalysis(
             project = project.transformInto[Project],
@@ -66,7 +66,7 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
                 task = task,
                 simulation = simulation,
                 incompleteStatistics = incompleteStatistics,
-                mathContext = mathContext
+                numberOfDecimalPlaces = numberOfDecimalPlaces
               )
             }
           )
@@ -85,7 +85,7 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
         DashboardAnalysis(
           dashboard.transformInto[Dashboard],
           resolvedProjects,
-          (dashboardStatistics, mathContext).transformInto[DashboardStatistics]
+          (dashboardStatistics, numberOfDecimalPlaces).transformInto[DashboardStatistics]
         )
       }
 

@@ -2,8 +2,11 @@ package graphql.queries.statistics
 
 import io.scalaland.chimney.Transformer
 import io.scalaland.chimney.dsl._
+import math.Positive
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
+import utils.graphql.SangriaUtil.instances._
+import utils.math.MathUtil
 
 import java.math.MathContext
 
@@ -16,12 +19,13 @@ case class IncompleteTaskStatistics(
 object IncompleteTaskStatistics {
 
   implicit val fromInternal
-      : Transformer[(processing.statistics.task.IncompleteTaskStatistics, MathContext), IncompleteTaskStatistics] = {
-    case (statistics, mathContext) =>
+      : Transformer[(processing.statistics.task.IncompleteTaskStatistics, Positive), IncompleteTaskStatistics] = {
+    case (statistics, numberOfDecimalPlaces) =>
+      val toBigDecimal = MathUtil.rationalToBigDecimal(numberOfDecimalPlaces)
       IncompleteTaskStatistics(
-        mean = statistics.mean.toBigDecimal(mathContext),
-        total = (statistics.total, mathContext).transformInto[After],
-        counted = (statistics.counted, mathContext).transformInto[After]
+        mean = toBigDecimal(statistics.mean),
+        total = (statistics.total, numberOfDecimalPlaces).transformInto[After],
+        counted = (statistics.counted, numberOfDecimalPlaces).transformInto[After]
       )
 
   }

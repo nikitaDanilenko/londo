@@ -1,12 +1,12 @@
 package graphql.queries.statistics
 
 import io.scalaland.chimney.Transformer
+import math.Positive
 import processing.statistics.dashboard.WithSimulation
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 import utils.graphql.SangriaUtil.instances._
-
-import java.math.MathContext
+import utils.math.MathUtil
 
 case class WithSimulationBigDecimal(
     total: BigDecimal,
@@ -17,14 +17,14 @@ case class WithSimulationBigDecimal(
 
 object WithSimulationBigDecimal {
 
-  implicit val fromInternal
-      : Transformer[(WithSimulation[spire.math.Rational], MathContext), WithSimulationBigDecimal] = {
-    case (withSimulation, mathContext) =>
+  implicit val fromInternal: Transformer[(WithSimulation[spire.math.Rational], Positive), WithSimulationBigDecimal] = {
+    case (withSimulation, numberOfDecimalPlaces) =>
+      val toBigDecimal = MathUtil.rationalToBigDecimal(numberOfDecimalPlaces)
       WithSimulationBigDecimal(
-        total = withSimulation.total.toBigDecimal(mathContext),
-        counted = withSimulation.counted.toBigDecimal(mathContext),
-        simulatedTotal = withSimulation.simulatedTotal.toBigDecimal(mathContext),
-        simulatedCounted = withSimulation.simulatedCounted.toBigDecimal(mathContext)
+        total = toBigDecimal(withSimulation.total),
+        counted = toBigDecimal(withSimulation.counted),
+        simulatedTotal = toBigDecimal(withSimulation.simulatedTotal),
+        simulatedCounted = toBigDecimal(withSimulation.simulatedCounted)
       )
 
   }

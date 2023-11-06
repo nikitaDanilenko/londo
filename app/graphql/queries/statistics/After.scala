@@ -1,10 +1,11 @@
 package graphql.queries.statistics
 
 import io.scalaland.chimney.Transformer
+import math.Positive
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
-
-import java.math.MathContext
+import utils.graphql.SangriaUtil.instances._
+import utils.math.MathUtil
 
 case class After(
     one: BigDecimal,
@@ -14,13 +15,15 @@ case class After(
 
 object After {
 
-  implicit val fromInternal: Transformer[(processing.statistics.task.After, MathContext), After] = {
-    case (after, mathContext) =>
+  implicit val fromInternal: Transformer[(processing.statistics.task.After, Positive), After] = {
+    case (after, numberOfDecimalPlaces) =>
+      val toBigDecimal = MathUtil.rationalToBigDecimal(numberOfDecimalPlaces)
       After(
-        one = after.one.toBigDecimal(mathContext),
-        completion = after.completion.toBigDecimal(mathContext),
-        simulation = after.simulation.map(_.toBigDecimal(mathContext))
+        one = toBigDecimal(after.one),
+        completion = toBigDecimal(after.completion),
+        simulation = after.simulation.map(toBigDecimal)
       )
+
   }
 
   implicit val objectType: ObjectType[Unit, After] = deriveObjectType[Unit, After]()

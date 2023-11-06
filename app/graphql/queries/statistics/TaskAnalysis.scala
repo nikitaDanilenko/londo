@@ -3,6 +3,7 @@ package graphql.queries.statistics
 import graphql.types.simulation.Simulation
 import graphql.types.task.Task
 import io.scalaland.chimney.dsl._
+import math.Positive
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.OutputType
 
@@ -20,11 +21,12 @@ object TaskAnalysis {
       task: services.task.Task,
       simulation: Option[services.simulation.Simulation],
       incompleteStatistics: Option[processing.statistics.task.IncompleteTaskStatistics],
-      mathContext: MathContext
+      numberOfDecimalPlaces: Positive
   ): TaskAnalysis = TaskAnalysis(
     task = task.transformInto[Task],
     simulation = simulation.map(_.transformInto[Simulation]),
-    incompleteStatistics = incompleteStatistics.map(s => (s, mathContext).transformInto[IncompleteTaskStatistics])
+    incompleteStatistics =
+      incompleteStatistics.map(s => (s, numberOfDecimalPlaces).transformInto[IncompleteTaskStatistics])
   )
 
   implicit lazy val outputType: OutputType[TaskAnalysis] = deriveObjectType[Unit, TaskAnalysis]()

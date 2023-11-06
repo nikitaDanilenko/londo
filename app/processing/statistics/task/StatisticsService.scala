@@ -54,7 +54,7 @@ object StatisticsService {
     )
 
   /** When comparing the sum of n tasks with the sum of (n - 1), and one task, whose "reached" value is increased by k,
-    * the difference is k / (n * reachable).
+    * the difference is k / (n * reachable). The multiplication with 100 is to get a percentage.
     */
   def differenceAfterValue(
       numberOfElements: Positive,
@@ -62,7 +62,7 @@ object StatisticsService {
       value: BigInt
   ): Rational =
     Rational(
-      value,
+      100 * value,
       numberOfElements.natural.toBigInt * reachable.natural.toBigInt
     )
 

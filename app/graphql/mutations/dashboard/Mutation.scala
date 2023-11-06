@@ -135,12 +135,11 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
               numberOfCountedTasks = input.numberOfCountedTasks.map(_.transformInto[math.Positive])
             )
           )
-          val mathContext = MathUtil.mathContextBy(input.numberOfDecimalPlaces.transformInto[math.Positive])
           TaskAnalysis.from(
             task = task,
             simulation = simulation,
             incompleteStatistics = incompleteTaskStatistics,
-            mathContext = mathContext
+            numberOfDecimalPlaces = input.numberOfDecimalPlaces.transformInto[math.Positive]
           )
         }
 
