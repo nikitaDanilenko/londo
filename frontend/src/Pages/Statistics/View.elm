@@ -275,7 +275,7 @@ taskInfoColumns taskAnalysis =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.total >> .one >> bigDecimalToString)
 
-        differenceAfterOneMoreExactcounting =
+        differenceAfterOneMoreExactCounting =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.counting >> .one >> bigDecimalToString)
 
@@ -283,7 +283,7 @@ taskInfoColumns taskAnalysis =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.total >> .completion >> bigDecimalToString)
 
-        afterCompletionExactcounting =
+        afterCompletionExactCounting =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.counting >> .completion >> bigDecimalToString)
     in
@@ -312,13 +312,13 @@ taskInfoColumns taskAnalysis =
       , children = [ text <| differenceAfterOneMoreExactTotal ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| differenceAfterOneMoreExactcounting ]
+      , children = [ text <| differenceAfterOneMoreExactCounting ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| afterCompletionExactTotal ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| afterCompletionExactcounting ]
+      , children = [ text <| afterCompletionExactCounting ]
       }
     ]
 
