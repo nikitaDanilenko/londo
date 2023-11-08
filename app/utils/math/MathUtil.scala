@@ -4,7 +4,7 @@ import cats.Order
 import math.Positive
 import spire.math.{ Rational, SafeLong }
 
-import java.math.{ MathContext, RoundingMode }
+import java.math.MathContext
 
 object MathUtil {
 
