@@ -99,7 +99,7 @@ updateLogic msg model =
                                     { dashboardId = main.dashboard.id
                                     , taskId = taskId
                                     , numberOfTotalTasks = numberOfTotalTasks
-                                    , numberOfcountingTasks = numberOfCountingTasks
+                                    , numberOfCountingTasks = numberOfCountingTasks
                                     , numberOfDecimalPlaces = Page.numberOfDecimalPlaces
                                     }
                                 )
