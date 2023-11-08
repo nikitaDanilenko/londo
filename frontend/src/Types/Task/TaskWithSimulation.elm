@@ -67,7 +67,7 @@ toGraphQLInput complement clientInput =
         complement.numberOfTotalTasks
             |> Maybe.map Math.Positive.toGraphQLInput
             |> OptionalArgument.fromMaybe
-    , numberOfcountingTasks =
+    , numberOfCountingTasks =
         complement.numberOfCountingTasks
             |> Maybe.map Math.Positive.toGraphQLInput
             |> OptionalArgument.fromMaybe
@@ -97,7 +97,7 @@ updateWith expect authorizedAccess complement update =
                 complement.numberOfTotalTasks
                     |> Maybe.map Math.Positive.toGraphQLInput
                     |> OptionalArgument.fromMaybe
-            , numberOfcountingTasks =
+            , numberOfCountingTasks =
                 complement.numberOfCountingTasks
                     |> Maybe.map Math.Positive.toGraphQLInput
                     |> OptionalArgument.fromMaybe

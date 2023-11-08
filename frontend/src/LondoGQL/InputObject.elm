@@ -1156,9 +1156,9 @@ buildUpdateTaskWithSimulationInput required____ fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
-                { simulation = Absent, numberOfTotalTasks = Absent, numberOfcountingTasks = Absent }
+                { simulation = Absent, numberOfTotalTasks = Absent, numberOfCountingTasks = Absent }
     in
-    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation, numberOfTotalTasks = optionals____.numberOfTotalTasks, numberOfcountingTasks = optionals____.numberOfcountingTasks, numberOfDecimalPlaces = required____.numberOfDecimalPlaces }
+    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation, numberOfTotalTasks = optionals____.numberOfTotalTasks, numberOfCountingTasks = optionals____.numberOfCountingTasks, numberOfDecimalPlaces = required____.numberOfDecimalPlaces }
 
 
 type alias UpdateTaskWithSimulationInputRequiredFields =
@@ -1172,7 +1172,7 @@ type alias UpdateTaskWithSimulationInputRequiredFields =
 type alias UpdateTaskWithSimulationInputOptionalFields =
     { simulation : OptionalArgument SimulationInput
     , numberOfTotalTasks : OptionalArgument PositiveInput
-    , numberOfcountingTasks : OptionalArgument PositiveInput
+    , numberOfCountingTasks : OptionalArgument PositiveInput
     }
 
 
@@ -1184,7 +1184,7 @@ type alias UpdateTaskWithSimulationInput =
     , taskUpdate : TaskUpdate
     , simulation : OptionalArgument SimulationInput
     , numberOfTotalTasks : OptionalArgument PositiveInput
-    , numberOfcountingTasks : OptionalArgument PositiveInput
+    , numberOfCountingTasks : OptionalArgument PositiveInput
     , numberOfDecimalPlaces : PositiveInput
     }
 
@@ -1194,7 +1194,7 @@ type alias UpdateTaskWithSimulationInput =
 encodeUpdateTaskWithSimulationInput : UpdateTaskWithSimulationInput -> Value
 encodeUpdateTaskWithSimulationInput input____ =
     Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ), ( "numberOfTotalTasks", encodePositiveInput |> Encode.optional input____.numberOfTotalTasks ), ( "numberOfcountingTasks", encodePositiveInput |> Encode.optional input____.numberOfcountingTasks ), ( "numberOfDecimalPlaces", encodePositiveInput input____.numberOfDecimalPlaces |> Just ) ]
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ), ( "numberOfTotalTasks", encodePositiveInput |> Encode.optional input____.numberOfTotalTasks ), ( "numberOfCountingTasks", encodePositiveInput |> Encode.optional input____.numberOfCountingTasks ), ( "numberOfDecimalPlaces", encodePositiveInput input____.numberOfDecimalPlaces |> Just ) ]
 
 
 buildUpdateUserInput :

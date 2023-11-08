@@ -132,7 +132,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
                 simulation.map(_.reachedModifier)
               ),
               numberOfTasks = input.numberOfTotalTasks.map(_.transformInto[math.Positive]),
-              numberOfcountingTasks = input.numberOfcountingTasks.map(_.transformInto[math.Positive])
+              numberOfCountingTasks = input.numberOfCountingTasks.map(_.transformInto[math.Positive])
             )
           )
           TaskAnalysis.from(

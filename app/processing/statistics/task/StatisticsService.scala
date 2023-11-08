@@ -9,9 +9,9 @@ object StatisticsService {
 
   // TODO: The options are evaluated every time, but are actually constant over a collection of tasks.
   def incompleteOfTask(
-      taskWithSimulation: TaskWithSimulation,
-      numberOfTasks: Option[Positive],
-      numberOfcountingTasks: Option[Positive]
+                        taskWithSimulation: TaskWithSimulation,
+                        numberOfTasks: Option[Positive],
+                        numberOfCountingTasks: Option[Positive]
   ): IncompleteTaskStatistics = {
     val progress = taskWithSimulation.task.progress
     val mean     = Rational(progress.reached.toBigInt, progress.reachable.natural.toBigInt)
@@ -21,7 +21,7 @@ object StatisticsService {
     IncompleteTaskStatistics(
       mean = 100 * mean,
       total = withZeroDefault(numberOfTasks),
-      counting = withZeroDefault(numberOfcountingTasks)
+      counting = withZeroDefault(numberOfCountingTasks)
     )
   }
 

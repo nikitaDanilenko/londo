@@ -127,17 +127,18 @@ updateLogic msg model =
                         )
                     )
 
-        gotFetchUpdatedStatisticsResponse projectId resolvedTask result =
+        gotFetchUpdatedStatisticsResponse projectId taskAnalysis result =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
                     (\dashboardStatistics ->
                         model
-                            |> updateTaskById projectId
-                                resolvedTask.task.id
+                            |> updateTaskById
+                                projectId
+                                taskAnalysis.task.id
                                 (Editing.asViewWithElement
-                                    { task = resolvedTask.task
-                                    , simulation = resolvedTask.simulation
-                                    , incompleteTaskStatistics = resolvedTask.incompleteTaskStatistics
+                                    { task = taskAnalysis.task
+                                    , simulation = taskAnalysis.simulation
+                                    , incompleteTaskStatistics = taskAnalysis.incompleteTaskStatistics
                                     }
                                     >> Editing.toggleControls
                                 )
@@ -203,8 +204,8 @@ updateLogic msg model =
         Page.GotSaveEditTaskResponse projectId result ->
             gotSaveEditTaskResponse projectId result
 
-        Page.GotFetchUpdatedStatisticsResponse projectId resolvedTask result ->
-            gotFetchUpdatedStatisticsResponse projectId resolvedTask result
+        Page.GotFetchUpdatedStatisticsResponse projectId taskAnalysis result ->
+            gotFetchUpdatedStatisticsResponse projectId taskAnalysis result
 
         Page.ToggleControls projectId taskId ->
             toggleControls projectId taskId
