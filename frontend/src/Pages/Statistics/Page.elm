@@ -198,14 +198,8 @@ type LogicMsg
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId
     | SetProjectsPagination PaginationSettings
-    | SetProjectPagination ProjectId TaskStatus PaginationSettings
     | SetSearchString String
     | SetViewType ViewType
-
-
-type TaskStatus
-    = Finished
-    | Unfinished
 
 
 type ViewType

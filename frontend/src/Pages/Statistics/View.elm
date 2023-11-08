@@ -3,7 +3,7 @@ module Pages.Statistics.View exposing (view)
 import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, h1, h2, hr, input, nav, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, div, h1, h2, hr, input, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -16,22 +16,18 @@ import Monocle.Lens as Lens
 import Pages.Dashboards.View
 import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Page as Page
-import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Tasks.Tasks.View
 import Pages.Util.HtmlUtil as HtmlUtil
-import Pages.Util.PaginationSettings as PaginationSettings
 import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
-import Paginate
 import Types.Progress.Progress
 import Types.Simulation.Update
 import Types.Task.TaskWithSimulation
 import Types.Task.Update
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing
-import Util.LensUtil as LensUtil
 import Util.MaybeUtil as MaybeUtil
 import Util.ValidatedInput as ValidatedInput
 
@@ -60,7 +56,7 @@ viewMain configuration main =
             :: (main.projects
                     |> DictList.values
                     |> List.map
-                        (viewResolvedProject main.languages.taskEditor main.languages.statistics main.pagination)
+                        (viewResolvedProject main.languages.taskEditor main.languages.statistics)
                )
 
 
@@ -134,8 +130,8 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
         ]
 
 
-viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Pagination -> EditingResolvedProject -> Html Page.LogicMsg
-viewResolvedProject taskEditorLanguage statisticsLanguage pagination resolvedProject =
+viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
     let
         project =
             resolvedProject.project
@@ -151,57 +147,14 @@ viewResolvedProject taskEditorLanguage statisticsLanguage pagination resolvedPro
         ( finished, unfinished ) =
             tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
 
-        paginationSettingsLens taskStatus =
-            (case taskStatus of
-                Page.Finished ->
-                    Pagination.lenses.finishedTasks
-
-                Page.Unfinished ->
-                    Pagination.lenses.unfinishedTasks
-            )
-                |> Compose.lensWithLens (LensUtil.dictByKeyWithDefault project.id PaginationSettings.initial)
-
-        paginate taskStatus =
-            List.sortBy (.original >> .task >> .name >> String.toLower)
-                >> ViewUtil.paginate
-                    { pagination = (taskStatus |> paginationSettingsLens).get
-                    }
-                    pagination
-
-        unfinishedPaginated =
-            unfinished |> paginate Page.Unfinished
-
-        finishedPaginated =
-            finished |> paginate Page.Finished
-
-        pager taskStatus elements =
-            let
-                lens =
-                    paginationSettingsLens taskStatus
-            in
-            nav [ Style.classes.pagination ]
-                [ ViewUtil.pagerButtons
-                    { msg =
-                        PaginationSettings.updateCurrentPage
-                            { pagination = LensUtil.identityLens
-                            , items = lens
-                            }
-                            pagination
-                            >> lens.get
-                            >> Page.SetProjectPagination project.id taskStatus
-                    , elements = elements
-                    }
-                ]
-
         display =
-            Paginate.page
-                >> List.concatMap
-                    (Editing.unpack
-                        { onView = viewTask project.id taskEditorLanguage
-                        , onUpdate = .task >> updateTask taskEditorLanguage project.id
-                        , onDelete = \_ -> []
-                        }
-                    )
+            List.concatMap
+                (Editing.unpack
+                    { onView = viewTask project.id taskEditorLanguage
+                    , onUpdate = .task >> updateTask taskEditorLanguage project.id
+                    , onDelete = \_ -> []
+                    }
+                )
 
         separator =
             if List.any List.isEmpty [ finished, unfinished ] then
@@ -219,11 +172,9 @@ viewResolvedProject taskEditorLanguage statisticsLanguage pagination resolvedPro
                     [ taskInfoHeader taskEditorLanguage statisticsLanguage
                     , tbody []
                         (List.concat
-                            [ unfinishedPaginated |> display
-                            , [ unfinishedPaginated |> pager Page.Unfinished ]
+                            [ unfinished |> display
                             , separator
-                            , finishedPaginated |> display
-                            , [ finishedPaginated |> pager Page.Finished ]
+                            , finished |> display
                             ]
                         )
                     ]

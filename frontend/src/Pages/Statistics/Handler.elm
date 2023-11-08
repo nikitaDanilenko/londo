@@ -4,7 +4,7 @@ import Language.Language
 import Math.Positive
 import Maybe.Extra
 import Monocle.Compose as Compose
-import Monocle.Lens as Lens exposing (Lens)
+import Monocle.Lens exposing (Lens)
 import Pages.Statistics.EditingResolvedProject as EditingResolvedProject
 import Pages.Statistics.Page as Page
 import Pages.Statistics.Pagination as Pagination
@@ -184,27 +184,6 @@ updateLogic msg model =
             , Cmd.none
             )
 
-        setProjectPagination projectId taskStatus paginationSettings =
-            ( model
-                |> Tristate.mapMain
-                    (Lens.modify Page.lenses.main.pagination
-                        (case taskStatus of
-                            Page.Unfinished ->
-                                (Pagination.lenses.unfinishedTasks
-                                    |> Compose.lensWithOptional (LensUtil.dictByKey projectId)
-                                ).set
-                                    paginationSettings
-
-                            Page.Finished ->
-                                (Pagination.lenses.finishedTasks
-                                    |> Compose.lensWithOptional (LensUtil.dictByKey projectId)
-                                ).set
-                                    paginationSettings
-                        )
-                    )
-            , Cmd.none
-            )
-
         setViewType viewType =
             ( model
                 |> Tristate.mapMain (Page.lenses.main.viewType.set viewType)
@@ -238,9 +217,6 @@ updateLogic msg model =
 
         Page.SetProjectsPagination pagination ->
             setProjectsPagination pagination
-
-        Page.SetProjectPagination projectId taskStatus pagination ->
-            setProjectPagination projectId taskStatus pagination
 
         Page.SetSearchString string ->
             setSearchString string
