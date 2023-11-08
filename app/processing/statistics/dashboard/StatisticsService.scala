@@ -8,31 +8,31 @@ import spire.syntax.all._
 object StatisticsService {
 
   def ofTasks(tasks: Seq[TaskWithSimulation]): DashboardStatistics = {
-    val statsInTotal   = statsInCollection(tasks)
-    val statsIncounting = statsInCollection(tasks.filter(_.task.counting))
+    val statsInTotal    = statsInCollection(tasks)
+    val statsInCounting = statsInCollection(tasks.filter(_.task.counting))
 
     DashboardStatistics(
       reached = WithSimulation(
         total = statsInTotal.reached,
-        counting = statsIncounting.reached,
+        counting = statsInCounting.reached,
         simulatedTotal = statsInTotal.reachedSimulated,
-        simulatedcounting = statsIncounting.reachedSimulated
+        simulatedcounting = statsInCounting.reachedSimulated
       ),
       reachable = WithoutSimulation(
         total = statsInTotal.reachable,
-        counting = statsIncounting.reachable
+        counting = statsInCounting.reachable
       ),
       absoluteMeans = WithSimulation(
         total = statsInTotal.meanAbsolute,
-        counting = statsIncounting.meanAbsolute,
+        counting = statsInCounting.meanAbsolute,
         simulatedTotal = statsInTotal.meanAbsoluteSimulated,
-        simulatedcounting = statsIncounting.meanAbsoluteSimulated
+        simulatedcounting = statsInCounting.meanAbsoluteSimulated
       ),
       relativeMeans = WithSimulation(
         total = statsInTotal.meanRelative,
-        counting = statsIncounting.meanRelative,
+        counting = statsInCounting.meanRelative,
         simulatedTotal = statsInTotal.meanRelativeSimulated,
-        simulatedcounting = statsIncounting.meanRelativeSimulated
+        simulatedcounting = statsInCounting.meanRelativeSimulated
       )
     )
   }
@@ -66,7 +66,7 @@ object StatisticsService {
 
   def absoluteMeanOf(reached: Natural, reachable: Natural): Rational =
     if (reachable == Natural.zero) Rational.one
-    else Rational(reached.toBigInt, reachable.toBigInt)
+    else Rational(BigInt(100) * reached.toBigInt, reachable.toBigInt)
 
   def relativeMeanOf(numberOfValues: Natural, progresses: Seq[services.task.Progress]): Rational =
     Positive(numberOfValues).fold(_ => Rational.one, p => relative(p, progresses))
