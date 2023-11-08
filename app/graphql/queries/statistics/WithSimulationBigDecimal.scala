@@ -10,9 +10,9 @@ import utils.math.MathUtil
 
 case class WithSimulationBigDecimal(
     total: BigDecimal,
-    counted: BigDecimal,
+    counting: BigDecimal,
     simulatedTotal: BigDecimal,
-    simulatedCounted: BigDecimal
+    simulatedcounting: BigDecimal
 )
 
 object WithSimulationBigDecimal {
@@ -22,9 +22,9 @@ object WithSimulationBigDecimal {
       val toBigDecimal = MathUtil.rationalToBigDecimal(numberOfDecimalPlaces)
       WithSimulationBigDecimal(
         total = toBigDecimal(withSimulation.total),
-        counted = toBigDecimal(withSimulation.counted),
+        counting = toBigDecimal(withSimulation.counting),
         simulatedTotal = toBigDecimal(withSimulation.simulatedTotal),
-        simulatedCounted = toBigDecimal(withSimulation.simulatedCounted)
+        simulatedcounting = toBigDecimal(withSimulation.simulatedcounting)
       )
 
   }

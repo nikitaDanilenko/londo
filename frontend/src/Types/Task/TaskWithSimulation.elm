@@ -46,7 +46,7 @@ type alias ArgumentComplement =
     { dashboardId : Types.Dashboard.Id.Id
     , taskId : Types.Task.Id.Id
     , numberOfTotalTasks : Maybe Math.Positive.Positive
-    , numberOfCountedTasks : Maybe Math.Positive.Positive
+    , numberOfcountingTasks : Maybe Math.Positive.Positive
     , numberOfDecimalPlaces : Math.Positive.Positive
     }
 
@@ -67,8 +67,8 @@ toGraphQLInput complement clientInput =
         complement.numberOfTotalTasks
             |> Maybe.map Math.Positive.toGraphQLInput
             |> OptionalArgument.fromMaybe
-    , numberOfCountedTasks =
-        complement.numberOfCountedTasks
+    , numberOfcountingTasks =
+        complement.numberOfcountingTasks
             |> Maybe.map Math.Positive.toGraphQLInput
             |> OptionalArgument.fromMaybe
     , numberOfDecimalPlaces =
@@ -97,8 +97,8 @@ updateWith expect authorizedAccess complement update =
                 complement.numberOfTotalTasks
                     |> Maybe.map Math.Positive.toGraphQLInput
                     |> OptionalArgument.fromMaybe
-            , numberOfCountedTasks =
-                complement.numberOfCountedTasks
+            , numberOfcountingTasks =
+                complement.numberOfcountingTasks
                     |> Maybe.map Math.Positive.toGraphQLInput
                     |> OptionalArgument.fromMaybe
             , numberOfDecimalPlaces =

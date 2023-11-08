@@ -10,7 +10,7 @@ import Types.Task.After
 type alias IncompleteTaskStatistics =
     { mean : LondoGQL.Scalar.BigDecimal
     , total : Types.Task.After.After
-    , counted : Types.Task.After.After
+    , counting : Types.Task.After.After
     }
 
 
@@ -20,4 +20,4 @@ selection =
         IncompleteTaskStatistics
         LondoGQL.Object.IncompleteTaskStatistics.mean
         (LondoGQL.Object.IncompleteTaskStatistics.total Types.Task.After.selection)
-        (LondoGQL.Object.IncompleteTaskStatistics.counted Types.Task.After.selection)
+        (LondoGQL.Object.IncompleteTaskStatistics.counting Types.Task.After.selection)

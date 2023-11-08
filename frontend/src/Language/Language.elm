@@ -140,18 +140,18 @@ type alias DashboardEntryEditor =
 
 type alias Statistics =
     { total : String
-    , counted : String
+    , counting : String
     , simulatedTotal : String
-    , simulatedCounted : String
+    , simulatedcounting : String
     , reachableAll : String
     , reachedAll : String
     , meanAbsolute : String
     , meanRelative : String
     , mean : String
     , differenceOneTotal : String
-    , differenceOneCounted : String
+    , differenceOnecounting : String
     , differenceCompleteTotal : String
-    , differenceCompleteCounted : String
+    , differenceCompletecounting : String
     , statistics : String
     , simulation : String
     }
@@ -271,18 +271,18 @@ english =
         }
     , statistics =
         { total = "Total"
-        , counted = "Counted"
+        , counting = "counting"
         , simulatedTotal = "Simulated (total)"
-        , simulatedCounted = "Simulated (counted)"
+        , simulatedcounting = "Simulated (counting)"
         , reachableAll = "Reachable (all)"
         , reachedAll = "Reached (all)"
         , meanAbsolute = "Mean (absolute)"
         , meanRelative = "Mean (relative)"
         , mean = "Mean"
         , differenceOneTotal = "Δ (total)"
-        , differenceOneCounted = "Δ (counted)"
+        , differenceOnecounting = "Δ (counting)"
         , differenceCompleteTotal = "After completion (total)"
-        , differenceCompleteCounted = "After completion (counted)"
+        , differenceCompletecounting = "After completion (counting)"
         , statistics = "Statistics"
         , simulation = "Simulation"
         }

@@ -16,7 +16,7 @@ case class UpdateTaskWithSimulationInput(
     taskUpdate: TaskUpdate,
     simulation: Option[Simulation],
     numberOfTotalTasks: Option[Positive],
-    numberOfCountedTasks: Option[Positive],
+    numberOfcountingTasks: Option[Positive],
     numberOfDecimalPlaces: Positive
 )
 

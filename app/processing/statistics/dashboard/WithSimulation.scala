@@ -2,7 +2,7 @@ package processing.statistics.dashboard
 
 case class WithSimulation[A](
     total: A,
-    counted: A,
+    counting: A,
     simulatedTotal: A,
-    simulatedCounted: A
+    simulatedcounting: A
 )

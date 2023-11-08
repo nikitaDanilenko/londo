@@ -13,7 +13,7 @@ import java.math.MathContext
 case class IncompleteTaskStatistics(
     mean: BigDecimal,
     total: After,
-    counted: After
+    counting: After
 )
 
 object IncompleteTaskStatistics {
@@ -25,7 +25,7 @@ object IncompleteTaskStatistics {
       IncompleteTaskStatistics(
         mean = toBigDecimal(statistics.mean),
         total = (statistics.total, numberOfDecimalPlaces).transformInto[After],
-        counted = (statistics.counted, numberOfDecimalPlaces).transformInto[After]
+        counting = (statistics.counting, numberOfDecimalPlaces).transformInto[After]
       )
 
   }

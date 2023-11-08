@@ -203,6 +203,11 @@ type TaskStatus
     | Unfinished
 
 
+type ViewType
+    = Total
+    | Counting
+
+
 type alias Msg =
     Tristate.Msg LogicMsg
 

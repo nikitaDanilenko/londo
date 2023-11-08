@@ -81,7 +81,7 @@ updateLogic msg model =
                             numberOfTotalTasks =
                                 numberOf identity
 
-                            numberOfCountedTasks =
+                            numberOfcountingTasks =
                                 numberOf (List.filter (.original >> .task >> .counting))
                         in
                         main
@@ -99,7 +99,7 @@ updateLogic msg model =
                                     { dashboardId = main.dashboard.id
                                     , taskId = taskId
                                     , numberOfTotalTasks = numberOfTotalTasks
-                                    , numberOfCountedTasks = numberOfCountedTasks
+                                    , numberOfcountingTasks = numberOfcountingTasks
                                     , numberOfDecimalPlaces = Page.numberOfDecimalPlaces
                                     }
                                 )

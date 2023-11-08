@@ -8,7 +8,7 @@ import sangria.schema.ObjectType
 
 case class WithoutSimulation(
     total: Natural,
-    counted: Natural
+    counting: Natural
 )
 
 object WithoutSimulation {

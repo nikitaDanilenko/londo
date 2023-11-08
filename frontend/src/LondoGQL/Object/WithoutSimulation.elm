@@ -26,8 +26,8 @@ total object____ =
     Object.selectionForCompositeField "total" [] object____ Basics.identity
 
 
-counted :
+counting :
     SelectionSet decodesTo LondoGQL.Object.Natural
     -> SelectionSet decodesTo LondoGQL.Object.WithoutSimulation
-counted object____ =
-    Object.selectionForCompositeField "counted" [] object____ Basics.identity
+counting object____ =
+    Object.selectionForCompositeField "counting" [] object____ Basics.identity

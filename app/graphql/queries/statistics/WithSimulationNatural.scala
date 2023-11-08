@@ -8,9 +8,9 @@ import sangria.schema.ObjectType
 
 case class WithSimulationNatural(
     total: Natural,
-    counted: Natural,
+    counting: Natural,
     simulatedTotal: Natural,
-    simulatedCounted: Natural
+    simulatedcounting: Natural
 )
 
 object WithSimulationNatural {

@@ -5,5 +5,5 @@ import spire.math.Rational
 case class IncompleteTaskStatistics(
     mean: Rational,
     total: After,
-    counted: After
+    counting: After
 )

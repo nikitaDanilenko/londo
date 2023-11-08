@@ -10,9 +10,9 @@ import Math.Natural
 
 type alias WithSimulation a =
     { total : a
-    , counted : a
+    , counting : a
     , simulatedTotal : a
-    , simulatedCounted : a
+    , simulatedcounting : a
     }
 
 
@@ -20,15 +20,15 @@ selectionNatural : SelectionSet (WithSimulation Math.Natural.Natural) LondoGQL.O
 selectionNatural =
     SelectionSet.map4 WithSimulation
         (LondoGQL.Object.WithSimulationNatural.total Math.Natural.selection)
-        (LondoGQL.Object.WithSimulationNatural.counted Math.Natural.selection)
+        (LondoGQL.Object.WithSimulationNatural.counting Math.Natural.selection)
         (LondoGQL.Object.WithSimulationNatural.simulatedTotal Math.Natural.selection)
-        (LondoGQL.Object.WithSimulationNatural.simulatedCounted Math.Natural.selection)
+        (LondoGQL.Object.WithSimulationNatural.simulatedcounting Math.Natural.selection)
 
 
 selectionBigDecimal : SelectionSet (WithSimulation LondoGQL.Scalar.BigDecimal) LondoGQL.Object.WithSimulationBigDecimal
 selectionBigDecimal =
     SelectionSet.map4 WithSimulation
         LondoGQL.Object.WithSimulationBigDecimal.total
-        LondoGQL.Object.WithSimulationBigDecimal.counted
+        LondoGQL.Object.WithSimulationBigDecimal.counting
         LondoGQL.Object.WithSimulationBigDecimal.simulatedTotal
-        LondoGQL.Object.WithSimulationBigDecimal.simulatedCounted
+        LondoGQL.Object.WithSimulationBigDecimal.simulatedcounting

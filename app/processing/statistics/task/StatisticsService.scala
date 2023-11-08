@@ -11,7 +11,7 @@ object StatisticsService {
   def incompleteOfTask(
       taskWithSimulation: TaskWithSimulation,
       numberOfTasks: Option[Positive],
-      numberOfCountedTasks: Option[Positive]
+      numberOfcountingTasks: Option[Positive]
   ): IncompleteTaskStatistics = {
     val progress = taskWithSimulation.task.progress
     val mean     = Rational(progress.reached.toBigInt, progress.reachable.natural.toBigInt)
@@ -21,7 +21,7 @@ object StatisticsService {
     IncompleteTaskStatistics(
       mean = 100 * mean,
       total = withZeroDefault(numberOfTasks),
-      counted = withZeroDefault(numberOfCountedTasks)
+      counting = withZeroDefault(numberOfcountingTasks)
     )
   }
 

@@ -24,9 +24,9 @@ total =
     Object.selectionForField "ScalarCodecs.BigDecimal" "total" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigDecimal |> .decoder)
 
 
-counted : SelectionSet LondoGQL.ScalarCodecs.BigDecimal LondoGQL.Object.WithSimulationBigDecimal
-counted =
-    Object.selectionForField "ScalarCodecs.BigDecimal" "counted" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigDecimal |> .decoder)
+counting : SelectionSet LondoGQL.ScalarCodecs.BigDecimal LondoGQL.Object.WithSimulationBigDecimal
+counting =
+    Object.selectionForField "ScalarCodecs.BigDecimal" "counting" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigDecimal |> .decoder)
 
 
 simulatedTotal : SelectionSet LondoGQL.ScalarCodecs.BigDecimal LondoGQL.Object.WithSimulationBigDecimal
@@ -34,6 +34,6 @@ simulatedTotal =
     Object.selectionForField "ScalarCodecs.BigDecimal" "simulatedTotal" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigDecimal |> .decoder)
 
 
-simulatedCounted : SelectionSet LondoGQL.ScalarCodecs.BigDecimal LondoGQL.Object.WithSimulationBigDecimal
-simulatedCounted =
-    Object.selectionForField "ScalarCodecs.BigDecimal" "simulatedCounted" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigDecimal |> .decoder)
+simulatedcounting : SelectionSet LondoGQL.ScalarCodecs.BigDecimal LondoGQL.Object.WithSimulationBigDecimal
+simulatedcounting =
+    Object.selectionForField "ScalarCodecs.BigDecimal" "simulatedcounting" [] (LondoGQL.ScalarCodecs.codecs |> LondoGQL.Scalar.unwrapCodecs |> .codecBigDecimal |> .decoder)

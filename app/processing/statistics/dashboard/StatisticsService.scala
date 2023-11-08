@@ -9,30 +9,30 @@ object StatisticsService {
 
   def ofTasks(tasks: Seq[TaskWithSimulation]): DashboardStatistics = {
     val statsInTotal   = statsInCollection(tasks)
-    val statsInCounted = statsInCollection(tasks.filter(_.task.counting))
+    val statsIncounting = statsInCollection(tasks.filter(_.task.counting))
 
     DashboardStatistics(
       reached = WithSimulation(
         total = statsInTotal.reached,
-        counted = statsInCounted.reached,
+        counting = statsIncounting.reached,
         simulatedTotal = statsInTotal.reachedSimulated,
-        simulatedCounted = statsInCounted.reachedSimulated
+        simulatedcounting = statsIncounting.reachedSimulated
       ),
       reachable = WithoutSimulation(
         total = statsInTotal.reachable,
-        counted = statsInCounted.reachable
+        counting = statsIncounting.reachable
       ),
       absoluteMeans = WithSimulation(
         total = statsInTotal.meanAbsolute,
-        counted = statsInCounted.meanAbsolute,
+        counting = statsIncounting.meanAbsolute,
         simulatedTotal = statsInTotal.meanAbsoluteSimulated,
-        simulatedCounted = statsInCounted.meanAbsoluteSimulated
+        simulatedcounting = statsIncounting.meanAbsoluteSimulated
       ),
       relativeMeans = WithSimulation(
         total = statsInTotal.meanRelative,
-        counted = statsInCounted.meanRelative,
+        counting = statsIncounting.meanRelative,
         simulatedTotal = statsInTotal.meanRelativeSimulated,
-        simulatedCounted = statsInCounted.meanRelativeSimulated
+        simulatedcounting = statsIncounting.meanRelativeSimulated
       )
     )
   }
