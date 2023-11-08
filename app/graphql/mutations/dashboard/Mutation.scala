@@ -125,7 +125,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
               ).map(Some(_))
             }
         } yield {
-          val incompleteTaskStatistics = Option.when(Progress.isComplete(task.progress))(
+          val incompleteTaskStatistics = Option.when(!Progress.isComplete(task.progress))(
             processing.statistics.task.StatisticsService.incompleteOfTask(
               processing.statistics.TaskWithSimulation(
                 task.transformInto[processing.statistics.Task],
