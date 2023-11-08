@@ -59,7 +59,7 @@ viewMain configuration main =
             :: (main.projects
                     |> DictList.values
                     |> List.map
-                        (viewResolvedProject main.languages.taskEditor main.languages.statistics)
+                        (viewResolvedProject main.viewType main.languages.taskEditor main.languages.statistics)
                )
 
 
@@ -186,8 +186,8 @@ viewDashboardStatisticsWith ps statisticsLanguage statistics =
         ]
 
 
-viewResolvedProject : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> EditingResolvedProject -> Html Page.LogicMsg
-viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
+viewResolvedProject : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject viewType taskEditorLanguage statisticsLanguage resolvedProject =
     let
         project =
             resolvedProject.project
@@ -205,13 +205,15 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
 
         display =
             List.sortBy (.original >> .task >> .name)
-                >> List.concatMap
-                    (Editing.unpack
-                        { onView = viewTask project.id taskEditorLanguage
-                        , onUpdate = .task >> updateTask taskEditorLanguage project.id
-                        , onDelete = \_ -> []
-                        }
+                >> List.indexedMap
+                    (\index ->
+                        Editing.unpack
+                            { onView = viewTask (1 + index) viewType project.id taskEditorLanguage
+                            , onUpdate = .task >> updateTask taskEditorLanguage project.id
+                            , onDelete = \_ -> []
+                            }
                     )
+                >> List.concat
 
         separator =
             if List.any List.isEmpty [ finished, unfinished ] then
@@ -226,7 +228,7 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
         (h2 []
             [ text <| projectName ]
             :: [ table [ Style.classes.elementsWithControlsTable ]
-                    [ taskInfoHeader taskEditorLanguage statisticsLanguage
+                    [ taskInfoHeader viewType taskEditorLanguage statisticsLanguage
                     , tbody []
                         (List.concat
                             [ unfinished |> display
@@ -243,51 +245,87 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
 -- todo: Adjust columns
 
 
-taskInfoHeader : Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Html msg
-taskInfoHeader taskEditorLanguage statisticsLanguage =
+taskInfoHeader : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Html msg
+taskInfoHeader viewType taskEditorLanguage statisticsLanguage =
+    let
+        deltaColumns =
+            case viewType of
+                Page.Total ->
+                    [ th [] [ text <| .differenceOneTotal <| statisticsLanguage ]
+                    , th [] [ text <| .differenceCompleteCounting <| statisticsLanguage ]
+                    ]
+
+                Page.Counting ->
+                    [ th [] [ text <| .differenceOneCounting <| statisticsLanguage ]
+                    , th [] [ text <| .differenceCompleteTotal <| statisticsLanguage ]
+                    ]
+    in
     Pages.Util.ParentEditor.View.tableHeaderWith
         { columns =
-            [ th [] [ text <| .taskName <| taskEditorLanguage ]
+            [ th [] []
+            , th [] [ text <| .taskName <| taskEditorLanguage ]
             , th [] [ text <| .taskKind <| taskEditorLanguage ]
             , th [] [ text <| .progress <| taskEditorLanguage ]
             , th [] [ text <| .simulation <| statisticsLanguage ]
             , th [] [ text <| .unit <| taskEditorLanguage ]
             , th [] [ text <| .counting <| taskEditorLanguage ]
             , th [] [ text <| .mean <| statisticsLanguage ]
-            , th [] [ text <| .differenceOneTotal <| statisticsLanguage ]
-            , th [] [ text <| .differenceOnecounting <| statisticsLanguage ]
-            , th [] [ text <| .differenceCompleteTotal <| statisticsLanguage ]
-            , th [] [ text <| .differenceCompletecounting <| statisticsLanguage ]
             ]
+                ++ deltaColumns
         , style = Style.classes.taskEditTable
         }
 
 
 taskInfoColumns :
-    Page.TaskAnalysis
+    Int
+    -> Page.ViewType
+    -> Page.TaskAnalysis
     -> List (HtmlUtil.Column msg)
-taskInfoColumns taskAnalysis =
+taskInfoColumns index viewType taskAnalysis =
     let
         mean =
             taskAnalysis.incompleteTaskStatistics |> Maybe.Extra.unwrap "" (.mean >> bigDecimalToString)
 
-        differenceAfterOneMoreExactTotal =
+        differenceAfterOneMoreTotal =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.total >> .one >> bigDecimalToString)
 
-        differenceAfterOneMoreExactCounting =
+        differenceAfterOneMoreCounting =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.counting >> .one >> bigDecimalToString)
 
-        afterCompletionExactTotal =
+        afterCompletionTotal =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.total >> .completion >> bigDecimalToString)
 
-        afterCompletionExactCounting =
+        afterCompletionCounting =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.counting >> .completion >> bigDecimalToString)
+
+        extraColumns =
+            case viewType of
+                Page.Total ->
+                    [ { attributes = [ Style.classes.editable ]
+                      , children = [ text <| differenceAfterOneMoreTotal ]
+                      }
+                    , { attributes = [ Style.classes.editable ]
+                      , children = [ text <| afterCompletionTotal ]
+                      }
+                    ]
+
+                Page.Counting ->
+                    [ { attributes = [ Style.classes.editable ]
+                      , children = [ text <| differenceAfterOneMoreCounting ]
+                      }
+                    , { attributes = [ Style.classes.editable ]
+                      , children = [ text <| afterCompletionCounting ]
+                      }
+                    ]
     in
-    [ { attributes = [ Style.classes.editable ]
+    [ { attributes = [ Style.classes.editable, Style.classes.numberCell ]
+      , children = [ text <| String.fromInt index ]
+      }
+    , { attributes = [ Style.classes.editable ]
       , children = [ text <| .name <| .task <| taskAnalysis ]
       }
     , { attributes = [ Style.classes.editable ]
@@ -308,27 +346,16 @@ taskInfoColumns taskAnalysis =
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| mean ]
       }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text <| differenceAfterOneMoreExactTotal ]
-      }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text <| differenceAfterOneMoreExactCounting ]
-      }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text <| afterCompletionExactTotal ]
-      }
-    , { attributes = [ Style.classes.editable ]
-      , children = [ text <| afterCompletionExactCounting ]
-      }
     ]
+        ++ extraColumns
 
 
-viewTask : Page.ProjectId -> Page.TaskEditorLanguage -> Page.TaskAnalysis -> Bool -> List (Html Page.LogicMsg)
-viewTask projectId language resolvedTask showControls =
+viewTask : Int -> Page.ViewType -> Page.ProjectId -> Page.TaskEditorLanguage -> Page.TaskAnalysis -> Bool -> List (Html Page.LogicMsg)
+viewTask index viewType projectId language resolvedTask showControls =
     Pages.Util.ParentEditor.View.lineWith
         { rowWithControls =
             \t ->
-                { display = taskInfoColumns t
+                { display = taskInfoColumns index viewType t
                 , controls =
                     [ div []
                         [ button
