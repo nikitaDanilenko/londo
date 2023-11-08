@@ -256,12 +256,12 @@ taskInfoHeader viewType taskEditorLanguage statisticsLanguage =
             case viewType of
                 Page.Total ->
                     [ th [] [ text <| .differenceOneTotal <| statisticsLanguage ]
-                    , th [] [ text <| .differenceCompleteCounting <| statisticsLanguage ]
+                    , th [] [ text <| .differenceCompleteTotal <| statisticsLanguage ]
                     ]
 
                 Page.Counting ->
                     [ th [] [ text <| .differenceOneCounting <| statisticsLanguage ]
-                    , th [] [ text <| .differenceCompleteTotal <| statisticsLanguage ]
+                    , th [] [ text <| .differenceCompleteCounting <| statisticsLanguage ]
                     ]
     in
     Pages.Util.ParentEditor.View.tableHeaderWith
