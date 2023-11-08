@@ -12,7 +12,7 @@ type alias WithSimulation a =
     { total : a
     , counting : a
     , simulatedTotal : a
-    , simulatedcounting : a
+    , simulatedCounting : a
     }
 
 
