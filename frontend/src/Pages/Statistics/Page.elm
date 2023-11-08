@@ -102,6 +102,7 @@ type alias Main =
     , dashboard : Dashboard
     , dashboardStatistics : DashboardStatistics
     , projects : DictList ProjectId EditingResolvedProject
+    , viewType : ViewType
     , searchString : String
     , pagination : Pagination
     , languages : Languages
@@ -144,6 +145,7 @@ initialToMain i =
                             }
                         )
                     |> DictList.fromListWithKey Types.Project.Id.ordering (.project >> .id)
+            , viewType = Total
             , searchString = ""
             , pagination = Pagination.initial
             , languages = i.languages
@@ -160,6 +162,7 @@ lenses :
         { dashboard : Lens Main Dashboard
         , dashboardStatistics : Lens Main DashboardStatistics
         , projects : Lens Main (DictList ProjectId EditingResolvedProject)
+        , viewType : Lens Main ViewType
         , searchString : Lens Main String
         , pagination : Lens Main Pagination
         }
@@ -172,6 +175,7 @@ lenses =
         { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
         , dashboardStatistics = Lens .dashboardStatistics (\b a -> { a | dashboardStatistics = b })
         , projects = Lens .projects (\b a -> { a | projects = b })
+        , viewType = Lens .viewType (\b a -> { a | viewType = b })
         , searchString = Lens .searchString (\b a -> { a | searchString = b })
         , pagination = Lens .pagination (\b a -> { a | pagination = b })
         }
@@ -196,6 +200,7 @@ type LogicMsg
     | SetProjectsPagination PaginationSettings
     | SetProjectPagination ProjectId TaskStatus PaginationSettings
     | SetSearchString String
+    | SetViewType ViewType
 
 
 type TaskStatus

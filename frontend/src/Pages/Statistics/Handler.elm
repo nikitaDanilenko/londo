@@ -81,7 +81,7 @@ updateLogic msg model =
                             numberOfTotalTasks =
                                 numberOf identity
 
-                            numberOfcountingTasks =
+                            numberOfCountingTasks =
                                 numberOf (List.filter (.original >> .task >> .counting))
                         in
                         main
@@ -99,7 +99,7 @@ updateLogic msg model =
                                     { dashboardId = main.dashboard.id
                                     , taskId = taskId
                                     , numberOfTotalTasks = numberOfTotalTasks
-                                    , numberOfcountingTasks = numberOfcountingTasks
+                                    , numberOfcountingTasks = numberOfCountingTasks
                                     , numberOfDecimalPlaces = Page.numberOfDecimalPlaces
                                     }
                                 )
@@ -204,6 +204,12 @@ updateLogic msg model =
                     )
             , Cmd.none
             )
+
+        setViewType viewType =
+            ( model
+                |> Tristate.mapMain (Page.lenses.main.viewType.set viewType)
+            , Cmd.none
+            )
     in
     case msg of
         Page.GotFetchDashboardAnalysisResponse result ->
@@ -238,6 +244,9 @@ updateLogic msg model =
 
         Page.SetSearchString string ->
             setSearchString string
+
+        Page.SetViewType viewType ->
+            setViewType viewType
 
 
 updateTaskById :

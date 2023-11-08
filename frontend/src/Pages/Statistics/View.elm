@@ -85,9 +85,9 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
                 [ tr []
                     [ th [] [ text <| "" ]
                     , th [] [ text <| .total <| statisticsLanguage ]
-                    , th [] [ text <| .counted <| statisticsLanguage ]
+                    , th [] [ text <| .counting <| statisticsLanguage ]
                     , th [] [ text <| .simulatedTotal <| statisticsLanguage ]
-                    , th [] [ text <| .simulatedCounted <| statisticsLanguage ]
+                    , th [] [ text <| .simulatedcounting <| statisticsLanguage ]
                     ]
                 ]
             , tbody []
@@ -99,10 +99,10 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
                         [ text <| Natural.toString <| .total <| .reached <| statistics
                         ]
                     , td []
-                        [ text <| Natural.toString <| .counted <| .reached <| statistics
+                        [ text <| Natural.toString <| .counting <| .reached <| statistics
                         ]
                     , td [] [ text <| Natural.toString <| .simulatedTotal <| .reached <| statistics ]
-                    , td [] [ text <| Natural.toString <| .simulatedCounted <| .reached <| statistics ]
+                    , td [] [ text <| Natural.toString <| .simulatedcounting <| .reached <| statistics ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .reachableAll <| statisticsLanguage ]
@@ -110,7 +110,7 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
                         [ text <| Natural.toString <| .total <| .reachable <| statistics
                         ]
                     , td []
-                        [ text <| Natural.toString <| .counted <| .reachable <| statistics
+                        [ text <| Natural.toString <| .counting <| .reachable <| statistics
                         ]
                     , td [] []
                     , td [] []
@@ -118,16 +118,16 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
                     , td [] [ text <| bigDecimalToString <| .total <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .counted <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .counting <| .absoluteMeans <| statistics ]
                     , td [] [ text <| bigDecimalToString <| .simulatedTotal <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .simulatedCounted <| .absoluteMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .simulatedcounting <| .absoluteMeans <| statistics ]
                     ]
                 , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                     [ td [] [ text <| .meanRelative <| statisticsLanguage ]
                     , td [] [ text <| bigDecimalToString <| .total <| .relativeMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .counted <| .relativeMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .counting <| .relativeMeans <| statistics ]
                     , td [] [ text <| bigDecimalToString <| .simulatedTotal <| .relativeMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .simulatedCounted <| .relativeMeans <| statistics ]
+                    , td [] [ text <| bigDecimalToString <| .simulatedcounting <| .relativeMeans <| statistics ]
                     ]
                 ]
             ]
@@ -247,9 +247,9 @@ taskInfoHeader taskEditorLanguage statisticsLanguage =
             , th [] [ text <| .counting <| taskEditorLanguage ]
             , th [] [ text <| .mean <| statisticsLanguage ]
             , th [] [ text <| .differenceOneTotal <| statisticsLanguage ]
-            , th [] [ text <| .differenceOneCounted <| statisticsLanguage ]
+            , th [] [ text <| .differenceOnecounting <| statisticsLanguage ]
             , th [] [ text <| .differenceCompleteTotal <| statisticsLanguage ]
-            , th [] [ text <| .differenceCompleteCounted <| statisticsLanguage ]
+            , th [] [ text <| .differenceCompletecounting <| statisticsLanguage ]
             ]
         , style = Style.classes.taskEditTable
         }
@@ -267,17 +267,17 @@ taskInfoColumns taskAnalysis =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.total >> .one >> bigDecimalToString)
 
-        differenceAfterOneMoreExactCounted =
+        differenceAfterOneMoreExactcounting =
             taskAnalysis.incompleteTaskStatistics
-                |> Maybe.Extra.unwrap "" (.counted >> .one >> bigDecimalToString)
+                |> Maybe.Extra.unwrap "" (.counting >> .one >> bigDecimalToString)
 
         afterCompletionExactTotal =
             taskAnalysis.incompleteTaskStatistics
                 |> Maybe.Extra.unwrap "" (.total >> .completion >> bigDecimalToString)
 
-        afterCompletionExactCounted =
+        afterCompletionExactcounting =
             taskAnalysis.incompleteTaskStatistics
-                |> Maybe.Extra.unwrap "" (.counted >> .completion >> bigDecimalToString)
+                |> Maybe.Extra.unwrap "" (.counting >> .completion >> bigDecimalToString)
     in
     [ { attributes = [ Style.classes.editable ]
       , children = [ text <| .name <| .task <| taskAnalysis ]
@@ -304,13 +304,13 @@ taskInfoColumns taskAnalysis =
       , children = [ text <| differenceAfterOneMoreExactTotal ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| differenceAfterOneMoreExactCounted ]
+      , children = [ text <| differenceAfterOneMoreExactcounting ]
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| afterCompletionExactTotal ]
       }
     , { attributes = [ Style.classes.editable ]
-      , children = [ text <| afterCompletionExactCounted ]
+      , children = [ text <| afterCompletionExactcounting ]
       }
     ]
 
