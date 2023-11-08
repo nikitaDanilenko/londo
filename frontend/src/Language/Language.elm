@@ -149,9 +149,9 @@ type alias Statistics =
     , meanRelative : String
     , mean : String
     , differenceOneTotal : String
-    , differenceOnecounting : String
+    , differenceOneCounting : String
     , differenceCompleteTotal : String
-    , differenceCompletecounting : String
+    , differenceCompleteCounting : String
     , statistics : String
     , simulation : String
     }
@@ -280,9 +280,9 @@ english =
         , meanRelative = "Mean (relative)"
         , mean = "Mean"
         , differenceOneTotal = "Δ (total)"
-        , differenceOnecounting = "Δ (counting)"
+        , differenceOneCounting = "Δ (counting)"
         , differenceCompleteTotal = "After completion (total)"
-        , differenceCompletecounting = "After completion (counting)"
+        , differenceCompleteCounting = "After completion (counting)"
         , statistics = "Statistics"
         , simulation = "Simulation"
         }
