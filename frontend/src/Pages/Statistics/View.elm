@@ -3,13 +3,13 @@ module Pages.Statistics.View exposing (view)
 import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, h1, h2, hr, input, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, div, h1, h2, hr, input, p, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.TaskKind as TaskKind
 import LondoGQL.Scalar
-import Math.Natural as Natural
+import Math.Natural
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens as Lens
@@ -22,6 +22,8 @@ import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
+import Types.Dashboard.WithSimulation
+import Types.Dashboard.WithoutSimulation
 import Types.Progress.Progress
 import Types.Simulation.Update
 import Types.Task.TaskWithSimulation
@@ -48,9 +50,10 @@ viewMain configuration main =
         , showNavigation = True
         }
     <|
-        viewDashboard
+        viewDashboardStatistics
             main.languages.statistics
             main.languages.dashboard
+            main.viewType
             main.dashboard
             main.dashboardStatistics
             :: (main.projects
@@ -65,8 +68,8 @@ bigDecimalToString (LondoGQL.Scalar.BigDecimal string) =
     string
 
 
-viewDashboard : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
-viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
+viewDashboardStatistics : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.ViewType -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
+viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard statistics =
     section []
         [ table [ Style.classes.elementsWithControlsTable ]
             [ Pages.Dashboards.View.tableHeader dashboardLanguage
@@ -76,55 +79,108 @@ viewDashboard statisticsLanguage dashboardLanguage dashboard statistics =
                 )
             ]
         , h1 [] [ text <| statisticsLanguage.statistics ]
+        , p []
+            [ button
+                [ disabled <| viewType == Page.Total
+                , onClick <| Page.SetViewType Page.Total
+                ]
+                [ text <|
+                    statisticsLanguage.total
+                ]
+            , button
+                [ disabled <| viewType == Page.Counting
+                , onClick <| Page.SetViewType Page.Counting
+                ]
+                [ text <|
+                    statisticsLanguage.counting
+                ]
+            ]
         , table [ Style.classes.elementsWithControlsTable ]
-            [ thead []
-                [ tr []
-                    [ th [] [ text <| "" ]
-                    , th [] [ text <| .total <| statisticsLanguage ]
-                    , th [] [ text <| .counting <| statisticsLanguage ]
-                    , th [] [ text <| .simulatedTotal <| statisticsLanguage ]
-                    , th [] [ text <| .simulatedcounting <| statisticsLanguage ]
+            [ (case viewType of
+                Page.Total ->
+                    viewDashboardStatisticsWith
+                        { headerActual = .total
+                        , headerSimulated = .simulatedTotal
+                        , reachedActual = .total
+                        , reachedSimulated = .simulatedTotal
+                        , reachable = .total
+                        , meanAbsoluteActual = .total
+                        , meanAbsoluteSimulated = .simulatedTotal
+                        , meanRelativeActual = .total
+                        , meanRelativeSimulated = .simulatedTotal
+                        }
+
+                Page.Counting ->
+                    viewDashboardStatisticsWith
+                        { headerActual = .counting
+                        , headerSimulated = .simulatedCounting
+                        , reachedActual = .counting
+                        , reachedSimulated = .simulatedCounting
+                        , reachable = .counting
+                        , meanAbsoluteActual = .counting
+                        , meanAbsoluteSimulated = .simulatedCounting
+                        , meanRelativeActual = .counting
+                        , meanRelativeSimulated = .simulatedCounting
+                        }
+              )
+                statisticsLanguage
+                statistics
+            ]
+        ]
+
+
+viewDashboardStatisticsWith :
+    { headerActual : Page.StatisticsLanguage -> String
+    , headerSimulated : Page.StatisticsLanguage -> String
+    , reachedActual : Types.Dashboard.WithSimulation.WithSimulation Math.Natural.Natural -> Math.Natural.Natural
+    , reachedSimulated : Types.Dashboard.WithSimulation.WithSimulation Math.Natural.Natural -> Math.Natural.Natural
+    , reachable : Types.Dashboard.WithoutSimulation.WithoutSimulation -> Math.Natural.Natural
+    , meanAbsoluteActual : Types.Dashboard.WithSimulation.WithSimulation LondoGQL.Scalar.BigDecimal -> LondoGQL.Scalar.BigDecimal
+    , meanAbsoluteSimulated : Types.Dashboard.WithSimulation.WithSimulation LondoGQL.Scalar.BigDecimal -> LondoGQL.Scalar.BigDecimal
+    , meanRelativeActual : Types.Dashboard.WithSimulation.WithSimulation LondoGQL.Scalar.BigDecimal -> LondoGQL.Scalar.BigDecimal
+    , meanRelativeSimulated : Types.Dashboard.WithSimulation.WithSimulation LondoGQL.Scalar.BigDecimal -> LondoGQL.Scalar.BigDecimal
+    }
+    -> Page.StatisticsLanguage
+    -> Page.DashboardStatistics
+    -> Html Page.LogicMsg
+viewDashboardStatisticsWith ps statisticsLanguage statistics =
+    table
+        [ Style.classes.elementsWithControlsTable ]
+        [ thead []
+            [ tr []
+                [ th [] [ text <| "" ]
+                , th [] [ text <| ps.headerActual <| statisticsLanguage ]
+                , th [] [ text <| ps.headerSimulated <| statisticsLanguage ]
+                ]
+            ]
+        , tbody []
+            --todo: reachableAll, and reachedAll are only meaningful for non-percent values,
+            -- because otherwise the values are misleading. Adjust that.
+            [ tr [ Style.classes.editing, Style.classes.statisticsLine ]
+                [ td [] [ text <| .reachedAll <| statisticsLanguage ]
+                , td []
+                    [ text <| Math.Natural.toString <| ps.reachedActual <| .reached <| statistics
+                    ]
+                , td [] [ text <| Math.Natural.toString <| ps.reachedSimulated <| .reached <| statistics ]
+                ]
+            , tr [ Style.classes.editing, Style.classes.statisticsLine ]
+                [ td [] [ text <| .reachableAll <| statisticsLanguage ]
+                , td []
+                    [ text <| Math.Natural.toString <| ps.reachable <| .reachable <| statistics
+                    ]
+                , td []
+                    [ text <| Math.Natural.toString <| .counting <| .reachable <| statistics
                     ]
                 ]
-            , tbody []
-                --todo: reachableAll, and reachedAll are only meaningful for non-percent values,
-                -- because otherwise the values are misleading. Adjust that.
-                [ tr [ Style.classes.editing, Style.classes.statisticsLine ]
-                    [ td [] [ text <| .reachedAll <| statisticsLanguage ]
-                    , td []
-                        [ text <| Natural.toString <| .total <| .reached <| statistics
-                        ]
-                    , td []
-                        [ text <| Natural.toString <| .counting <| .reached <| statistics
-                        ]
-                    , td [] [ text <| Natural.toString <| .simulatedTotal <| .reached <| statistics ]
-                    , td [] [ text <| Natural.toString <| .simulatedcounting <| .reached <| statistics ]
-                    ]
-                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
-                    [ td [] [ text <| .reachableAll <| statisticsLanguage ]
-                    , td []
-                        [ text <| Natural.toString <| .total <| .reachable <| statistics
-                        ]
-                    , td []
-                        [ text <| Natural.toString <| .counting <| .reachable <| statistics
-                        ]
-                    , td [] []
-                    , td [] []
-                    ]
-                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
-                    [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
-                    , td [] [ text <| bigDecimalToString <| .total <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .counting <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .simulatedTotal <| .absoluteMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .simulatedcounting <| .absoluteMeans <| statistics ]
-                    ]
-                , tr [ Style.classes.editing, Style.classes.statisticsLine ]
-                    [ td [] [ text <| .meanRelative <| statisticsLanguage ]
-                    , td [] [ text <| bigDecimalToString <| .total <| .relativeMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .counting <| .relativeMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .simulatedTotal <| .relativeMeans <| statistics ]
-                    , td [] [ text <| bigDecimalToString <| .simulatedcounting <| .relativeMeans <| statistics ]
-                    ]
+            , tr [ Style.classes.editing, Style.classes.statisticsLine ]
+                [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
+                , td [] [ text <| bigDecimalToString <| ps.meanAbsoluteActual <| .absoluteMeans <| statistics ]
+                , td [] [ text <| bigDecimalToString <| ps.meanAbsoluteSimulated <| .absoluteMeans <| statistics ]
+                ]
+            , tr [ Style.classes.editing, Style.classes.statisticsLine ]
+                [ td [] [ text <| .meanRelative <| statisticsLanguage ]
+                , td [] [ text <| bigDecimalToString <| ps.meanRelativeActual <| .absoluteMeans <| statistics ]
+                , td [] [ text <| bigDecimalToString <| ps.meanRelativeSimulated <| .absoluteMeans <| statistics ]
                 ]
             ]
         ]

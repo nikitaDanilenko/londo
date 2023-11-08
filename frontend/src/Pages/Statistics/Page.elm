@@ -145,7 +145,7 @@ initialToMain i =
                             }
                         )
                     |> DictList.fromListWithKey Types.Project.Id.ordering (.project >> .id)
-            , viewType = Total
+            , viewType = Counting
             , searchString = ""
             , pagination = Pagination.initial
             , languages = i.languages
