@@ -85,6 +85,7 @@ viewTypeButtonWith ps =
     button
         [ disabled <| ps.currentViewType == ps.forViewType
         , onClick <| Page.SetViewType ps.forViewType
+        , Style.classes.button.navigation
         ]
         [ text <| ps.label
         ]
