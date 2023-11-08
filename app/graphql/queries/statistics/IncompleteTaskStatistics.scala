@@ -8,8 +8,6 @@ import sangria.schema.ObjectType
 import utils.graphql.SangriaUtil.instances._
 import utils.math.MathUtil
 
-import java.math.MathContext
-
 case class IncompleteTaskStatistics(
     mean: BigDecimal,
     total: After,
