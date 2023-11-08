@@ -10,7 +10,6 @@ import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl.TransformerOps
 import sangria.macros.derive.GraphQLField
 import services.task.Progress
-import utils.math.MathUtil
 
 import scala.concurrent.Future
 
