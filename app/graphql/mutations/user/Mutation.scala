@@ -6,12 +6,12 @@ import cats.syntax.functor._
 import errors.{ ErrorContext, ServerError }
 import graphql.HasGraphQLServices.syntax._
 import graphql.mutations.user.inputs._
-import graphql.{ HasGraphQLServices, HasLoggedInUser }
+import graphql.{ HasConfigurations, HasGraphQLServices, HasLoggedInUser }
 import io.circe.Encoder
 import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 import security.Hash
-import security.jwt.{ JwtConfiguration, JwtExpiration, LoggedIn }
+import security.jwt.{ JwtExpiration, LoggedIn }
 import services.loginThrottle.LoginThrottle
 import services.user.PasswordParameters
 import utils.date.DateUtil
@@ -22,10 +22,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import scala.concurrent.Future
 
-trait Mutation extends HasGraphQLServices with HasLoggedInUser {
-
-  private val jwtConfiguration  = JwtConfiguration.default
-  private val userConfiguration = UserHandlingConfiguration.default
+trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedInUser {
 
   private val maxLoginAttempts       = 5
   private val loginThrottleInMinutes = 1
@@ -83,13 +80,13 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
             userId = userId,
             sessionId = session.id
           ),
-          privateKey = jwtConfiguration.signaturePrivateKey,
+          privateKey = configurations.jwtConfiguration.signaturePrivateKey,
           expiration =
             if (input.isValidityUnrestricted) JwtExpiration.Never
             else
               JwtExpiration.Expiring(
                 start = System.currentTimeMillis() / 1000,
-                duration = jwtConfiguration.restrictedDurationInSeconds
+                duration = configurations.jwtConfiguration.restrictedDurationInSeconds
               )
         )
       else
@@ -179,12 +176,12 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
           .map(r => if (r.isDefined) None else Some(())),
         ErrorContext.User.Exists.asServerError
       )
-      registrationJwt = createJwt(input.userIdentifier)
+      registrationJwt = createNonLoginJwt(input.userIdentifier)
       _ <- EitherT(
         graphQLServices.emailService
           .sendEmail(
             emailParameters = UserHandlingConfiguration.registrationEmail(
-              userConfiguration = userConfiguration,
+              userConfiguration = configurations.userHandlingConfiguration,
               userIdentifier = input.userIdentifier,
               jwt = registrationJwt
             )
@@ -200,7 +197,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
   ): Future[User] = {
     val transformer = for {
       registrationRequest <- EitherT.fromEither[Future](
-        JwtUtil.validateJwt[UserIdentifier](input.creationToken, jwtConfiguration.signaturePublicKey)
+        JwtUtil.validateJwt[UserIdentifier](input.creationToken, configurations.jwtConfiguration.signaturePublicKey)
       )
       userCreation = services.user.Creation(
         nickname = registrationRequest.nickname,
@@ -226,7 +223,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         graphQLServices.userService.get(input.userId.transformInto[db.UserId]),
         ErrorContext.User.NotFound.asServerError
       )
-      recoveryJwt = createJwt(
+      recoveryJwt = createNonLoginJwt(
         UserOperation(
           userId = user.id,
           operation = UserOperation.Operation.Recovery
@@ -236,7 +233,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         graphQLServices.emailService
           .sendEmail(
             emailParameters = UserHandlingConfiguration.recoveryEmail(
-              userConfiguration,
+              configurations.userHandlingConfiguration,
               userIdentifier = UserIdentifier.of(user),
               jwt = recoveryJwt
             )
@@ -260,7 +257,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         JwtUtil
           .validateJwt[UserOperation[UserOperation.Operation.Recovery]](
             input.recoveryToken,
-            jwtConfiguration.signaturePublicKey
+            configurations.jwtConfiguration.signaturePublicKey
           )
       )
       successful <-
@@ -288,9 +285,9 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
           graphQLServices.emailService
             .sendEmail(
               emailParameters = UserHandlingConfiguration.deletionEmail(
-                userConfiguration,
+                userConfiguration = configurations.userHandlingConfiguration,
                 userIdentifier = UserIdentifier.of(user),
-                jwt = createJwt(
+                jwt = createNonLoginJwt(
                   UserOperation(
                     userId = userId,
                     operation = UserOperation.Operation.Deletion
@@ -314,7 +311,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         JwtUtil
           .validateJwt[UserOperation[UserOperation.Operation.Deletion]](
             input.deletionToken,
-            jwtConfiguration.signaturePublicKey
+            configurations.jwtConfiguration.signaturePublicKey
           )
       )
       response <- EitherT(graphQLServices.userService.delete(userDeletion.userId.transformInto[db.UserId]))
@@ -323,16 +320,16 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
     transformer.value.handleServerError
   }
 
-  private def createJwt[C: Encoder](
+  private def createNonLoginJwt[C: Encoder](
       content: C,
       expiration: JwtExpiration = JwtExpiration.Expiring(
         start = System.currentTimeMillis() / 1000,
-        duration = userConfiguration.restrictedDurationInSeconds
+        duration = configurations.userHandlingConfiguration.restrictedDurationInSeconds
       )
   ): String =
     JwtUtil.createJwt(
       content = content,
-      privateKey = jwtConfiguration.signaturePrivateKey,
+      privateKey = configurations.jwtConfiguration.signaturePrivateKey,
       expiration = expiration
     )
 

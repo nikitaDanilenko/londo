@@ -16,13 +16,12 @@ import scala.util.chaining._
 
 class JWTAction @Inject() (
     sessionService: SessionService,
+    jwtConfiguration: JwtConfiguration,
     override val parser: BodyParsers.Default
 )(implicit
     override val executionContext: ExecutionContext
 ) extends ActionBuilder[LoggedInRequest, AnyContent]
     with ActionRefiner[Request, LoggedInRequest] {
-
-  private val jwtConfiguration = JwtConfiguration.default
 
   override protected def refine[A](request: Request[A]): Future[Either[Result, LoggedInRequest[A]]] = {
     OptionT

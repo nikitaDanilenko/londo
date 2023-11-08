@@ -1,9 +1,12 @@
 package modules
 
+import graphql.mutations.user.UserHandlingConfiguration
 import play.api.inject.Binding
 import play.api.{ Configuration, Environment }
+import security.jwt.JwtConfiguration
 import services.dashboard.DashboardService
 import services.dashboardEntry.DashboardEntryService
+import services.email.MailConfiguration
 import services.loginThrottle.LoginThrottleService
 import services.project.ProjectService
 import services.session.SessionService
@@ -38,7 +41,10 @@ class ApplicationModule extends play.api.inject.Module {
       bind[UserService.Companion].to[services.user.Live.Companion],
       bind[UserService].to[services.user.Live],
       bind[SimulationService.Companion].to[services.simulation.Live.Companion],
-      bind[SimulationService].to[services.simulation.Live]
+      bind[SimulationService].to[services.simulation.Live],
+      bind[MailConfiguration].toInstance(MailConfiguration.default),
+      bind[JwtConfiguration].toInstance(JwtConfiguration.default),
+      bind[UserHandlingConfiguration].toInstance(UserHandlingConfiguration.default)
     )
     settings
   }

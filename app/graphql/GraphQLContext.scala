@@ -9,21 +9,27 @@ sealed trait GraphQLContext {
 
 object GraphQLContext {
 
-  def withoutUser(graphQLServices: GraphQLServices): GraphQLContext =
+  def withoutUser(graphQLServices: GraphQLServices, configurations: Configurations): GraphQLContext =
     create(
       graphQLServices = graphQLServices,
-      _loggedIn = None
+      _loggedIn = None,
+      _configurations = configurations
     )
 
-  def withUser(graphQLServices: GraphQLServices, loggedIn: LoggedIn): GraphQLContext =
+  def withUser(graphQLServices: GraphQLServices, loggedIn: LoggedIn, configurations: Configurations): GraphQLContext =
     create(
       graphQLServices = graphQLServices,
-      _loggedIn = Some(loggedIn)
+      _loggedIn = Some(loggedIn),
+      _configurations = configurations
     )
 
-  private def create(graphQLServices: GraphQLServices, _loggedIn: Option[LoggedIn]): GraphQLContext =
+  private def create(
+      graphQLServices: GraphQLServices,
+      _loggedIn: Option[LoggedIn],
+      _configurations: Configurations
+  ): GraphQLContext =
     new GraphQLContext {
-      override val mutation: Mutation = Mutation(graphQLServices, _loggedIn)
+      override val mutation: Mutation = Mutation(graphQLServices, _loggedIn, _configurations)
       override val query: Query       = Query(graphQLServices, _loggedIn)
     }
 
