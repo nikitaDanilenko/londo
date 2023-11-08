@@ -31,6 +31,7 @@ import Types.Task.Update
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing
 import Util.MaybeUtil as MaybeUtil
+import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput
 
 
@@ -56,16 +57,22 @@ viewMain configuration main =
             main.viewType
             main.dashboard
             main.dashboardStatistics
+            :: section [] [ viewTaskSearchField main.searchString ]
             :: (main.projects
                     |> DictList.values
                     |> List.map
-                        (viewResolvedProject main.viewType main.languages.taskEditor main.languages.statistics)
+                        (viewResolvedProject main.viewType main.languages.taskEditor main.languages.statistics main.searchString)
                )
 
 
 bigDecimalToString : LondoGQL.Scalar.BigDecimal -> String
 bigDecimalToString (LondoGQL.Scalar.BigDecimal string) =
     string
+
+
+viewTaskSearchField : String -> Html Page.LogicMsg
+viewTaskSearchField searchString =
+    HtmlUtil.searchAreaWith { msg = Page.SetSearchString, searchString = searchString }
 
 
 viewDashboardStatistics : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.ViewType -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
@@ -186,8 +193,8 @@ viewDashboardStatisticsWith ps statisticsLanguage statistics =
         ]
 
 
-viewResolvedProject : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> EditingResolvedProject -> Html Page.LogicMsg
-viewResolvedProject viewType taskEditorLanguage statisticsLanguage resolvedProject =
+viewResolvedProject : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> String -> EditingResolvedProject -> Html Page.LogicMsg
+viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString resolvedProject =
     let
         project =
             resolvedProject.project
@@ -199,6 +206,8 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage resolvedProje
             resolvedProject
                 |> .tasks
                 |> DictList.values
+                |> List.filter
+                    (.original >> .task >> .name >> SearchUtil.search searchString)
 
         ( finished, unfinished ) =
             tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
