@@ -75,6 +75,21 @@ viewTaskSearchField searchString =
     HtmlUtil.searchAreaWith { msg = Page.SetSearchString, searchString = searchString }
 
 
+viewTypeButtonWith :
+    { label : String
+    , currentViewType : Page.ViewType
+    , forViewType : Page.ViewType
+    }
+    -> Html Page.LogicMsg
+viewTypeButtonWith ps =
+    button
+        [ disabled <| ps.currentViewType == ps.forViewType
+        , onClick <| Page.SetViewType ps.forViewType
+        ]
+        [ text <| ps.label
+        ]
+
+
 viewDashboardStatistics : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.ViewType -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
 viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard statistics =
     section []
@@ -87,20 +102,16 @@ viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard 
             ]
         , h1 [] [ text <| statisticsLanguage.statistics ]
         , p []
-            [ button
-                [ disabled <| viewType == Page.Total
-                , onClick <| Page.SetViewType Page.Total
-                ]
-                [ text <|
-                    statisticsLanguage.total
-                ]
-            , button
-                [ disabled <| viewType == Page.Counting
-                , onClick <| Page.SetViewType Page.Counting
-                ]
-                [ text <|
-                    statisticsLanguage.counting
-                ]
+            [ viewTypeButtonWith
+                { label = statisticsLanguage.total
+                , currentViewType = viewType
+                , forViewType = Page.Total
+                }
+            , viewTypeButtonWith
+                { label = statisticsLanguage.counting
+                , currentViewType = viewType
+                , forViewType = Page.Counting
+                }
             ]
         , table [ Style.classes.elementsWithControlsTable ]
             [ (case viewType of
