@@ -22,7 +22,7 @@ selectionNatural =
         (LondoGQL.Object.WithSimulationNatural.total Math.Natural.selection)
         (LondoGQL.Object.WithSimulationNatural.counting Math.Natural.selection)
         (LondoGQL.Object.WithSimulationNatural.simulatedTotal Math.Natural.selection)
-        (LondoGQL.Object.WithSimulationNatural.simulatedcounting Math.Natural.selection)
+        (LondoGQL.Object.WithSimulationNatural.simulatedCounting Math.Natural.selection)
 
 
 selectionBigDecimal : SelectionSet (WithSimulation LondoGQL.Scalar.BigDecimal) LondoGQL.Object.WithSimulationBigDecimal
@@ -31,4 +31,4 @@ selectionBigDecimal =
         LondoGQL.Object.WithSimulationBigDecimal.total
         LondoGQL.Object.WithSimulationBigDecimal.counting
         LondoGQL.Object.WithSimulationBigDecimal.simulatedTotal
-        LondoGQL.Object.WithSimulationBigDecimal.simulatedcounting
+        LondoGQL.Object.WithSimulationBigDecimal.simulatedCounting

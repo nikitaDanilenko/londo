@@ -12,7 +12,7 @@ case class WithSimulationBigDecimal(
     total: BigDecimal,
     counting: BigDecimal,
     simulatedTotal: BigDecimal,
-    simulatedcounting: BigDecimal
+    simulatedCounting: BigDecimal
 )
 
 object WithSimulationBigDecimal {
@@ -24,7 +24,7 @@ object WithSimulationBigDecimal {
         total = toBigDecimal(withSimulation.total),
         counting = toBigDecimal(withSimulation.counting),
         simulatedTotal = toBigDecimal(withSimulation.simulatedTotal),
-        simulatedcounting = toBigDecimal(withSimulation.simulatedcounting)
+        simulatedCounting = toBigDecimal(withSimulation.simulatedCounting)
       )
 
   }

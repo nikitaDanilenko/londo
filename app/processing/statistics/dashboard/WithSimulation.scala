@@ -4,5 +4,5 @@ case class WithSimulation[A](
     total: A,
     counting: A,
     simulatedTotal: A,
-    simulatedcounting: A
+    simulatedCounting: A
 )

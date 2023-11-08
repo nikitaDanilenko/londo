@@ -40,8 +40,8 @@ simulatedTotal object____ =
     Object.selectionForCompositeField "simulatedTotal" [] object____ Basics.identity
 
 
-simulatedcounting :
+simulatedCounting :
     SelectionSet decodesTo LondoGQL.Object.Natural
     -> SelectionSet decodesTo LondoGQL.Object.WithSimulationNatural
-simulatedcounting object____ =
-    Object.selectionForCompositeField "simulatedcounting" [] object____ Basics.identity
+simulatedCounting object____ =
+    Object.selectionForCompositeField "simulatedCounting" [] object____ Basics.identity

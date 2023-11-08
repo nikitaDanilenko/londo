@@ -10,13 +10,12 @@ case class WithSimulationNatural(
     total: Natural,
     counting: Natural,
     simulatedTotal: Natural,
-    simulatedcounting: Natural
+    simulatedCounting: Natural
 )
 
 object WithSimulationNatural {
 
-  implicit val fromInternal
-      : Transformer[WithSimulation[spire.math.Natural], WithSimulationNatural] =
+  implicit val fromInternal: Transformer[WithSimulation[spire.math.Natural], WithSimulationNatural] =
     Transformer
       .define[WithSimulation[spire.math.Natural], WithSimulationNatural]
       .buildTransformer

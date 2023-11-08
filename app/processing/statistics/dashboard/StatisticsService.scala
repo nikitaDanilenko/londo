@@ -16,7 +16,7 @@ object StatisticsService {
         total = statsInTotal.reached,
         counting = statsInCounting.reached,
         simulatedTotal = statsInTotal.reachedSimulated,
-        simulatedcounting = statsInCounting.reachedSimulated
+        simulatedCounting = statsInCounting.reachedSimulated
       ),
       reachable = WithoutSimulation(
         total = statsInTotal.reachable,
@@ -26,13 +26,13 @@ object StatisticsService {
         total = statsInTotal.meanAbsolute,
         counting = statsInCounting.meanAbsolute,
         simulatedTotal = statsInTotal.meanAbsoluteSimulated,
-        simulatedcounting = statsInCounting.meanAbsoluteSimulated
+        simulatedCounting = statsInCounting.meanAbsoluteSimulated
       ),
       relativeMeans = WithSimulation(
         total = statsInTotal.meanRelative,
         counting = statsInCounting.meanRelative,
         simulatedTotal = statsInTotal.meanRelativeSimulated,
-        simulatedcounting = statsInCounting.meanRelativeSimulated
+        simulatedCounting = statsInCounting.meanRelativeSimulated
       )
     )
   }
