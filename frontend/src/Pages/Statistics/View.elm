@@ -207,9 +207,13 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage resolvedProje
             List.sortBy (.original >> .task >> .name)
                 >> List.indexedMap
                     (\index ->
+                        let
+                            position =
+                                index + 1
+                        in
                         Editing.unpack
-                            { onView = viewTask (1 + index) viewType project.id taskEditorLanguage
-                            , onUpdate = .task >> updateTask taskEditorLanguage project.id
+                            { onView = viewTask position viewType project.id taskEditorLanguage
+                            , onUpdate = .task >> updateTask position taskEditorLanguage project.id
                             , onDelete = \_ -> []
                             }
                     )
@@ -370,8 +374,8 @@ viewTask index viewType projectId language resolvedTask showControls =
         resolvedTask
 
 
-updateTask : Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
-updateTask language projectId task update =
+updateTask : Int -> Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
+updateTask index language projectId task update =
     let
         progressUpdateLens =
             Types.Task.TaskWithSimulation.lenses.taskUpdate
@@ -415,11 +419,13 @@ updateTask language projectId task update =
             Page.SaveEditTask projectId <| .id <| task
 
         filler =
-            List.repeat 5 <| td [] []
+            List.repeat 3 <| td [] []
 
         --todo: Consider a more stable way of computing the number of values
         infoColumns =
             [ td [ Style.classes.editable ]
+                [ text <| String.fromInt <| index ]
+            , td [ Style.classes.editable ]
                 [ text <| .name <| task ]
             , td []
                 [ text <| TaskKind.toString <| .taskKind <| task ]
