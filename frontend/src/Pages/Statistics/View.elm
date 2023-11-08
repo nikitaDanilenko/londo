@@ -179,8 +179,8 @@ viewDashboardStatisticsWith ps statisticsLanguage statistics =
                 ]
             , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                 [ td [] [ text <| .meanRelative <| statisticsLanguage ]
-                , td [] [ text <| bigDecimalToString <| ps.meanRelativeActual <| .absoluteMeans <| statistics ]
-                , td [] [ text <| bigDecimalToString <| ps.meanRelativeSimulated <| .absoluteMeans <| statistics ]
+                , td [] [ text <| bigDecimalToString <| ps.meanRelativeActual <| .relativeMeans <| statistics ]
+                , td [] [ text <| bigDecimalToString <| ps.meanRelativeSimulated <| .relativeMeans <| statistics ]
                 ]
             ]
         ]
@@ -204,13 +204,14 @@ viewResolvedProject taskEditorLanguage statisticsLanguage resolvedProject =
             tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
 
         display =
-            List.concatMap
-                (Editing.unpack
-                    { onView = viewTask project.id taskEditorLanguage
-                    , onUpdate = .task >> updateTask taskEditorLanguage project.id
-                    , onDelete = \_ -> []
-                    }
-                )
+            List.sortBy (.original >> .task >> .name)
+                >> List.concatMap
+                    (Editing.unpack
+                        { onView = viewTask project.id taskEditorLanguage
+                        , onUpdate = .task >> updateTask taskEditorLanguage project.id
+                        , onDelete = \_ -> []
+                        }
+                    )
 
         separator =
             if List.any List.isEmpty [ finished, unfinished ] then
