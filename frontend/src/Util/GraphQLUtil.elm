@@ -1,7 +1,7 @@
 module Util.GraphQLUtil exposing (..)
 
 import BigInt exposing (BigInt)
-import LondoGQL.Scalar exposing (Uuid(..))
+import LondoGQL.Scalar
 
 
 bigIntFromGraphQL : LondoGQL.Scalar.BigInt -> Maybe BigInt
@@ -14,6 +14,11 @@ bigIntToGraphQL =
     BigInt.toString >> LondoGQL.Scalar.BigInt
 
 
-uuidToString : Uuid -> String
-uuidToString (Uuid string) =
+uuidToString : LondoGQL.Scalar.Uuid -> String
+uuidToString (LondoGQL.Scalar.Uuid string) =
     string
+
+
+unit : LondoGQL.Scalar.Unit
+unit =
+    LondoGQL.Scalar.Unit "()"
