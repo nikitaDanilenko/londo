@@ -2,7 +2,7 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, header, main_, nav, table, tbody, td, text, tr)
+import Html exposing (Html, button, header, main_, nav, p, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -132,28 +132,23 @@ navigationToPageButtonWith ps =
         isDisabled =
             Maybe.Extra.unwrap False (\current -> current == ps.page) ps.currentPage
 
-        attributes =
-            [ MaybeUtil.defined <| Style.classes.button.navigation
-            , MaybeUtil.optional isDisabled <| Style.classes.disabled
+        navigationAttributes =
+            [ Style.classes.button.navigation
             ]
-                |> Maybe.Extra.values
+    in
+    if isDisabled then
+        p (Style.classes.disabled :: navigationAttributes) [ text <| ps.nameOf <| ps.page ]
 
-        url =
-            if isDisabled then
-                ""
-
-            else
+    else
+        Links.linkButton
+            { url =
                 navigationLink
                     { mainPageURL = ps.mainPageURL
                     , page = ps.addressSuffix ps.page
                     }
-    in
-    Links.linkButton
-        --todo: This should be properly inactive, when disabled!
-        { url = url
-        , attributes = attributes
-        , linkText = ps.nameOf <| ps.page
-        }
+            , attributes = navigationAttributes
+            , linkText = ps.nameOf <| ps.page
+            }
 
 
 navigationBar :
