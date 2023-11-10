@@ -181,17 +181,17 @@ toError model error =
 
 view :
     { showLoginRedirect : Bool
-    , viewMain : Configuration -> main -> Html msg
+    , viewMain : Configuration -> main -> List (Html msg)
     }
     -> Model main initial
-    -> Html (Msg msg)
+    -> List (Html (Msg msg))
 view ps t =
     case t.status of
         Initial _ ->
-            main_ [] [ Links.loadingSymbol ]
+            [ main_ [] [ Links.loadingSymbol ] ]
 
         Main main ->
-            ps.viewMain t.configuration main |> Html.map Logic
+            ps.viewMain t.configuration main |> List.map (Html.map Logic)
 
         Error errorState ->
             let
@@ -231,7 +231,7 @@ view ps t =
                     ]
                         |> List.filter (always errorState.errorExplanation.suggestReload)
             in
-            table
+            [ table
                 [ Style.ids.error ]
                 ([ tr []
                     [ td [] [ text "An error occurred:" ] -- todo: Use language elements
@@ -242,6 +242,7 @@ view ps t =
                     ++ redirectRow
                     ++ reloadRow
                 )
+            ]
 
 
 type Msg msg

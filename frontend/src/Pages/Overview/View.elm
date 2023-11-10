@@ -9,7 +9,7 @@ import Pages.Util.Style as Style
 import Pages.View.Tristate as Tristate
 
 
-view : Page.Model -> Html Page.Msg
+view : Page.Model -> List (Html Page.Msg)
 view =
     Tristate.view
         { viewMain = viewMain
@@ -17,9 +17,9 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
+viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
 viewMain configuration main =
-    main_ [ Style.ids.overview ]
+    [ main_ [ Style.ids.overview ]
         [ menu []
             [ li []
                 [ Links.linkButton
@@ -44,3 +44,4 @@ viewMain configuration main =
                 ]
             ]
         ]
+    ]

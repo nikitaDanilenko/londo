@@ -54,7 +54,7 @@ main =
         , onUrlRequest = ClickedLink
         , subscriptions = subscriptions
         , update = update
-        , view = \model -> { title = titleFor model, body = [ view model ] }
+        , view = \model -> { title = titleFor model, body = view model }
         }
 
 
@@ -135,41 +135,41 @@ init configuration url key =
     )
 
 
-view : Model -> Html Msg
+view : Model -> List (Html Msg)
 view model =
     case model.page of
         RequestRegistration requestRegistration ->
-            Html.map RequestRegistrationMsg (Pages.Registration.Request.View.view requestRegistration)
+            List.map (Html.map RequestRegistrationMsg) (Pages.Registration.Request.View.view requestRegistration)
 
         ConfirmRegistration confirmRegistration ->
-            Html.map ConfirmRegistrationMsg (Pages.Registration.Confirm.View.view confirmRegistration)
+            List.map (Html.map ConfirmRegistrationMsg) (Pages.Registration.Confirm.View.view confirmRegistration)
 
         Login login ->
-            Html.map LoginMsg (Pages.Login.View.view login)
+            List.map (Html.map LoginMsg) (Pages.Login.View.view login)
 
         Overview overview ->
-            Html.map OverviewMsg (Pages.Overview.View.view overview)
+            List.map (Html.map OverviewMsg) (Pages.Overview.View.view overview)
 
         Projects projects ->
-            Html.map ProjectsMsg (Pages.Projects.View.view projects)
+            List.map (Html.map ProjectsMsg) (Pages.Projects.View.view projects)
 
         Tasks tasks ->
-            Html.map TasksMsg (Pages.Tasks.View.view tasks)
+            List.map (Html.map TasksMsg) (Pages.Tasks.View.view tasks)
 
         Dashboards dashboards ->
-            Html.map DashboardsMsg (Pages.Dashboards.View.view dashboards)
+            List.map (Html.map DashboardsMsg) (Pages.Dashboards.View.view dashboards)
 
         DashboardEntries dashboardEntries ->
-            Html.map DashboardEntriesMsg (Pages.DashboardEntries.View.view dashboardEntries)
+            List.map (Html.map DashboardEntriesMsg) (Pages.DashboardEntries.View.view dashboardEntries)
 
         Statistics statistics ->
-            Html.map StatisticsMsg (Pages.Statistics.View.view statistics)
+            List.map (Html.map StatisticsMsg) (Pages.Statistics.View.view statistics)
 
         Settings settings ->
-            Html.map SettingsMsg (Pages.Settings.View.view settings)
+            List.map (Html.map SettingsMsg) (Pages.Settings.View.view settings)
 
         NotFound ->
-            main_ [] [ text "Page not found" ]
+            [ main_ [] [ text "Page not found" ] ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

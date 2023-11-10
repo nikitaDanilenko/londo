@@ -40,12 +40,13 @@ viewParentsWith :
     -> language
     -> Configuration
     -> Page.Main parentId parent creation update language
-    -> Html msg
+    -> List (Html msg)
 viewParentsWith ps language configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
         , currentPage = ps.currentPage
         , showNavigation = ps.showNavigation
+        , id = ps.styling
         }
     <|
         let

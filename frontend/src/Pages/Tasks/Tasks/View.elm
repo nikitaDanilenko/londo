@@ -29,7 +29,7 @@ import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
-viewSubMain : Types.Project.Id.Id -> Configuration -> Page.SubMain -> Html Page.LogicMsg
+viewSubMain : Types.Project.Id.Id -> Configuration -> Page.SubMain -> List (Html Page.LogicMsg)
 viewSubMain projectId configuration subMain =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Nothing

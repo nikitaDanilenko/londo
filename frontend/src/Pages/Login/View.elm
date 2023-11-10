@@ -15,7 +15,7 @@ import Pages.View.Tristate as Tristate
 import Types.User.Login
 
 
-view : Page.Model -> Html Page.Msg
+view : Page.Model -> List (Html Page.Msg)
 view =
     Tristate.view
         { viewMain = viewMain
@@ -23,7 +23,7 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
+viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
 viewMain configuration main =
     let
         username =
@@ -35,7 +35,7 @@ viewMain configuration main =
         keepLoggedIn =
             "keep-logged-in"
     in
-    main_ [ Style.ids.login ]
+    [ main_ [ Style.ids.login ]
         --todo: This should be set via a language component
         [ h1 [] [ text "Londo" ]
         , form
@@ -97,3 +97,4 @@ viewMain configuration main =
                 }
             ]
         ]
+    ]

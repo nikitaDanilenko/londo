@@ -1,5 +1,6 @@
 module Pages.Settings.Page exposing (..)
 
+import Language.Language as Language
 import LondoGQL.Enum.LogoutMode
 import LondoGQL.Scalar
 import Monocle.Lens exposing (Lens)
@@ -20,6 +21,7 @@ type alias Main =
     , user : Types.User.User.User
     , complementInput : ComplementInput
     , mode : Mode
+    , language : Language
     }
 
 
@@ -27,6 +29,10 @@ type alias Initial =
     { jwt : JWT
     , user : Maybe Types.User.User.User
     }
+
+
+type alias Language =
+    Language.UserSettings
 
 
 initial : AuthorizedAccess -> Model
@@ -45,6 +51,7 @@ initialToMain i =
             , user = user
             , complementInput = ComplementInput.initial
             , mode = Regular
+            , language = Language.default.userSettings
             }
         )
         i.user

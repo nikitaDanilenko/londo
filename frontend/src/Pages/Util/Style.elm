@@ -105,6 +105,8 @@ ids :
     , registrationRequestSent : Attribute msg
     , requestRegistration : Attribute msg
     , searchField : Attribute msg
+    , settings : Attribute msg
+    , statistics : Attribute msg
     , taskEditor : Attribute msg
     }
 ids =
@@ -120,6 +122,8 @@ ids =
     , registrationRequestSent = id "registration-request-sent"
     , requestRegistration = id "request-registration"
     , searchField = id "search-field"
+    , settings = id "settings"
+    , statistics = id "statistics"
     , taskEditor = id "task-editor"
     }
 

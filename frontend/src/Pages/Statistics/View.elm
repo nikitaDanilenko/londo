@@ -35,7 +35,7 @@ import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput
 
 
-view : Page.Model -> Html Page.Msg
+view : Page.Model -> List (Html Page.Msg)
 view =
     Tristate.view
         { viewMain = viewMain
@@ -43,12 +43,13 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
+viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
 viewMain configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
         , currentPage = Nothing
         , showNavigation = True
+        , id = Style.ids.statistics
         }
     <|
         viewDashboardStatistics

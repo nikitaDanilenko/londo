@@ -2,7 +2,7 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, header, main_, nav, p, table, tbody, td, text, tr)
+import Html exposing (Attribute, Html, button, header, main_, nav, p, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -19,23 +19,23 @@ viewMainWith :
     { configuration : Configuration
     , currentPage : Maybe Page
     , showNavigation : Bool
+    , id : Attribute msg
     }
     -> List (Html msg)
-    -> Html msg
-viewMainWith params html =
+    -> List (Html msg)
+viewMainWith ps html =
     let
         navigation =
             [ navigationBar
-                { mainPageURL = params.configuration |> .mainPageURL
-                , currentPage = params.currentPage
+                { mainPageURL = ps.configuration |> .mainPageURL
+                , currentPage = ps.currentPage
                 }
             ]
-                |> List.filter (always params.showNavigation)
+                |> List.filter (always ps.showNavigation)
     in
-    main_ []
-        (header [] navigation
-            :: html
-        )
+    [ header [] navigation
+    , main_ [ ps.id ] html
+    ]
 
 
 type Page
