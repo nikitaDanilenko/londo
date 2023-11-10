@@ -1198,20 +1198,15 @@ encodeUpdateTaskWithSimulationInput input____ =
 
 
 buildUpdateUserInput :
-    UpdateUserInputRequiredFields
-    -> (UpdateUserInputOptionalFields -> UpdateUserInputOptionalFields)
+    (UpdateUserInputOptionalFields -> UpdateUserInputOptionalFields)
     -> UpdateUserInput
-buildUpdateUserInput required____ fillOptionals____ =
+buildUpdateUserInput fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
                 { displayName = Absent }
     in
-    { displayName = optionals____.displayName, email = required____.email }
-
-
-type alias UpdateUserInputRequiredFields =
-    { email : String }
+    { displayName = optionals____.displayName }
 
 
 type alias UpdateUserInputOptionalFields =
@@ -1221,9 +1216,7 @@ type alias UpdateUserInputOptionalFields =
 {-| Type for the UpdateUserInput input object.
 -}
 type alias UpdateUserInput =
-    { displayName : OptionalArgument String
-    , email : String
-    }
+    { displayName : OptionalArgument String }
 
 
 {-| Encode a UpdateUserInput into a value that can be used as an argument.
@@ -1231,7 +1224,7 @@ type alias UpdateUserInput =
 encodeUpdateUserInput : UpdateUserInput -> Value
 encodeUpdateUserInput input____ =
     Encode.maybeObject
-        [ ( "displayName", Encode.string |> Encode.optional input____.displayName ), ( "email", Encode.string input____.email |> Just ) ]
+        [ ( "displayName", Encode.string |> Encode.optional input____.displayName ) ]
 
 
 buildUserIdInput :
