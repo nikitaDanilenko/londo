@@ -8,39 +8,30 @@ import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Types.User.User
 import Util.HttpUtil as HttpUtil
-import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
 type alias ClientInput =
-    { email : ValidatedInput String
-    , displayName : Maybe String
+    { displayName : Maybe String
     }
 
 
 lenses :
-    { email : Lens ClientInput (ValidatedInput String)
-    , displayName : Lens ClientInput (Maybe String)
+    { displayName : Lens ClientInput (Maybe String)
     }
 lenses =
-    { email = Lens .email (\b a -> { a | email = b })
-    , displayName = Lens .displayName (\b a -> { a | displayName = b })
+    { displayName = Lens .displayName (\b a -> { a | displayName = b })
     }
 
 
 from : Types.User.User.User -> ClientInput
 from user =
-    { email =
-        ValidatedInput.nonEmptyString
-            |> ValidatedInput.lenses.value.set user.email
-            |> ValidatedInput.lenses.text.set user.email
-    , displayName = user.displayName
+    { displayName = user.displayName
     }
 
 
 toGraphQLInput : ClientInput -> LondoGQL.InputObject.UpdateUserInput
 toGraphQLInput input =
-    { email = input.email.value
-    , displayName = input.displayName |> OptionalArgument.fromMaybe
+    { displayName = input.displayName |> OptionalArgument.fromMaybe
     }
 
 
