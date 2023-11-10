@@ -48,11 +48,11 @@ updateLogic msg model =
         gotFetchDashboardAnalysisResponse result =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
-                    (\serverResponse ->
+                    (\dashboardAnalysis ->
                         model
                             |> Tristate.mapInitial
                                 (Page.lenses.initial.dashboardAnalysis.set
-                                    (serverResponse |> Just)
+                                    (dashboardAnalysis |> Just)
                                 )
                             |> Tristate.fromInitToMain Page.initialToMain
                     )
