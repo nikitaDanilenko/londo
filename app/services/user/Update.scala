@@ -3,8 +3,7 @@ package services.user
 import io.scalaland.chimney.dsl._
 
 case class Update(
-    displayName: Option[String],
-    email: String
+    displayName: Option[String]
 )
 
 object Update {
