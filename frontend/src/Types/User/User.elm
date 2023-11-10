@@ -2,6 +2,7 @@ module Types.User.User exposing (..)
 
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import LondoGQL.Enum.LogoutMode
 import LondoGQL.Mutation
 import LondoGQL.Object
 import LondoGQL.Object.User
@@ -103,6 +104,24 @@ confirmRecoveryWith expect authorizedAccess recoveryToken password =
         { input =
             { recoveryToken = recoveryToken
             , password = password
+            }
+        }
+        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
+        |> HttpUtil.sendWithJWT
+            { jwt = authorizedAccess.jwt
+            , expect = expect
+            }
+
+
+logoutWith :
+    (HttpUtil.GraphQLResult Bool -> msg)
+    -> AuthorizedAccess
+    -> LondoGQL.Enum.LogoutMode.LogoutMode
+    -> Cmd msg
+logoutWith expect authorizedAccess logoutMode =
+    LondoGQL.Mutation.logout
+        { input =
+            { logoutMode = logoutMode
             }
         }
         |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
