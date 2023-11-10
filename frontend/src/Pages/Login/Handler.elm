@@ -3,12 +3,11 @@ module Pages.Login.Handler exposing (init, update)
 import Addresses.Frontend
 import Browser.Navigation
 import Pages.Login.Page as Page
-import Pages.Login.Requests as Requests
 import Pages.Util.Links as Links
 import Pages.View.Tristate as Tristate
 import Ports
 import Result.Extra
-import Types.Credentials exposing (Credentials)
+import Types.User.Login
 import Util.HttpUtil as HttpUtil
 
 
@@ -37,7 +36,7 @@ updateLogic msg model =
             gotResponse model remoteData
 
 
-setCredentials : Page.Model -> Credentials -> ( Page.Model, Cmd Page.LogicMsg )
+setCredentials : Page.Model -> Types.User.Login.ClientInput -> ( Page.Model, Cmd Page.LogicMsg )
 setCredentials model credentials =
     ( model
         |> Tristate.mapMain
@@ -52,7 +51,10 @@ login model =
     , model
         |> Tristate.foldMain Cmd.none
             (\main ->
-                Requests.login model.configuration main.credentials
+                Types.User.Login.loginWith
+                    Page.GotResponse
+                    model.configuration
+                    main.credentials
             )
     )
 

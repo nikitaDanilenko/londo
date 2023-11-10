@@ -12,7 +12,7 @@ import Pages.Login.Page as Page
 import Pages.Util.Links as Links
 import Pages.Util.Style as Style
 import Pages.View.Tristate as Tristate
-import Types.Credentials as Credentials
+import Types.User.Login
 
 
 view : Page.Model -> Html Page.Msg
@@ -45,10 +45,10 @@ viewMain configuration main =
                 [ text <| main.language.nickname ]
             , input
                 [ autocomplete True
-                , value <| Credentials.lenses.nickname.get <| main.credentials
+                , value <| Types.User.Login.lenses.nickname.get <| main.credentials
                 , onInput <|
                     Page.SetCredentials
-                        << flip Credentials.lenses.nickname.set main.credentials
+                        << flip Types.User.Login.lenses.nickname.set main.credentials
                 , onEnter Page.Login
                 , Style.classes.editable
                 , id username
@@ -63,7 +63,7 @@ viewMain configuration main =
                 , autocomplete True
                 , onInput <|
                     Page.SetCredentials
-                        << flip Credentials.lenses.password.set main.credentials
+                        << flip Types.User.Login.lenses.password.set main.credentials
                 , onEnter Page.Login
                 , Style.classes.editable
                 , id password
@@ -78,7 +78,7 @@ viewMain configuration main =
                 [ type_ "checkbox"
                 , onClick <|
                     Page.SetCredentials <|
-                        Lens.modify Credentials.lenses.isValidityUnrestricted not main.credentials
+                        Lens.modify Types.User.Login.lenses.isValidityUnrestricted not main.credentials
                 , onEnter Page.Login
                 , Style.classes.editable
                 , id keepLoggedIn
