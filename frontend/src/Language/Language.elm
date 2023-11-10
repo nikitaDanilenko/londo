@@ -12,6 +12,7 @@ type alias Language =
     , dashboardEditor : DashboardEditor
     , dashboardEntryEditor : DashboardEntryEditor
     , statistics : Statistics
+    , userSettings : UserSettings
     }
 
 
@@ -157,6 +158,23 @@ type alias Statistics =
     }
 
 
+type alias UserSettings =
+    { userSettings : String
+    , nickname : String
+    , email : String
+    , displayName : String
+    , newDisplayName : String
+    , updateSettings : String
+    , newPassword : String
+    , newPasswordRepetition : String
+    , updatePassword : String
+    , deleteAccount : String
+    , logoutThisDevice : String
+    , logoutAllDevices : String
+    , deletionRequested : String
+    }
+
+
 default : Language
 default =
     english
@@ -285,6 +303,21 @@ english =
         , differenceCompleteCounting = "After completion (counting)"
         , statistics = "Statistics"
         , simulation = "Simulation"
+        }
+    , userSettings =
+        { userSettings = "User settings"
+        , nickname = "Nickname"
+        , email = "Email"
+        , displayName = "Display name"
+        , newDisplayName = "New display name"
+        , updateSettings = "Update settings"
+        , newPassword = "New password"
+        , newPasswordRepetition = "New password repetition"
+        , updatePassword = "Update password"
+        , deleteAccount = "Delete account"
+        , logoutThisDevice = "Logout this device"
+        , logoutAllDevices = "Logout all devices"
+        , deletionRequested = "Account deletion requested. Please check your email to continue."
         }
     }
 
