@@ -29,6 +29,9 @@ import Pages.Registration.Confirm.View
 import Pages.Registration.Request.Handler
 import Pages.Registration.Request.Page
 import Pages.Registration.Request.View
+import Pages.Settings.Handler
+import Pages.Settings.Page
+import Pages.Settings.View
 import Pages.Statistics.Handler
 import Pages.Statistics.Page
 import Pages.Statistics.View
@@ -94,6 +97,7 @@ type Page
     | Dashboards Pages.Dashboards.Page.Model
     | DashboardEntries Pages.DashboardEntries.Page.Model
     | Statistics Pages.Statistics.Page.Model
+    | Settings Pages.Settings.Page.Model
     | NotFound
 
 
@@ -111,6 +115,7 @@ type Msg
     | DashboardsMsg Pages.Dashboards.Page.Msg
     | DashboardEntriesMsg Pages.DashboardEntries.Page.Msg
     | StatisticsMsg Pages.Statistics.Page.Msg
+    | SettingsMsg Pages.Settings.Page.Msg
 
 
 titleFor : Model -> String
@@ -159,6 +164,9 @@ view model =
 
         Statistics statistics ->
             Html.map StatisticsMsg (Pages.Statistics.View.view statistics)
+
+        Settings settings ->
+            Html.map SettingsMsg (Pages.Settings.View.view settings)
 
         NotFound ->
             main_ [] [ text "Page not found" ]
@@ -216,6 +224,9 @@ update msg model =
         ( StatisticsMsg statisticsMsg, Statistics statistics ) ->
             stepThrough steps.statistics model (Pages.Statistics.Handler.update statisticsMsg statistics)
 
+        ( SettingsMsg settingsMsg, Settings settings ) ->
+            stepThrough steps.settings model (Pages.Settings.Handler.update settingsMsg settings)
+
         _ ->
             ( model, Cmd.none )
 
@@ -236,8 +247,8 @@ steps :
     , statistics : StepParameters Pages.Statistics.Page.Model Pages.Statistics.Page.Msg
     , requestRegistration : StepParameters Pages.Registration.Request.Page.Model Pages.Registration.Request.Page.Msg
     , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
+    , settings : StepParameters Pages.Settings.Page.Model Pages.Settings.Page.Msg
 
-    --, userSettings : StepParameters Pages.UserSettings.Page.Model Pages.UserSettings.Page.Msg
     --, deletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
     --, requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
     --, confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
@@ -252,8 +263,8 @@ steps =
     , statistics = StepParameters Statistics StatisticsMsg
     , requestRegistration = StepParameters RequestRegistration RequestRegistrationMsg
     , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
+    , settings = StepParameters Settings SettingsMsg
 
-    --, userSettings = StepParameters UserSettings UserSettingsMsg
     --, deletion = StepParameters Deletion DeletionMsg
     --, requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
     --, confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
@@ -275,6 +286,7 @@ type Route
     | DashboardsRoute
     | DashboardEntriesRoute Types.Dashboard.Id.Id
     | StatisticsRoute Types.Dashboard.Id.Id
+    | SettingsRoute
 
 
 plainRouteParser : Parser (Route -> a) a
@@ -289,6 +301,7 @@ plainRouteParser =
         , route Addresses.Frontend.dashboards.parser DashboardsRoute
         , route Addresses.Frontend.dashboardEntries.parser DashboardEntriesRoute
         , route Addresses.Frontend.statistics.parser StatisticsRoute
+        , route Addresses.Frontend.settings.parser SettingsRoute
         ]
 
 
@@ -365,6 +378,12 @@ followRoute model =
                         , dashboardId = dashboardId
                         }
                         |> stepThrough steps.statistics model
+
+                ( SettingsRoute, Just userJWT ) ->
+                    Pages.Settings.Handler.init
+                        { authorizedAccess = authorizedAccessWith userJWT
+                        }
+                        |> stepThrough steps.settings model
 
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }
