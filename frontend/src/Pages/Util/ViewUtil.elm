@@ -63,7 +63,7 @@ addressSuffix page =
                     Addresses.Frontend.dashboards.address ()
 
                 UserSettings ->
-                    Addresses.Frontend.userSettings.address ()
+                    Addresses.Frontend.settings.address ()
 
                 Login ->
                     Addresses.Frontend.login.address ()

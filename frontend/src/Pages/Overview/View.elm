@@ -37,7 +37,7 @@ viewMain configuration main =
                 ]
             , li []
                 [ Links.linkButton
-                    { url = Links.frontendPage configuration <| Addresses.Frontend.userSettings.address <| ()
+                    { url = Links.frontendPage configuration <| Addresses.Frontend.settings.address <| ()
                     , attributes = [ Style.classes.button.overview ]
                     , linkText = main.language.settings
                     }

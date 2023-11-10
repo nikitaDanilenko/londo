@@ -71,9 +71,9 @@ statistics =
         }
 
 
-userSettings : AddressWithParser () a a
-userSettings =
-    plain "user-settings"
+settings : AddressWithParser () a a
+settings =
+    plain "settings"
 
 
 tasks : AddressWithParser Id (Id -> a) a
