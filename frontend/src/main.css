@@ -197,7 +197,8 @@ select {
 #login,
 #request-registration,
 #overview,
-#settings {
+#settings,
+#account-deletion {
     width: 50%;
     margin-left: auto;
     margin-right: auto;
@@ -207,6 +208,7 @@ select {
 #settings input[type=text],
 #login input[type=password],
 #settings input[type=password],
+#account-deletion input[type=text],
 #request-registration input[type=text],
 #request-registration input[type=email],
 #overview li {
@@ -218,6 +220,8 @@ select {
 
 #login button,
 #settings button,
+#account-deletion button,
+#account-deletion a[role=button],
 #request-registration button,
 #request-registration a[role=button],
 #login a[role=button],

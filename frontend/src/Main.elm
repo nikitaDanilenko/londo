@@ -14,6 +14,9 @@ import Pages.DashboardEntries.View
 import Pages.Dashboards.Handler
 import Pages.Dashboards.Page
 import Pages.Dashboards.View
+import Pages.Deletion.Handler
+import Pages.Deletion.Page
+import Pages.Deletion.View
 import Pages.Login.Handler
 import Pages.Login.Page
 import Pages.Login.View
@@ -98,6 +101,7 @@ type Page
     | DashboardEntries Pages.DashboardEntries.Page.Model
     | Statistics Pages.Statistics.Page.Model
     | Settings Pages.Settings.Page.Model
+    | ConfirmDeletion Pages.Deletion.Page.Model
     | NotFound
 
 
@@ -116,6 +120,7 @@ type Msg
     | DashboardEntriesMsg Pages.DashboardEntries.Page.Msg
     | StatisticsMsg Pages.Statistics.Page.Msg
     | SettingsMsg Pages.Settings.Page.Msg
+    | ConfirmDeletionMsg Pages.Deletion.Page.Msg
 
 
 titleFor : Model -> String
@@ -167,6 +172,9 @@ view model =
 
         Settings settings ->
             List.map (Html.map SettingsMsg) (Pages.Settings.View.view settings)
+
+        ConfirmDeletion confirmDeletion ->
+            List.map (Html.map ConfirmDeletionMsg) (Pages.Deletion.View.view confirmDeletion)
 
         NotFound ->
             [ main_ [] [ text "Page not found" ] ]
@@ -226,6 +234,9 @@ update msg model =
         ( SettingsMsg settingsMsg, Settings settings ) ->
             stepThrough steps.settings model (Pages.Settings.Handler.update settingsMsg settings)
 
+        ( ConfirmDeletionMsg confirmDeletionMsg, ConfirmDeletion confirmDeletion ) ->
+            stepThrough steps.confirmDeletion model (Pages.Deletion.Handler.update confirmDeletionMsg confirmDeletion)
+
         _ ->
             ( model, Cmd.none )
 
@@ -247,8 +258,8 @@ steps :
     , requestRegistration : StepParameters Pages.Registration.Request.Page.Model Pages.Registration.Request.Page.Msg
     , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
     , settings : StepParameters Pages.Settings.Page.Model Pages.Settings.Page.Msg
+    , confirmDeletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
 
-    --, deletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
     --, requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
     --, confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
     }
@@ -263,8 +274,8 @@ steps =
     , requestRegistration = StepParameters RequestRegistration RequestRegistrationMsg
     , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
     , settings = StepParameters Settings SettingsMsg
+    , confirmDeletion = StepParameters ConfirmDeletion ConfirmDeletionMsg
 
-    --, deletion = StepParameters Deletion DeletionMsg
     --, requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
     --, confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
     }
@@ -286,6 +297,7 @@ type Route
     | DashboardEntriesRoute Types.Dashboard.Id.Id
     | StatisticsRoute Types.Dashboard.Id.Id
     | SettingsRoute
+    | ConfirmDeletionRoute UserIdentifier JWT
 
 
 plainRouteParser : Parser (Route -> a) a
@@ -301,6 +313,7 @@ plainRouteParser =
         , route Addresses.Frontend.dashboardEntries.parser DashboardEntriesRoute
         , route Addresses.Frontend.statistics.parser StatisticsRoute
         , route Addresses.Frontend.settings.parser SettingsRoute
+        , route Addresses.Frontend.deleteAccount.parser ConfirmDeletionRoute
         ]
 
 
@@ -383,6 +396,14 @@ followRoute model =
                         { authorizedAccess = authorizedAccessWith userJWT
                         }
                         |> stepThrough steps.settings model
+
+                ( ConfirmDeletionRoute userIdentifier deletionJWT, _ ) ->
+                    Pages.Deletion.Handler.init
+                        { configuration = model.configuration
+                        , userIdentifier = userIdentifier
+                        , deletionJWT = deletionJWT
+                        }
+                        |> stepThrough steps.confirmDeletion model
 
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }

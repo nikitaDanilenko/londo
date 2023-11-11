@@ -40,7 +40,7 @@ viewMain configuration main =
                 viewRegular main.language main
 
             Page.RequestedDeletion ->
-                [ viewRequestedDeletion main ]
+                viewRequestedDeletion main.language
 
 
 viewRegular : Page.Language -> Page.Main -> List (Html Page.LogicMsg)
@@ -190,8 +190,6 @@ viewRegular language main =
     ]
 
 
-viewRequestedDeletion : Page.Main -> Html Page.LogicMsg
-viewRequestedDeletion _ =
-    div [ Style.classes.button.delete ]
-        [ div [] [ label [] [ text "Account deletion requested. Please check your email to continue." ] ]
-        ]
+viewRequestedDeletion : Page.Language -> List (Html Page.LogicMsg)
+viewRequestedDeletion language =
+    [ text <| .deletionRequested <| language ]

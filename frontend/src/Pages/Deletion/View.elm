@@ -56,6 +56,7 @@ viewChecking configuration main =
         , button
             [ onClick <| Page.Confirm
             , Style.classes.button.delete
+            , type_ "button"
             ]
             [ text <| .delete <| .language <| main ]
         , Links.toLoginButton
