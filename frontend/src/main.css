@@ -191,7 +191,7 @@ select {
     width: 3%;
 }
 
-.controls div {
+.controls p {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(10px, 1fr));
 }

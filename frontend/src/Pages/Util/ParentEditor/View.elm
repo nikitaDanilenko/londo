@@ -1,7 +1,7 @@
 module Pages.Util.ParentEditor.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, div, nav, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, nav, p, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -152,7 +152,7 @@ lineWith ps parent =
         controlsRow =
             tr [ Style.classes.controls ]
                 [ td [ colspan <| List.length <| displayColumns ]
-                    [ div [] row.controls ]
+                    [ p [] row.controls ]
                 ]
     in
     infoRow
@@ -194,7 +194,7 @@ controlsRowWith :
 controlsRowWith ps =
     tr [ Style.classes.controls ]
         [ td [ colspan <| ps.colspan ]
-            [ div []
+            [ p []
                 [ button
                     ([ MaybeUtil.defined <| Style.classes.button.confirm
                      , MaybeUtil.defined <| disabled <| not <| ps.validInput

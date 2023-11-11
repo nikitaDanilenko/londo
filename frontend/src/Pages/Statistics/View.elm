@@ -3,7 +3,7 @@ module Pages.Statistics.View exposing (view)
 import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, h1, h2, hr, input, p, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, button, h1, h2, hr, input, p, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -383,11 +383,9 @@ viewTask index viewType projectId language resolvedTask showControls =
             \t ->
                 { display = taskInfoColumns index viewType t
                 , controls =
-                    [ div []
-                        [ button
-                            [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| .id <| .task <| t ]
-                            [ text <| .edit <| language ]
-                        ]
+                    [ button
+                        [ Style.classes.button.edit, onClick <| Page.EnterEditTask projectId <| .id <| .task <| t ]
+                        [ text <| .edit <| language ]
                     ]
                 }
         , toggleMsg = Page.ToggleControls projectId resolvedTask.task.id

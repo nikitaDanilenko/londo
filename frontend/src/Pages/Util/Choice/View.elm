@@ -1,7 +1,7 @@
 module Pages.Util.Choice.View exposing (viewChoices, viewElements)
 
 import Basics.Extra exposing (flip)
-import Html exposing (Attribute, Html, button, div, h2, nav, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, h2, nav, p, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -259,7 +259,7 @@ elementLineWith ps element =
 
         controlsRow =
             tr [ Style.classes.controls ]
-                [ td [ colspan <| List.length <| displayColumns ] [ div [] (.controls <| info) ] ]
+                [ td [ colspan <| List.length <| displayColumns ] [ p [] (.controls <| info) ] ]
     in
     infoRow
         :: (if ps.showControls then
@@ -315,20 +315,20 @@ editElementLine ps element elementUpdateClientInput =
         controlsRow =
             tr []
                 [ td [ colspan <| List.length <| editCells ]
-                    [ div []
-                        [ button
-                            ([ MaybeUtil.defined <| Style.classes.button.confirm
-                             , MaybeUtil.defined <| disabled <| not <| validInput
-                             , MaybeUtil.optional validInput <| onClick saveMsg
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            [ text <| "Save" ]
-                        ]
-                    , td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.cancel, onClick cancelMsg ]
-                            [ text <| "Cancel" ]
-                        ]
+                    [ button
+                        ([ MaybeUtil.defined <| Style.classes.button.confirm
+                         , MaybeUtil.defined <| disabled <| not <| validInput
+                         , MaybeUtil.optional validInput <| onClick saveMsg
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        [ text <| "Save" ]
+
+                    -- todo: Use language element
+                    , button [ Style.classes.button.cancel, onClick cancelMsg ]
+                        [ text <| "Cancel" ]
+
+                    -- todo: Use language element
                     ]
                 ]
     in
@@ -360,7 +360,7 @@ viewChoiceLine ps choice showControls =
         controlsRow =
             tr [ Style.classes.controls ]
                 [ td [ colspan <| List.length <| columns ]
-                    [ div [] rowWithControls.controls ]
+                    [ p [] rowWithControls.controls ]
                 ]
     in
     infoRow
@@ -400,7 +400,7 @@ editElementCreation ps choice creation =
         controlsRow =
             tr [ Style.classes.controls ]
                 [ td [ colspan <| (+) 1 <| List.length <| rowWithControls.display ]
-                    [ div [] rowWithControls.controls ]
+                    rowWithControls.controls
                 ]
     in
     [ creationRow, controlsRow ]
