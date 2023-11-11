@@ -27,7 +27,7 @@ type alias Initial =
 
 
 type alias Language =
-    Language.AccountRecovery
+    Language.RequestAccountRecovery
 
 
 initial : Configuration -> Model
@@ -35,7 +35,7 @@ initial configuration =
     { users = []
     , searchString = ""
     , mode = Initial
-    , language = Language.default.accountRecovery
+    , language = Language.default.requestAccountRecovery
     }
         |> Tristate.createMain configuration
 

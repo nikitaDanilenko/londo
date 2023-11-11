@@ -6,6 +6,7 @@ import Browser exposing (UrlRequest)
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Html exposing (Html, main_, text)
+import Language.Language as Language
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 import Pages.DashboardEntries.Handler
@@ -26,6 +27,9 @@ import Pages.Overview.View
 import Pages.Projects.Handler
 import Pages.Projects.Page
 import Pages.Projects.View
+import Pages.Recovery.Confirm.Handler
+import Pages.Recovery.Confirm.Page
+import Pages.Recovery.Confirm.View
 import Pages.Recovery.Request.Handler
 import Pages.Recovery.Request.Page
 import Pages.Recovery.Request.View
@@ -78,7 +82,12 @@ type alias Model =
     , configuration : Configuration
     , jwt : Maybe JWT
     , entryRoute : Maybe Route
+    , language : Language
     }
+
+
+type alias Language =
+    Language.Main
 
 
 lenses :
@@ -106,6 +115,7 @@ type Page
     | Settings Pages.Settings.Page.Model
     | ConfirmDeletion Pages.Deletion.Page.Model
     | RequestRecovery Pages.Recovery.Request.Page.Model
+    | ConfirmRecovery Pages.Recovery.Confirm.Page.Model
     | NotFound
 
 
@@ -126,11 +136,12 @@ type Msg
     | SettingsMsg Pages.Settings.Page.Msg
     | ConfirmDeletionMsg Pages.Deletion.Page.Msg
     | RequestRecoveryMsg Pages.Recovery.Request.Page.Msg
+    | ConfirmRecoveryMsg Pages.Recovery.Confirm.Page.Msg
 
 
 titleFor : Model -> String
-titleFor _ =
-    "Londo"
+titleFor =
+    .language >> .title
 
 
 init : Configuration -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
@@ -140,6 +151,7 @@ init configuration url key =
       , configuration = configuration
       , jwt = Nothing
       , entryRoute = parsePage url
+      , language = Language.default.main
       }
     , Ports.doFetchToken ()
     )
@@ -184,8 +196,11 @@ view model =
         RequestRecovery requestRecovery ->
             List.map (Html.map RequestRecoveryMsg) (Pages.Recovery.Request.View.view requestRecovery)
 
+        ConfirmRecovery confirmRecovery ->
+            List.map (Html.map ConfirmRecoveryMsg) (Pages.Recovery.Confirm.View.view confirmRecovery)
+
         NotFound ->
-            [ main_ [] [ text "Page not found" ] ]
+            [ main_ [] [ text <| .notFound <| .language <| model ] ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -248,6 +263,9 @@ update msg model =
         ( RequestRecoveryMsg requestRecoveryMsg, RequestRecovery requestRecovery ) ->
             stepThrough steps.requestRecovery model (Pages.Recovery.Request.Handler.update requestRecoveryMsg requestRecovery)
 
+        ( ConfirmRecoveryMsg confirmRecoveryMsg, ConfirmRecovery confirmRecovery ) ->
+            stepThrough steps.confirmRecovery model (Pages.Recovery.Confirm.Handler.update confirmRecoveryMsg confirmRecovery)
+
         _ ->
             ( model, Cmd.none )
 
@@ -271,8 +289,7 @@ steps :
     , settings : StepParameters Pages.Settings.Page.Model Pages.Settings.Page.Msg
     , confirmDeletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
     , requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
-
-    --, confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
+    , confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
     }
 steps =
     { login = StepParameters Login LoginMsg
@@ -287,8 +304,7 @@ steps =
     , settings = StepParameters Settings SettingsMsg
     , confirmDeletion = StepParameters ConfirmDeletion ConfirmDeletionMsg
     , requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
-
-    --, confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
+    , confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
     }
 
 
@@ -310,6 +326,7 @@ type Route
     | SettingsRoute
     | ConfirmDeletionRoute UserIdentifier JWT
     | RequestRecoveryRoute
+    | ConfirmRecoveryRoute UserIdentifier JWT
 
 
 plainRouteParser : Parser (Route -> a) a
@@ -327,6 +344,7 @@ plainRouteParser =
         , route Addresses.Frontend.settings.parser SettingsRoute
         , route Addresses.Frontend.deleteAccount.parser ConfirmDeletionRoute
         , route Addresses.Frontend.requestRecovery.parser RequestRecoveryRoute
+        , route Addresses.Frontend.confirmRecovery.parser ConfirmRecoveryRoute
         ]
 
 
@@ -423,6 +441,14 @@ followRoute model =
                         { configuration = model.configuration
                         }
                         |> stepThrough steps.requestRecovery model
+
+                ( ConfirmRecoveryRoute userIdentifier recoveryJWT, _ ) ->
+                    Pages.Recovery.Confirm.Handler.init
+                        { configuration = model.configuration
+                        , userIdentifier = userIdentifier
+                        , recoveryJwt = recoveryJWT
+                        }
+                        |> stepThrough steps.confirmRecovery model
 
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }

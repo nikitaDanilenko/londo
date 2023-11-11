@@ -14,7 +14,9 @@ type alias Language =
     , statistics : Statistics
     , userSettings : UserSettings
     , accountDeletion : AccountDeletion
-    , accountRecovery : AccountRecovery
+    , requestAccountRecovery : RequestAccountRecovery
+    , confirmAccountRecovery : ConfirmAccountRecovery
+    , main : Main
     }
 
 
@@ -195,7 +197,7 @@ type alias AccountDeletion =
     }
 
 
-type alias AccountRecovery =
+type alias RequestAccountRecovery =
     { requestSuccessful : String
     , mainPage : String
     , recovery : String
@@ -203,6 +205,22 @@ type alias AccountRecovery =
     , multipleAccountsFound : String
     , find : String
     , identifier : String
+    }
+
+
+type alias ConfirmAccountRecovery =
+    { accountRecovery : String
+    , newPassword : String
+    , newPasswordRepetition : String
+    , updatePassword : String
+    , successfullyUpdatedPassword : String
+    , mainPage : String
+    }
+
+
+type alias Main =
+    { notFound : String
+    , title : String
     }
 
 
@@ -366,7 +384,7 @@ english =
         , deletionSuccessful = "Account deletion successful!"
         , mainPage = "Main page"
         }
-    , accountRecovery =
+    , requestAccountRecovery =
         { requestSuccessful = "Requested user recovery. Please check your email."
         , mainPage = "Main page"
         , recovery = "Recovery"
@@ -374,6 +392,18 @@ english =
         , multipleAccountsFound = "Multiple matching accounts found"
         , find = "Find"
         , identifier = "Nickname or email"
+        }
+    , confirmAccountRecovery =
+        { accountRecovery = "Account recovery"
+        , newPassword = "New password"
+        , newPasswordRepetition = "New password repetition"
+        , updatePassword = "Update password"
+        , successfullyUpdatedPassword = "Successfully updated password."
+        , mainPage = "Main page"
+        }
+    , main =
+        { notFound = "Page not found"
+        , title = "Londo"
         }
     }
 
