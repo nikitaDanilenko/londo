@@ -172,6 +172,9 @@ type alias UserSettings =
     , logoutThisDevice : String
     , logoutAllDevices : String
     , deletionRequested : String
+    , changeSettings : String
+    , changePassword : String
+    , dangerZone : String
     }
 
 
@@ -318,6 +321,9 @@ english =
         , logoutThisDevice = "Logout this device"
         , logoutAllDevices = "Logout all devices"
         , deletionRequested = "Account deletion requested. Please check your email to continue."
+        , changeSettings = "Update settings"
+        , changePassword = "Change password"
+        , dangerZone = "Danger zone"
         }
     }
 
