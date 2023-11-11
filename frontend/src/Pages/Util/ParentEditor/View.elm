@@ -36,6 +36,7 @@ viewParentsWith :
     , setSearchString : String -> msg
     , setPagination : Pagination -> msg
     , styling : Attribute msg
+    , clearSearchWord : String
     }
     -> language
     -> Configuration
@@ -87,6 +88,7 @@ viewParentsWith ps language configuration main =
             ++ [ HtmlUtil.searchAreaWith
                     { msg = ps.setSearchString
                     , searchString = main.searchString
+                    , clearWord = ps.clearSearchWord
                     }
                , table [ Style.classes.elementsWithControlsTable ]
                     (ps.tableHeader

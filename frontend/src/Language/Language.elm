@@ -90,6 +90,7 @@ type alias TaskEditor =
     , edit : String
     , cancel : String
     , save : String
+    , clearSearch : String
     }
 
 
@@ -104,6 +105,7 @@ type alias ProjectEditor =
     , description : String
     , save : String
     , cancel : String
+    , clearSearch : String
     }
 
 
@@ -119,6 +121,7 @@ type alias DashboardEditor =
     , visibility : String
     , save : String
     , cancel : String
+    , clearSearch : String
     }
 
 
@@ -138,6 +141,7 @@ type alias DashboardEntryEditor =
     , select : String
     , add : String
     , added : String
+    , clearSearch : String
     }
 
 
@@ -271,6 +275,7 @@ english =
         , edit = "Edit"
         , cancel = "Cancel"
         , save = "Save"
+        , clearSearch = "Clear"
         }
     , projectEditor =
         { add = "Add"
@@ -283,6 +288,7 @@ english =
         , description = "Description"
         , save = "Save"
         , cancel = "Cancel"
+        , clearSearch = "Clear"
         }
     , dashboardEditor =
         { add = "Add"
@@ -296,6 +302,7 @@ english =
         , visibility = "Visibility"
         , save = "Save"
         , cancel = "Cancel"
+        , clearSearch = "Clear"
         }
     , dashboardEntryEditor =
         { dashboardEntries = "Dashboard entries"
@@ -313,6 +320,7 @@ english =
         , select = "Select"
         , add = "Add"
         , added = "Added"
+        , clearSearch = "Clear"
         }
     , statistics =
         { total = "Total"

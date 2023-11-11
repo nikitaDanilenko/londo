@@ -29,6 +29,7 @@ viewElements :
     , info : element -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
     , isValidInput : update -> Bool
     , edit : element -> update -> List (HtmlUtil.Column (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
+    , clearSearchWord : String
     }
     -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
@@ -85,6 +86,7 @@ viewElements ps main =
         , HtmlUtil.searchAreaWith
             { msg = Pages.Util.Choice.Page.SetElementsSearchString
             , searchString = main.elementsSearchString
+            , clearWord = ps.clearSearchWord
             }
         , table [ Style.classes.elementsWithControlsTable, Style.classes.elementEditTable ]
             [ thead []
@@ -122,6 +124,7 @@ viewChoices :
     , idOfChoice : choice -> choiceId
     , elementCreationLine : choice -> creation -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
     , viewChoiceLine : choice -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
+    , clearSearchWord : String
     }
     -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
@@ -146,6 +149,7 @@ viewChoices ps main =
         , HtmlUtil.searchAreaWith
             { msg = Pages.Util.Choice.Page.SetChoicesSearchString
             , searchString = main.choicesSearchString
+            , clearWord = ps.clearSearchWord
             }
         , table [ Style.classes.elementsWithControlsTable ]
             [ thead []

@@ -57,6 +57,7 @@ viewMain configuration main =
         , setSearchString = Pages.Util.ParentEditor.Page.SetSearchString
         , setPagination = Pages.Util.ParentEditor.Page.SetPagination
         , styling = Style.ids.addDashboardView
+        , clearSearchWord = main.language.clearSearch
         }
         main.language
         configuration

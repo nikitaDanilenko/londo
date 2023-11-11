@@ -58,7 +58,12 @@ viewMain configuration main =
             main.viewType
             main.dashboard
             main.dashboardStatistics
-            :: section [] [ viewTaskSearchField main.searchString ]
+            :: section []
+                [ viewTaskSearchField
+                    { searchString = main.searchString
+                    , clearSearchWord = main.languages.taskEditor.clearSearch
+                    }
+                ]
             :: (main.projects
                     |> DictList.values
                     |> List.map
@@ -71,9 +76,17 @@ bigDecimalToString (LondoGQL.Scalar.BigDecimal string) =
     string
 
 
-viewTaskSearchField : String -> Html Page.LogicMsg
-viewTaskSearchField searchString =
-    HtmlUtil.searchAreaWith { msg = Page.SetSearchString, searchString = searchString }
+viewTaskSearchField :
+    { searchString : String
+    , clearSearchWord : String
+    }
+    -> Html Page.LogicMsg
+viewTaskSearchField ps =
+    HtmlUtil.searchAreaWith
+        { msg = Page.SetSearchString
+        , searchString = ps.searchString
+        , clearWord = ps.clearSearchWord
+        }
 
 
 viewTypeButtonWith :

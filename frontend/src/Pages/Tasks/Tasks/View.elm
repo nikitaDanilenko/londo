@@ -51,6 +51,7 @@ viewSubMain projectId configuration subMain =
         , setSearchString = Pages.Util.ParentEditor.Page.SetSearchString
         , setPagination = Pages.Util.ParentEditor.Page.SetPagination
         , styling = Style.ids.addTaskView
+        , clearSearchWord = subMain.language.clearSearch
         }
         subMain.language
         configuration

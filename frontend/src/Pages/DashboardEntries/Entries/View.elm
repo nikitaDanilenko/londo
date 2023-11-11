@@ -42,6 +42,7 @@ viewEntries configuration main =
                 }
         , isValidInput = always True
         , edit = \_ _ -> []
+        , clearSearchWord = main.language.clearSearch
         }
         main
 
@@ -106,6 +107,7 @@ viewProjects configuration main =
                     , NavigationUtil.projectEditorLinkButton configuration project.id main.language.taskEditor
                     ]
                 }
+        , clearSearchWord = main.language.clearSearch
         }
         main
 

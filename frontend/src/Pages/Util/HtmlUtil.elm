@@ -15,6 +15,7 @@ import Pages.Util.Style as Style
 searchAreaWith :
     { msg : String -> msg
     , searchString : String
+    , clearWord : String
     }
     -> Html msg
 searchAreaWith ps =
@@ -38,8 +39,7 @@ searchAreaWith ps =
                 , onClick <| ps.msg ""
                 , disabled <| String.isEmpty <| ps.searchString
                 ]
-                -- todo: Use language element here
-                [ text <| "Clear" ]
+                [ text <| .clearWord <| ps ]
             ]
         ]
 
