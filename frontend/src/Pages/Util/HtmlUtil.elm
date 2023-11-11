@@ -1,8 +1,8 @@
 module Pages.Util.HtmlUtil exposing (Column, RowWithControls, Structure, menuIcon, onEscape, searchAreaWith, toggleControlsCell, withAttributes, withExtraAttributes)
 
 import Html exposing (Attribute, Html, button, form, input, label, node, td, text)
-import Html.Attributes exposing (disabled, type_, value)
-import Html.Events exposing (on, onClick, onInput)
+import Html.Attributes exposing (disabled, for, id, placeholder, type_, value)
+import Html.Events exposing (on, onClick, onInput, onSubmit)
 import Keyboard.Event exposing (KeyboardEvent)
 import Keyboard.Key as Key
 import Material.Icons
@@ -19,18 +19,26 @@ searchAreaWith :
     }
     -> Html msg
 searchAreaWith ps =
+    let
+        searchField =
+            "search-field"
+    in
     node "search"
         []
         [ form
-            []
+            -- Todo: This a somewhat hacky: The submission of the given string is a workaround for reloading,
+            --       but this triggers a message, while deactivating the messaging altogether makes more sense.
+            [ onSubmit <| ps.msg <| ps.searchString ]
             [ label
-                [ Style.labels.searchField.for ]
+                [ for searchField ]
                 [ text Links.lookingGlass ]
             , input
-                [ type_ "text"
+                [ type_ "search"
                 , Style.ids.searchField
                 , onInput <| ps.msg
                 , value <| ps.searchString
+                , placeholder "Text"
+                , id searchField
                 ]
                 []
             , button
