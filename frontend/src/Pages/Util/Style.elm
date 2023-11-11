@@ -93,7 +93,8 @@ classes =
 
 
 ids :
-    { addDashboardView : Attribute msg
+    { accountDeletion : Attribute msg
+    , addDashboardView : Attribute msg
     , addProjectView : Attribute msg
     , addTaskView : Attribute msg
     , confirmRegistration : Attribute msg
@@ -110,7 +111,8 @@ ids :
     , taskEditor : Attribute msg
     }
 ids =
-    { addDashboardView = id "add-dashboard-view"
+    { accountDeletion = id "account-deletion"
+    , addDashboardView = id "add-dashboard-view"
     , addProjectView = id "add-project-view"
     , addTaskView = id "add-task-view"
     , confirmRegistration = id "confirm-registration"

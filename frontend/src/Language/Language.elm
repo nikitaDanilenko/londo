@@ -13,6 +13,7 @@ type alias Language =
     , dashboardEntryEditor : DashboardEntryEditor
     , statistics : Statistics
     , userSettings : UserSettings
+    , accountDeletion : AccountDeletion
     }
 
 
@@ -178,6 +179,17 @@ type alias UserSettings =
     }
 
 
+type alias AccountDeletion =
+    { confirmDeletion : String
+    , nickname : String
+    , email : String
+    , delete : String
+    , cancel : String
+    , deletionSuccessful : String
+    , mainPage : String
+    }
+
+
 default : Language
 default =
     english
@@ -324,6 +336,15 @@ english =
         , changeSettings = "Update settings"
         , changePassword = "Change password"
         , dangerZone = "Danger zone"
+        }
+    , accountDeletion =
+        { confirmDeletion = "Confirm deletion"
+        , nickname = "Nickname"
+        , email = "Email"
+        , delete = "Delete"
+        , cancel = "Back to main"
+        , deletionSuccessful = "Account deletion successful!"
+        , mainPage = "Main page"
         }
     }
 
