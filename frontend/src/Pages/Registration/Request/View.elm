@@ -47,8 +47,8 @@ viewEditing main =
         enterAction =
             MaybeUtil.optional isValid <| onEnter Page.Request
 
-        username =
-            "username"
+        nickname =
+            "nickname"
 
         email =
             "email"
@@ -56,7 +56,7 @@ viewEditing main =
     [ h1 [] [ text <| main.language.header ]
     , form
         []
-        [ label [ for username ] [ text <| main.language.nickname ]
+        [ label [ for nickname ] [ text <| main.language.nickname ]
         , input
             ([ MaybeUtil.defined <|
                 onInput <|
@@ -65,7 +65,7 @@ viewEditing main =
              , MaybeUtil.defined <| Style.classes.editable
              , enterAction
              , MaybeUtil.defined <| type_ "text"
-             , MaybeUtil.defined <| id username
+             , MaybeUtil.defined <| id nickname
              ]
                 |> Maybe.Extra.values
             )
