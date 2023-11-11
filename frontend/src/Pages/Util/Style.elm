@@ -130,15 +130,3 @@ ids =
     , statistics = id "statistics"
     , taskEditor = id "task-editor"
     }
-
-
-labels :
-    { searchField :
-        { for : Attribute msg
-        }
-    }
-labels =
-    { searchField =
-        { for = Html.Attributes.for "search-field"
-        }
-    }
