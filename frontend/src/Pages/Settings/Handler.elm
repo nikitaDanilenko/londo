@@ -99,8 +99,7 @@ updateLogic msg model =
                     (\user ->
                         model
                             |> Tristate.mapMain
-                                (Page.lenses.main.user.set user)
-                     -- todo: Do we need to set the displayNameLens as well?
+                                (displayNameLens.set Nothing >> Page.lenses.main.user.set user)
                     )
             , Cmd.none
             )

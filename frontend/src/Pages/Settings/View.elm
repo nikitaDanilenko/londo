@@ -2,9 +2,9 @@ module Pages.Settings.View exposing (..)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, form, h1, h2, input, label, section, table, tbody, td, text, tr)
+import Html exposing (Html, button, form, h1, h2, input, label, section, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled, for, id, type_, value)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import Html.Events.Extra exposing (onEnter)
 import LondoGQL.Enum.LogoutMode
 import Maybe.Extra
@@ -92,7 +92,7 @@ viewRegular language main =
         [ h2 []
             [ text <| .changeSettings <| language ]
         , form
-            []
+            [ onSubmit <| Page.UpdateSettings ]
             [ label
                 [ for newDisplayName ]
                 [ text <| .newDisplayName <| language ]
@@ -109,13 +109,12 @@ viewRegular language main =
                     )
                 , value <| Maybe.withDefault "" <| main.complementInput.displayName
                 , Style.classes.editable
-                , onEnter Page.UpdateSettings
                 ]
                 []
             , button
                 [ onClick <| Page.UpdateSettings
                 , Style.classes.button.confirm
-                , type_ "button"
+                , type_ "submit"
                 ]
                 [ text <| .updateSettings <| language ]
             ]
@@ -123,7 +122,7 @@ viewRegular language main =
     , section []
         [ h2 [] [ text <| .changePassword <| language ]
         , form
-            []
+            [ onSubmit <| Page.UpdatePassword ]
             [ label
                 [ for password1 ]
                 [ text <| .newPassword <| language ]
@@ -164,7 +163,7 @@ viewRegular language main =
                 [ onClick <| Page.UpdatePassword
                 , Style.classes.button.confirm
                 , disabled <| not <| isValidPassword
-                , type_ "button"
+                , type_ "submit"
                 ]
                 [ text <| .updatePassword <| language ]
             ]
