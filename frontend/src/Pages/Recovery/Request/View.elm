@@ -103,6 +103,8 @@ searchComponents main =
             , required True
             ]
             []
+
+        -- todo: This button should lose focus once it is pressed.
         , button
             [ Style.classes.button.confirm
             , disabled <| not <| isValid
