@@ -1,5 +1,6 @@
 module Types.User.User exposing (..)
 
+import Configuration exposing (Configuration)
 import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Enum.LogoutMode
@@ -59,58 +60,49 @@ requestDeletionWith expect authorizedAccess =
 
 confirmDeletionWith :
     (HttpUtil.GraphQLResult Bool -> msg)
-    -> AuthorizedAccess
+    -> Configuration
     -> JWT
     -> Cmd msg
-confirmDeletionWith expect authorizedAccess deletionToken =
+confirmDeletionWith expect configuration deletionToken =
     LondoGQL.Mutation.confirmDeletion
         { input =
             { deletionToken = deletionToken
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> Graphql.Http.mutationRequest configuration.graphQLEndpoint
+        |> Graphql.Http.send expect
 
 
 requestRecoveryWith :
     (HttpUtil.GraphQLResult LondoGQL.Scalar.Unit -> msg)
-    -> AuthorizedAccess
+    -> Configuration
     -> Types.User.Id.Id
     -> Cmd msg
-requestRecoveryWith expect authorizedAccess userId =
+requestRecoveryWith expect configuration userId =
     LondoGQL.Mutation.requestRecovery
         { input =
             { userId = userId |> Types.User.Id.toGraphQLInput
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> Graphql.Http.mutationRequest configuration.graphQLEndpoint
+        |> Graphql.Http.send expect
 
 
 confirmRecoveryWith :
     (HttpUtil.GraphQLResult Bool -> msg)
-    -> AuthorizedAccess
+    -> Configuration
     -> JWT
     -> String
     -> Cmd msg
-confirmRecoveryWith expect authorizedAccess recoveryToken password =
+confirmRecoveryWith expect configuration recoveryToken password =
     LondoGQL.Mutation.confirmRecovery
         { input =
             { recoveryToken = recoveryToken
             , password = password
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> Graphql.Http.mutationRequest configuration.graphQLEndpoint
+        |> Graphql.Http.send expect
 
 
 logoutWith :
