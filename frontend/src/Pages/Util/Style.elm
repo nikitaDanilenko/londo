@@ -94,6 +94,7 @@ classes =
 
 ids :
     { accountDeletion : Attribute msg
+    , accountRecovery : Attribute msg
     , addDashboardView : Attribute msg
     , addProjectView : Attribute msg
     , addTaskView : Attribute msg
@@ -112,6 +113,7 @@ ids :
     }
 ids =
     { accountDeletion = id "account-deletion"
+    , accountRecovery = id "account-recovery"
     , addDashboardView = id "add-dashboard-view"
     , addProjectView = id "add-project-view"
     , addTaskView = id "add-task-view"

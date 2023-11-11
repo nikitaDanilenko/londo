@@ -26,6 +26,9 @@ import Pages.Overview.View
 import Pages.Projects.Handler
 import Pages.Projects.Page
 import Pages.Projects.View
+import Pages.Recovery.Request.Handler
+import Pages.Recovery.Request.Page
+import Pages.Recovery.Request.View
 import Pages.Registration.Confirm.Handler
 import Pages.Registration.Confirm.Page
 import Pages.Registration.Confirm.View
@@ -102,6 +105,7 @@ type Page
     | Statistics Pages.Statistics.Page.Model
     | Settings Pages.Settings.Page.Model
     | ConfirmDeletion Pages.Deletion.Page.Model
+    | RequestRecovery Pages.Recovery.Request.Page.Model
     | NotFound
 
 
@@ -121,6 +125,7 @@ type Msg
     | StatisticsMsg Pages.Statistics.Page.Msg
     | SettingsMsg Pages.Settings.Page.Msg
     | ConfirmDeletionMsg Pages.Deletion.Page.Msg
+    | RequestRecoveryMsg Pages.Recovery.Request.Page.Msg
 
 
 titleFor : Model -> String
@@ -175,6 +180,9 @@ view model =
 
         ConfirmDeletion confirmDeletion ->
             List.map (Html.map ConfirmDeletionMsg) (Pages.Deletion.View.view confirmDeletion)
+
+        RequestRecovery requestRecovery ->
+            List.map (Html.map RequestRecoveryMsg) (Pages.Recovery.Request.View.view requestRecovery)
 
         NotFound ->
             [ main_ [] [ text "Page not found" ] ]
@@ -237,6 +245,9 @@ update msg model =
         ( ConfirmDeletionMsg confirmDeletionMsg, ConfirmDeletion confirmDeletion ) ->
             stepThrough steps.confirmDeletion model (Pages.Deletion.Handler.update confirmDeletionMsg confirmDeletion)
 
+        ( RequestRecoveryMsg requestRecoveryMsg, RequestRecovery requestRecovery ) ->
+            stepThrough steps.requestRecovery model (Pages.Recovery.Request.Handler.update requestRecoveryMsg requestRecovery)
+
         _ ->
             ( model, Cmd.none )
 
@@ -259,8 +270,8 @@ steps :
     , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
     , settings : StepParameters Pages.Settings.Page.Model Pages.Settings.Page.Msg
     , confirmDeletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
+    , requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
 
-    --, requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
     --, confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
     }
 steps =
@@ -275,8 +286,8 @@ steps =
     , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
     , settings = StepParameters Settings SettingsMsg
     , confirmDeletion = StepParameters ConfirmDeletion ConfirmDeletionMsg
+    , requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
 
-    --, requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
     --, confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
     }
 
@@ -298,6 +309,7 @@ type Route
     | StatisticsRoute Types.Dashboard.Id.Id
     | SettingsRoute
     | ConfirmDeletionRoute UserIdentifier JWT
+    | RequestRecoveryRoute
 
 
 plainRouteParser : Parser (Route -> a) a
@@ -314,6 +326,7 @@ plainRouteParser =
         , route Addresses.Frontend.statistics.parser StatisticsRoute
         , route Addresses.Frontend.settings.parser SettingsRoute
         , route Addresses.Frontend.deleteAccount.parser ConfirmDeletionRoute
+        , route Addresses.Frontend.requestRecovery.parser RequestRecoveryRoute
         ]
 
 
@@ -404,6 +417,12 @@ followRoute model =
                         , deletionJWT = deletionJWT
                         }
                         |> stepThrough steps.confirmDeletion model
+
+                ( RequestRecoveryRoute, _ ) ->
+                    Pages.Recovery.Request.Handler.init
+                        { configuration = model.configuration
+                        }
+                        |> stepThrough steps.requestRecovery model
 
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }

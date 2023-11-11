@@ -14,6 +14,7 @@ type alias Language =
     , statistics : Statistics
     , userSettings : UserSettings
     , accountDeletion : AccountDeletion
+    , accountRecovery : AccountRecovery
     }
 
 
@@ -190,6 +191,17 @@ type alias AccountDeletion =
     }
 
 
+type alias AccountRecovery =
+    { requestSuccessful : String
+    , mainPage : String
+    , recovery : String
+    , noAccountFound : String
+    , multipleAccountsFound : String
+    , find : String
+    , identifier : String
+    }
+
+
 default : Language
 default =
     english
@@ -345,6 +357,15 @@ english =
         , cancel = "Back to main"
         , deletionSuccessful = "Account deletion successful!"
         , mainPage = "Main page"
+        }
+    , accountRecovery =
+        { requestSuccessful = "Requested user recovery. Please check your email."
+        , mainPage = "Main page"
+        , recovery = "Recovery"
+        , noAccountFound = "No matching account found"
+        , multipleAccountsFound = "Multiple matching accounts found"
+        , find = "Find"
+        , identifier = "Nickname or email"
         }
     }
 

@@ -50,8 +50,11 @@ nav .navigation-button.disabled,
 }
 
 .navigation-button:hover:not(.disabled),
+.navigation-button:focus:not(.disabled),
 .pager-button:hover:not(:disabled),
-.overview-button:hover {
+.pager-button:focus:not(:disabled),
+.overview-button:hover,
+.overview-button:focus {
     background-color: rgb(0 140 186);
     color: white;
 }
@@ -85,8 +88,11 @@ nav .navigation-button.disabled,
 }
 
 .new-element-button:hover,
+.new-element-button:focus,
 .confirm-button:not(:disabled):hover,
-.select-button:not(:disabled):hover {
+.confirm-button:not(:disabled):focus,
+.select-button:not(:disabled):hover,
+.select-button:not(:disabled):focus {
     background-color: rgb(76 175 80);
     color: white;
 }
@@ -102,8 +108,11 @@ nav .navigation-button.disabled,
 }
 
 .clear-button:hover:not(:disabled),
+.clear-button:focus:not(:disabled),
 .cancel-button:hover:not(:disabled),
-.delete-button:hover {
+.cancel-button:focus:not(:disabled),
+.delete-button:hover,
+.delete-button:focus {
     background-color: rgb(244 67 54);
     color: white;
 }
@@ -112,7 +121,8 @@ nav .navigation-button.disabled,
     border: 2px solid rgb(248 196 127);
 }
 
-.edit-button:hover {
+.edit-button:hover,
+.edit-button:focus {
     background-color: rgb(248 196 127);
     color: white;
 }
@@ -122,7 +132,8 @@ nav .navigation-button.disabled,
 }
 
 
-.editor-button:hover {
+.editor-button:hover,
+.editor-button:focus-visible {
     background-color: rgb(69 55 255);
     color: white;
 }
@@ -131,7 +142,8 @@ nav .navigation-button.disabled,
     border: 2px solid rgb(0 200 175);
 }
 
-.menu-button:hover {
+.menu-button:hover,
+.menu-button:focus {
     background-color: rgb(0 200 175);
     color: white;
 }
@@ -184,7 +196,8 @@ select {
     grid-template-columns: repeat(auto-fit, minmax(10px, 1fr));
 }
 
-.editing:hover {
+.editing:hover,
+.editing:focus {
     background-color: lightgray;
     transition-duration: 0.2s;
 }
@@ -198,7 +211,8 @@ select {
 #request-registration,
 #overview,
 #settings,
-#account-deletion {
+#account-deletion,
+#account-recovery {
     width: 50%;
     margin-left: auto;
     margin-right: auto;
@@ -209,6 +223,7 @@ select {
 #login input[type=password],
 #settings input[type=password],
 #account-deletion input[type=text],
+#account-recovery input[type=text],
 #request-registration input[type=text],
 #request-registration input[type=email],
 #overview li {
@@ -222,6 +237,8 @@ select {
 #settings button,
 #account-deletion button,
 #account-deletion a[role=button],
+#account-recovery button,
+#account-recovery a[role=button],
 #request-registration button,
 #request-registration a[role=button],
 #login a[role=button],
