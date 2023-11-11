@@ -84,7 +84,9 @@ viewMain configuration main =
                 , id keepLoggedIn
                 ]
                 []
-            , button [ onClick Page.Login, Style.classes.button.confirm ] [ text <| main.language.login ]
+
+            -- The 'type_ "button"' is necessary to prevent the form from being submitted, which leads to a page reload
+            , button [ onClick Page.Login, Style.classes.button.confirm, type_ "button" ] [ text <| main.language.login ]
             , Links.linkButton
                 { url = Links.frontendPage configuration <| Addresses.Frontend.requestRegistration.address ()
                 , attributes = [ Style.classes.button.navigation ]
