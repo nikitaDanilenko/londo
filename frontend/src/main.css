@@ -196,14 +196,17 @@ select {
 
 #login,
 #request-registration,
-#overview {
+#overview,
+#settings {
     width: 50%;
     margin-left: auto;
     margin-right: auto;
 }
 
 #login input[type=text],
+#settings input[type=text],
 #login input[type=password],
+#settings input[type=password],
 #request-registration input[type=text],
 #request-registration input[type=email],
 #overview li {
