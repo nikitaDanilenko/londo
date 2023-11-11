@@ -89,6 +89,7 @@ viewEditing main =
             [ onClick Page.Request
             , Style.classes.button.confirm
             , disabled <| not <| isValid
+            , type_ "button"
             ]
             [ text <| main.language.register ]
         ]
