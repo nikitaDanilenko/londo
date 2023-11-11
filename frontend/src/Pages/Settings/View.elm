@@ -115,6 +115,7 @@ viewRegular language main =
             , button
                 [ onClick <| Page.UpdateSettings
                 , Style.classes.button.confirm
+                , type_ "button"
                 ]
                 [ text <| .updateSettings <| language ]
             ]
@@ -163,6 +164,7 @@ viewRegular language main =
                 [ onClick <| Page.UpdatePassword
                 , Style.classes.button.confirm
                 , disabled <| not <| isValidPassword
+                , type_ "button"
                 ]
                 [ text <| .updatePassword <| language ]
             ]
