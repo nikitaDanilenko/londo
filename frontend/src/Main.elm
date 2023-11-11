@@ -193,9 +193,8 @@ update msg model =
                 |> lenses.jwt.set (Maybe.Extra.filter (String.isEmpty >> not) (Just token))
                 |> followRoute
 
-        --  todo: Remove command, otherwise there is an endless loop
         ( DeleteToken _, _ ) ->
-            ( model |> lenses.jwt.set Nothing, Ports.doDeleteToken () )
+            ( model |> lenses.jwt.set Nothing, Cmd.none )
 
         ( RequestRegistrationMsg requestRegistrationMsg, RequestRegistration requestRegistration ) ->
             stepThrough steps.requestRegistration model (Pages.Registration.Request.Handler.update requestRegistrationMsg requestRegistration)
