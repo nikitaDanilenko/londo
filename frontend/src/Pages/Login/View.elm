@@ -70,10 +70,8 @@ viewMain configuration main =
                 ]
                 []
             , label
-                [ for keepLoggedIn
-                ]
-                [ text <| main.language.keepMeLoggedIn
-                ]
+                [ for keepLoggedIn ]
+                [ text <| main.language.keepMeLoggedIn ]
             , input
                 [ type_ "checkbox"
                 , onClick <|
