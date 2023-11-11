@@ -32,14 +32,14 @@ searchAreaWith ps =
                 , value <| ps.searchString
                 ]
                 []
-            , input
+            , button
                 [ Style.classes.button.clear
-                , value "Clear" -- todo: Use language element here
                 , type_ "reset"
                 , onClick <| ps.msg ""
                 , disabled <| String.isEmpty <| ps.searchString
                 ]
-                []
+                -- todo: Use language element here
+                [ text <| "Clear" ]
             ]
         ]
 
