@@ -1,7 +1,12 @@
 package graphql
 
 import security.jwt.LoggedIn
-trait Query extends graphql.queries.user.Query with graphql.queries.project.Query with graphql.queries.dashboard.Query
+
+trait Query
+    extends graphql.queries.user.Query
+    with graphql.queries.project.Query
+    with graphql.queries.dashboard.Query
+    with graphql.queries.statistics.Query
 
 object Query {
 

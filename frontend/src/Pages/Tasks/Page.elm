@@ -34,7 +34,7 @@ initial authorizedAccess =
     { project = Pages.Util.Parent.Page.initialWith authorizedAccess.jwt Language.Language.default.projectEditor
     , tasks = Pages.Tasks.Tasks.Page.subInitial authorizedAccess
     }
-        |> Tristate.createInitial authorizedAccess.configuration
+        |> Tristate.createInitial authorizedAccess.configuration Language.Language.default.errorHandling
 
 
 initialToMain : Initial -> Maybe Main

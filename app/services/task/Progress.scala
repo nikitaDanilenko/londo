@@ -1,6 +1,6 @@
 package services.task
 
-import algebra.ring.{ AdditiveMonoid, AdditiveSemigroup }
+import algebra.ring.AdditiveSemigroup
 import math.Positive
 import spire.algebra.{ MultiplicativeSemigroup, Order }
 import spire.math.{ Natural, Rational }
@@ -47,8 +47,11 @@ object Progress {
   def fraction(reachable: Positive, reached: Natural): Progress =
     zero(reachable).set(reached)
 
-  def divideBy(progress: Progress, p: Positive): Progress =
-    unsafeFromRational(progress.value * Rational(1, p.natural.toBigInt))
+  def missing(progress: Progress): Natural =
+    progress.reachable.natural - progress.reached
+
+  def isComplete(progress: Progress): Boolean =
+    progress.reached == progress.reachable.natural
 
   private def clampMax[A: Order](value: A, max: A): A =
     Order[A].min(max, value)

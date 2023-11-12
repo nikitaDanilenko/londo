@@ -19,7 +19,7 @@ import Pages.View.Tristate as Tristate
 import Util.MaybeUtil as MaybeUtil
 
 
-view : Page.Model -> Html Page.Msg
+view : Page.Model -> List (Html Page.Msg)
 view =
     Tristate.view
         { viewMain = viewMain
@@ -27,12 +27,13 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
+viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
 viewMain configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
         , currentPage = Nothing
         , showNavigation = False
+        , id = Style.ids.confirmRegistration
         }
     <|
         case main.mode of

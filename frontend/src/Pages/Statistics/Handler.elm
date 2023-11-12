@@ -1,6 +1,7 @@
 module Pages.Statistics.Handler exposing (init, update, updateLogic)
 
 import Language.Language
+import Math.Positive
 import Maybe.Extra
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
@@ -10,8 +11,8 @@ import Pages.Statistics.Pagination as Pagination
 import Pages.Util.PaginationSettings as PaginationSettings
 import Pages.View.Tristate as Tristate
 import Result.Extra
-import Types.Dashboard.DeeplyResolved
-import Types.Task.Resolved
+import Types.Dashboard.Analysis
+import Types.Task.Analysis
 import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
 import Util.Editing as Editing exposing (Editing)
@@ -31,11 +32,13 @@ init flags =
         , dashboard = Language.Language.default.dashboardEditor
         , statistics = Language.Language.default.statistics
         }
+        Language.Language.default.errorHandling
         flags.authorizedAccess
-    , Types.Dashboard.DeeplyResolved.fetchWith
-        Page.GotFetchDeeplyDashboardResponse
+    , Types.Dashboard.Analysis.fetchWith
+        Page.GotFetchDashboardAnalysisResponse
         flags.authorizedAccess
         flags.dashboardId
+        Page.numberOfDecimalPlaces
         |> Cmd.map Tristate.Logic
     )
 
@@ -43,14 +46,14 @@ init flags =
 updateLogic : Page.LogicMsg -> Page.Model -> ( Page.Model, Cmd Page.LogicMsg )
 updateLogic msg model =
     let
-        gotFetchDeeplyResolvedDashboardResponse result =
+        gotFetchDashboardAnalysisResponse result =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
-                    (\serverResponse ->
+                    (\dashboardAnalysis ->
                         model
                             |> Tristate.mapInitial
-                                (Page.lenses.initial.deeplyResolvedDashboard.set
-                                    (serverResponse |> Just)
+                                (Page.lenses.initial.dashboardAnalysis.set
+                                    (dashboardAnalysis |> Just)
                                 )
                             |> Tristate.fromInitToMain Page.initialToMain
                     )
@@ -67,6 +70,21 @@ updateLogic msg model =
             , model
                 |> Tristate.foldMain Cmd.none
                     (\main ->
+                        let
+                            numberOf filter =
+                                main
+                                    |> Page.lenses.main.projects.get
+                                    |> DictList.values
+                                    |> List.concatMap (.tasks >> DictList.values >> filter)
+                                    |> List.length
+                                    |> Math.Positive.fromInt
+
+                            numberOfTotalTasks =
+                                numberOf identity
+
+                            numberOfCountingTasks =
+                                numberOf (List.filter (.original >> .task >> .counting))
+                        in
                         main
                             |> Page.lenses.main.projects.get
                             |> DictList.get projectId
@@ -79,25 +97,53 @@ updateLogic msg model =
                                     { configuration = model.configuration
                                     , jwt = main.jwt
                                     }
-                                    main.dashboard.id
-                                    taskId
+                                    { dashboardId = main.dashboard.id
+                                    , taskId = taskId
+                                    , numberOfTotalTasks = numberOfTotalTasks
+                                    , numberOfCountingTasks = numberOfCountingTasks
+                                    , numberOfDecimalPlaces = Page.numberOfDecimalPlaces
+                                    }
                                 )
                     )
             )
 
         gotSaveEditTaskResponse projectId result =
+            result
+                |> Result.Extra.unpack (\error -> ( Tristate.toError model error, Cmd.none ))
+                    (\resolvedTask ->
+                        ( model
+                        , model
+                            |> Tristate.foldMain Cmd.none
+                                (\main ->
+                                    Types.Dashboard.Analysis.fetchWithSelection
+                                        { expect = Page.GotFetchUpdatedStatisticsResponse projectId resolvedTask
+                                        , selection = Types.Dashboard.Analysis.statisticsSelection
+                                        }
+                                        { configuration = model.configuration
+                                        , jwt = main.jwt
+                                        }
+                                        main.dashboard.id
+                                        Page.numberOfDecimalPlaces
+                                )
+                        )
+                    )
+
+        gotFetchUpdatedStatisticsResponse projectId taskAnalysis result =
             ( result
                 |> Result.Extra.unpack (Tristate.toError model)
-                    (\resolvedTask ->
+                    (\dashboardStatistics ->
                         model
-                            |> updateTaskById projectId
-                                resolvedTask.task.id
+                            |> updateTaskById
+                                projectId
+                                taskAnalysis.task.id
                                 (Editing.asViewWithElement
-                                    { task = resolvedTask.task
-                                    , simulation = resolvedTask.simulation
+                                    { task = taskAnalysis.task
+                                    , simulation = taskAnalysis.simulation
+                                    , incompleteTaskStatistics = taskAnalysis.incompleteTaskStatistics
                                     }
                                     >> Editing.toggleControls
                                 )
+                            |> Tristate.mapMain (Page.lenses.main.dashboardStatistics.set dashboardStatistics)
                     )
             , Cmd.none
             )
@@ -134,15 +180,21 @@ updateLogic msg model =
             , Cmd.none
             )
 
-        setPagination pagination =
+        setProjectsPagination paginationSettings =
             ( model
-                |> Tristate.mapMain (Page.lenses.main.pagination.set pagination)
+                |> Tristate.mapMain ((Page.lenses.main.pagination |> Compose.lensWithLens Pagination.lenses.projects).set paginationSettings)
+            , Cmd.none
+            )
+
+        setViewType viewType =
+            ( model
+                |> Tristate.mapMain (Page.lenses.main.viewType.set viewType)
             , Cmd.none
             )
     in
     case msg of
-        Page.GotFetchDeeplyDashboardResponse result ->
-            gotFetchDeeplyResolvedDashboardResponse result
+        Page.GotFetchDashboardAnalysisResponse result ->
+            gotFetchDashboardAnalysisResponse result
 
         Page.EditTask projectId taskId taskUpdate ->
             editTask projectId taskId taskUpdate
@@ -153,6 +205,9 @@ updateLogic msg model =
         Page.GotSaveEditTaskResponse projectId result ->
             gotSaveEditTaskResponse projectId result
 
+        Page.GotFetchUpdatedStatisticsResponse projectId taskAnalysis result ->
+            gotFetchUpdatedStatisticsResponse projectId taskAnalysis result
+
         Page.ToggleControls projectId taskId ->
             toggleControls projectId taskId
 
@@ -162,17 +217,20 @@ updateLogic msg model =
         Page.ExitEditTask projectId taskId ->
             exitEditTask projectId taskId
 
-        Page.SetPagination pagination ->
-            setPagination pagination
+        Page.SetProjectsPagination pagination ->
+            setProjectsPagination pagination
 
         Page.SetSearchString string ->
             setSearchString string
+
+        Page.SetViewType viewType ->
+            setViewType viewType
 
 
 updateTaskById :
     Page.ProjectId
     -> Page.TaskId
-    -> (Editing Page.ResolvedTask Page.TaskUpdate -> Editing Page.ResolvedTask Page.TaskUpdate)
+    -> (Editing Page.TaskAnalysis Page.TaskUpdate -> Editing Page.TaskAnalysis Page.TaskUpdate)
     -> Page.Model
     -> Page.Model
 updateTaskById projectId taskId =

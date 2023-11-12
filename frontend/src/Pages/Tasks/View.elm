@@ -10,7 +10,7 @@ import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
 
 
-view : Page.Model -> Html Page.Msg
+view : Page.Model -> List (Html Page.Msg)
 view =
     Tristate.view
         { viewMain = viewMain
@@ -18,16 +18,19 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
+viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
 viewMain configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
         , currentPage = Nothing
         , showNavigation = True
+        , id = Style.ids.taskEditor
         }
     <|
         [ Pages.Tasks.Project.View.viewMain configuration main.project
             |> Html.map Page.ProjectMsg
         , h1 [ Style.classes.elements ] [ text <| main.tasks.language.tasks ]
-        , Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id configuration main.tasks |> Html.map Page.TasksMsg
         ]
+            ++ (Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id configuration main.tasks
+                    |> List.map (Html.map Page.TasksMsg)
+               )

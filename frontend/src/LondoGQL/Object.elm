@@ -5,8 +5,16 @@
 module LondoGQL.Object exposing (..)
 
 
+type After
+    = After
+
+
 type Dashboard
     = Dashboard
+
+
+type DashboardAnalysis
+    = DashboardAnalysis
 
 
 type DashboardEntry
@@ -17,16 +25,16 @@ type DashboardId
     = DashboardId
 
 
-type DeeplyResolvedDashboard
-    = DeeplyResolvedDashboard
-
-
-type DeeplyResolvedProject
-    = DeeplyResolvedProject
+type DashboardStatistics
+    = DashboardStatistics
 
 
 type FindUserResult
     = FindUserResult
+
+
+type IncompleteTaskStatistics
+    = IncompleteTaskStatistics
 
 
 type Natural
@@ -45,6 +53,10 @@ type Project
     = Project
 
 
+type ProjectAnalysis
+    = ProjectAnalysis
+
+
 type ProjectId
     = ProjectId
 
@@ -57,16 +69,16 @@ type ResolvedProject
     = ResolvedProject
 
 
-type ResolvedTask
-    = ResolvedTask
-
-
 type Simulation
     = Simulation
 
 
 type Task
     = Task
+
+
+type TaskAnalysis
+    = TaskAnalysis
 
 
 type TaskId
@@ -79,3 +91,15 @@ type User
 
 type UserId
     = UserId
+
+
+type WithSimulationBigDecimal
+    = WithSimulationBigDecimal
+
+
+type WithSimulationNatural
+    = WithSimulationNatural
+
+
+type WithoutSimulation
+    = WithoutSimulation

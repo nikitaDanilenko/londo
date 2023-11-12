@@ -5,7 +5,8 @@ import Pages.Util.PaginationSettings as PaginationSettings exposing (PaginationS
 
 
 type alias Pagination =
-    { projects : PaginationSettings }
+    { projects : PaginationSettings
+    }
 
 
 initial : Pagination

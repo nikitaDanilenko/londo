@@ -12,3 +12,13 @@ bigIntFromGraphQL (LondoGQL.Scalar.BigInt x) =
 bigIntToGraphQL : BigInt -> LondoGQL.Scalar.BigInt
 bigIntToGraphQL =
     BigInt.toString >> LondoGQL.Scalar.BigInt
+
+
+uuidToString : LondoGQL.Scalar.Uuid -> String
+uuidToString (LondoGQL.Scalar.Uuid string) =
+    string
+
+
+unit : LondoGQL.Scalar.Unit
+unit =
+    LondoGQL.Scalar.Unit "()"

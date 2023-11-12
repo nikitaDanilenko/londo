@@ -19,7 +19,7 @@ type alias Main =
     , complementInput : ComplementInput
     , registrationJWT : JWT
     , mode : Mode
-    , language: Language.ConfirmRegistration
+    , language : Language.ConfirmRegistration
     }
 
 
@@ -31,7 +31,7 @@ initial flags =
     , mode = Editing
     , language = Language.default.confirmRegistration
     }
-        |> Tristate.createMain flags.configuration
+        |> Tristate.createMain flags.configuration Language.default.errorHandling
 
 
 lenses :

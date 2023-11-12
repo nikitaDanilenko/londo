@@ -7,6 +7,7 @@ import Pages.Util.Choice.Page
 import Types.DashboardEntry.Creation
 import Types.DashboardEntry.Entry
 import Types.DashboardEntry.Id exposing (Id(..))
+import Types.Project.Id
 import Types.Project.Project
 
 
@@ -19,8 +20,10 @@ updateLogic : Page.LogicMsg -> Page.Model -> ( Page.Model, Cmd Page.LogicMsg )
 updateLogic =
     Pages.Util.Choice.Handler.updateLogic
         { idOfElement = .projectId
+        , elementIdOrdering = Types.Project.Id.ordering
         , idOfUpdate = .projectId
         , idOfChoice = .id
+        , choiceIdOrdering = Types.Project.Id.ordering
         , choiceIdOfElement = .projectId
         , choiceIdOfCreation = .projectId
         , toUpdate = identity

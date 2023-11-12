@@ -494,6 +494,35 @@ encodeDeleteTaskInput input____ =
         [ ( "taskId", encodeTaskIdInput input____.taskId |> Just ) ]
 
 
+buildFetchDashboardAnalysisInput :
+    FetchDashboardAnalysisInputRequiredFields
+    -> FetchDashboardAnalysisInput
+buildFetchDashboardAnalysisInput required____ =
+    { dashboardId = required____.dashboardId, numberOfDecimalPlaces = required____.numberOfDecimalPlaces }
+
+
+type alias FetchDashboardAnalysisInputRequiredFields =
+    { dashboardId : DashboardIdInput
+    , numberOfDecimalPlaces : PositiveInput
+    }
+
+
+{-| Type for the FetchDashboardAnalysisInput input object.
+-}
+type alias FetchDashboardAnalysisInput =
+    { dashboardId : DashboardIdInput
+    , numberOfDecimalPlaces : PositiveInput
+    }
+
+
+{-| Encode a FetchDashboardAnalysisInput into a value that can be used as an argument.
+-}
+encodeFetchDashboardAnalysisInput : FetchDashboardAnalysisInput -> Value
+encodeFetchDashboardAnalysisInput input____ =
+    Encode.maybeObject
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "numberOfDecimalPlaces", encodePositiveInput input____.numberOfDecimalPlaces |> Just ) ]
+
+
 buildFetchDashboardInput :
     FetchDashboardInputRequiredFields
     -> FetchDashboardInput
@@ -515,31 +544,6 @@ type alias FetchDashboardInput =
 -}
 encodeFetchDashboardInput : FetchDashboardInput -> Value
 encodeFetchDashboardInput input____ =
-    Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
-
-
-buildFetchDeeplyResolvedDashboardInput :
-    FetchDeeplyResolvedDashboardInputRequiredFields
-    -> FetchDeeplyResolvedDashboardInput
-buildFetchDeeplyResolvedDashboardInput required____ =
-    { dashboardId = required____.dashboardId }
-
-
-type alias FetchDeeplyResolvedDashboardInputRequiredFields =
-    { dashboardId : DashboardIdInput }
-
-
-{-| Type for the FetchDeeplyResolvedDashboardInput input object.
--}
-type alias FetchDeeplyResolvedDashboardInput =
-    { dashboardId : DashboardIdInput }
-
-
-{-| Encode a FetchDeeplyResolvedDashboardInput into a value that can be used as an argument.
--}
-encodeFetchDeeplyResolvedDashboardInput : FetchDeeplyResolvedDashboardInput -> Value
-encodeFetchDeeplyResolvedDashboardInput input____ =
     Encode.maybeObject
         [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ) ]
 
@@ -1152,20 +1156,24 @@ buildUpdateTaskWithSimulationInput required____ fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
-                { simulation = Absent }
+                { simulation = Absent, numberOfTotalTasks = Absent, numberOfCountingTasks = Absent }
     in
-    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation }
+    { dashboardId = required____.dashboardId, taskId = required____.taskId, taskUpdate = required____.taskUpdate, simulation = optionals____.simulation, numberOfTotalTasks = optionals____.numberOfTotalTasks, numberOfCountingTasks = optionals____.numberOfCountingTasks, numberOfDecimalPlaces = required____.numberOfDecimalPlaces }
 
 
 type alias UpdateTaskWithSimulationInputRequiredFields =
     { dashboardId : DashboardIdInput
     , taskId : TaskIdInput
     , taskUpdate : TaskUpdate
+    , numberOfDecimalPlaces : PositiveInput
     }
 
 
 type alias UpdateTaskWithSimulationInputOptionalFields =
-    { simulation : OptionalArgument SimulationInput }
+    { simulation : OptionalArgument SimulationInput
+    , numberOfTotalTasks : OptionalArgument PositiveInput
+    , numberOfCountingTasks : OptionalArgument PositiveInput
+    }
 
 
 {-| Type for the UpdateTaskWithSimulationInput input object.
@@ -1175,6 +1183,9 @@ type alias UpdateTaskWithSimulationInput =
     , taskId : TaskIdInput
     , taskUpdate : TaskUpdate
     , simulation : OptionalArgument SimulationInput
+    , numberOfTotalTasks : OptionalArgument PositiveInput
+    , numberOfCountingTasks : OptionalArgument PositiveInput
+    , numberOfDecimalPlaces : PositiveInput
     }
 
 
@@ -1183,24 +1194,19 @@ type alias UpdateTaskWithSimulationInput =
 encodeUpdateTaskWithSimulationInput : UpdateTaskWithSimulationInput -> Value
 encodeUpdateTaskWithSimulationInput input____ =
     Encode.maybeObject
-        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ) ]
+        [ ( "dashboardId", encodeDashboardIdInput input____.dashboardId |> Just ), ( "taskId", encodeTaskIdInput input____.taskId |> Just ), ( "taskUpdate", encodeTaskUpdate input____.taskUpdate |> Just ), ( "simulation", encodeSimulationInput |> Encode.optional input____.simulation ), ( "numberOfTotalTasks", encodePositiveInput |> Encode.optional input____.numberOfTotalTasks ), ( "numberOfCountingTasks", encodePositiveInput |> Encode.optional input____.numberOfCountingTasks ), ( "numberOfDecimalPlaces", encodePositiveInput input____.numberOfDecimalPlaces |> Just ) ]
 
 
 buildUpdateUserInput :
-    UpdateUserInputRequiredFields
-    -> (UpdateUserInputOptionalFields -> UpdateUserInputOptionalFields)
+    (UpdateUserInputOptionalFields -> UpdateUserInputOptionalFields)
     -> UpdateUserInput
-buildUpdateUserInput required____ fillOptionals____ =
+buildUpdateUserInput fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
                 { displayName = Absent }
     in
-    { displayName = optionals____.displayName, email = required____.email }
-
-
-type alias UpdateUserInputRequiredFields =
-    { email : String }
+    { displayName = optionals____.displayName }
 
 
 type alias UpdateUserInputOptionalFields =
@@ -1210,9 +1216,7 @@ type alias UpdateUserInputOptionalFields =
 {-| Type for the UpdateUserInput input object.
 -}
 type alias UpdateUserInput =
-    { displayName : OptionalArgument String
-    , email : String
-    }
+    { displayName : OptionalArgument String }
 
 
 {-| Encode a UpdateUserInput into a value that can be used as an argument.
@@ -1220,7 +1224,7 @@ type alias UpdateUserInput =
 encodeUpdateUserInput : UpdateUserInput -> Value
 encodeUpdateUserInput input____ =
     Encode.maybeObject
-        [ ( "displayName", Encode.string |> Encode.optional input____.displayName ), ( "email", Encode.string input____.email |> Just ) ]
+        [ ( "displayName", Encode.string |> Encode.optional input____.displayName ) ]
 
 
 buildUserIdInput :

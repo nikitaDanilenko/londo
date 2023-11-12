@@ -1,7 +1,7 @@
 module Pages.Util.Choice.View exposing (viewChoices, viewElements)
 
 import Basics.Extra exposing (flip)
-import Html exposing (Attribute, Html, button, div, h2, nav, section, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, h2, nav, p, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onEnter)
@@ -29,6 +29,9 @@ viewElements :
     , info : element -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
     , isValidInput : update -> Bool
     , edit : element -> update -> List (HtmlUtil.Column (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
+    , clearSearchWord : String
+    , saveWord : String
+    , cancelWord : String
     }
     -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
@@ -46,6 +49,8 @@ viewElements ps main =
                         { idOfElement = ps.idOfElement
                         , isValidInput = ps.isValidInput
                         , edit = ps.edit
+                        , saveWord = ps.saveWord
+                        , cancelWord = ps.cancelWord
                         }
                 , onDelete =
                     deleteElementLine
@@ -74,8 +79,9 @@ viewElements ps main =
                     )
                 |> ViewUtil.paginate
                     { pagination =
-                        Pages.Util.Choice.Page.lenses.main.pagination
+                        (Pages.Util.Choice.Page.lenses.main.pagination
                             |> Compose.lensWithLens Pagination.lenses.elements
+                        ).get
                     }
                     main
     in
@@ -84,6 +90,7 @@ viewElements ps main =
         , HtmlUtil.searchAreaWith
             { msg = Pages.Util.Choice.Page.SetElementsSearchString
             , searchString = main.elementsSearchString
+            , clearWord = ps.clearSearchWord
             }
         , table [ Style.classes.elementsWithControlsTable, Style.classes.elementEditTable ]
             [ thead []
@@ -121,6 +128,7 @@ viewChoices :
     , idOfChoice : choice -> choiceId
     , elementCreationLine : choice -> creation -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
     , viewChoiceLine : choice -> HtmlUtil.RowWithControls (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
+    , clearSearchWord : String
     }
     -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
@@ -134,8 +142,9 @@ viewChoices ps main =
                 |> List.sortBy (.original >> ps.sortBy)
                 |> ViewUtil.paginate
                     { pagination =
-                        Pages.Util.Choice.Page.lenses.main.pagination
+                        (Pages.Util.Choice.Page.lenses.main.pagination
                             |> Compose.lensWithLens Pagination.lenses.choices
+                        ).get
                     }
                     main
     in
@@ -144,6 +153,7 @@ viewChoices ps main =
         , HtmlUtil.searchAreaWith
             { msg = Pages.Util.Choice.Page.SetChoicesSearchString
             , searchString = main.choicesSearchString
+            , clearWord = ps.clearSearchWord
             }
         , table [ Style.classes.elementsWithControlsTable ]
             [ thead []
@@ -257,7 +267,7 @@ elementLineWith ps element =
 
         controlsRow =
             tr [ Style.classes.controls ]
-                [ td [ colspan <| List.length <| displayColumns ] [ div [] (.controls <| info) ] ]
+                [ td [ colspan <| List.length <| displayColumns ] [ p [] (.controls <| info) ] ]
     in
     infoRow
         :: (if ps.showControls then
@@ -272,6 +282,8 @@ editElementLine :
     { idOfElement : element -> elementId
     , isValidInput : update -> Bool
     , edit : element -> update -> List (HtmlUtil.Column (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
+    , saveWord : String
+    , cancelWord : String
     }
     -> element
     -> update
@@ -313,20 +325,16 @@ editElementLine ps element elementUpdateClientInput =
         controlsRow =
             tr []
                 [ td [ colspan <| List.length <| editCells ]
-                    [ div []
-                        [ button
-                            ([ MaybeUtil.defined <| Style.classes.button.confirm
-                             , MaybeUtil.defined <| disabled <| not <| validInput
-                             , MaybeUtil.optional validInput <| onClick saveMsg
-                             ]
-                                |> Maybe.Extra.values
-                            )
-                            [ text <| "Save" ]
-                        ]
-                    , td [ Style.classes.controls ]
-                        [ button [ Style.classes.button.cancel, onClick cancelMsg ]
-                            [ text <| "Cancel" ]
-                        ]
+                    [ button
+                        ([ MaybeUtil.defined <| Style.classes.button.confirm
+                         , MaybeUtil.defined <| disabled <| not <| validInput
+                         , MaybeUtil.optional validInput <| onClick saveMsg
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        [ text <| ps.saveWord ]
+                    , button [ Style.classes.button.cancel, onClick cancelMsg ]
+                        [ text <| ps.cancelWord ]
                     ]
                 ]
     in
@@ -358,7 +366,7 @@ viewChoiceLine ps choice showControls =
         controlsRow =
             tr [ Style.classes.controls ]
                 [ td [ colspan <| List.length <| columns ]
-                    [ div [] rowWithControls.controls ]
+                    [ p [] rowWithControls.controls ]
                 ]
     in
     infoRow
@@ -398,7 +406,7 @@ editElementCreation ps choice creation =
         controlsRow =
             tr [ Style.classes.controls ]
                 [ td [ colspan <| (+) 1 <| List.length <| rowWithControls.display ]
-                    [ div [] rowWithControls.controls ]
+                    rowWithControls.controls
                 ]
     in
     [ creationRow, controlsRow ]

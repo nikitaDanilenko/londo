@@ -259,7 +259,7 @@ type alias UpdateTaskWithSimulationRequiredArguments =
 
 updateTaskWithSimulation :
     UpdateTaskWithSimulationRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.ResolvedTask
+    -> SelectionSet decodesTo LondoGQL.Object.TaskAnalysis
     -> SelectionSet decodesTo RootMutation
 updateTaskWithSimulation requiredArgs____ object____ =
     Object.selectionForCompositeField "updateTaskWithSimulation" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeUpdateTaskWithSimulationInput ] object____ Basics.identity

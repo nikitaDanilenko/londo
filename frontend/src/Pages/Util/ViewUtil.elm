@@ -2,11 +2,10 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, header, main_, nav, table, tbody, td, text, tr)
+import Html exposing (Attribute, Html, button, header, main_, nav, p, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
-import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
 import Pages.Util.Links as Links
 import Pages.Util.PaginationSettings as PaginationSettings exposing (PaginationSettings)
@@ -20,23 +19,23 @@ viewMainWith :
     { configuration : Configuration
     , currentPage : Maybe Page
     , showNavigation : Bool
+    , id : Attribute msg
     }
     -> List (Html msg)
-    -> Html msg
-viewMainWith params html =
+    -> List (Html msg)
+viewMainWith ps html =
     let
         navigation =
             [ navigationBar
-                { mainPageURL = params.configuration |> .mainPageURL
-                , currentPage = params.currentPage
+                { mainPageURL = ps.configuration |> .mainPageURL
+                , currentPage = ps.currentPage
                 }
             ]
-                |> List.filter (always params.showNavigation)
+                |> List.filter (always ps.showNavigation)
     in
-    main_ []
-        (header [] navigation
-            :: html
-        )
+    [ header [] navigation
+    , main_ [ ps.id ] html
+    ]
 
 
 type Page
@@ -64,7 +63,7 @@ addressSuffix page =
                     Addresses.Frontend.dashboards.address ()
 
                 UserSettings ->
-                    Addresses.Frontend.userSettings.address ()
+                    Addresses.Frontend.settings.address ()
 
                 Login ->
                     Addresses.Frontend.login.address ()
@@ -133,28 +132,23 @@ navigationToPageButtonWith ps =
         isDisabled =
             Maybe.Extra.unwrap False (\current -> current == ps.page) ps.currentPage
 
-        attributes =
-            [ MaybeUtil.defined <| Style.classes.button.navigation
-            , MaybeUtil.optional isDisabled <| Style.classes.disabled
+        navigationAttributes =
+            [ Style.classes.button.navigation
             ]
-                |> Maybe.Extra.values
+    in
+    if isDisabled then
+        p (Style.classes.disabled :: navigationAttributes) [ text <| ps.nameOf <| ps.page ]
 
-        url =
-            if isDisabled then
-                ""
-
-            else
+    else
+        Links.linkButton
+            { url =
                 navigationLink
                     { mainPageURL = ps.mainPageURL
                     , page = ps.addressSuffix ps.page
                     }
-    in
-    Links.linkButton
-        --todo: This should be properly inactive, when disabled!
-        { url = url
-        , attributes = attributes
-        , linkText = ps.nameOf <| ps.page
-        }
+            , attributes = navigationAttributes
+            , linkText = ps.nameOf <| ps.page
+            }
 
 
 navigationBar :
@@ -236,11 +230,11 @@ pagerButtons ps =
 
 
 paginate :
-    { pagination : Lens model PaginationSettings
+    { pagination : model -> PaginationSettings
     }
     -> model
     -> List a
     -> PaginatedList a
 paginate ps model =
-    Paginate.fromList ((ps.pagination |> Compose.lensWithLens PaginationSettings.lenses.itemsPerPage).get model)
-        >> Paginate.goTo (model |> (ps.pagination |> Compose.lensWithLens PaginationSettings.lenses.currentPage).get)
+    Paginate.fromList ((ps.pagination >> PaginationSettings.lenses.itemsPerPage.get) model)
+        >> Paginate.goTo (model |> (ps.pagination >> PaginationSettings.lenses.currentPage.get))

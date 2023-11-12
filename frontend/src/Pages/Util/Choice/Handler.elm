@@ -12,12 +12,15 @@ import Result.Extra
 import Util.DictList as DictList
 import Util.Editing as Editing exposing (Editing)
 import Util.LensUtil as LensUtil
+import Util.Ordering exposing (Ordering)
 
 
 updateLogic :
     { idOfElement : element -> elementId
+    , elementIdOrdering : Ordering elementId
     , idOfUpdate : update -> elementId
     , idOfChoice : choice -> choiceId
+    , choiceIdOrdering : Ordering choiceId
     , choiceIdOfElement : element -> choiceId
     , choiceIdOfCreation : creation -> choiceId
     , toUpdate : element -> update
@@ -129,7 +132,7 @@ updateLogic ps msg model =
                             |> Tristate.mapInitial
                                 (Pages.Util.Choice.Page.lenses.initial.elements.set
                                     (elements
-                                        |> DictList.fromListWithKey ps.idOfElement
+                                        |> DictList.fromListWithKey ps.elementIdOrdering ps.idOfElement
                                         |> Just
                                     )
                                 )
@@ -144,7 +147,7 @@ updateLogic ps msg model =
                         ( model
                             |> Tristate.mapInitial
                                 (Pages.Util.Choice.Page.lenses.initial.choices.set
-                                    (choices |> DictList.fromListWithKey ps.idOfChoice |> Just)
+                                    (choices |> DictList.fromListWithKey ps.choiceIdOrdering ps.idOfChoice |> Just)
                                 )
                         , choices
                             |> ps.storeChoices

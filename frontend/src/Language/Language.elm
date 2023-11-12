@@ -12,6 +12,12 @@ type alias Language =
     , dashboardEditor : DashboardEditor
     , dashboardEntryEditor : DashboardEntryEditor
     , statistics : Statistics
+    , userSettings : UserSettings
+    , accountDeletion : AccountDeletion
+    , requestAccountRecovery : RequestAccountRecovery
+    , confirmAccountRecovery : ConfirmAccountRecovery
+    , main : Main
+    , errorHandling : ErrorHandling
     }
 
 
@@ -59,6 +65,7 @@ type alias Login =
     , keepMeLoggedIn : String
     , createAccount : String
     , recoverAccount : String
+    , title : String
     }
 
 
@@ -87,6 +94,7 @@ type alias TaskEditor =
     , edit : String
     , cancel : String
     , save : String
+    , clearSearch : String
     }
 
 
@@ -101,6 +109,7 @@ type alias ProjectEditor =
     , description : String
     , save : String
     , cancel : String
+    , clearSearch : String
     }
 
 
@@ -116,6 +125,7 @@ type alias DashboardEditor =
     , visibility : String
     , save : String
     , cancel : String
+    , clearSearch : String
     }
 
 
@@ -135,25 +145,92 @@ type alias DashboardEntryEditor =
     , select : String
     , add : String
     , added : String
+    , clearSearch : String
     }
 
 
 type alias Statistics =
     { total : String
-    , counted : String
+    , counting : String
     , simulatedTotal : String
-    , simulatedCounted : String
+    , simulatedCounting : String
     , reachableAll : String
     , reachedAll : String
     , meanAbsolute : String
     , meanRelative : String
     , mean : String
     , differenceOneTotal : String
-    , differenceOneCounted : String
+    , differenceOneCounting : String
     , differenceCompleteTotal : String
-    , differenceCompleteCounted : String
+    , differenceCompleteCounting : String
     , statistics : String
     , simulation : String
+    }
+
+
+type alias UserSettings =
+    { userSettings : String
+    , nickname : String
+    , email : String
+    , displayName : String
+    , newDisplayName : String
+    , updateSettings : String
+    , newPassword : String
+    , newPasswordRepetition : String
+    , updatePassword : String
+    , deleteAccount : String
+    , logoutThisDevice : String
+    , logoutAllDevices : String
+    , deletionRequested : String
+    , changeSettings : String
+    , changePassword : String
+    , dangerZone : String
+    }
+
+
+type alias AccountDeletion =
+    { confirmDeletion : String
+    , nickname : String
+    , email : String
+    , delete : String
+    , cancel : String
+    , deletionSuccessful : String
+    , mainPage : String
+    }
+
+
+type alias RequestAccountRecovery =
+    { requestSuccessful : String
+    , mainPage : String
+    , recovery : String
+    , noAccountFound : String
+    , multipleAccountsFound : String
+    , find : String
+    , identifier : String
+    }
+
+
+type alias ConfirmAccountRecovery =
+    { accountRecovery : String
+    , newPassword : String
+    , newPasswordRepetition : String
+    , updatePassword : String
+    , successfullyUpdatedPassword : String
+    , mainPage : String
+    }
+
+
+type alias Main =
+    { notFound : String
+    , title : String
+    }
+
+
+type alias ErrorHandling =
+    { errorOccurred : String
+    , suggestion : String
+    , login : String
+    , retry : String
     }
 
 
@@ -202,6 +279,7 @@ english =
         , keepMeLoggedIn = "Keep me logged in"
         , createAccount = "Create account"
         , recoverAccount = "Recover account"
+        , title = "Londo"
         }
     , overview =
         { dashboards = "Dashboards"
@@ -226,6 +304,7 @@ english =
         , edit = "Edit"
         , cancel = "Cancel"
         , save = "Save"
+        , clearSearch = "Clear"
         }
     , projectEditor =
         { add = "Add"
@@ -238,6 +317,7 @@ english =
         , description = "Description"
         , save = "Save"
         , cancel = "Cancel"
+        , clearSearch = "Clear"
         }
     , dashboardEditor =
         { add = "Add"
@@ -251,6 +331,7 @@ english =
         , visibility = "Visibility"
         , save = "Save"
         , cancel = "Cancel"
+        , clearSearch = "Clear"
         }
     , dashboardEntryEditor =
         { dashboardEntries = "Dashboard entries"
@@ -268,23 +349,78 @@ english =
         , select = "Select"
         , add = "Add"
         , added = "Added"
+        , clearSearch = "Clear"
         }
     , statistics =
         { total = "Total"
-        , counted = "Counted"
+        , counting = "Counting"
         , simulatedTotal = "Simulated (total)"
-        , simulatedCounted = "Simulated (counted)"
+        , simulatedCounting = "Simulated (counting)"
         , reachableAll = "Reachable (all)"
         , reachedAll = "Reached (all)"
         , meanAbsolute = "Mean (absolute)"
         , meanRelative = "Mean (relative)"
         , mean = "Mean"
         , differenceOneTotal = "Δ (total)"
-        , differenceOneCounted = "Δ (counted)"
+        , differenceOneCounting = "Δ (counting)"
         , differenceCompleteTotal = "After completion (total)"
-        , differenceCompleteCounted = "After completion (counted)"
+        , differenceCompleteCounting = "After completion (counting)"
         , statistics = "Statistics"
         , simulation = "Simulation"
+        }
+    , userSettings =
+        { userSettings = "User settings"
+        , nickname = "Nickname"
+        , email = "Email"
+        , displayName = "Display name"
+        , newDisplayName = "New display name"
+        , updateSettings = "Update settings"
+        , newPassword = "New password"
+        , newPasswordRepetition = "New password repetition"
+        , updatePassword = "Update password"
+        , deleteAccount = "Delete account"
+        , logoutThisDevice = "Logout this device"
+        , logoutAllDevices = "Logout all devices"
+        , deletionRequested = "Account deletion requested. Please check your email to continue."
+        , changeSettings = "Update settings"
+        , changePassword = "Change password"
+        , dangerZone = "Danger zone"
+        }
+    , accountDeletion =
+        { confirmDeletion = "Confirm deletion"
+        , nickname = "Nickname"
+        , email = "Email"
+        , delete = "Delete"
+        , cancel = "Back to main"
+        , deletionSuccessful = "Account deletion successful!"
+        , mainPage = "Main page"
+        }
+    , requestAccountRecovery =
+        { requestSuccessful = "Requested user recovery. Please check your email."
+        , mainPage = "Main page"
+        , recovery = "Recovery"
+        , noAccountFound = "No matching account found"
+        , multipleAccountsFound = "Multiple matching accounts found"
+        , find = "Find"
+        , identifier = "Nickname or email"
+        }
+    , confirmAccountRecovery =
+        { accountRecovery = "Account recovery"
+        , newPassword = "New password"
+        , newPasswordRepetition = "New password repetition"
+        , updatePassword = "Update password"
+        , successfullyUpdatedPassword = "Successfully updated password."
+        , mainPage = "Main page"
+        }
+    , main =
+        { notFound = "Page not found"
+        , title = "Londo"
+        }
+    , errorHandling =
+        { errorOccurred = "An error occurred:"
+        , suggestion = "Try the following:"
+        , login = "Login"
+        , retry = "Retry"
         }
     }
 

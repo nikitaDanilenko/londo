@@ -5,7 +5,7 @@ import Language.Language as Language
 import Monocle.Lens exposing (Lens)
 import Pages.View.Tristate as Tristate
 import Types.Auxiliary exposing (JWT)
-import Types.Credentials as Credentials exposing (Credentials)
+import Types.User.Login
 import Util.HttpUtil as HttpUtil
 
 
@@ -14,22 +14,22 @@ type alias Model =
 
 
 type alias Main =
-    { credentials : Credentials
+    { credentials : Types.User.Login.ClientInput
     , language : Language.Login
     }
 
 
 initial : Flags -> Model
 initial flags =
-    { credentials = Credentials.initial
+    { credentials = Types.User.Login.initial
     , language = Language.default.login
     }
-        |> Tristate.createMain flags.configuration
+        |> Tristate.createMain flags.configuration Language.default.errorHandling
 
 
 lenses :
     { main :
-        { credentials : Lens Main Credentials
+        { credentials : Lens Main Types.User.Login.ClientInput
         }
     }
 lenses =
@@ -49,6 +49,6 @@ type alias Msg =
 
 
 type LogicMsg
-    = SetCredentials Credentials
+    = SetCredentials Types.User.Login.ClientInput
     | Login
     | GotResponse (HttpUtil.GraphQLResult JWT)

@@ -8,13 +8,15 @@ The tool's only purpose is displaying and tracking the progress, there is no int
 
 The name `londo` hints at [Londo Mollari](https://en.wikipedia.org/wiki/Londo_Mollari), a character from the TV show [Babylon 5](https://en.wikipedia.org/wiki/Babylon_5). In a memorable, but very dark scene the character ecstatically states "Ah, progress!"
 
-## Frontend
+# Development
+
+## Front End
 
 * Install [elm-create-app](https://github.com/halfzebra/create-elm-app)
 * Run `elm-app start` for development
-* Afterwards address the pages using `localhost:3000/#/<page>`
+* View the pages using `localhost:3000/#/<page>`
 
-## Backend
+## Back End
 
 ### Database
 1. Create a database, a corresponding user, and connect the two:

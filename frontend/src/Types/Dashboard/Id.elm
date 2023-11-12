@@ -5,6 +5,9 @@ import LondoGQL.InputObject
 import LondoGQL.Object
 import LondoGQL.Object.DashboardId
 import LondoGQL.Scalar exposing (Uuid)
+import Util.GraphQLUtil as GraphQLUtil
+import Util.Ordering as Ordering exposing (Ordering)
+import Uuid
 
 
 type Id
@@ -24,3 +27,8 @@ toGraphQLInput =
 selection : SelectionSet Id LondoGQL.Object.DashboardId
 selection =
     LondoGQL.Object.DashboardId.uuid |> SelectionSet.map Id
+
+
+ordering : Ordering Id
+ordering =
+    Ordering.with (uuid >> GraphQLUtil.uuidToString)

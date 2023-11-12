@@ -18,7 +18,7 @@ import Util.MaybeUtil as MaybeUtil
 import Util.ValidatedInput as ValidatedInput
 
 
-view : Page.Model -> Html Page.Msg
+view : Page.Model -> List (Html Page.Msg)
 view =
     Tristate.view
         { viewMain = viewMain
@@ -26,15 +26,16 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
+viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
 viewMain configuration main =
-    main_ [ Style.ids.requestRegistration ] <|
+    [ main_ [ Style.ids.requestRegistration ] <|
         case main.mode of
             Page.Editing ->
                 viewEditing main
 
             Page.Confirmed ->
                 viewConfirmed configuration main.language
+    ]
 
 
 viewEditing : Page.Main -> List (Html Page.LogicMsg)
@@ -46,8 +47,8 @@ viewEditing main =
         enterAction =
             MaybeUtil.optional isValid <| onEnter Page.Request
 
-        username =
-            "username"
+        nickname =
+            "nickname"
 
         email =
             "email"
@@ -55,7 +56,7 @@ viewEditing main =
     [ h1 [] [ text <| main.language.header ]
     , form
         []
-        [ label [ for username ] [ text <| main.language.nickname ]
+        [ label [ for nickname ] [ text <| main.language.nickname ]
         , input
             ([ MaybeUtil.defined <|
                 onInput <|
@@ -64,7 +65,7 @@ viewEditing main =
              , MaybeUtil.defined <| Style.classes.editable
              , enterAction
              , MaybeUtil.defined <| type_ "text"
-             , MaybeUtil.defined <| id username
+             , MaybeUtil.defined <| id nickname
              ]
                 |> Maybe.Extra.values
             )
@@ -88,6 +89,7 @@ viewEditing main =
             [ onClick Page.Request
             , Style.classes.button.confirm
             , disabled <| not <| isValid
+            , type_ "button"
             ]
             [ text <| main.language.register ]
         ]
