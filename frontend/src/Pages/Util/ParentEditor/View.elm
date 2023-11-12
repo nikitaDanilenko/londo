@@ -1,7 +1,7 @@
 module Pages.Util.ParentEditor.View exposing (..)
 
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, div, nav, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, button, nav, p, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
@@ -36,16 +36,18 @@ viewParentsWith :
     , setSearchString : String -> msg
     , setPagination : Pagination -> msg
     , styling : Attribute msg
+    , clearSearchWord : String
     }
     -> language
     -> Configuration
     -> Page.Main parentId parent creation update language
-    -> Html msg
+    -> List (Html msg)
 viewParentsWith ps language configuration main =
     ViewUtil.viewMainWith
         { configuration = configuration
         , currentPage = ps.currentPage
         , showNavigation = ps.showNavigation
+        , id = ps.styling
         }
     <|
         let
@@ -65,7 +67,7 @@ viewParentsWith ps language configuration main =
                     |> DictList.values
                     |> ps.sort
                     |> ViewUtil.paginate
-                        { pagination = Page.lenses.main.pagination |> Compose.lensWithLens Pagination.lenses.parents
+                        { pagination = (Page.lenses.main.pagination |> Compose.lensWithLens Pagination.lenses.parents).get
                         }
                         main
 
@@ -86,6 +88,7 @@ viewParentsWith ps language configuration main =
             ++ [ HtmlUtil.searchAreaWith
                     { msg = ps.setSearchString
                     , searchString = main.searchString
+                    , clearWord = ps.clearSearchWord
                     }
                , table [ Style.classes.elementsWithControlsTable ]
                     (ps.tableHeader
@@ -151,7 +154,7 @@ lineWith ps parent =
         controlsRow =
             tr [ Style.classes.controls ]
                 [ td [ colspan <| List.length <| displayColumns ]
-                    [ div [] row.controls ]
+                    [ p [] row.controls ]
                 ]
     in
     infoRow
@@ -193,7 +196,7 @@ controlsRowWith :
 controlsRowWith ps =
     tr [ Style.classes.controls ]
         [ td [ colspan <| ps.colspan ]
-            [ div []
+            [ p []
                 [ button
                     ([ MaybeUtil.defined <| Style.classes.button.confirm
                      , MaybeUtil.defined <| disabled <| not <| ps.validInput

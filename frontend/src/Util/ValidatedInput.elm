@@ -111,12 +111,16 @@ naturalWithParser parser =
 updateBound : Natural -> ValidatedInput Natural -> ValidatedInput Natural
 updateBound n input =
     let
-        minValue =
-            Natural.min input.value n
+        -- N.B.: We keep the original value. The original value may be larger than the new bound,
+        -- but since all validated inputs should be checked, this decision allows a better UX,
+        -- when updating the upper bound from, say, 15 to 16 with a reached value of 6. In that example there is an intermediate state,
+        -- where the upper bound is 1, but we do not want to clamp the reached value to 1.
+        currentValue =
+            input.value
     in
     naturalWithParser (boundedNaturalParser n)
-        |> lenses.value.set minValue
-        |> lenses.text.set (minValue |> Natural.toString)
+        |> lenses.value.set currentValue
+        |> lenses.text.set (currentValue |> Natural.toString)
 
 
 positive : ValidatedInput Positive

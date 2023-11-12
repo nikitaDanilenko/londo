@@ -1,7 +1,7 @@
 module Pages.Util.Style exposing (..)
 
 import Html exposing (Attribute)
-import Html.Attributes exposing (class, for, id)
+import Html.Attributes exposing (class, id)
 
 
 classes :
@@ -41,10 +41,7 @@ classes :
     , numberLabel : Attribute msg
     , pagination : Attribute msg
     , projectEditTable : Attribute msg
-    , search :
-        { area : Attribute msg
-        , field : Attribute msg
-        }
+    , searchArea : Attribute msg
     , statisticsLine : Attribute msg
     , tableHeader : Attribute msg
     , taskEditTable : Attribute msg
@@ -87,10 +84,7 @@ classes =
     , numberLabel = class "number-label"
     , pagination = class "pagination"
     , projectEditTable = class "project-edit-table"
-    , search =
-        { area = class "search-area"
-        , field = for "search-field"
-        }
+    , searchArea = class "search-area"
     , statisticsLine = class "statistics-line"
     , tableHeader = class "table-header"
     , taskEditTable = class "task-edit-table"
@@ -99,7 +93,9 @@ classes =
 
 
 ids :
-    { addDashboardView : Attribute msg
+    { accountDeletion : Attribute msg
+    , accountRecovery : Attribute msg
+    , addDashboardView : Attribute msg
     , addProjectView : Attribute msg
     , addTaskView : Attribute msg
     , confirmRegistration : Attribute msg
@@ -111,10 +107,14 @@ ids :
     , registrationRequestSent : Attribute msg
     , requestRegistration : Attribute msg
     , searchField : Attribute msg
+    , settings : Attribute msg
+    , statistics : Attribute msg
     , taskEditor : Attribute msg
     }
 ids =
-    { addDashboardView = id "add-dashboard-view"
+    { accountDeletion = id "account-deletion"
+    , accountRecovery = id "account-recovery"
+    , addDashboardView = id "add-dashboard-view"
     , addProjectView = id "add-project-view"
     , addTaskView = id "add-task-view"
     , confirmRegistration = id "confirm-registration"
@@ -126,5 +126,7 @@ ids =
     , registrationRequestSent = id "registration-request-sent"
     , requestRegistration = id "request-registration"
     , searchField = id "search-field"
+    , settings = id "settings"
+    , statistics = id "statistics"
     , taskEditor = id "task-editor"
     }

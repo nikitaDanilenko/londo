@@ -17,6 +17,7 @@ type alias GraphQLRequestParameters a msg =
     , gotResponse : GraphQLDataOrError a -> msg
     }
 
+
 mutateWith : GraphQLRequestParameters a msg -> SelectionSet a RootMutation -> Cmd msg
 mutateWith ps =
     Graphql.Http.mutationRequest ps.endpoint

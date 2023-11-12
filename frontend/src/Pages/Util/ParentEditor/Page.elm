@@ -1,5 +1,6 @@
 module Pages.Util.ParentEditor.Page exposing (..)
 
+import Language.Language as Language
 import Monocle.Lens exposing (Lens)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.ParentEditor.Pagination as Pagination exposing (Pagination)
@@ -39,10 +40,10 @@ defaultInitial jwt language =
     }
 
 
-initial : AuthorizedAccess -> language -> Model parentId parent creation update language
-initial authorizedAccess language =
+initial : AuthorizedAccess -> language -> Language.ErrorHandling -> Model parentId parent creation update language
+initial authorizedAccess language errorLanguage =
     defaultInitial authorizedAccess.jwt language
-        |> Tristate.createInitial authorizedAccess.configuration
+        |> Tristate.createInitial authorizedAccess.configuration errorLanguage
 
 
 initialToMain : Initial parentId parent update language -> Maybe (Main parentId parent creation update language)

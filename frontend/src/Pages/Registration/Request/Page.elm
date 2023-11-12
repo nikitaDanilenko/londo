@@ -28,7 +28,7 @@ initial configuration =
     , mode = Editing
     , language = Language.default.requestRegistration
     }
-        |> Tristate.createMain configuration
+        |> Tristate.createMain configuration Language.default.errorHandling
 
 
 lenses :

@@ -1,7 +1,7 @@
 module Pages.Util.HtmlUtil exposing (Column, RowWithControls, Structure, menuIcon, onEscape, searchAreaWith, toggleControlsCell, withAttributes, withExtraAttributes)
 
-import Html exposing (Attribute, Html, button, form, input, label, node, td, text)
-import Html.Attributes exposing (disabled, for, type_, value)
+import Html exposing (Attribute, Html, button, input, label, p, td, text)
+import Html.Attributes exposing (disabled, for, id, type_, value)
 import Html.Events exposing (on, onClick, onInput)
 import Keyboard.Event exposing (KeyboardEvent)
 import Keyboard.Key as Key
@@ -15,34 +15,33 @@ import Pages.Util.Style as Style
 searchAreaWith :
     { msg : String -> msg
     , searchString : String
+    , clearWord : String
     }
     -> Html msg
 searchAreaWith ps =
-    node "search"
-        []
-        [ form
-            []
-            [ label
-                [ Style.classes.search.field
-                , for "search-field" -- todo: Extract sensibly
-                ]
-                [ text Links.lookingGlass ]
-            , input
-                [ type_ "text"
-                , Style.ids.searchField
-                , onInput <| ps.msg
-                , value <| ps.searchString
-                ]
-                []
-            , input
-                [ Style.classes.button.clear
-                , value "Clear" -- todo: Use language element here
-                , type_ "reset"
-                , onClick <| ps.msg ""
-                , disabled <| String.isEmpty <| ps.searchString
-                ]
-                []
+    let
+        searchField =
+            "search-field"
+    in
+    p [ Style.classes.searchArea ]
+        [ label
+            [ for searchField ]
+            [ text Links.lookingGlass ]
+        , input
+            [ type_ "search"
+            , Style.ids.searchField
+            , onInput <| ps.msg
+            , value <| ps.searchString
+            , id searchField
             ]
+            []
+        , button
+            [ Style.classes.button.clear
+            , type_ "reset"
+            , onClick <| ps.msg ""
+            , disabled <| String.isEmpty <| ps.searchString
+            ]
+            [ text <| .clearWord <| ps ]
         ]
 
 

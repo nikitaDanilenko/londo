@@ -93,20 +93,20 @@ fetchResolvedDashboard requiredArgs____ object____ =
     Object.selectionForCompositeField "fetchResolvedDashboard" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchResolvedDashboardInput ] object____ Basics.identity
 
 
-type alias FetchDeeplyResolvedDashboardRequiredArguments =
-    { input : LondoGQL.InputObject.FetchDeeplyResolvedDashboardInput }
-
-
-fetchDeeplyResolvedDashboard :
-    FetchDeeplyResolvedDashboardRequiredArguments
-    -> SelectionSet decodesTo LondoGQL.Object.DeeplyResolvedDashboard
-    -> SelectionSet decodesTo RootQuery
-fetchDeeplyResolvedDashboard requiredArgs____ object____ =
-    Object.selectionForCompositeField "fetchDeeplyResolvedDashboard" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchDeeplyResolvedDashboardInput ] object____ Basics.identity
-
-
 fetchAllDashboards :
     SelectionSet decodesTo LondoGQL.Object.Dashboard
     -> SelectionSet (List decodesTo) RootQuery
 fetchAllDashboards object____ =
     Object.selectionForCompositeField "fetchAllDashboards" [] object____ (Basics.identity >> Decode.list)
+
+
+type alias FetchDashboardAnalysisRequiredArguments =
+    { input : LondoGQL.InputObject.FetchDashboardAnalysisInput }
+
+
+fetchDashboardAnalysis :
+    FetchDashboardAnalysisRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardAnalysis
+    -> SelectionSet decodesTo RootQuery
+fetchDashboardAnalysis requiredArgs____ object____ =
+    Object.selectionForCompositeField "fetchDashboardAnalysis" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchDashboardAnalysisInput ] object____ Basics.identity

@@ -90,7 +90,7 @@ object Live {
         .map(_.transformInto[User])
 
     override def update(userId: UserId, update: Update)(implicit
-                                                        executionContext: ExecutionContext
+        executionContext: ExecutionContext
     ): DBIO[User] = {
       val findAction = OptionT(get(userId))
         .getOrElseF(DBIO.failed(DBError.User.NotFound))

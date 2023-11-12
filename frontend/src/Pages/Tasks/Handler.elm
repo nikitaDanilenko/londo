@@ -12,6 +12,7 @@ import Pages.View.TristateUtil as TristateUtil
 import Result.Extra
 import Types.Project.Id exposing (Id)
 import Types.Project.Resolved
+import Types.Task.Id
 import Util.DictList as DictList
 import Util.Editing as Editing
 
@@ -81,7 +82,7 @@ updateLogic msg model =
                                          ).set
                                             (resolved.tasks
                                                 |> List.map Editing.asView
-                                                |> DictList.fromListWithKey (.original >> .id)
+                                                |> DictList.fromListWithKey Types.Task.Id.ordering (.original >> .id)
                                                 |> Just
                                             )
                                         )

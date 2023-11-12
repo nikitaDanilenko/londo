@@ -42,6 +42,9 @@ viewEntries configuration main =
                 }
         , isValidInput = always True
         , edit = \_ _ -> []
+        , clearSearchWord = main.language.clearSearch
+        , saveWord = main.language.save
+        , cancelWord = main.language.cancel
         }
         main
 
@@ -106,6 +109,7 @@ viewProjects configuration main =
                     , NavigationUtil.projectEditorLinkButton configuration project.id main.language.taskEditor
                     ]
                 }
+        , clearSearchWord = main.language.clearSearch
         }
         main
 

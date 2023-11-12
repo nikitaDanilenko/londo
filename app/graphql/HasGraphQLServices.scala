@@ -1,6 +1,6 @@
 package graphql
 
-import errors.{ BulkServerException, ServerError, ServerException }
+import errors.{ ServerError, ServerException }
 
 import scala.concurrent.{ ExecutionContext, Future }
 

@@ -12,10 +12,12 @@ import Result.Extra
 import Util.DictList as DictList
 import Util.Editing as Editing exposing (Editing)
 import Util.LensUtil as LensUtil
+import Util.Ordering exposing (Ordering)
 
 
 updateLogic :
     { idOfParent : parent -> parentId
+    , parentIdOrdering : Ordering parentId
     , toUpdate : parent -> update
     , navigateToAddress : parentId -> Maybe (List String)
     , create : AuthorizedAccess -> creation -> Cmd (Page.LogicMsg parentId parent creation update)
@@ -36,7 +38,7 @@ updateLogic ps msg model =
                                 (Page.lenses.initial.parents.set
                                     (parents
                                         |> List.map Editing.asView
-                                        |> DictList.fromListWithKey (.original >> ps.idOfParent)
+                                        |> DictList.fromListWithKey ps.parentIdOrdering (.original >> ps.idOfParent)
                                         |> Just
                                     )
                                 )

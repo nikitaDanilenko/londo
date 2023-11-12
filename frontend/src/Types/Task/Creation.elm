@@ -28,7 +28,7 @@ default : Types.Project.Id.Id -> ClientInput
 default projectId =
     let
         defaultTaskKind =
-            LondoGQL.Enum.TaskKind.Percent
+            LondoGQL.Enum.TaskKind.Fraction
     in
     { projectId = projectId
     , name = ValidatedInput.nonEmptyString

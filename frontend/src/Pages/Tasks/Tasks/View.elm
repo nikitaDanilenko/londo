@@ -29,7 +29,7 @@ import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
-viewSubMain : Types.Project.Id.Id -> Configuration -> Page.SubMain -> Html Page.LogicMsg
+viewSubMain : Types.Project.Id.Id -> Configuration -> Page.SubMain -> List (Html Page.LogicMsg)
 viewSubMain projectId configuration subMain =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Nothing
@@ -37,7 +37,7 @@ viewSubMain projectId configuration subMain =
         , matchesSearchText =
             \string task ->
                 SearchUtil.search string task.name
-        , sort = List.sortBy (.original >> .name)
+        , sort = List.sortBy (.original >> .name >> String.toLower)
         , tableHeader = tableHeader subMain.language
         , viewLine = \language _ -> viewTaskLine language
         , updateLine = \language task -> updateTaskLine language task.id
@@ -51,6 +51,7 @@ viewSubMain projectId configuration subMain =
         , setSearchString = Pages.Util.ParentEditor.Page.SetSearchString
         , setPagination = Pages.Util.ParentEditor.Page.SetPagination
         , styling = Style.ids.addTaskView
+        , clearSearchWord = subMain.language.clearSearch
         }
         subMain.language
         configuration

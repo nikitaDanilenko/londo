@@ -1,9 +1,5 @@
 module Util.LensUtil exposing (..)
 
-import List.Extra
-import Monocle.Optional exposing (Optional)
-
-
 import Monocle.Compose as Compose
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional exposing (Optional)
@@ -13,6 +9,13 @@ import Util.DictList as DictList exposing (DictList)
 dictByKey : key -> Optional (DictList key value) value
 dictByKey k =
     { getOption = DictList.get k
+    , set = DictList.insert k
+    }
+
+
+dictByKeyWithDefault : key -> value -> Lens (DictList key value) value
+dictByKeyWithDefault k value =
+    { get = DictList.get k >> Maybe.withDefault value
     , set = DictList.insert k
     }
 
@@ -36,4 +39,3 @@ insertAtId id lens =
 deleteAtId : key -> Lens a (DictList key value) -> a -> a
 deleteAtId id lens =
     DictList.remove id |> Lens.modify lens
-

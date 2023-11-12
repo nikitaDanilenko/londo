@@ -6,6 +6,7 @@ import Browser exposing (UrlRequest)
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Html exposing (Html, main_, text)
+import Language.Language as Language
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 import Pages.DashboardEntries.Handler
@@ -14,6 +15,9 @@ import Pages.DashboardEntries.View
 import Pages.Dashboards.Handler
 import Pages.Dashboards.Page
 import Pages.Dashboards.View
+import Pages.Deletion.Handler
+import Pages.Deletion.Page
+import Pages.Deletion.View
 import Pages.Login.Handler
 import Pages.Login.Page
 import Pages.Login.View
@@ -23,12 +27,21 @@ import Pages.Overview.View
 import Pages.Projects.Handler
 import Pages.Projects.Page
 import Pages.Projects.View
+import Pages.Recovery.Confirm.Handler
+import Pages.Recovery.Confirm.Page
+import Pages.Recovery.Confirm.View
+import Pages.Recovery.Request.Handler
+import Pages.Recovery.Request.Page
+import Pages.Recovery.Request.View
 import Pages.Registration.Confirm.Handler
 import Pages.Registration.Confirm.Page
 import Pages.Registration.Confirm.View
 import Pages.Registration.Request.Handler
 import Pages.Registration.Request.Page
 import Pages.Registration.Request.View
+import Pages.Settings.Handler
+import Pages.Settings.Page
+import Pages.Settings.View
 import Pages.Statistics.Handler
 import Pages.Statistics.Page
 import Pages.Statistics.View
@@ -51,7 +64,7 @@ main =
         , onUrlRequest = ClickedLink
         , subscriptions = subscriptions
         , update = update
-        , view = \model -> { title = titleFor model, body = [ view model ] }
+        , view = \model -> { title = titleFor model, body = view model }
         }
 
 
@@ -69,7 +82,12 @@ type alias Model =
     , configuration : Configuration
     , jwt : Maybe JWT
     , entryRoute : Maybe Route
+    , language : Language
     }
+
+
+type alias Language =
+    Language.Main
 
 
 lenses :
@@ -94,6 +112,10 @@ type Page
     | Dashboards Pages.Dashboards.Page.Model
     | DashboardEntries Pages.DashboardEntries.Page.Model
     | Statistics Pages.Statistics.Page.Model
+    | Settings Pages.Settings.Page.Model
+    | ConfirmDeletion Pages.Deletion.Page.Model
+    | RequestRecovery Pages.Recovery.Request.Page.Model
+    | ConfirmRecovery Pages.Recovery.Confirm.Page.Model
     | NotFound
 
 
@@ -111,11 +133,15 @@ type Msg
     | DashboardsMsg Pages.Dashboards.Page.Msg
     | DashboardEntriesMsg Pages.DashboardEntries.Page.Msg
     | StatisticsMsg Pages.Statistics.Page.Msg
+    | SettingsMsg Pages.Settings.Page.Msg
+    | ConfirmDeletionMsg Pages.Deletion.Page.Msg
+    | RequestRecoveryMsg Pages.Recovery.Request.Page.Msg
+    | ConfirmRecoveryMsg Pages.Recovery.Confirm.Page.Msg
 
 
 titleFor : Model -> String
-titleFor _ =
-    "Londo"
+titleFor =
+    .language >> .title
 
 
 init : Configuration -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
@@ -125,43 +151,56 @@ init configuration url key =
       , configuration = configuration
       , jwt = Nothing
       , entryRoute = parsePage url
+      , language = Language.default.main
       }
     , Ports.doFetchToken ()
     )
 
 
-view : Model -> Html Msg
+view : Model -> List (Html Msg)
 view model =
     case model.page of
         RequestRegistration requestRegistration ->
-            Html.map RequestRegistrationMsg (Pages.Registration.Request.View.view requestRegistration)
+            List.map (Html.map RequestRegistrationMsg) (Pages.Registration.Request.View.view requestRegistration)
 
         ConfirmRegistration confirmRegistration ->
-            Html.map ConfirmRegistrationMsg (Pages.Registration.Confirm.View.view confirmRegistration)
+            List.map (Html.map ConfirmRegistrationMsg) (Pages.Registration.Confirm.View.view confirmRegistration)
 
         Login login ->
-            Html.map LoginMsg (Pages.Login.View.view login)
+            List.map (Html.map LoginMsg) (Pages.Login.View.view login)
 
         Overview overview ->
-            Html.map OverviewMsg (Pages.Overview.View.view overview)
+            List.map (Html.map OverviewMsg) (Pages.Overview.View.view overview)
 
         Projects projects ->
-            Html.map ProjectsMsg (Pages.Projects.View.view projects)
+            List.map (Html.map ProjectsMsg) (Pages.Projects.View.view projects)
 
         Tasks tasks ->
-            Html.map TasksMsg (Pages.Tasks.View.view tasks)
+            List.map (Html.map TasksMsg) (Pages.Tasks.View.view tasks)
 
         Dashboards dashboards ->
-            Html.map DashboardsMsg (Pages.Dashboards.View.view dashboards)
+            List.map (Html.map DashboardsMsg) (Pages.Dashboards.View.view dashboards)
 
         DashboardEntries dashboardEntries ->
-            Html.map DashboardEntriesMsg (Pages.DashboardEntries.View.view dashboardEntries)
+            List.map (Html.map DashboardEntriesMsg) (Pages.DashboardEntries.View.view dashboardEntries)
 
         Statistics statistics ->
-            Html.map StatisticsMsg (Pages.Statistics.View.view statistics)
+            List.map (Html.map StatisticsMsg) (Pages.Statistics.View.view statistics)
+
+        Settings settings ->
+            List.map (Html.map SettingsMsg) (Pages.Settings.View.view settings)
+
+        ConfirmDeletion confirmDeletion ->
+            List.map (Html.map ConfirmDeletionMsg) (Pages.Deletion.View.view confirmDeletion)
+
+        RequestRecovery requestRecovery ->
+            List.map (Html.map RequestRecoveryMsg) (Pages.Recovery.Request.View.view requestRecovery)
+
+        ConfirmRecovery confirmRecovery ->
+            List.map (Html.map ConfirmRecoveryMsg) (Pages.Recovery.Confirm.View.view confirmRecovery)
 
         NotFound ->
-            main_ [] [ text "Page not found" ]
+            [ main_ [] [ text <| .notFound <| .language <| model ] ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -185,9 +224,8 @@ update msg model =
                 |> lenses.jwt.set (Maybe.Extra.filter (String.isEmpty >> not) (Just token))
                 |> followRoute
 
-        --  todo: Remove command, otherwise there is an endless loop
         ( DeleteToken _, _ ) ->
-            ( model |> lenses.jwt.set Nothing, Ports.doDeleteToken () )
+            ( model |> lenses.jwt.set Nothing, Cmd.none )
 
         ( RequestRegistrationMsg requestRegistrationMsg, RequestRegistration requestRegistration ) ->
             stepThrough steps.requestRegistration model (Pages.Registration.Request.Handler.update requestRegistrationMsg requestRegistration)
@@ -216,6 +254,18 @@ update msg model =
         ( StatisticsMsg statisticsMsg, Statistics statistics ) ->
             stepThrough steps.statistics model (Pages.Statistics.Handler.update statisticsMsg statistics)
 
+        ( SettingsMsg settingsMsg, Settings settings ) ->
+            stepThrough steps.settings model (Pages.Settings.Handler.update settingsMsg settings)
+
+        ( ConfirmDeletionMsg confirmDeletionMsg, ConfirmDeletion confirmDeletion ) ->
+            stepThrough steps.confirmDeletion model (Pages.Deletion.Handler.update confirmDeletionMsg confirmDeletion)
+
+        ( RequestRecoveryMsg requestRecoveryMsg, RequestRecovery requestRecovery ) ->
+            stepThrough steps.requestRecovery model (Pages.Recovery.Request.Handler.update requestRecoveryMsg requestRecovery)
+
+        ( ConfirmRecoveryMsg confirmRecoveryMsg, ConfirmRecovery confirmRecovery ) ->
+            stepThrough steps.confirmRecovery model (Pages.Recovery.Confirm.Handler.update confirmRecoveryMsg confirmRecovery)
+
         _ ->
             ( model, Cmd.none )
 
@@ -236,11 +286,10 @@ steps :
     , statistics : StepParameters Pages.Statistics.Page.Model Pages.Statistics.Page.Msg
     , requestRegistration : StepParameters Pages.Registration.Request.Page.Model Pages.Registration.Request.Page.Msg
     , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
-
-    --, userSettings : StepParameters Pages.UserSettings.Page.Model Pages.UserSettings.Page.Msg
-    --, deletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
-    --, requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
-    --, confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
+    , settings : StepParameters Pages.Settings.Page.Model Pages.Settings.Page.Msg
+    , confirmDeletion : StepParameters Pages.Deletion.Page.Model Pages.Deletion.Page.Msg
+    , requestRecovery : StepParameters Pages.Recovery.Request.Page.Model Pages.Recovery.Request.Page.Msg
+    , confirmRecovery : StepParameters Pages.Recovery.Confirm.Page.Model Pages.Recovery.Confirm.Page.Msg
     }
 steps =
     { login = StepParameters Login LoginMsg
@@ -252,11 +301,10 @@ steps =
     , statistics = StepParameters Statistics StatisticsMsg
     , requestRegistration = StepParameters RequestRegistration RequestRegistrationMsg
     , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
-
-    --, userSettings = StepParameters UserSettings UserSettingsMsg
-    --, deletion = StepParameters Deletion DeletionMsg
-    --, requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
-    --, confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
+    , settings = StepParameters Settings SettingsMsg
+    , confirmDeletion = StepParameters ConfirmDeletion ConfirmDeletionMsg
+    , requestRecovery = StepParameters RequestRecovery RequestRecoveryMsg
+    , confirmRecovery = StepParameters ConfirmRecovery ConfirmRecoveryMsg
     }
 
 
@@ -275,6 +323,10 @@ type Route
     | DashboardsRoute
     | DashboardEntriesRoute Types.Dashboard.Id.Id
     | StatisticsRoute Types.Dashboard.Id.Id
+    | SettingsRoute
+    | ConfirmDeletionRoute UserIdentifier JWT
+    | RequestRecoveryRoute
+    | ConfirmRecoveryRoute UserIdentifier JWT
 
 
 plainRouteParser : Parser (Route -> a) a
@@ -289,6 +341,10 @@ plainRouteParser =
         , route Addresses.Frontend.dashboards.parser DashboardsRoute
         , route Addresses.Frontend.dashboardEntries.parser DashboardEntriesRoute
         , route Addresses.Frontend.statistics.parser StatisticsRoute
+        , route Addresses.Frontend.settings.parser SettingsRoute
+        , route Addresses.Frontend.deleteAccount.parser ConfirmDeletionRoute
+        , route Addresses.Frontend.requestRecovery.parser RequestRecoveryRoute
+        , route Addresses.Frontend.confirmRecovery.parser ConfirmRecoveryRoute
         ]
 
 
@@ -365,6 +421,34 @@ followRoute model =
                         , dashboardId = dashboardId
                         }
                         |> stepThrough steps.statistics model
+
+                ( SettingsRoute, Just userJWT ) ->
+                    Pages.Settings.Handler.init
+                        { authorizedAccess = authorizedAccessWith userJWT
+                        }
+                        |> stepThrough steps.settings model
+
+                ( ConfirmDeletionRoute userIdentifier deletionJWT, _ ) ->
+                    Pages.Deletion.Handler.init
+                        { configuration = model.configuration
+                        , userIdentifier = userIdentifier
+                        , deletionJWT = deletionJWT
+                        }
+                        |> stepThrough steps.confirmDeletion model
+
+                ( RequestRecoveryRoute, _ ) ->
+                    Pages.Recovery.Request.Handler.init
+                        { configuration = model.configuration
+                        }
+                        |> stepThrough steps.requestRecovery model
+
+                ( ConfirmRecoveryRoute userIdentifier recoveryJWT, _ ) ->
+                    Pages.Recovery.Confirm.Handler.init
+                        { configuration = model.configuration
+                        , userIdentifier = userIdentifier
+                        , recoveryJwt = recoveryJWT
+                        }
+                        |> stepThrough steps.confirmRecovery model
 
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }

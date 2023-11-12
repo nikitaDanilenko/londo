@@ -34,7 +34,7 @@ initial authorizedAccess dashboardId =
     { dashboard = Pages.Util.Parent.Page.initialWith authorizedAccess.jwt Language.Language.default.dashboardEditor
     , entries = Pages.Util.Choice.Page.initialWith authorizedAccess.jwt dashboardId Language.Language.default.dashboardEntryEditor
     }
-        |> Tristate.createInitial authorizedAccess.configuration
+        |> Tristate.createInitial authorizedAccess.configuration Language.Language.default.errorHandling
 
 
 initialToMain : Initial -> Maybe Main

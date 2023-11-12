@@ -1,20 +1,23 @@
 module Pages.Statistics.Page exposing (..)
 
 import Language.Language as Language
+import Math.Positive
 import Monocle.Lens exposing (Lens)
 import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
 import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
+import Pages.Util.PaginationSettings exposing (PaginationSettings)
 import Pages.View.Tristate as Tristate
 import Types.Auxiliary exposing (JWT)
+import Types.Dashboard.Analysis
 import Types.Dashboard.Dashboard
-import Types.Dashboard.DeeplyResolved
 import Types.Dashboard.Id
+import Types.Dashboard.Statistics
 import Types.Project.Id
 import Types.Project.Project
 import Types.Project.Resolved
+import Types.Task.Analysis
 import Types.Task.Id
-import Types.Task.Resolved
 import Types.Task.Task
 import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
@@ -34,8 +37,8 @@ type alias Dashboard =
     Types.Dashboard.Dashboard.Dashboard
 
 
-type alias DeeplyResolvedDashboard =
-    Types.Dashboard.DeeplyResolved.DeeplyResolved
+type alias DashboardAnalysis =
+    Types.Dashboard.Analysis.Analysis
 
 
 type alias ProjectId =
@@ -54,8 +57,8 @@ type alias Task =
     Types.Task.Task.Task
 
 
-type alias ResolvedTask =
-    Types.Task.Resolved.Resolved
+type alias TaskAnalysis =
+    Types.Task.Analysis.Analysis
 
 
 type alias TaskUpdate =
@@ -82,6 +85,10 @@ type alias StatisticsLanguage =
     Language.Statistics
 
 
+type alias DashboardStatistics =
+    Types.Dashboard.Statistics.Statistics
+
+
 type alias Languages =
     { taskEditor : TaskEditorLanguage
     , project : ProjectLanguage
@@ -93,7 +100,9 @@ type alias Languages =
 type alias Main =
     { jwt : JWT
     , dashboard : Dashboard
+    , dashboardStatistics : DashboardStatistics
     , projects : DictList ProjectId EditingResolvedProject
+    , viewType : ViewType
     , searchString : String
     , pagination : Pagination
     , languages : Languages
@@ -102,28 +111,29 @@ type alias Main =
 
 type alias Initial =
     { jwt : JWT
-    , deeplyResolvedDashboard : Maybe DeeplyResolvedDashboard
+    , dashboardAnalysis : Maybe DashboardAnalysis
     , languages : Languages
     }
 
 
-initial : Languages -> AuthorizedAccess -> Model
-initial languages authorizedAccess =
+initial : Languages -> Language.ErrorHandling -> AuthorizedAccess -> Model
+initial languages errorLanguage authorizedAccess =
     { jwt = authorizedAccess.jwt
-    , deeplyResolvedDashboard = Nothing
+    , dashboardAnalysis = Nothing
     , languages = languages
     }
-        |> Tristate.createInitial authorizedAccess.configuration
+        |> Tristate.createInitial authorizedAccess.configuration errorLanguage
 
 
 initialToMain : Initial -> Maybe Main
 initialToMain i =
     Maybe.map
-        (\deeplyResolvedDashboard ->
+        (\dashboardAnalysis ->
             { jwt = i.jwt
-            , dashboard = deeplyResolvedDashboard.dashboard
+            , dashboard = dashboardAnalysis.dashboard
+            , dashboardStatistics = dashboardAnalysis.dashboardStatistics
             , projects =
-                deeplyResolvedDashboard.resolvedProjects
+                dashboardAnalysis.projectAnalyses
                     |> List.map
                         (\resolvedProject ->
                             { project = resolvedProject.project
@@ -131,36 +141,41 @@ initialToMain i =
                                 resolvedProject
                                     |> .tasks
                                     |> List.map Editing.asView
-                                    |> DictList.fromListWithKey (.original >> .task >> .id)
+                                    |> DictList.fromListWithKey Types.Task.Id.ordering (.original >> .task >> .id)
                             }
                         )
-                    |> DictList.fromListWithKey (.project >> .id)
+                    |> DictList.fromListWithKey Types.Project.Id.ordering (.project >> .id)
+            , viewType = Counting
             , searchString = ""
             , pagination = Pagination.initial
             , languages = i.languages
             }
         )
-        i.deeplyResolvedDashboard
+        i.dashboardAnalysis
 
 
 lenses :
     { initial :
-        { deeplyResolvedDashboard : Lens Initial (Maybe DeeplyResolvedDashboard)
+        { dashboardAnalysis : Lens Initial (Maybe DashboardAnalysis)
         }
     , main :
         { dashboard : Lens Main Dashboard
+        , dashboardStatistics : Lens Main DashboardStatistics
         , projects : Lens Main (DictList ProjectId EditingResolvedProject)
+        , viewType : Lens Main ViewType
         , searchString : Lens Main String
         , pagination : Lens Main Pagination
         }
     }
 lenses =
     { initial =
-        { deeplyResolvedDashboard = Lens .deeplyResolvedDashboard (\b a -> { a | deeplyResolvedDashboard = b })
+        { dashboardAnalysis = Lens .dashboardAnalysis (\b a -> { a | dashboardAnalysis = b })
         }
     , main =
         { dashboard = Lens .dashboard (\b a -> { a | dashboard = b })
+        , dashboardStatistics = Lens .dashboardStatistics (\b a -> { a | dashboardStatistics = b })
         , projects = Lens .projects (\b a -> { a | projects = b })
+        , viewType = Lens .viewType (\b a -> { a | viewType = b })
         , searchString = Lens .searchString (\b a -> { a | searchString = b })
         , pagination = Lens .pagination (\b a -> { a | pagination = b })
         }
@@ -174,16 +189,32 @@ type alias Flags =
 
 
 type LogicMsg
-    = GotFetchDeeplyDashboardResponse (HttpUtil.GraphQLResult DeeplyResolvedDashboard)
+    = GotFetchDashboardAnalysisResponse (HttpUtil.GraphQLResult DashboardAnalysis)
     | EditTask ProjectId TaskId TaskUpdate
     | SaveEditTask ProjectId TaskId
-    | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult ResolvedTask)
+    | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult TaskAnalysis)
+    | GotFetchUpdatedStatisticsResponse ProjectId TaskAnalysis (HttpUtil.GraphQLResult DashboardStatistics)
     | ToggleControls ProjectId TaskId
     | EnterEditTask ProjectId TaskId
     | ExitEditTask ProjectId TaskId
-    | SetPagination Pagination
+    | SetProjectsPagination PaginationSettings
     | SetSearchString String
+    | SetViewType ViewType
+
+
+type ViewType
+    = Total
+    | Counting
 
 
 type alias Msg =
     Tristate.Msg LogicMsg
+
+
+
+-- todo: The number of decimal places should be a user setting that is fetched (regularly?).
+
+
+numberOfDecimalPlaces : Math.Positive.Positive
+numberOfDecimalPlaces =
+    Math.Positive.fromInt 6 |> Maybe.withDefault Math.Positive.one

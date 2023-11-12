@@ -26,7 +26,7 @@ import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
-view : Page.Model -> Html Page.Msg
+view : Page.Model -> List (Html Page.Msg)
 view =
     Tristate.view
         { viewMain = viewMain
@@ -34,7 +34,7 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
+viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
 viewMain configuration main =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Just ViewUtil.Dashboards
@@ -57,6 +57,7 @@ viewMain configuration main =
         , setSearchString = Pages.Util.ParentEditor.Page.SetSearchString
         , setPagination = Pages.Util.ParentEditor.Page.SetPagination
         , styling = Style.ids.addDashboardView
+        , clearSearchWord = main.language.clearSearch
         }
         main.language
         configuration

@@ -19,19 +19,20 @@ class GraphQLController @Inject() (
     override protected val controllerComponents: ControllerComponents,
     graphQLSchema: GraphQLSchema,
     graphQLServices: GraphQLServices,
+    configurations: Configurations,
     jwtAction: JWTAction
 )(implicit
     executionContext: ExecutionContext
 ) extends BaseController
     with Circe
-    with Logging { self =>
+    with Logging {
 
-  private lazy val contextWithoutUser = GraphQLContext.withoutUser(graphQLServices)
+  private lazy val contextWithoutUser = GraphQLContext.withoutUser(graphQLServices, configurations)
 
   def graphQL: Action[GraphQLRequest] =
     jwtAction.async(circe.tolerantJson[GraphQLRequest]) { request =>
       val graphQLContext = request.loggedIn
-        .fold(contextWithoutUser)(GraphQLContext.withUser(graphQLServices, _))
+        .fold(contextWithoutUser)(GraphQLContext.withUser(graphQLServices, _, configurations))
 
       QueryParser
         .parse(request.body.query)

@@ -10,12 +10,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
 class EmailService @Inject() (
-    mailerClient: MailerClient
+    mailerClient: MailerClient,
+    mailConfig: MailConfiguration
 )(implicit
     executionContext: ExecutionContext
 ) {
-
-  private val mailConfig = MailConfiguration.default
 
   def sendEmail(emailParameters: EmailParameters): Future[ServerError.Or[Unit]] = {
     val email = Email(

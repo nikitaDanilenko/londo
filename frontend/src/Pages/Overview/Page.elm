@@ -1,6 +1,5 @@
 module Pages.Overview.Page exposing (..)
 
-import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
 import Language.Language as Language
 import Pages.View.Tristate as Tristate
@@ -19,8 +18,10 @@ type alias Initial =
 
 
 initial : Configuration -> Model
-initial =
-    flip Tristate.createMain
+initial configuration =
+    Tristate.createMain
+        configuration
+        Language.default.errorHandling
         { language = Language.default.overview
         }
 
