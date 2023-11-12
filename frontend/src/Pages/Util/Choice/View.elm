@@ -32,6 +32,7 @@ viewElements :
     , clearSearchWord : String
     , saveWord : String
     , cancelWord : String
+    , confirmDeleteWord : String
     }
     -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
@@ -56,6 +57,8 @@ viewElements ps main =
                     deleteElementLine
                         { idOfElement = ps.idOfElement
                         , info = ps.info >> .display
+                        , confirmDeleteWord = ps.confirmDeleteWord
+                        , cancelWord = ps.cancelWord
                         }
                 }
 
@@ -216,6 +219,8 @@ viewElementLine ps element showControls =
 deleteElementLine :
     { idOfElement : element -> elementId
     , info : element -> List (HtmlUtil.Column (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
+    , confirmDeleteWord : String
+    , cancelWord : String
     }
     -> element
     -> List (Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
@@ -230,8 +235,8 @@ deleteElementLine ps =
                         elementId =
                             element |> ps.idOfElement
                     in
-                    [ td [ Style.classes.controls ] [ button [ Style.classes.button.delete, onClick <| Pages.Util.Choice.Page.ConfirmDelete <| elementId ] [ text "Delete?" ] ]
-                    , td [ Style.classes.controls ] [ button [ Style.classes.button.confirm, onClick <| Pages.Util.Choice.Page.CancelDelete <| elementId ] [ text "Cancel" ] ]
+                    [ td [ Style.classes.controls ] [ button [ Style.classes.button.delete, onClick <| Pages.Util.Choice.Page.ConfirmDelete <| elementId ] [ text <| ps.confirmDeleteWord ] ]
+                    , td [ Style.classes.controls ] [ button [ Style.classes.button.confirm, onClick <| Pages.Util.Choice.Page.CancelDelete <| elementId ] [ text <| ps.cancelWord ] ]
                     ]
                 }
         , showControls = True

@@ -45,6 +45,7 @@ viewEntries configuration main =
         , clearSearchWord = main.language.clearSearch
         , saveWord = main.language.save
         , cancelWord = main.language.cancel
+        , confirmDeleteWord = main.language.confirmDelete
         }
         main
 
