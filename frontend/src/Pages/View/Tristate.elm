@@ -3,7 +3,8 @@ module Pages.View.Tristate exposing (Model, Msg(..), Status(..), createInitial, 
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Graphql.Http
-import Html exposing (Html, button, main_, table, td, text, tr)
+import Html exposing (Html, button, input, label, main_, p, table, td, text, tr)
+import Html.Attributes exposing (disabled, for, id, value)
 import Html.Events exposing (onClick)
 import Language.Language as Language
 import Maybe.Extra
@@ -197,52 +198,47 @@ view ps t =
 
         Error errorState ->
             let
-                solutionBlock =
+                suggestionBlock =
                     if errorState.errorExplanation.possibleSolution |> String.isEmpty then
                         []
 
                     else
-                        [ td [] [ text <| .suggestion <| .errorLanguage <| t ]
-                        , td [] [ text <| errorState.errorExplanation.possibleSolution ]
+                        [ label [] [ text <| .suggestion <| .errorLanguage <| t ]
+                        , label [] [ text <| errorState.errorExplanation.possibleSolution ]
                         ]
 
-                redirectRow =
+                redirectBlock =
                     t.configuration
                         |> Just
                         |> Maybe.Extra.filter (always ps.showLoginRedirect)
                         |> Maybe.Extra.unwrap []
                             (\configuration ->
-                                [ tr []
-                                    [ td []
-                                        [ Links.toLoginButtonWith
-                                            { configuration = configuration
-                                            , buttonText = t.errorLanguage.login
-                                            , attributes = [ Style.classes.button.error ]
-                                            }
-                                        ]
-                                    ]
+                                [ Links.toLoginButtonWith
+                                    { configuration = configuration
+                                    , buttonText = t.errorLanguage.login
+                                    , attributes = [ Style.classes.button.navigation ]
+                                    }
                                 ]
                             )
 
-                reloadRow =
-                    [ tr []
-                        [ td []
-                            [ button [ onClick HandleError, Style.classes.button.error ] [ text <| .retry <| .errorLanguage <| t ]
-                            ]
-                        ]
+                retryBlock =
+                    [ button
+                        [ onClick HandleError, Style.classes.button.error ]
+                        [ text <| .retry <| .errorLanguage <| t ]
                     ]
                         |> List.filter (always errorState.errorExplanation.suggestReload)
             in
-            [ table
-                [ Style.ids.error ]
-                ([ tr []
-                    [ td [] [ text <| .errorOccurred <| .errorLanguage <| t ]
-                    , td [] [ text <| errorState.errorExplanation.cause ]
+            [ main_ [ Style.ids.error ]
+                ([ p []
+                    [ label [] [ text <| .errorOccurred <| .errorLanguage <| t ]
+                    , label [] [ text <| errorState.errorExplanation.cause ]
                     ]
-                 , tr [] solutionBlock
+                 , p
+                    []
+                    suggestionBlock
                  ]
-                    ++ redirectRow
-                    ++ reloadRow
+                    ++ retryBlock
+                    ++ redirectBlock
                 )
             ]
 
