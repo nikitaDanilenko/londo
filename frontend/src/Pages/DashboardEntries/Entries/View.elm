@@ -72,17 +72,17 @@ viewProjects configuration main =
                     cancelMsg =
                         Pages.Util.Choice.Page.DeselectChoice project.id
 
-                    ( confirmName, confirmStyle ) =
+                    confirmName =
                         if DictListUtil.existsValue (\choice -> choice.original.projectId == creation.projectId) main.elements then
-                            ( main.language.added, Style.classes.disabled )
+                            main.language.added
 
                         else
-                            ( main.language.add, Style.classes.button.confirm )
+                            main.language.add
                 in
                 { display = Pages.Projects.View.projectInfoColumns project
                 , controls =
                     [ button
-                        ([ MaybeUtil.defined <| confirmStyle
+                        ([ MaybeUtil.defined <| Style.classes.button.confirm
                          , MaybeUtil.defined <| disabled <| not <| validInput
                          , MaybeUtil.optional validInput <| onClick addMsg
                          ]

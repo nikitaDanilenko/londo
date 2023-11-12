@@ -35,6 +35,7 @@ nav .navigation-button,
 }
 
 nav .navigation-button.disabled,
+.navigation-button:disabled,
 .pager-button:disabled,
 .confirm-button:disabled,
 .clear-button:disabled,
@@ -44,14 +45,14 @@ nav .navigation-button.disabled,
     cursor: not-allowed;
 }
 
-.navigation-button:not(.disabled),
+.navigation-button:not(.disabled,:disabled),
 .pager-button:not(:disabled),
 .overview-button {
     border: 2px solid rgb(0 140 186);
 }
 
-.navigation-button:hover:not(.disabled),
-.navigation-button:focus:not(.disabled),
+.navigation-button:hover:not(.disabled,:disabled),
+.navigation-button:focus:not(.disabled,:disabled),
 .pager-button:hover:not(:disabled),
 .pager-button:focus:not(:disabled),
 .overview-button:hover,
