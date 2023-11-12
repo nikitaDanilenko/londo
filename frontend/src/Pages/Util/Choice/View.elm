@@ -407,11 +407,10 @@ editElementCreation ps choice creation =
                     ++ [ HtmlUtil.toggleControlsCell <| toggleMsg ]
                 )
 
-        -- Extra column because the name is fixed
         controlsRow =
             tr [ Style.classes.controls ]
-                [ td [ colspan <| (+) 1 <| List.length <| rowWithControls.display ]
-                    rowWithControls.controls
+                [ td [ colspan <| List.length <| rowWithControls.display ]
+                    [ p [] rowWithControls.controls ]
                 ]
     in
     [ creationRow, controlsRow ]

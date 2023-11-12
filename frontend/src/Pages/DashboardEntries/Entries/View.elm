@@ -79,13 +79,7 @@ viewProjects configuration main =
                         else
                             ( main.language.add, Style.classes.button.confirm )
                 in
-                { display =
-                    Pages.Projects.View.projectInfoColumns project
-                        ++ [ { attributes = [ Style.classes.numberLabel ]
-                             , children =
-                                []
-                             }
-                           ]
+                { display = Pages.Projects.View.projectInfoColumns project
                 , controls =
                     [ button
                         ([ MaybeUtil.defined <| confirmStyle
