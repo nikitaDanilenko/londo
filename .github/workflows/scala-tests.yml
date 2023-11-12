@@ -1,15 +1,6 @@
 name: Run Scala tests
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - app/**
-      - test/**
-      - conf/**
-      - scripts/**
-      - build.sbt
   pull_request:
     branches:
       - "main"
