@@ -14,7 +14,10 @@ import Types.Dashboard.Update
 
 init : Page.Flags -> ( Page.Model, Cmd Page.Msg )
 init flags =
-    ( Pages.Util.ParentEditor.Page.initial flags.authorizedAccess Language.Language.default.dashboardEditor
+    ( Pages.Util.ParentEditor.Page.initial
+        flags.authorizedAccess
+        Language.Language.default.dashboardEditor
+        Language.Language.default.errorHandling
     , Types.Dashboard.Dashboard.fetchAllWith
         Pages.Util.ParentEditor.Page.GotFetchResponse
         flags.authorizedAccess

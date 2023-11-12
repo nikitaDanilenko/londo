@@ -14,7 +14,10 @@ import Types.Project.Update
 
 init : Page.Flags -> ( Page.Model, Cmd Page.Msg )
 init flags =
-    ( Pages.Util.ParentEditor.Page.initial flags.authorizedAccess Language.Language.default.projectEditor
+    ( Pages.Util.ParentEditor.Page.initial
+        flags.authorizedAccess
+        Language.Language.default.projectEditor
+        Language.Language.default.errorHandling
     , Types.Project.Project.fetchAllWith
         Pages.Util.ParentEditor.Page.GotFetchResponse
         flags.authorizedAccess

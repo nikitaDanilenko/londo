@@ -32,13 +32,13 @@ updateFromSubModel ps msg model =
                 ( Tristate.Initial i, Tristate.Initial subInitial ) ->
                     i
                         |> ps.initialSubModelLens.set subInitial
-                        |> Tristate.createInitial model.configuration
+                        |> Tristate.createInitial model.configuration model.errorLanguage
                         |> Tristate.fromInitToMain ps.fromInitToMain
 
                 ( Tristate.Main m, Tristate.Main subMain ) ->
                     m
                         |> ps.mainSubModelLens.set subMain
-                        |> Tristate.createMain model.configuration
+                        |> Tristate.createMain model.configuration model.errorLanguage
 
                 ( _, Tristate.Error subError ) ->
                     { configuration = model.configuration
@@ -47,6 +47,7 @@ updateFromSubModel ps msg model =
                             { errorExplanation = subError.errorExplanation
                             , previousMain = Tristate.lenses.main.getOption model
                             }
+                    , errorLanguage = model.errorLanguage
                     }
 
                 _ ->
@@ -75,4 +76,5 @@ subModelWith ps model =
                         }
             }
             model
+    , errorLanguage = model.errorLanguage
     }

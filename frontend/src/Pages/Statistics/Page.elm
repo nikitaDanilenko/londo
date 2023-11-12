@@ -116,13 +116,13 @@ type alias Initial =
     }
 
 
-initial : Languages -> AuthorizedAccess -> Model
-initial languages authorizedAccess =
+initial : Languages -> Language.ErrorHandling -> AuthorizedAccess -> Model
+initial languages errorLanguage authorizedAccess =
     { jwt = authorizedAccess.jwt
     , dashboardAnalysis = Nothing
     , languages = languages
     }
-        |> Tristate.createInitial authorizedAccess.configuration
+        |> Tristate.createInitial authorizedAccess.configuration errorLanguage
 
 
 initialToMain : Initial -> Maybe Main

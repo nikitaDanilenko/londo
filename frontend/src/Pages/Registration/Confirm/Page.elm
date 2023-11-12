@@ -31,7 +31,7 @@ initial flags =
     , mode = Editing
     , language = Language.default.confirmRegistration
     }
-        |> Tristate.createMain flags.configuration
+        |> Tristate.createMain flags.configuration Language.default.errorHandling
 
 
 lenses :

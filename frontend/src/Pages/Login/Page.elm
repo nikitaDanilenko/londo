@@ -24,7 +24,7 @@ initial flags =
     { credentials = Types.User.Login.initial
     , language = Language.default.login
     }
-        |> Tristate.createMain flags.configuration
+        |> Tristate.createMain flags.configuration Language.default.errorHandling
 
 
 lenses :

@@ -38,7 +38,7 @@ initial flags =
     , mode = Resetting
     , language = Language.default.confirmAccountRecovery
     }
-        |> Tristate.createMain flags.configuration
+        |> Tristate.createMain flags.configuration Language.default.errorHandling
 
 
 lenses :

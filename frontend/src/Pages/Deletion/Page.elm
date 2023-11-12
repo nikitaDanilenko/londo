@@ -31,7 +31,7 @@ initial flags =
     , mode = Checking
     , language = Language.default.accountDeletion
     }
-        |> Tristate.createMain flags.configuration
+        |> Tristate.createMain flags.configuration Language.default.errorHandling
 
 
 lenses :

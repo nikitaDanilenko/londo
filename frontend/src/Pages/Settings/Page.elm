@@ -40,7 +40,7 @@ initial authorizedAccess =
     { jwt = authorizedAccess.jwt
     , user = Nothing
     }
-        |> Tristate.createInitial authorizedAccess.configuration
+        |> Tristate.createInitial authorizedAccess.configuration Language.default.errorHandling
 
 
 initialToMain : Initial -> Maybe Main

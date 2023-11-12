@@ -5,6 +5,7 @@ import Configuration exposing (Configuration)
 import Graphql.Http
 import Html exposing (Html, button, main_, table, td, text, tr)
 import Html.Events exposing (onClick)
+import Language.Language as Language
 import Maybe.Extra
 import Monocle.Optional exposing (Optional)
 import Pages.Util.Links as Links
@@ -14,6 +15,7 @@ import Util.HttpUtil as HttpUtil exposing (ErrorExplanation)
 
 type alias Model main initial =
     { configuration : Configuration
+    , errorLanguage : Language.ErrorHandling
     , status : Status main initial
     }
 
@@ -30,14 +32,14 @@ type Status main initial
     | Error (ErrorState main)
 
 
-createInitial : Configuration -> initial -> Model main initial
-createInitial configuration =
-    Initial >> Model configuration
+createInitial : Configuration -> Language.ErrorHandling -> initial -> Model main initial
+createInitial configuration language =
+    Initial >> Model configuration language
 
 
-createMain : Configuration -> main -> Model main initial
-createMain configuration =
-    Main >> Model configuration
+createMain : Configuration -> Language.ErrorHandling -> main -> Model main initial
+createMain configuration language =
+    Main >> Model configuration language
 
 
 fold :
@@ -63,7 +65,7 @@ mapMain : (main -> main) -> Model main initial -> Model main initial
 mapMain f t =
     fold
         { onInitial = always t
-        , onMain = f >> createMain t.configuration
+        , onMain = f >> createMain t.configuration t.errorLanguage
         , onError = always t
         }
         t
@@ -72,7 +74,7 @@ mapMain f t =
 mapInitial : (initial -> initial) -> Model main initial -> Model main initial
 mapInitial f t =
     fold
-        { onInitial = f >> createInitial t.configuration
+        { onInitial = f >> createInitial t.configuration t.errorLanguage
         , onMain = always t
         , onError = always t
         }
@@ -99,7 +101,7 @@ lenses =
             (\b a ->
                 case a.status of
                     Initial _ ->
-                        Initial b |> Model a.configuration
+                        Initial b |> Model a.configuration a.errorLanguage
 
                     _ ->
                         a
@@ -109,7 +111,7 @@ lenses =
             (\b a ->
                 case a.status of
                     Main _ ->
-                        Main b |> Model a.configuration
+                        Main b |> Model a.configuration a.errorLanguage
 
                     _ ->
                         a
@@ -119,7 +121,7 @@ lenses =
             (\b a ->
                 case a.status of
                     Error errorState ->
-                        Error { errorState | errorExplanation = b } |> Model a.configuration
+                        Error { errorState | errorExplanation = b } |> Model a.configuration a.errorLanguage
 
                     _ ->
                         a
@@ -162,7 +164,7 @@ fromInitToMain with t =
     t
         |> asInitial
         |> Maybe.andThen with
-        |> Maybe.Extra.unwrap t (Main >> Model t.configuration)
+        |> Maybe.Extra.unwrap t (Main >> Model t.configuration t.errorLanguage)
 
 
 toError : Model main initial -> Graphql.Http.Error a -> Model main initial
@@ -172,9 +174,9 @@ toError model error =
             error |> HttpUtil.graphQLErrorToExplanation
     in
     fold
-        { onError = \errorState -> Model model.configuration (Error { errorState | errorExplanation = errorExplanation })
-        , onMain = \main -> Model model.configuration (Error { errorExplanation = errorExplanation, previousMain = Just main })
-        , onInitial = \_ -> Model model.configuration (Error { errorExplanation = errorExplanation, previousMain = Nothing })
+        { onError = \errorState -> Model model.configuration model.errorLanguage (Error { errorState | errorExplanation = errorExplanation })
+        , onMain = \main -> Model model.configuration model.errorLanguage (Error { errorExplanation = errorExplanation, previousMain = Just main })
+        , onInitial = \_ -> Model model.configuration model.errorLanguage (Error { errorExplanation = errorExplanation, previousMain = Nothing })
         }
         model
 
@@ -200,7 +202,7 @@ view ps t =
                         []
 
                     else
-                        [ td [] [ text "Try the following:" ] --todo: use language elements
+                        [ td [] [ text <| .suggestion <| .errorLanguage <| t ]
                         , td [] [ text <| errorState.errorExplanation.possibleSolution ]
                         ]
 
@@ -214,7 +216,7 @@ view ps t =
                                     [ td []
                                         [ Links.toLoginButtonWith
                                             { configuration = configuration
-                                            , buttonText = "Login" -- todo: Use language elements
+                                            , buttonText = t.errorLanguage.login
                                             , attributes = [ Style.classes.button.error ]
                                             }
                                         ]
@@ -225,7 +227,7 @@ view ps t =
                 reloadRow =
                     [ tr []
                         [ td []
-                            [ button [ onClick HandleError, Style.classes.button.error ] [ text "Retry" ] -- todo: Use language elements
+                            [ button [ onClick HandleError, Style.classes.button.error ] [ text <| .retry <| .errorLanguage <| t ]
                             ]
                         ]
                     ]
@@ -234,7 +236,7 @@ view ps t =
             [ table
                 [ Style.ids.error ]
                 ([ tr []
-                    [ td [] [ text "An error occurred:" ] -- todo: Use language elements
+                    [ td [] [ text <| .errorOccurred <| .errorLanguage <| t ]
                     , td [] [ text <| errorState.errorExplanation.cause ]
                     ]
                  , tr [] solutionBlock
@@ -263,7 +265,7 @@ updateWith update msg model =
                             errorState.previousMain
                                 |> Maybe.Extra.unwrap
                                     ( model, Browser.Navigation.reload )
-                                    (\main -> ( main |> Main |> Model model.configuration, Cmd.none ))
+                                    (\main -> ( main |> Main |> Model model.configuration model.errorLanguage, Cmd.none ))
                     }
 
         Logic message ->

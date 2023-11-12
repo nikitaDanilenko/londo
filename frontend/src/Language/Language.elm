@@ -17,6 +17,7 @@ type alias Language =
     , requestAccountRecovery : RequestAccountRecovery
     , confirmAccountRecovery : ConfirmAccountRecovery
     , main : Main
+    , errorHandling : ErrorHandling
     }
 
 
@@ -225,6 +226,14 @@ type alias Main =
     }
 
 
+type alias ErrorHandling =
+    { errorOccurred : String
+    , suggestion : String
+    , login : String
+    , retry : String
+    }
+
+
 default : Language
 default =
     english
@@ -406,6 +415,12 @@ english =
     , main =
         { notFound = "Page not found"
         , title = "Londo"
+        }
+    , errorHandling =
+        { errorOccurred = "An error occurred:"
+        , suggestion = "Try the following:"
+        , login = "Login"
+        , retry = "Retry"
         }
     }
 

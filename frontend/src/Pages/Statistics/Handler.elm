@@ -32,6 +32,7 @@ init flags =
         , dashboard = Language.Language.default.dashboardEditor
         , statistics = Language.Language.default.statistics
         }
+        Language.Language.default.errorHandling
         flags.authorizedAccess
     , Types.Dashboard.Analysis.fetchWith
         Page.GotFetchDashboardAnalysisResponse

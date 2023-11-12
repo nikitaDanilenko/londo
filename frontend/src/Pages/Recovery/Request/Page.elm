@@ -37,7 +37,7 @@ initial configuration =
     , mode = Initial
     , language = Language.default.requestAccountRecovery
     }
-        |> Tristate.createMain configuration
+        |> Tristate.createMain configuration Language.default.errorHandling
 
 
 type Mode
