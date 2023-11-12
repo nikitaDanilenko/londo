@@ -30,6 +30,8 @@ viewElements :
     , isValidInput : update -> Bool
     , edit : element -> update -> List (HtmlUtil.Column (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
     , clearSearchWord : String
+    , saveWord : String
+    , cancelWord : String
     }
     -> Pages.Util.Choice.Page.Main parentId elementId element update choiceId choice creation language
     -> Html (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation)
@@ -47,6 +49,8 @@ viewElements ps main =
                         { idOfElement = ps.idOfElement
                         , isValidInput = ps.isValidInput
                         , edit = ps.edit
+                        , saveWord = ps.saveWord
+                        , cancelWord = ps.cancelWord
                         }
                 , onDelete =
                     deleteElementLine
@@ -278,6 +282,8 @@ editElementLine :
     { idOfElement : element -> elementId
     , isValidInput : update -> Bool
     , edit : element -> update -> List (HtmlUtil.Column (Pages.Util.Choice.Page.LogicMsg elementId element update choiceId choice creation))
+    , saveWord : String
+    , cancelWord : String
     }
     -> element
     -> update
@@ -326,13 +332,9 @@ editElementLine ps element elementUpdateClientInput =
                          ]
                             |> Maybe.Extra.values
                         )
-                        [ text <| "Save" ]
-
-                    -- todo: Use language element
+                        [ text <| ps.saveWord ]
                     , button [ Style.classes.button.cancel, onClick cancelMsg ]
-                        [ text <| "Cancel" ]
-
-                    -- todo: Use language element
+                        [ text <| ps.cancelWord ]
                     ]
                 ]
     in

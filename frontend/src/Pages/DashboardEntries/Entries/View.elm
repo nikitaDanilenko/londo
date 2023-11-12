@@ -43,6 +43,8 @@ viewEntries configuration main =
         , isValidInput = always True
         , edit = \_ _ -> []
         , clearSearchWord = main.language.clearSearch
+        , saveWord = main.language.save
+        , cancelWord = main.language.cancel
         }
         main
 
