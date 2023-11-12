@@ -149,7 +149,8 @@ nav .navigation-button.disabled,
 }
 
 form input,
-form label {
+form label,
+.search-area input {
     font-size: 16pt;
 }
 
