@@ -1,7 +1,7 @@
 module Pages.Util.HtmlUtil exposing (Column, RowWithControls, Structure, menuIcon, onEscape, searchAreaWith, toggleControlsCell, withAttributes, withExtraAttributes)
 
 import Html exposing (Attribute, Html, button, input, label, p, td, text)
-import Html.Attributes exposing (disabled, for, id, placeholder, type_, value)
+import Html.Attributes exposing (disabled, for, id, type_, value)
 import Html.Events exposing (on, onClick, onInput)
 import Keyboard.Event exposing (KeyboardEvent)
 import Keyboard.Key as Key

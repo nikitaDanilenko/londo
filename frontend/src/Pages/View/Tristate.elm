@@ -3,8 +3,7 @@ module Pages.View.Tristate exposing (Model, Msg(..), Status(..), createInitial, 
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Graphql.Http
-import Html exposing (Html, button, input, label, main_, p, table, td, text, tr)
-import Html.Attributes exposing (disabled, for, id, value)
+import Html exposing (Html, button, label, main_, p, text)
 import Html.Events exposing (onClick)
 import Language.Language as Language
 import Maybe.Extra
