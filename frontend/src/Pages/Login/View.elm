@@ -35,8 +35,7 @@ viewMain configuration main =
             "keep-logged-in"
     in
     [ main_ [ Style.ids.login ]
-        --todo: This should be set via a language component
-        [ h1 [] [ text "Londo" ]
+        [ h1 [] [ text <| main.language.title ]
         , form
             [ onSubmit <| Page.Login ]
             [ label

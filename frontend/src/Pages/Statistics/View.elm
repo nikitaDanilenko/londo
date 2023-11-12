@@ -280,10 +280,6 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
         )
 
 
-
--- todo: Adjust columns
-
-
 taskInfoHeader : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Html msg
 taskInfoHeader viewType taskEditorLanguage statisticsLanguage =
     let

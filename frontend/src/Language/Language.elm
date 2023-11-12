@@ -64,6 +64,7 @@ type alias Login =
     , keepMeLoggedIn : String
     , createAccount : String
     , recoverAccount : String
+    , title : String
     }
 
 
@@ -269,6 +270,7 @@ english =
         , keepMeLoggedIn = "Keep me logged in"
         , createAccount = "Create account"
         , recoverAccount = "Recover account"
+        , title = "Londo"
         }
     , overview =
         { dashboards = "Dashboards"
