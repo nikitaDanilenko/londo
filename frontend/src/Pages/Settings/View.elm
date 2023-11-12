@@ -2,7 +2,7 @@ module Pages.Settings.View exposing (..)
 
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, form, h1, h2, input, label, section, table, tbody, td, text, tr)
+import Html exposing (Html, button, form, h1, h2, input, label, section, text)
 import Html.Attributes exposing (disabled, for, id, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Html.Events.Extra exposing (onEnter)
@@ -71,21 +71,13 @@ viewRegular language main =
     in
     [ h1 [] [ text <| .userSettings <| language ]
     , section []
-        [ table []
-            [ tbody []
-                [ tr []
-                    [ td [] [ label [] [ text <| .nickname <| language ] ]
-                    , td [] [ label [] [ text <| .nickname <| main.user ] ]
-                    ]
-                , tr []
-                    [ td [] [ label [] [ text <| .email <| language ] ]
-                    , td [] [ label [] [ text <| .email <| main.user ] ]
-                    ]
-                , tr []
-                    [ td [] [ label [] [ text <| .displayName <| language ] ]
-                    , td [] [ label [] [ text <| Maybe.withDefault "" <| .displayName <| main.user ] ]
-                    ]
-                ]
+        [ form []
+            [ label [] [ text <| .nickname <| language ]
+            , input [ type_ "text", disabled True, value <| .nickname <| main.user ] []
+            , label [] [ text <| .email <| language ]
+            , input [ type_ "text", disabled True, value <| .email <| main.user ] []
+            , label [] [ text <| .displayName <| language ]
+            , input [ type_ "text", disabled True, value <| Maybe.withDefault "" <| .displayName <| main.user ] []
             ]
         ]
     , section []
