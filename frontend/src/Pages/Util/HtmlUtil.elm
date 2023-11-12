@@ -32,7 +32,6 @@ searchAreaWith ps =
             , Style.ids.searchField
             , onInput <| ps.msg
             , value <| ps.searchString
-            , placeholder "Text"
             , id searchField
             ]
             []
