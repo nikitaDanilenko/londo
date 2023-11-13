@@ -2,8 +2,8 @@ module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPa
 
 import Addresses.Frontend
 import Configuration exposing (Configuration)
-import Html exposing (Attribute, Html, button, div, header, main_, nav, p, table, tbody, td, text, tr)
-import Html.Attributes exposing (class, disabled)
+import Html exposing (Attribute, Html, button, header, main_, nav, p, table, tbody, td, text, tr)
+import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
