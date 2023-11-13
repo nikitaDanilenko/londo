@@ -152,6 +152,8 @@ type alias DashboardEntryEditor =
 type alias Statistics =
     { total : String
     , counting : String
+    , totalTasks : String
+    , countingTasks : String
     , simulatedTotal : String
     , simulatedCounting : String
     , reachableAll : String
@@ -354,6 +356,8 @@ english =
     , statistics =
         { total = "Total"
         , counting = "Counting"
+        , totalTasks = "Total"
+        , countingTasks = "Counting"
         , simulatedTotal = "Simulated (total)"
         , simulatedCounting = "Simulated (counting)"
         , reachableAll = "Reachable (all)"

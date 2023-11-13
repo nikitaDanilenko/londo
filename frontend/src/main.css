@@ -178,6 +178,9 @@ nav table {
     color: rgb(35 35 35);
     background-color: rgb(235 235 235);
     text-transform: uppercase;
+}
+
+.elements-with-controls-table thead th:not(.number-label) {
     text-align: left;
 }
 
@@ -190,6 +193,12 @@ select {
 .number-half-cell {
     box-sizing: border-box;
     width: 45%;
+}
+
+.number-label,
+.number-cell {
+    text-align: right;
+    padding-right: 5px;
 }
 
 .toggle {

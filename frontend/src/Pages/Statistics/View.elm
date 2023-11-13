@@ -7,6 +7,8 @@ import Html exposing (Html, button, h1, h2, hr, input, p, section, table, tbody,
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
+import List.Extra
+import LondoGQL.Enum.Bucket
 import LondoGQL.Enum.TaskKind as TaskKind
 import LondoGQL.Scalar
 import Math.Natural
@@ -22,6 +24,9 @@ import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
+import Types.Dashboard.Buckets
+import Types.Dashboard.CountingBucket
+import Types.Dashboard.Tasks
 import Types.Dashboard.WithSimulation
 import Types.Dashboard.WithoutSimulation
 import Types.Progress.Progress
@@ -138,7 +143,7 @@ viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard 
                 }
             ]
         , table [ Style.classes.elementsWithControlsTable ]
-            [ (case viewType of
+            ((case viewType of
                 Page.Total ->
                     viewDashboardStatisticsWith
                         { headerActual = .total
@@ -150,6 +155,9 @@ viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard 
                         , meanAbsoluteSimulated = .simulatedTotal
                         , meanRelativeActual = .total
                         , meanRelativeSimulated = .simulatedTotal
+                        , headerAllTasks = .totalTasks
+                        , allTasks = .total
+                        , buckets = .total
                         }
 
                 Page.Counting ->
@@ -163,11 +171,14 @@ viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard 
                         , meanAbsoluteSimulated = .simulatedCounting
                         , meanRelativeActual = .counting
                         , meanRelativeSimulated = .simulatedCounting
+                        , headerAllTasks = .countingTasks
+                        , allTasks = .counting
+                        , buckets = .counting
                         }
-              )
+             )
                 statisticsLanguage
                 statistics
-            ]
+            )
         ]
 
 
@@ -181,12 +192,35 @@ viewDashboardStatisticsWith :
     , meanAbsoluteSimulated : Types.Dashboard.WithSimulation.WithSimulation LondoGQL.Scalar.BigDecimal -> LondoGQL.Scalar.BigDecimal
     , meanRelativeActual : Types.Dashboard.WithSimulation.WithSimulation LondoGQL.Scalar.BigDecimal -> LondoGQL.Scalar.BigDecimal
     , meanRelativeSimulated : Types.Dashboard.WithSimulation.WithSimulation LondoGQL.Scalar.BigDecimal -> LondoGQL.Scalar.BigDecimal
+    , headerAllTasks : Page.StatisticsLanguage -> String
+    , allTasks : Types.Dashboard.Tasks.Tasks -> Int
+    , buckets : Types.Dashboard.Buckets.Buckets -> List Types.Dashboard.CountingBucket.CountingBucket
     }
     -> Page.StatisticsLanguage
     -> Page.DashboardStatistics
-    -> Html Page.LogicMsg
+    -> List (Html Page.LogicMsg)
 viewDashboardStatisticsWith ps statisticsLanguage statistics =
-    table
+    let
+        bucketHeader =
+            prettyBuckets |> List.map (\bucket -> th [ Style.classes.numberLabel ] [ text <| bucket ])
+
+        reachable =
+            text <| Math.Natural.toString <| ps.reachable <| .reachable <| statistics
+
+        bucketValues =
+            orderedBuckets
+                |> List.map
+                    (\bucket ->
+                        statistics.buckets
+                            |> ps.buckets
+                            |> List.Extra.find (\cb -> cb.bucket == bucket)
+                            |> Maybe.Extra.unwrap 0 .amount
+                    )
+
+        bucketCells =
+            bucketValues |> List.map (\n -> td [ Style.classes.numberCell ] [ text <| String.fromInt <| n ])
+    in
+    [ table
         [ Style.classes.elementsWithControlsTable ]
         [ thead []
             [ tr []
@@ -207,12 +241,10 @@ viewDashboardStatisticsWith ps statisticsLanguage statistics =
                 ]
             , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                 [ td [] [ text <| .reachableAll <| statisticsLanguage ]
-                , td []
-                    [ text <| Math.Natural.toString <| ps.reachable <| .reachable <| statistics
-                    ]
-                , td []
-                    [ text <| Math.Natural.toString <| .counting <| .reachable <| statistics
-                    ]
+                , td [] [ reachable ]
+
+                -- "simulated-reachable" is the same as "reachable", because only "reached" is simulated
+                , td [] [ reachable ]
                 ]
             , tr [ Style.classes.editing, Style.classes.statisticsLine ]
                 [ td [] [ text <| .meanAbsolute <| statisticsLanguage ]
@@ -226,6 +258,19 @@ viewDashboardStatisticsWith ps statisticsLanguage statistics =
                 ]
             ]
         ]
+    , table [ Style.classes.elementsWithControlsTable ]
+        [ thead []
+            [ tr []
+                (th [ Style.classes.numberLabel ] [ text <| ps.headerAllTasks <| statisticsLanguage ]
+                    :: bucketHeader
+                )
+            ]
+        , tbody []
+            [ tr []
+                (td [ Style.classes.numberCell ] [ text <| String.fromInt <| ps.allTasks <| .tasks <| statistics ] :: bucketCells)
+            ]
+        ]
+    ]
 
 
 viewResolvedProject : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> String -> EditingResolvedProject -> Html Page.LogicMsg
@@ -366,7 +411,7 @@ taskInfoColumns index viewType taskAnalysis =
                       }
                     ]
     in
-    [ { attributes = [ Style.classes.editable, Style.classes.numberCell ]
+    [ { attributes = [ Style.classes.editable ]
       , children = [ text <| String.fromInt index ]
       }
     , { attributes = [ Style.classes.editable ]
@@ -534,3 +579,61 @@ updateTask index language projectId task update =
     [ tr [ Style.classes.editLine ] (infoColumns ++ [ HtmlUtil.toggleControlsCell <| Page.ToggleControls projectId <| .id <| task ])
     , controlsRow
     ]
+
+
+orderedBuckets : List LondoGQL.Enum.Bucket.Bucket
+orderedBuckets =
+    [ LondoGQL.Enum.Bucket.Below10
+    , LondoGQL.Enum.Bucket.Below20
+    , LondoGQL.Enum.Bucket.Below30
+    , LondoGQL.Enum.Bucket.Below40
+    , LondoGQL.Enum.Bucket.Below50
+    , LondoGQL.Enum.Bucket.Below60
+    , LondoGQL.Enum.Bucket.Below70
+    , LondoGQL.Enum.Bucket.Below80
+    , LondoGQL.Enum.Bucket.Below90
+    , LondoGQL.Enum.Bucket.Below100
+    , LondoGQL.Enum.Bucket.Exactly100
+    ]
+
+
+prettyPrintBucket : LondoGQL.Enum.Bucket.Bucket -> String
+prettyPrintBucket bucket =
+    case bucket of
+        LondoGQL.Enum.Bucket.Below10 ->
+            "0% - 10%"
+
+        LondoGQL.Enum.Bucket.Below20 ->
+            "10% - 20%"
+
+        LondoGQL.Enum.Bucket.Below30 ->
+            "20% - 30%"
+
+        LondoGQL.Enum.Bucket.Below40 ->
+            "30% - 40%"
+
+        LondoGQL.Enum.Bucket.Below50 ->
+            "40% - 50%"
+
+        LondoGQL.Enum.Bucket.Below60 ->
+            "50% - 60%"
+
+        LondoGQL.Enum.Bucket.Below70 ->
+            "60% - 70%"
+
+        LondoGQL.Enum.Bucket.Below80 ->
+            "70% - 80%"
+
+        LondoGQL.Enum.Bucket.Below90 ->
+            "80% - 90%"
+
+        LondoGQL.Enum.Bucket.Below100 ->
+            "90% - 100%"
+
+        LondoGQL.Enum.Bucket.Exactly100 ->
+            "100%"
+
+
+prettyBuckets : List String
+prettyBuckets =
+    orderedBuckets |> List.map prettyPrintBucket
