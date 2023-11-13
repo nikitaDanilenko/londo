@@ -96,11 +96,20 @@ viewTypeButtonWith :
     }
     -> Html Page.LogicMsg
 viewTypeButtonWith ps =
+    let
+        extraStyling =
+            if ps.currentViewType == ps.forViewType then
+                [ Style.classes.disabled ]
+
+            else
+                []
+    in
     button
-        [ disabled <| ps.currentViewType == ps.forViewType
-        , onClick <| Page.SetViewType ps.forViewType
-        , Style.classes.button.navigation
-        ]
+        ([ onClick <| Page.SetViewType ps.forViewType
+         , Style.classes.button.navigation
+         ]
+            ++ extraStyling
+        )
         [ text <| ps.label
         ]
 

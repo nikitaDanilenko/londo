@@ -34,8 +34,7 @@ nav .navigation-button,
     width: 99%;
 }
 
-nav .navigation-button.disabled,
-.navigation-button:disabled,
+.navigation-button.disabled,
 .pager-button:disabled,
 .confirm-button:disabled,
 .clear-button:disabled,
@@ -45,14 +44,14 @@ nav .navigation-button.disabled,
     cursor: not-allowed;
 }
 
-.navigation-button:not(.disabled,:disabled),
+.navigation-button:not(.disabled),
 .pager-button:not(:disabled),
 .overview-button {
     border: 2px solid rgb(0 140 186);
 }
 
-.navigation-button:hover:not(.disabled,:disabled),
-.navigation-button:focus:not(.disabled,:disabled),
+.navigation-button:hover:not(.disabled),
+.navigation-button:focus:not(.disabled),
 .pager-button:hover:not(:disabled),
 .pager-button:focus:not(:disabled),
 .overview-button:hover,
@@ -70,7 +69,7 @@ nav .navigation-button.disabled,
 .select-button,
 .navigation-button,
 .overview-button,
-.error-button{
+.error-button {
     padding: 8px 16px;
     margin: 0 4px;
 }
