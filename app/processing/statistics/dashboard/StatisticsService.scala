@@ -5,6 +5,8 @@ import processing.statistics.TaskWithSimulation
 import spire.math.{ Natural, Rational }
 import spire.syntax.all._
 
+import scala.util.chaining.scalaUtilChainingOps
+
 object StatisticsService {
 
   def ofTasks(tasks: Seq[TaskWithSimulation]): DashboardStatistics = {
@@ -33,6 +35,10 @@ object StatisticsService {
         counting = statsInCounting.meanRelative,
         simulatedTotal = statsInTotal.meanRelativeSimulated,
         simulatedCounting = statsInCounting.meanRelativeSimulated
+      ),
+      buckets = Buckets(
+        total = statsInTotal.bucketMap,
+        counting = statsInCounting.bucketMap
       )
     )
   }
@@ -54,7 +60,8 @@ object StatisticsService {
       meanAbsolute = meanAbsolute,
       meanAbsoluteSimulated = meanAbsolute + Rational(allSimulations(tasksWithSimulation), numberOfProgresses),
       meanRelative = meanRelative,
-      meanRelativeSimulated = meanRelativeSimulated
+      meanRelativeSimulated = meanRelativeSimulated,
+      bucketMap = buckets(progresses)
     )
   }
 
@@ -99,5 +106,13 @@ object StatisticsService {
     tasksWithSimulation.foldLeft(BigInt(0))((sum, taskWithSimulation) =>
       sum + taskWithSimulation.simulation.getOrElse(BigInt(0))
     )
+
+  def buckets(progresses: Seq[services.task.Progress]): Map[Bucket, Natural] =
+    progresses
+      .map(Bucket.forProgress)
+      .groupBy(identity)
+      .view
+      .mapValues(_.pipe(_.size).pipe(Natural(_)))
+      .toMap
 
 }

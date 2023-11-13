@@ -1,7 +1,8 @@
 package processing.statistics.dashboard
 
-import spire.math.Rational
+import spire.math.{ Natural, Rational }
 
 case class Buckets(
-    values: Map[Bucket, Rational]
+    total: Map[Bucket, Natural],
+    counting: Map[Bucket, Natural]
 )
