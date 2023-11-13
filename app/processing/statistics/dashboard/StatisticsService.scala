@@ -39,6 +39,10 @@ object StatisticsService {
       buckets = Buckets(
         total = statsInTotal.bucketMap,
         counting = statsInCounting.bucketMap
+      ),
+      tasks = Tasks(
+        total = statsInTotal.tasks,
+        counting = statsInCounting.tasks
       )
     )
   }
@@ -61,7 +65,8 @@ object StatisticsService {
       meanAbsoluteSimulated = meanAbsolute + Rational(allSimulations(tasksWithSimulation), numberOfProgresses),
       meanRelative = meanRelative,
       meanRelativeSimulated = meanRelativeSimulated,
-      bucketMap = buckets(progresses)
+      bucketMap = buckets(progresses),
+      tasks = tasks.size
     )
   }
 

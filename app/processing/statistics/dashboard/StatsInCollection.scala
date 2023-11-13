@@ -10,5 +10,6 @@ case class StatsInCollection(
     meanAbsoluteSimulated: Rational,
     meanRelative: Rational,
     meanRelativeSimulated: Rational,
-    bucketMap: Map[Bucket, Natural]
+    bucketMap: Map[Bucket, Natural],
+    tasks: Int
 )

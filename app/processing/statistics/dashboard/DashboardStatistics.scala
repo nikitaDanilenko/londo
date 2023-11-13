@@ -7,5 +7,6 @@ case class DashboardStatistics(
     reachable: WithoutSimulation,
     absoluteMeans: WithSimulation[Rational],
     relativeMeans: WithSimulation[Rational],
-    buckets: Buckets
+    buckets: Buckets,
+    tasks : Tasks
 )
