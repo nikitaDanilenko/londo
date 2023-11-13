@@ -9,6 +9,14 @@ type After
     = After
 
 
+type Buckets
+    = Buckets
+
+
+type CountingBucket
+    = CountingBucket
+
+
 type Dashboard
     = Dashboard
 
@@ -83,6 +91,10 @@ type TaskAnalysis
 
 type TaskId
     = TaskId
+
+
+type Tasks
+    = Tasks
 
 
 type User
