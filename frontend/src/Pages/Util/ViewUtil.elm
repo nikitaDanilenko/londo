@@ -215,7 +215,7 @@ pagerButtons ps =
                 { innerWindow = 5
                 , outerWindow = 1
                 , pageNumberView = pagerButton
-                , gapView = button [ Style.classes.ellipsis ] [ text "..." ]
+                , gapView = button [ Style.classes.ellipsis, Style.classes.button.pager, disabled True ] [ text "..." ]
                 }
                 ps.elements
                 |> List.map (\elt -> td [] [ elt ])
