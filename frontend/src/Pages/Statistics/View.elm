@@ -315,7 +315,7 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
             else
                 -- todo: Consider a better way of supplying the number of columns
                 -- todo: A text hint may be a good idea.
-                [ tr [] [ td [ colspan <| 11 ] [ hr [] [] ] ] ]
+                [ tr [] [ td [ colspan <| 12 ] [ hr [] [] ] ] ]
     in
     section []
         (h2 []
@@ -342,11 +342,13 @@ taskInfoHeader viewType taskEditorLanguage statisticsLanguage =
                 Page.Total ->
                     [ th [] [ text <| .differenceOneTotal <| statisticsLanguage ]
                     , th [] [ text <| .differenceCompleteTotal <| statisticsLanguage ]
+                    , th [] [ text <| .differenceSimulationTotal <| statisticsLanguage ]
                     ]
 
                 Page.Counting ->
                     [ th [] [ text <| .differenceOneCounting <| statisticsLanguage ]
                     , th [] [ text <| .differenceCompleteCounting <| statisticsLanguage ]
+                    , th [] [ text <| .differenceSimulationCounting <| statisticsLanguage ]
                     ]
     in
     Pages.Util.ParentEditor.View.tableHeaderWith
@@ -372,44 +374,41 @@ taskInfoColumns :
     -> List (HtmlUtil.Column msg)
 taskInfoColumns index viewType taskAnalysis =
     let
+        selector =
+            case viewType of
+                Page.Total ->
+                    .total
+
+                Page.Counting ->
+                    .counting
+
         mean =
             taskAnalysis.incompleteTaskStatistics |> Maybe.Extra.unwrap "" (.mean >> bigDecimalToString)
 
-        differenceAfterOneMoreTotal =
+        afterOne =
             taskAnalysis.incompleteTaskStatistics
-                |> Maybe.Extra.unwrap "" (.total >> .one >> bigDecimalToString)
+                |> Maybe.Extra.unwrap "" (selector >> .one >> bigDecimalToString)
 
-        differenceAfterOneMoreCounting =
+        afterCompletion =
             taskAnalysis.incompleteTaskStatistics
-                |> Maybe.Extra.unwrap "" (.counting >> .one >> bigDecimalToString)
+                |> Maybe.Extra.unwrap "" (selector >> .completion >> bigDecimalToString)
 
-        afterCompletionTotal =
+        afterSimulation =
             taskAnalysis.incompleteTaskStatistics
-                |> Maybe.Extra.unwrap "" (.total >> .completion >> bigDecimalToString)
-
-        afterCompletionCounting =
-            taskAnalysis.incompleteTaskStatistics
-                |> Maybe.Extra.unwrap "" (.counting >> .completion >> bigDecimalToString)
+                |> Maybe.andThen (selector >> .simulation)
+                |> Maybe.Extra.unwrap "" bigDecimalToString
 
         extraColumns =
-            case viewType of
-                Page.Total ->
-                    [ { attributes = [ Style.classes.editable ]
-                      , children = [ text <| differenceAfterOneMoreTotal ]
-                      }
-                    , { attributes = [ Style.classes.editable ]
-                      , children = [ text <| afterCompletionTotal ]
-                      }
-                    ]
-
-                Page.Counting ->
-                    [ { attributes = [ Style.classes.editable ]
-                      , children = [ text <| differenceAfterOneMoreCounting ]
-                      }
-                    , { attributes = [ Style.classes.editable ]
-                      , children = [ text <| afterCompletionCounting ]
-                      }
-                    ]
+            [ { attributes = [ Style.classes.editable ]
+              , children = [ text <| afterOne ]
+              }
+            , { attributes = [ Style.classes.editable ]
+              , children = [ text <| afterCompletion ]
+              }
+            , { attributes = [ Style.classes.editable ]
+              , children = [ text <| afterSimulation ]
+              }
+            ]
     in
     [ { attributes = [ Style.classes.editable ]
       , children = [ text <| String.fromInt index ]
@@ -502,7 +501,7 @@ updateTask index language projectId task update =
             Page.SaveEditTask projectId <| .id <| task
 
         filler =
-            List.repeat 3 <| td [] []
+            List.repeat 4 <| td [] []
 
         --todo: Consider a more stable way of computing the number of values
         infoColumns =
