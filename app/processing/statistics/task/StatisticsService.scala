@@ -16,38 +16,59 @@ object StatisticsService {
     val progress = taskWithSimulation.task.progress
     val mean     = Rational(progress.reached.toBigInt, progress.reachable.natural.toBigInt)
 
-    def withZeroDefault(number: Option[Positive]): After = number.fold(After.zero)(afterForTask(taskWithSimulation, _))
+    def withZeroDefault(
+        number: Option[Positive],
+        computationMode: ComputationMode
+    ): After = number.fold(After.zero)(afterForTask(computationMode, taskWithSimulation, _))
 
     IncompleteTaskStatistics(
       mean = 100 * mean,
-      total = withZeroDefault(numberOfTasks),
-      counting = withZeroDefault(numberOfCountingTasks)
+      total = withZeroDefault(numberOfTasks, ComputationMode.Total),
+      counting = withZeroDefault(numberOfCountingTasks, ComputationMode.Counting)
     )
   }
 
   def afterForTask(
+      computationMode: ComputationMode,
       taskWithSimulation: TaskWithSimulation,
       numberOfTasks: Positive
-  ): After =
+  ): After = {
+    val counting = computationMode match {
+      case ComputationMode.Total    => true
+      case ComputationMode.Counting => taskWithSimulation.task.counting
+    }
+
     After(
-      one = differenceAfterOneMore(numberOfTasks, taskWithSimulation.task.progress.reachable),
-      completion = differenceAfterCompletion(numberOfTasks, taskWithSimulation.task.progress),
+      one = differenceAfterOneMore(
+        counting = counting,
+        numberOfElements = numberOfTasks,
+        reachable = taskWithSimulation.task.progress.reachable
+      ),
+      completion = differenceAfterCompletion(
+        counting = counting,
+        numberOfElements = numberOfTasks,
+        progress = taskWithSimulation.task.progress
+      ),
       simulation = taskWithSimulation.simulation.map(
-        differenceAfterValue(numberOfTasks, taskWithSimulation.task.progress.reachable, _)
+        differenceAfterValue(counting, numberOfTasks, taskWithSimulation.task.progress.reachable, _)
       )
     )
+  }
 
   def differenceAfterOneMore(
+      counting: Boolean,
       numberOfElements: Positive,
       reachable: Positive
   ): Rational =
-    differenceAfterValue(numberOfElements, reachable, BigInt(1))
+    differenceAfterValue(counting, numberOfElements, reachable, BigInt(1))
 
   def differenceAfterCompletion(
+      counting: Boolean,
       numberOfElements: Positive,
       progress: Progress
   ): Rational =
     differenceAfterValue(
+      counting,
       numberOfElements,
       progress.reachable,
       Progress.missing(progress).toBigInt
@@ -57,13 +78,16 @@ object StatisticsService {
     * the difference is k / (n * reachable). The multiplication with 100 is to get a percentage.
     */
   def differenceAfterValue(
+      counting: Boolean,
       numberOfElements: Positive,
       reachable: Positive,
       value: BigInt
   ): Rational =
-    Rational(
-      100 * value,
-      numberOfElements.natural.toBigInt * reachable.natural.toBigInt
-    )
+    if (counting)
+      Rational(
+        100 * value,
+        numberOfElements.natural.toBigInt * reachable.natural.toBigInt
+      )
+    else Rational.zero
 
 }

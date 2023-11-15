@@ -6,13 +6,14 @@ import math.Positive
 import sangria.macros.derive.deriveObjectType
 import sangria.schema.ObjectType
 
-import java.math.MathContext
-
 case class DashboardStatistics(
     reached: WithSimulationNatural,
     reachable: WithoutSimulation,
     absoluteMeans: WithSimulationBigDecimal,
-    relativeMeans: WithSimulationBigDecimal
+    relativeMeans: WithSimulationBigDecimal,
+    buckets: Buckets,
+    tasks: Tasks,
+    differenceTotalCounting: Int
 )
 
 object DashboardStatistics {
@@ -24,7 +25,10 @@ object DashboardStatistics {
         reached = statistics.reached.transformInto[WithSimulationNatural],
         reachable = statistics.reachable.transformInto[WithoutSimulation],
         absoluteMeans = (statistics.absoluteMeans, numberOfDecimalPlaces).transformInto[WithSimulationBigDecimal],
-        relativeMeans = (statistics.relativeMeans, numberOfDecimalPlaces).transformInto[WithSimulationBigDecimal]
+        relativeMeans = (statistics.relativeMeans, numberOfDecimalPlaces).transformInto[WithSimulationBigDecimal],
+        buckets = statistics.buckets.transformInto[Buckets],
+        tasks = statistics.tasks.transformInto[Tasks],
+        differenceTotalCounting = statistics.tasks.total - statistics.tasks.counting
       )
   }
 

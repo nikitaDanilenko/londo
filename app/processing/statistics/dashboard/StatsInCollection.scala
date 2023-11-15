@@ -1,6 +1,6 @@
 package processing.statistics.dashboard
 
-import spire.math.{Natural, Rational}
+import spire.math.{ Natural, Rational }
 
 case class StatsInCollection(
     reached: Natural,
@@ -9,5 +9,7 @@ case class StatsInCollection(
     meanAbsolute: Rational,
     meanAbsoluteSimulated: Rational,
     meanRelative: Rational,
-    meanRelativeSimulated: Rational
+    meanRelativeSimulated: Rational,
+    bucketMap: Map[Bucket, Natural],
+    tasks: Int
 )

@@ -45,3 +45,22 @@ relativeMeans :
     -> SelectionSet decodesTo LondoGQL.Object.DashboardStatistics
 relativeMeans object____ =
     Object.selectionForCompositeField "relativeMeans" [] object____ Basics.identity
+
+
+buckets :
+    SelectionSet decodesTo LondoGQL.Object.Buckets
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardStatistics
+buckets object____ =
+    Object.selectionForCompositeField "buckets" [] object____ Basics.identity
+
+
+tasks :
+    SelectionSet decodesTo LondoGQL.Object.Tasks
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardStatistics
+tasks object____ =
+    Object.selectionForCompositeField "tasks" [] object____ Basics.identity
+
+
+differenceTotalCounting : SelectionSet Int LondoGQL.Object.DashboardStatistics
+differenceTotalCounting =
+    Object.selectionForField "Int" "differenceTotalCounting" [] Decode.int

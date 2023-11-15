@@ -1,9 +1,7 @@
 package graphql.types.dashboard
 
-import enumeratum.EnumEntry
-import enumeratum.Enum
-import io.circe.{ Codec, Json }
-import io.circe.generic.extras.semiauto.deriveEnumerationCodec
+import enumeratum.{ CirceEnum, Enum, EnumEntry }
+import io.circe.Json
 import io.scalaland.chimney.Transformer
 import sangria.macros.derive.deriveEnumType
 import sangria.marshalling.ToInput
@@ -12,7 +10,7 @@ import sangria.schema.EnumType
 
 sealed trait Visibility extends EnumEntry
 
-object Visibility extends Enum[Visibility] {
+object Visibility extends Enum[Visibility] with CirceEnum[Visibility] {
   case object Public  extends Visibility
   case object Private extends Visibility
 
@@ -28,10 +26,8 @@ object Visibility extends Enum[Visibility] {
     case services.dashboard.Visibility.Private => Private
   }
 
-  implicit val visibilityCodec: Codec[Visibility] = deriveEnumerationCodec[Visibility]
+  implicit val toInput: ToInput[Visibility, Json] = circeEncoderToInput[Visibility]
 
-  implicit val visibilityToInput: ToInput[Visibility, Json] = circeEncoderToInput[Visibility]
-
-  implicit val visibilityObjectType: EnumType[Visibility] = deriveEnumType[Visibility]()
+  implicit val objectType: EnumType[Visibility] = deriveEnumType[Visibility]()
 
 }
