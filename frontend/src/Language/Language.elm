@@ -165,6 +165,8 @@ type alias Statistics =
     , differenceOneCounting : String
     , differenceCompleteTotal : String
     , differenceCompleteCounting : String
+    , differenceSimulationTotal : String
+    , differenceSimulationCounting : String
     , statistics : String
     , simulation : String
     }
@@ -365,10 +367,12 @@ english =
         , meanAbsolute = "Mean (absolute)"
         , meanRelative = "Mean (relative)"
         , mean = "Mean"
-        , differenceOneTotal = "Δ (total)"
-        , differenceOneCounting = "Δ (counting)"
-        , differenceCompleteTotal = "After completion (total)"
-        , differenceCompleteCounting = "After completion (counting)"
+        , differenceOneTotal = "Δ 1 (total)"
+        , differenceOneCounting = "Δ 1 (counting)"
+        , differenceCompleteTotal = "Δ completion (total)"
+        , differenceCompleteCounting = "Δ completion (counting)"
+        , differenceSimulationTotal = "Δ simulation (total)"
+        , differenceSimulationCounting = "Δ simulation (counting)"
         , statistics = "Statistics"
         , simulation = "Simulation"
         }
