@@ -50,7 +50,7 @@ object StatisticsService {
         progress = taskWithSimulation.task.progress
       ),
       simulation = taskWithSimulation.simulation.map(
-        differenceAfterValue(numberOfTasks, taskWithSimulation.task.progress.reachable, _)
+        differenceAfterValue(counting, numberOfTasks, taskWithSimulation.task.progress.reachable, _)
       )
     )
   }
@@ -60,34 +60,34 @@ object StatisticsService {
       numberOfElements: Positive,
       reachable: Positive
   ): Rational =
-    if (counting)
-      differenceAfterValue(numberOfElements, reachable, BigInt(1))
-    else Rational.zero
+    differenceAfterValue(counting, numberOfElements, reachable, BigInt(1))
 
   def differenceAfterCompletion(
       counting: Boolean,
       numberOfElements: Positive,
       progress: Progress
   ): Rational =
-    if (counting)
-      differenceAfterValue(
-        numberOfElements,
-        progress.reachable,
-        Progress.missing(progress).toBigInt
-      )
-    else Rational.zero
+    differenceAfterValue(
+      counting,
+      numberOfElements,
+      progress.reachable,
+      Progress.missing(progress).toBigInt
+    )
 
   /** When comparing the sum of n tasks with the sum of (n - 1), and one task, whose "reached" value is increased by k,
     * the difference is k / (n * reachable). The multiplication with 100 is to get a percentage.
     */
   def differenceAfterValue(
+      counting: Boolean,
       numberOfElements: Positive,
       reachable: Positive,
       value: BigInt
   ): Rational =
-    Rational(
-      100 * value,
-      numberOfElements.natural.toBigInt * reachable.natural.toBigInt
-    )
+    if (counting)
+      Rational(
+        100 * value,
+        numberOfElements.natural.toBigInt * reachable.natural.toBigInt
+      )
+    else Rational.zero
 
 }
