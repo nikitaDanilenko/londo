@@ -1,4 +1,4 @@
-module Pages.Statistics.View exposing (view)
+module Pages.Statistics.View exposing (..)
 
 import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
@@ -58,15 +58,17 @@ viewMain configuration main =
         }
     <|
         viewDashboardStatistics
+            Page.SetViewType
             main.languages.statistics
             main.languages.dashboard
             main.viewType
             main.dashboard
             main.dashboardStatistics
             :: section []
-                [ viewTaskSearchField
+                [ HtmlUtil.searchAreaWith
                     { searchString = main.searchString
-                    , clearSearchWord = main.languages.taskEditor.clearSearch
+                    , clearWord = main.languages.taskEditor.clearSearch
+                    , msg = Page.SetSearchString
                     }
                 ]
             :: (main.projects
@@ -81,25 +83,13 @@ bigDecimalToString (LondoGQL.Scalar.BigDecimal string) =
     string
 
 
-viewTaskSearchField :
-    { searchString : String
-    , clearSearchWord : String
-    }
-    -> Html Page.LogicMsg
-viewTaskSearchField ps =
-    HtmlUtil.searchAreaWith
-        { msg = Page.SetSearchString
-        , searchString = ps.searchString
-        , clearWord = ps.clearSearchWord
-        }
-
-
 viewTypeButtonWith :
     { label : String
     , currentViewType : Page.ViewType
     , forViewType : Page.ViewType
+    , setViewType : Page.ViewType -> msg
     }
-    -> Html Page.LogicMsg
+    -> Html msg
 viewTypeButtonWith ps =
     let
         extraStyling =
@@ -110,7 +100,7 @@ viewTypeButtonWith ps =
                 []
     in
     button
-        ([ onClick <| Page.SetViewType ps.forViewType
+        ([ onClick <| ps.setViewType <| ps.forViewType
          , Style.classes.button.navigation
          ]
             ++ extraStyling
@@ -119,8 +109,8 @@ viewTypeButtonWith ps =
         ]
 
 
-viewDashboardStatistics : Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.ViewType -> Page.Dashboard -> Page.DashboardStatistics -> Html Page.LogicMsg
-viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard statistics =
+viewDashboardStatistics : (Page.ViewType -> msg) -> Page.StatisticsLanguage -> Page.DashboardLanguage -> Page.ViewType -> Page.Dashboard -> Page.DashboardStatistics -> Html msg
+viewDashboardStatistics setViewType statisticsLanguage dashboardLanguage viewType dashboard statistics =
     section []
         [ table [ Style.classes.elementsWithControlsTable ]
             [ Pages.Dashboards.View.tableHeader dashboardLanguage
@@ -135,11 +125,13 @@ viewDashboardStatistics statisticsLanguage dashboardLanguage viewType dashboard 
                 { label = statisticsLanguage.total
                 , currentViewType = viewType
                 , forViewType = Page.Total
+                , setViewType = setViewType
                 }
             , viewTypeButtonWith
                 { label = statisticsLanguage.counting
                 , currentViewType = viewType
                 , forViewType = Page.Counting
+                , setViewType = setViewType
                 }
             ]
         , table [ Style.classes.elementsWithControlsTable ]
@@ -198,7 +190,7 @@ viewDashboardStatisticsWith :
     }
     -> Page.StatisticsLanguage
     -> Page.DashboardStatistics
-    -> List (Html Page.LogicMsg)
+    -> List (Html msg)
 viewDashboardStatisticsWith ps statisticsLanguage statistics =
     let
         bucketHeader =

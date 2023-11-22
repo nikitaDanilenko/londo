@@ -1,6 +1,5 @@
 module Types.DashboardEntry.Entry exposing (..)
 
-import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Mutation
 import LondoGQL.Object
@@ -40,8 +39,4 @@ deleteWith expect authorizedAccess dashboardEntryId =
             , projectId = unwrapped |> .projectId |> Types.Project.Id.toGraphQLInput
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect dashboardEntryId
-            }
+        |> HttpUtil.mutationWith (expect dashboardEntryId) authorizedAccess

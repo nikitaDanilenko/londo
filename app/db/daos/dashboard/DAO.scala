@@ -1,8 +1,9 @@
 package db.daos.dashboard
 
 import db.generated.Tables
-import db.{ DAOActions, UserId }
+import db.{ DAOActions, DashboardId, UserId, generated }
 import io.scalaland.chimney.dsl._
+import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.api._
 import utils.transformer.implicits._
 
@@ -13,6 +14,8 @@ trait DAO extends DAOActions[Tables.DashboardRow, DashboardKey] {
   override val keyOf: Tables.DashboardRow => DashboardKey = DashboardKey.of
 
   def findAllFor(ownerId: UserId): DBIO[Seq[Tables.DashboardRow]]
+
+  def findById(id: DashboardId): DBIO[Option[Tables.DashboardRow]]
 }
 
 object DAO {
@@ -31,6 +34,14 @@ object DAO {
           )
           .result
       }
+
+      override def findById(id: DashboardId): DBIO[Option[Tables.DashboardRow]] =
+        Tables.Dashboard
+          .filter(
+            _.id === id.transformInto[UUID]
+          )
+          .result
+          .headOption
 
     }
 

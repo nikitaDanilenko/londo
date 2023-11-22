@@ -38,11 +38,7 @@ fetchWith :
     -> Cmd msg
 fetchWith expect authorizedAccess =
     LondoGQL.Query.fetchUser selection
-        |> Graphql.Http.queryRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.queryWith expect authorizedAccess
 
 
 requestDeletionWith :
@@ -51,11 +47,7 @@ requestDeletionWith :
     -> Cmd msg
 requestDeletionWith expect authorizedAccess =
     LondoGQL.Mutation.requestDeletion
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess
 
 
 confirmDeletionWith :
@@ -116,8 +108,4 @@ logoutWith expect authorizedAccess logoutMode =
             { logoutMode = logoutMode
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess

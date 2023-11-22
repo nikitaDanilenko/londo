@@ -1,5 +1,7 @@
 module Types.Dashboard.Analysis exposing (..)
 
+import Configuration exposing (Configuration)
+import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Object
 import LondoGQL.Object.DashboardAnalysis
@@ -66,3 +68,21 @@ fetchWithSelection ps authorizedAccess dashboardId numberOfDecimalPlaces =
         |> HttpUtil.queryWith
             ps.expect
             authorizedAccess
+
+
+fetchPublicWith :
+    (HttpUtil.GraphQLResult Analysis -> msg)
+    -> Configuration
+    -> Types.Dashboard.Id.Id
+    -> Math.Positive.Positive
+    -> Cmd msg
+fetchPublicWith expect configuration dashboardId numberOfDecimalPlaces =
+    LondoGQL.Query.fetchPublicDashboardAnalysis
+        { input =
+            { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
+            , numberOfDecimalPlaces = numberOfDecimalPlaces |> Math.Positive.toGraphQLInput
+            }
+        }
+        selection
+        |> Graphql.Http.queryRequest configuration.graphQLEndpoint
+        |> Graphql.Http.send expect

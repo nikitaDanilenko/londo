@@ -1,6 +1,5 @@
 module Types.Task.Creation exposing (..)
 
-import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.Enum.TaskKind exposing (TaskKind)
 import LondoGQL.InputObject exposing (ProgressInput)
@@ -78,8 +77,4 @@ createWith expect authorizedAccess creation =
             }
         }
         Types.Task.Task.selection
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess

@@ -12,6 +12,8 @@ trait DashboardService {
 
   def get(ownerId: UserId, id: DashboardId): Future[Option[Dashboard]]
 
+  def getById(id: DashboardId): Future[Option[DashboardWithOwner]]
+
   def create(
       ownerId: UserId,
       creation: Creation
@@ -39,6 +41,10 @@ object DashboardService {
         ownerId: UserId,
         id: DashboardId
     )(implicit ec: ExecutionContext): DBIO[Option[Dashboard]]
+
+    def getById(
+        id: DashboardId
+    )(implicit ec: ExecutionContext): DBIO[Option[DashboardWithOwner]]
 
     def create(
         ownerId: UserId,

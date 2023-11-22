@@ -44,6 +44,9 @@ import Pages.Settings.Page
 import Pages.Settings.View
 import Pages.Statistics.Handler
 import Pages.Statistics.Page
+import Pages.Statistics.Public.Handler
+import Pages.Statistics.Public.Page
+import Pages.Statistics.Public.View
 import Pages.Statistics.View
 import Pages.Tasks.Handler
 import Pages.Tasks.Page
@@ -112,6 +115,7 @@ type Page
     | Dashboards Pages.Dashboards.Page.Model
     | DashboardEntries Pages.DashboardEntries.Page.Model
     | Statistics Pages.Statistics.Page.Model
+    | PublicStatistics Pages.Statistics.Public.Page.Model
     | Settings Pages.Settings.Page.Model
     | ConfirmDeletion Pages.Deletion.Page.Model
     | RequestRecovery Pages.Recovery.Request.Page.Model
@@ -133,6 +137,7 @@ type Msg
     | DashboardsMsg Pages.Dashboards.Page.Msg
     | DashboardEntriesMsg Pages.DashboardEntries.Page.Msg
     | StatisticsMsg Pages.Statistics.Page.Msg
+    | PublicStatisticsMsg Pages.Statistics.Public.Page.Msg
     | SettingsMsg Pages.Settings.Page.Msg
     | ConfirmDeletionMsg Pages.Deletion.Page.Msg
     | RequestRecoveryMsg Pages.Recovery.Request.Page.Msg
@@ -186,6 +191,9 @@ view model =
 
         Statistics statistics ->
             List.map (Html.map StatisticsMsg) (Pages.Statistics.View.view statistics)
+
+        PublicStatistics publicStatistics ->
+            List.map (Html.map PublicStatisticsMsg) (Pages.Statistics.Public.View.view publicStatistics)
 
         Settings settings ->
             List.map (Html.map SettingsMsg) (Pages.Settings.View.view settings)
@@ -254,6 +262,9 @@ update msg model =
         ( StatisticsMsg statisticsMsg, Statistics statistics ) ->
             stepThrough steps.statistics model (Pages.Statistics.Handler.update statisticsMsg statistics)
 
+        ( PublicStatisticsMsg publicStatisticsMsg, PublicStatistics publicStatistics ) ->
+            stepThrough steps.publicStatistics model (Pages.Statistics.Public.Handler.update publicStatisticsMsg publicStatistics)
+
         ( SettingsMsg settingsMsg, Settings settings ) ->
             stepThrough steps.settings model (Pages.Settings.Handler.update settingsMsg settings)
 
@@ -284,6 +295,7 @@ steps :
     , dashboards : StepParameters Pages.Dashboards.Page.Model Pages.Dashboards.Page.Msg
     , dashboardEntries : StepParameters Pages.DashboardEntries.Page.Model Pages.DashboardEntries.Page.Msg
     , statistics : StepParameters Pages.Statistics.Page.Model Pages.Statistics.Page.Msg
+    , publicStatistics : StepParameters Pages.Statistics.Public.Page.Model Pages.Statistics.Public.Page.Msg
     , requestRegistration : StepParameters Pages.Registration.Request.Page.Model Pages.Registration.Request.Page.Msg
     , confirmRegistration : StepParameters Pages.Registration.Confirm.Page.Model Pages.Registration.Confirm.Page.Msg
     , settings : StepParameters Pages.Settings.Page.Model Pages.Settings.Page.Msg
@@ -299,6 +311,7 @@ steps =
     , dashboards = StepParameters Dashboards DashboardsMsg
     , dashboardEntries = StepParameters DashboardEntries DashboardEntriesMsg
     , statistics = StepParameters Statistics StatisticsMsg
+    , publicStatistics = StepParameters PublicStatistics PublicStatisticsMsg
     , requestRegistration = StepParameters RequestRegistration RequestRegistrationMsg
     , confirmRegistration = StepParameters ConfirmRegistration ConfirmRegistrationMsg
     , settings = StepParameters Settings SettingsMsg
@@ -323,6 +336,7 @@ type Route
     | DashboardsRoute
     | DashboardEntriesRoute Types.Dashboard.Id.Id
     | StatisticsRoute Types.Dashboard.Id.Id
+    | PublicStatisticsRoute Types.Dashboard.Id.Id
     | SettingsRoute
     | ConfirmDeletionRoute UserIdentifier JWT
     | RequestRecoveryRoute
@@ -341,6 +355,7 @@ plainRouteParser =
         , route Addresses.Frontend.dashboards.parser DashboardsRoute
         , route Addresses.Frontend.dashboardEntries.parser DashboardEntriesRoute
         , route Addresses.Frontend.statistics.parser StatisticsRoute
+        , route Addresses.Frontend.publicStatistics.parser PublicStatisticsRoute
         , route Addresses.Frontend.settings.parser SettingsRoute
         , route Addresses.Frontend.deleteAccount.parser ConfirmDeletionRoute
         , route Addresses.Frontend.requestRecovery.parser RequestRecoveryRoute
@@ -421,6 +436,13 @@ followRoute model =
                         , dashboardId = dashboardId
                         }
                         |> stepThrough steps.statistics model
+
+                ( PublicStatisticsRoute dashboardId, _ ) ->
+                    Pages.Statistics.Public.Handler.init
+                        { configuration = model.configuration
+                        , dashboardId = dashboardId
+                        }
+                        |> stepThrough steps.publicStatistics model
 
                 ( SettingsRoute, Just userJWT ) ->
                     Pages.Settings.Handler.init
