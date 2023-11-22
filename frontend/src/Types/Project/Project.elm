@@ -1,6 +1,5 @@
 module Types.Project.Project exposing (..)
 
-import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Mutation
 import LondoGQL.Object
@@ -33,11 +32,7 @@ fetchAllWith :
 fetchAllWith expect authorizedAccess =
     LondoGQL.Query.fetchAllProjects
         selection
-        |> Graphql.Http.queryRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.queryWith expect authorizedAccess
 
 
 deleteWith :
@@ -51,8 +46,4 @@ deleteWith expect authorizedAccess projectId =
             { projectId = projectId |> Types.Project.Id.toGraphQLInput
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect projectId
-            }
+        |> HttpUtil.mutationWith (expect projectId) authorizedAccess

@@ -1,6 +1,5 @@
 module Types.Dashboard.Creation exposing (..)
 
-import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.Enum.Visibility
 import LondoGQL.InputObject
@@ -58,8 +57,4 @@ createWith expect authorizedAccess creation =
     LondoGQL.Mutation.createDashboard
         { input = creation |> toGraphQLInput }
         Types.Dashboard.Dashboard.selection
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess

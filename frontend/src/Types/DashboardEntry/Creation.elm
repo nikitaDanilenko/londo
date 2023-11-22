@@ -1,6 +1,5 @@
 module Types.DashboardEntry.Creation exposing (..)
 
-import Graphql.Http
 import LondoGQL.InputObject
 import LondoGQL.Mutation
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
@@ -40,8 +39,4 @@ createWith expect authorizedAccess creation =
             }
         }
         Types.DashboardEntry.Entry.selection
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess

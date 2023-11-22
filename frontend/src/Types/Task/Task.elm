@@ -1,6 +1,5 @@
 module Types.Task.Task exposing (..)
 
-import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Enum.TaskKind exposing (TaskKind)
 import LondoGQL.Mutation
@@ -45,8 +44,4 @@ deleteWith expect authorizedAccess taskId =
             { taskId = taskId |> Types.Task.Id.toGraphQLInput
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect taskId
-            }
+        |> HttpUtil.mutationWith (expect taskId) authorizedAccess

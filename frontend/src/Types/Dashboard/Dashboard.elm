@@ -1,6 +1,5 @@
 module Types.Dashboard.Dashboard exposing (..)
 
-import Graphql.Http
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import LondoGQL.Enum.Visibility
 import LondoGQL.Mutation
@@ -36,11 +35,7 @@ fetchAllWith :
 fetchAllWith expect authorizedAccess =
     LondoGQL.Query.fetchAllDashboards
         selection
-        |> Graphql.Http.queryRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.queryWith expect authorizedAccess
 
 
 deleteWith :
@@ -54,8 +49,4 @@ deleteWith expect authorizedAccess dashboardId =
             { dashboardId = dashboardId |> Types.Dashboard.Id.toGraphQLInput
             }
         }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect dashboardId
-            }
+        |> HttpUtil.mutationWith (expect dashboardId) authorizedAccess

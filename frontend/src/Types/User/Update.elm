@@ -1,6 +1,5 @@
 module Types.User.Update exposing (..)
 
-import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject
 import LondoGQL.Mutation
@@ -44,8 +43,4 @@ updateWith expect authorizedAccess update =
     LondoGQL.Mutation.updateUser
         { input = update |> toGraphQLInput }
         Types.User.User.selection
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess

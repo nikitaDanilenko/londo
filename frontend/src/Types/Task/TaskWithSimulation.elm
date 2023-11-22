@@ -1,6 +1,5 @@
 module Types.Task.TaskWithSimulation exposing (..)
 
-import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject
 import LondoGQL.Mutation
@@ -107,8 +106,4 @@ updateWith expect authorizedAccess complement update =
             }
         }
         Types.Task.Analysis.selection
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess

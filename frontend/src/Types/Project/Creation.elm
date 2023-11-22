@@ -50,8 +50,4 @@ createWith expect authorizedAccess creation =
     LondoGQL.Mutation.createProject
         { input = creation |> toGraphQLInput }
         Types.Project.Project.selection
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess

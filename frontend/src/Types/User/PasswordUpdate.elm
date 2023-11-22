@@ -1,6 +1,5 @@
 module Types.User.PasswordUpdate exposing (..)
 
-import Graphql.Http
 import LondoGQL.InputObject
 import LondoGQL.Mutation
 import Monocle.Lens exposing (Lens)
@@ -36,8 +35,4 @@ updateWith :
 updateWith expect authorizedAccess update =
     LondoGQL.Mutation.updatePassword
         { input = update |> toGraphQLInput }
-        |> Graphql.Http.mutationRequest authorizedAccess.configuration.graphQLEndpoint
-        |> HttpUtil.sendWithJWT
-            { jwt = authorizedAccess.jwt
-            , expect = expect
-            }
+        |> HttpUtil.mutationWith expect authorizedAccess
