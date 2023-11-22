@@ -300,20 +300,25 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
                     )
                 >> List.concat
 
+        headerColumns =
+            taskInfoHeaderColumns viewType taskEditorLanguage statisticsLanguage
+
         separator =
             if List.any List.isEmpty [ finished, unfinished ] then
                 []
 
             else
-                -- todo: Consider a better way of supplying the number of columns
-                -- todo: A text hint may be a good idea.
-                [ tr [] [ td [ colspan <| 12 ] [ hr [] [] ] ] ]
+                -- The one extra column is for the menu icon.
+                [ tr [] [ td [ colspan <| (List.length headerColumns + 1) ] [ hr [] [] ] ] ]
     in
     section []
         (h2 []
             [ text <| projectName ]
             :: [ table [ Style.classes.elementsWithControlsTable ]
-                    [ taskInfoHeader viewType taskEditorLanguage statisticsLanguage
+                    [ Pages.Util.ParentEditor.View.tableHeaderWith
+                        { columns = headerColumns
+                        , style = Style.classes.taskEditTable
+                        }
                     , tbody []
                         (List.concat
                             [ unfinished |> display
@@ -326,8 +331,8 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
         )
 
 
-taskInfoHeader : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> Html msg
-taskInfoHeader viewType taskEditorLanguage statisticsLanguage =
+taskInfoHeaderColumns : Page.ViewType -> Page.TaskEditorLanguage -> Page.StatisticsLanguage -> List (Html msg)
+taskInfoHeaderColumns viewType taskEditorLanguage statisticsLanguage =
     let
         deltaColumns =
             case viewType of
@@ -343,20 +348,16 @@ taskInfoHeader viewType taskEditorLanguage statisticsLanguage =
                     , th [] [ text <| .differenceSimulationCounting <| statisticsLanguage ]
                     ]
     in
-    Pages.Util.ParentEditor.View.tableHeaderWith
-        { columns =
-            [ th [] []
-            , th [] [ text <| .taskName <| taskEditorLanguage ]
-            , th [] [ text <| .taskKind <| taskEditorLanguage ]
-            , th [] [ text <| .progress <| taskEditorLanguage ]
-            , th [] [ text <| .simulation <| statisticsLanguage ]
-            , th [] [ text <| .unit <| taskEditorLanguage ]
-            , th [] [ text <| .counting <| taskEditorLanguage ]
-            , th [] [ text <| .mean <| statisticsLanguage ]
-            ]
-                ++ deltaColumns
-        , style = Style.classes.taskEditTable
-        }
+    [ th [] []
+    , th [] [ text <| .taskName <| taskEditorLanguage ]
+    , th [] [ text <| .taskKind <| taskEditorLanguage ]
+    , th [] [ text <| .progress <| taskEditorLanguage ]
+    , th [] [ text <| .simulation <| statisticsLanguage ]
+    , th [] [ text <| .unit <| taskEditorLanguage ]
+    , th [] [ text <| .counting <| taskEditorLanguage ]
+    , th [] [ text <| .mean <| statisticsLanguage ]
+    ]
+        ++ deltaColumns
 
 
 taskInfoColumns :

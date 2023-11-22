@@ -8,6 +8,7 @@ import Pages.Statistics.Page
 import Pages.Statistics.Public.Page as Page
 import Pages.Statistics.View
 import Pages.Util.HtmlUtil as HtmlUtil
+import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
@@ -63,19 +64,19 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
         projectName =
             project.name ++ (project.description |> Maybe.Extra.unwrap "" (\description -> " (" ++ description ++ ")"))
 
-        tasks =
+        ( finished, unfinished ) =
             projectAnalysis
                 |> .tasks
-                |> List.filter
-                    (.task >> .name >> SearchUtil.search searchString)
-
-        ( finished, unfinished ) =
-            tasks |> List.partition (.task >> .progress >> Types.Progress.Progress.isComplete)
+                |> List.filter (.task >> .name >> SearchUtil.search searchString)
+                |> List.partition (.task >> .progress >> Types.Progress.Progress.isComplete)
 
         display =
             List.sortBy (.task >> .name)
                 >> List.indexedMap (\index -> viewTask (index + 1) viewType)
                 >> List.concat
+
+        headerColumns =
+            Pages.Statistics.View.taskInfoHeaderColumns viewType taskEditorLanguage statisticsLanguage
 
         separator =
             if List.any List.isEmpty [ finished, unfinished ] then
@@ -90,7 +91,10 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
         (h2 []
             [ text <| projectName ]
             :: [ table [ Style.classes.elementsWithControlsTable ]
-                    [ Pages.Statistics.View.taskInfoHeader viewType taskEditorLanguage statisticsLanguage
+                    [ Pages.Util.ParentEditor.View.tableHeaderWith
+                        { columns = headerColumns
+                        , style = Style.classes.taskEditTable
+                        }
                     , tbody []
                         (List.concat
                             [ unfinished |> display
