@@ -3,6 +3,7 @@ module Pages.Statistics.Public.Handler exposing (..)
 import Language.Language
 import Monocle.Compose as Compose
 import Monocle.Lens exposing (Lens)
+import Pages.Statistics.Page
 import Pages.Statistics.Pagination as Pagination
 import Pages.Statistics.Public.Page as Page
 import Pages.Util.PaginationSettings as PaginationSettings
@@ -25,12 +26,12 @@ init flags =
         , statistics = Language.Language.default.statistics
         }
         Language.Language.default.errorHandling
-        flags.authorizedAccess
+        flags.configuration
     , Types.Dashboard.Analysis.fetchWith
         Page.GotFetchDashboardAnalysisResponse
         flags.authorizedAccess
         flags.dashboardId
-        Page.numberOfDecimalPlaces
+        Pages.Statistics.Page.numberOfDecimalPlaces
         |> Cmd.map Tristate.Logic
     )
 

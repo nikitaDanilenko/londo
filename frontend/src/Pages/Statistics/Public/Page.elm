@@ -2,14 +2,13 @@ module Pages.Statistics.Public.Page exposing (..)
 
 -- todo: Is Pages.Statistics.Pagination the correct Pagination?
 
+import Configuration exposing (Configuration)
 import Language.Language as Language
 import Monocle.Lens exposing (Lens)
 import Pages.Statistics.Page
 import Pages.Statistics.Pagination as Pagination exposing (Pagination)
-import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.PaginationSettings exposing (PaginationSettings)
 import Pages.View.Tristate as Tristate
-import Types.Auxiliary exposing (JWT)
 import Types.Dashboard.Analysis
 import Types.Dashboard.Dashboard
 import Types.Dashboard.Id
@@ -84,8 +83,7 @@ type alias Languages =
 
 
 type alias Main =
-    { jwt : JWT
-    , dashboard : Dashboard
+    { dashboard : Dashboard
     , dashboardStatistics : DashboardStatistics
     , projects : DictList ProjectId ProjectAnalysis
     , viewType : Pages.Statistics.Page.ViewType
@@ -96,27 +94,24 @@ type alias Main =
 
 
 type alias Initial =
-    { jwt : JWT
-    , dashboardAnalysis : Maybe DashboardAnalysis
+    { dashboardAnalysis : Maybe DashboardAnalysis
     , languages : Languages
     }
 
 
-initial : Languages -> Language.ErrorHandling -> AuthorizedAccess -> Model
-initial languages errorLanguage authorizedAccess =
-    { jwt = authorizedAccess.jwt
-    , dashboardAnalysis = Nothing
+initial : Languages -> Language.ErrorHandling -> Configuration -> Model
+initial languages errorLanguage configuration =
+    { dashboardAnalysis = Nothing
     , languages = languages
     }
-        |> Tristate.createInitial authorizedAccess.configuration errorLanguage
+        |> Tristate.createInitial configuration errorLanguage
 
 
 initialToMain : Initial -> Maybe Main
 initialToMain i =
     Maybe.map
         (\dashboardAnalysis ->
-            { jwt = i.jwt
-            , dashboard = dashboardAnalysis.dashboard
+            { dashboard = dashboardAnalysis.dashboard
             , dashboardStatistics = dashboardAnalysis.dashboardStatistics
             , projects =
                 dashboardAnalysis.projectAnalyses
@@ -160,7 +155,7 @@ lenses =
 
 type alias Flags =
     { dashboardId : DashboardId
-    , authorizedAccess : AuthorizedAccess
+    , configuration : Configuration
     }
 
 

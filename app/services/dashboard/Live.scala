@@ -13,6 +13,7 @@ import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
 import slickeffect.catsio.implicits._
 import utils.DBIOUtil.instances._
+import utils.transformer.implicits._
 
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
@@ -30,6 +31,9 @@ class Live @Inject() (
 
   override def get(ownerId: UserId, id: DashboardId): Future[Option[Dashboard]] =
     db.runTransactionally(companion.get(ownerId, id))
+
+  override def getById(id: DashboardId): Future[Option[DashboardWithOwner]] =
+    db.runTransactionally(companion.getById(id))
 
   override def create(ownerId: UserId, creation: Creation): Future[ServerError.Or[Dashboard]] =
     db.runTransactionally(companion.create(ownerId, creation))
@@ -79,6 +83,16 @@ object Live {
       )
         .map(_.transformInto[Dashboard])
         .value
+
+    override def getById(id: DashboardId)(implicit ec: ExecutionContext): DBIO[Option[DashboardWithOwner]] =
+      OptionT(
+        dao.findById(id)
+      ).map { dashboardRow =>
+        DashboardWithOwner(
+          dashboard = dashboardRow.transformInto[Dashboard],
+          ownerId = dashboardRow.ownerId.transformInto[UserId]
+        )
+      }.value
 
     override def create(ownerId: UserId, creation: Creation)(implicit
         ec: ExecutionContext
