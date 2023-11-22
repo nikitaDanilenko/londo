@@ -3,11 +3,12 @@ module Pages.Dashboards.View exposing (..)
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
 import Configuration exposing (Configuration)
+import Dropdown exposing (dropdown)
 import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
-import LondoGQL.Enum.Visibility
+import LondoGQL.Enum.Visibility as Visibility
 import Maybe.Extra
 import Monocle.Lens exposing (Lens)
 import Pages.Dashboards.Page as Page
@@ -70,6 +71,7 @@ tableHeader language =
         { columns =
             [ th [] [ text <| language.header ]
             , th [] [ text <| language.description ]
+            , th [] [ text <| language.visibility ]
             ]
         , style = Style.classes.dashboardEditTable
         }
@@ -126,6 +128,9 @@ dashboardInfoColumns dashboard =
       }
     , { attributes = [ Style.classes.editable ]
       , children = [ text <| Maybe.withDefault "" <| dashboard.description ]
+      }
+    , { attributes = [ Style.classes.editable ]
+      , children = [ text <| Visibility.toString <| dashboard.visibility ]
       }
     ]
 
@@ -186,7 +191,7 @@ editDashboardLineWith :
     { saveMsg : msg
     , headerLens : Lens editedValue (ValidatedInput String)
     , descriptionLens : Lens editedValue (Maybe String)
-    , visibilityLens : Lens editedValue LondoGQL.Enum.Visibility.Visibility
+    , visibilityLens : Lens editedValue Visibility.Visibility
     , updateMsg : editedValue -> msg
     , confirmName : String
     , cancelMsg : msg
@@ -205,6 +210,16 @@ editDashboardLineWith handling editedValue =
 
         validatedSaveAction =
             MaybeUtil.optional validInput <| onEnter handling.saveMsg
+
+        visibilityToItem visibility =
+            let
+                stringValue =
+                    visibility |> Visibility.toString
+            in
+            { value = stringValue
+            , text = stringValue
+            , enabled = True
+            }
 
         infoColumns =
             [ td [ Style.classes.editable ]
@@ -239,6 +254,21 @@ editDashboardLineWith handling editedValue =
                         |> Maybe.Extra.values
                     )
                     []
+                ]
+            , td [ Style.classes.editable ]
+                [ dropdown
+                    { items =
+                        Visibility.list
+                            |> List.map
+                                visibilityToItem
+                    , emptyItem = Nothing
+                    , onChange =
+                        Maybe.andThen Visibility.fromString
+                            >> Maybe.Extra.unwrap editedValue (flip handling.visibilityLens.set editedValue)
+                            >> handling.updateMsg
+                    }
+                    []
+                    (editedValue |> handling.visibilityLens.get |> Visibility.toString |> Just)
                 ]
             ]
 
