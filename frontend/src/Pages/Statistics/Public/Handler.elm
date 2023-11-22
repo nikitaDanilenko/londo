@@ -27,9 +27,9 @@ init flags =
         }
         Language.Language.default.errorHandling
         flags.configuration
-    , Types.Dashboard.Analysis.fetchWith
+    , Types.Dashboard.Analysis.fetchPublicWith
         Page.GotFetchDashboardAnalysisResponse
-        flags.authorizedAccess
+        flags.configuration
         flags.dashboardId
         Pages.Statistics.Page.numberOfDecimalPlaces
         |> Cmd.map Tristate.Logic
