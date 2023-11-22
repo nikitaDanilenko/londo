@@ -1,8 +1,14 @@
 # Londo
 
-This tool allows hosting progress tracking of several users. Every user can create projects and make these projects visible to a collection of users. Users can configure dashboards to view the progress of users on a list of selected projects.
+The application allows hosting progress tracking with a focus on completion rates.
+Every account can create projects,
+and connect these projects to dashboards.
+Dashboards then provide statistics views,
+which can be shared publicly if desired.
 
-The tool's only purpose is displaying and tracking the progress, there is no integration with common project management tools. The main reason for this tool is to show a pretty progress report.
+The tool's only purpose is displaying and tracking the progress,
+there is no integration with common project management tools.
+The main reason for this tool is to show a pretty progress report.
 
 ## Naming
 
@@ -47,3 +53,21 @@ The name `londo` hints at [Londo Mollari](https://en.wikipedia.org/wiki/Londo_Mo
       and in `index.js` (front end).
    2. Duplicate the database components from `deployment.env` to the top-level file `db.env`,
       see the note in `db.env` for more information.
+
+# Takeaways from development
+
+1. GraphQL in Elm is a pleasure.
+   While the Scala counterpart took some minor figuring out,
+   I still very much liked the overall design in the end.
+   One particularly interesting option is to annotate the GraphQL schema
+   and have the documentation presented in a nice way.
+2. In the future it may make sense to drop the `Future` based service
+   level functions altogether, and to only use `DBIO`.
+   In particular, in combination with GraphQL one gets a good control
+   over atomicity.
+3. The Elm support for arbitrary precision numbers, and numeric operations for those is currently quite weak.
+   All statistics have been hence moved to the back end.
+   Generally, it makes sense to compute them in the front end,
+   but the operations are extremely slow, 
+   which makes interaction with the statistics view virtually unusable.
+4. Using proper semantic structuring for HTML provides a lot of automatically well-designed styling decisions.
