@@ -24,6 +24,7 @@ import Pages.Util.ParentEditor.View
 import Pages.Util.Style as Style
 import Pages.Util.ViewUtil as ViewUtil
 import Pages.View.Tristate as Tristate
+import Seq
 import Types.Dashboard.Buckets
 import Types.Dashboard.CountingBucket
 import Types.Dashboard.Tasks
@@ -284,6 +285,12 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
         ( finished, unfinished ) =
             tasks |> List.partition (.original >> .task >> .progress >> Types.Progress.Progress.isComplete)
 
+        headerColumns =
+            taskInfoHeaderColumns viewType taskEditorLanguage statisticsLanguage
+
+        plainHeaders =
+            headerColumns |> List.map (always ()) |> Seq.fromList
+
         display =
             List.sortBy (.original >> .task >> .name)
                 >> List.indexedMap
@@ -294,14 +301,11 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
                         in
                         Editing.unpack
                             { onView = viewTask position viewType project.id taskEditorLanguage
-                            , onUpdate = .task >> updateTask position taskEditorLanguage project.id
+                            , onUpdate = .task >> updateTask { plainHeaders = plainHeaders } position taskEditorLanguage project.id
                             , onDelete = \_ -> []
                             }
                     )
                 >> List.concat
-
-        headerColumns =
-            taskInfoHeaderColumns viewType taskEditorLanguage statisticsLanguage
 
         separator =
             if List.any List.isEmpty [ finished, unfinished ] then
@@ -449,8 +453,8 @@ viewTask index viewType projectId language resolvedTask showControls =
         resolvedTask
 
 
-updateTask : Int -> Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
-updateTask index language projectId task update =
+updateTask : { plainHeaders : Seq.Seq () } -> Int -> Page.TaskEditorLanguage -> Page.ProjectId -> Page.Task -> Page.TaskUpdate -> List (Html Page.LogicMsg)
+updateTask ps index language projectId task update =
     let
         progressUpdateLens =
             Types.Task.TaskWithSimulation.lenses.taskUpdate
@@ -493,66 +497,72 @@ updateTask index language projectId task update =
         saveMsg =
             Page.SaveEditTask projectId <| .id <| task
 
-        filler =
-            List.repeat 4 <| td [] []
-
-        --todo: Consider a more stable way of computing the number of values
-        infoColumns =
-            [ td [ Style.classes.editable ]
-                [ text <| String.fromInt <| index ]
-            , td [ Style.classes.editable ]
-                [ text <| .name <| task ]
-            , td []
-                [ text <| TaskKind.toString <| .taskKind <| task ]
-            , td []
-                (Pages.Tasks.Tasks.View.editProgress
-                    { progressLens = progressUpdateLens
-                    , updateMsg = updateMsg
-                    }
-                    (update |> (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.taskKind).get)
-                    update
-                    |> List.map
-                        (HtmlUtil.withAttributes
-                            ([ MaybeUtil.defined <| HtmlUtil.onEscape <| cancelMsg
-                             , validatedSaveAction
-                             ]
-                                |> Maybe.Extra.values
+        nonEmptyColumns =
+            Seq.fromList
+                [ td [ Style.classes.editable ]
+                    [ text <| String.fromInt <| index ]
+                , td [ Style.classes.editable ]
+                    [ text <| .name <| task ]
+                , td []
+                    [ text <| TaskKind.toString <| .taskKind <| task ]
+                , td []
+                    (Pages.Tasks.Tasks.View.editProgress
+                        { progressLens = progressUpdateLens
+                        , updateMsg = updateMsg
+                        }
+                        (update |> (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.taskKind).get)
+                        update
+                        |> List.map
+                            (HtmlUtil.withAttributes
+                                ([ MaybeUtil.defined <| HtmlUtil.onEscape <| cancelMsg
+                                 , validatedSaveAction
+                                 ]
+                                    |> Maybe.Extra.values
+                                )
                             )
-                        )
-                )
-            , td [ Style.classes.editable ]
-                [ input
-                    ([ MaybeUtil.defined <| value <| .text <| reachedModifierLens.get <| update
-                     , MaybeUtil.defined <|
-                        onInput <|
-                            flip
-                                (ValidatedInput.lift reachedModifierLens).set
-                                update
-                                >> updateMsg
-                     , MaybeUtil.defined <| HtmlUtil.onEscape <| cancelMsg
-                     , validatedSaveAction
-                     ]
-                        |> Maybe.Extra.values
                     )
-                    []
-                ]
-            , td [ Style.classes.editable ]
-                [ text <| Maybe.withDefault "" <| task.unit ]
-            , td []
-                [ input
-                    [ type_ "checkbox"
-                    , checked <| (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.counting).get <| update
-                    , onClick <|
-                        updateMsg <|
-                            Lens.modify (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.counting) not <|
-                                update
-                    , onEnter <| saveMsg
-                    , HtmlUtil.onEscape cancelMsg
+                , td [ Style.classes.editable ]
+                    [ input
+                        ([ MaybeUtil.defined <| value <| .text <| reachedModifierLens.get <| update
+                         , MaybeUtil.defined <|
+                            onInput <|
+                                flip
+                                    (ValidatedInput.lift reachedModifierLens).set
+                                    update
+                                    >> updateMsg
+                         , MaybeUtil.defined <| HtmlUtil.onEscape <| cancelMsg
+                         , validatedSaveAction
+                         ]
+                            |> Maybe.Extra.values
+                        )
+                        []
                     ]
-                    []
+                , td [ Style.classes.editable ]
+                    [ text <| Maybe.withDefault "" <| task.unit ]
+                , td []
+                    [ input
+                        [ type_ "checkbox"
+                        , checked <| (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.counting).get <| update
+                        , onClick <|
+                            updateMsg <|
+                                Lens.modify (Types.Task.TaskWithSimulation.lenses.taskUpdate |> Compose.lensWithLens Types.Task.Update.lenses.counting) not <|
+                                    update
+                        , onEnter <| saveMsg
+                        , HtmlUtil.onEscape cancelMsg
+                        ]
+                        []
+                    ]
                 ]
-            ]
-                ++ filler
+
+        -- The columns are padded with an infinite (lazy) list of empty table cells, and then trimmed to the actual number of columns.
+        infoColumns =
+            Seq.map2 (\_ element -> element)
+                ps.plainHeaders
+                (Seq.append
+                    nonEmptyColumns
+                    (Seq.repeat (td [] []))
+                )
+                |> Seq.toList
 
         controlsRow =
             Pages.Util.ParentEditor.View.controlsRowWith

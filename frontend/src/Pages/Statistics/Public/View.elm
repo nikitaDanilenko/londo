@@ -83,9 +83,7 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
                 []
 
             else
-                -- todo: Consider a better way of supplying the number of columns
-                -- todo: A text hint may be a good idea.
-                [ tr [] [ td [ colspan <| 12 ] [ hr [] [] ] ] ]
+                [ tr [] [ td [ colspan <| List.length headerColumns + 1 ] [ hr [] [] ] ] ]
     in
     section []
         (h2 []

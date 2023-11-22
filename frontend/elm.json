@@ -34,6 +34,7 @@
             "perzanko/elm-loading": "2.0.5",
             "rundis/elm-bootstrap": "5.2.0",
             "simonh1000/elm-jwt": "7.1.1",
+            "the-sett/lazy-list": "1.2.0",
             "toastal/either": "3.6.3"
         },
         "indirect": {
