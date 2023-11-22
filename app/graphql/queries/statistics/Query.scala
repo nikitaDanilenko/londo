@@ -50,14 +50,13 @@ trait Query extends HasGraphQLServices with HasLoggedInUser {
         case services.dashboard.Visibility.Private => false
       }
       analysis <-
-        if (isPublic) {
-          val userId = dashboard.ownerId
+        if (isPublic)
           fetchAnalysis(
             dashboard = dashboard.dashboard,
             numberOfDecimalPlaces = input.numberOfDecimalPlaces.transformInto[math.Positive],
-            ownerId = userId
+            ownerId = dashboard.ownerId
           )
-        } else EitherT.leftT[Future, DashboardAnalysis](ErrorContext.Dashboard.NotFound.asServerError)
+        else EitherT.leftT[Future, DashboardAnalysis](ErrorContext.Dashboard.NotFound.asServerError)
     } yield analysis
 
     transformer.value.handleServerError
