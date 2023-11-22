@@ -1,4 +1,4 @@
-module Pages.DashboardEntries.Entries.View exposing (..)
+module Pages.DashboardEntries.Entries.View exposing (viewEntries, viewProjects)
 
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, text, th)
@@ -116,10 +116,8 @@ headerColumns language =
     ]
 
 
-{-| Todo: The function is oddly specific, and the implementation with the fixed amount of columns is awkward,
-especially because the non-matching case should never occur.
--}
 projectInfoFromMap : DictList Types.Project.Id.Id (Editing Types.Project.Project.Project Types.DashboardEntry.Creation.ClientInput) -> Types.Project.Id.Id -> List (HtmlUtil.Column Page.LogicMsg)
 projectInfoFromMap projects projectId =
     DictList.get projectId projects
-        |> Maybe.Extra.unwrap (List.repeat 2 { attributes = [ Style.classes.editable ], children = [] }) (.original >> Pages.Projects.View.projectInfoColumns)
+        -- The non-matching case should not occur (private function). An empty list is a sensible default, because it works without knowing the number of columns.
+        |> Maybe.Extra.unwrap [] (.original >> Pages.Projects.View.projectInfoColumns)
