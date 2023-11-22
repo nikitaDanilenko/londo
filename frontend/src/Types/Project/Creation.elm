@@ -1,6 +1,5 @@
 module Types.Project.Creation exposing (..)
 
-import Graphql.Http
 import Graphql.OptionalArgument as OptionalArgument
 import LondoGQL.InputObject exposing (CreateProjectInput)
 import LondoGQL.Mutation
