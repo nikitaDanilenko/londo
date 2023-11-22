@@ -1,7 +1,5 @@
 module Pages.Statistics.Public.Page exposing (..)
 
--- todo: Is Pages.Statistics.Pagination the correct Pagination?
-
 import Configuration exposing (Configuration)
 import Language.Language as Language
 import Monocle.Lens exposing (Lens)
