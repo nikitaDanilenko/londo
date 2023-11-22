@@ -71,6 +71,19 @@ statistics =
         }
 
 
+
+-- todo: Reconsider path, "public" seems to be a little on the nose.
+
+
+publicStatistics : AddressWithParser Types.Dashboard.Id.Id (Types.Dashboard.Id.Id -> a) a
+publicStatistics =
+    with1
+        { step1 = "public-statistics"
+        , toString = Types.Dashboard.Id.uuid >> ScalarUtil.uuidToString >> List.singleton
+        , paramParser = ParserUtil.uuidParser |> Parser.map Types.Dashboard.Id.Id
+        }
+
+
 settings : AddressWithParser () a a
 settings =
     plain "settings"
