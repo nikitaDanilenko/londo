@@ -105,4 +105,6 @@ viewResolvedProject viewType taskEditorLanguage statisticsLanguage searchString 
 
 viewTask : Int -> Pages.Statistics.Page.ViewType -> Page.TaskAnalysis -> List (Html Page.LogicMsg)
 viewTask index viewType taskAnalysis =
-    Pages.Statistics.View.taskInfoColumns index viewType taskAnalysis |> List.map (HtmlUtil.withExtraAttributes [])
+    [ tr [ Style.classes.editing ]
+        (Pages.Statistics.View.taskInfoColumns index viewType taskAnalysis |> List.map (HtmlUtil.withExtraAttributes []))
+    ]
