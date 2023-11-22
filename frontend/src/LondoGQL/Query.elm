@@ -110,3 +110,15 @@ fetchDashboardAnalysis :
     -> SelectionSet decodesTo RootQuery
 fetchDashboardAnalysis requiredArgs____ object____ =
     Object.selectionForCompositeField "fetchDashboardAnalysis" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchDashboardAnalysisInput ] object____ Basics.identity
+
+
+type alias FetchPublicDashboardAnalysisRequiredArguments =
+    { input : LondoGQL.InputObject.FetchDashboardAnalysisInput }
+
+
+fetchPublicDashboardAnalysis :
+    FetchPublicDashboardAnalysisRequiredArguments
+    -> SelectionSet decodesTo LondoGQL.Object.DashboardAnalysis
+    -> SelectionSet decodesTo RootQuery
+fetchPublicDashboardAnalysis requiredArgs____ object____ =
+    Object.selectionForCompositeField "fetchPublicDashboardAnalysis" [ Argument.required "input" requiredArgs____.input LondoGQL.InputObject.encodeFetchDashboardAnalysisInput ] object____ Basics.identity
