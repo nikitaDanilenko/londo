@@ -18,9 +18,6 @@ import Types.Dashboard.Statistics
 import Types.Project.Id
 import Types.Project.Project
 import Types.Task.Analysis
-import Types.Task.Id
-import Types.Task.Task
-import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
 import Util.HttpUtil as HttpUtil
 
@@ -55,20 +52,8 @@ type alias ProjectAnalysis =
     }
 
 
-type alias Task =
-    Types.Task.Task.Task
-
-
 type alias TaskAnalysis =
     Types.Task.Analysis.Analysis
-
-
-type alias TaskUpdate =
-    Types.Task.TaskWithSimulation.ClientInput
-
-
-type alias TaskId =
-    Types.Task.Id.Id
 
 
 type alias TaskEditorLanguage =
