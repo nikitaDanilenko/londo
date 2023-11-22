@@ -1,9 +1,11 @@
-module Pages.Statistics.Page exposing (..)
+module Pages.Statistics.Public.Page exposing (..)
+
+-- todo: Is Pages.Statistics.Pagination the correct Pagination?
 
 import Language.Language as Language
 import Math.Positive
 import Monocle.Lens exposing (Lens)
-import Pages.Statistics.EditingResolvedProject exposing (EditingResolvedProject)
+import Pages.Statistics.Page
 import Pages.Statistics.Pagination as Pagination exposing (Pagination)
 import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Pages.Util.PaginationSettings exposing (PaginationSettings)
@@ -20,7 +22,6 @@ import Types.Task.Id
 import Types.Task.Task
 import Types.Task.TaskWithSimulation
 import Util.DictList as DictList exposing (DictList)
-import Util.Editing as Editing exposing (Editing)
 import Util.HttpUtil as HttpUtil
 
 
@@ -42,6 +43,16 @@ type alias DashboardAnalysis =
 
 type alias ProjectId =
     Types.Project.Id.Id
+
+
+type alias Project =
+    Types.Project.Project.Project
+
+
+type alias ProjectAnalysis =
+    { project : Project
+    , tasks : List TaskAnalysis
+    }
 
 
 type alias Task =
@@ -92,8 +103,8 @@ type alias Main =
     { jwt : JWT
     , dashboard : Dashboard
     , dashboardStatistics : DashboardStatistics
-    , projects : DictList ProjectId EditingResolvedProject
-    , viewType : ViewType
+    , projects : DictList ProjectId ProjectAnalysis
+    , viewType : Pages.Statistics.Page.ViewType
     , searchString : String
     , pagination : Pagination
     , languages : Languages
@@ -125,18 +136,8 @@ initialToMain i =
             , dashboardStatistics = dashboardAnalysis.dashboardStatistics
             , projects =
                 dashboardAnalysis.projectAnalyses
-                    |> List.map
-                        (\resolvedProject ->
-                            { project = resolvedProject.project
-                            , tasks =
-                                resolvedProject
-                                    |> .tasks
-                                    |> List.map Editing.asView
-                                    |> DictList.fromListWithKey Types.Task.Id.ordering (.original >> .task >> .id)
-                            }
-                        )
                     |> DictList.fromListWithKey Types.Project.Id.ordering (.project >> .id)
-            , viewType = Counting
+            , viewType = Pages.Statistics.Page.Counting
             , searchString = ""
             , pagination = Pagination.initial
             , languages = i.languages
@@ -152,8 +153,8 @@ lenses :
     , main :
         { dashboard : Lens Main Dashboard
         , dashboardStatistics : Lens Main DashboardStatistics
-        , projects : Lens Main (DictList ProjectId EditingResolvedProject)
-        , viewType : Lens Main ViewType
+        , projects : Lens Main (DictList ProjectId ProjectAnalysis)
+        , viewType : Lens Main Pages.Statistics.Page.ViewType
         , searchString : Lens Main String
         , pagination : Lens Main Pagination
         }
@@ -181,21 +182,9 @@ type alias Flags =
 
 type LogicMsg
     = GotFetchDashboardAnalysisResponse (HttpUtil.GraphQLResult DashboardAnalysis)
-    | EditTask ProjectId TaskId TaskUpdate
-    | SaveEditTask ProjectId TaskId
-    | GotSaveEditTaskResponse ProjectId (HttpUtil.GraphQLResult TaskAnalysis)
-    | GotFetchUpdatedStatisticsResponse ProjectId TaskAnalysis (HttpUtil.GraphQLResult DashboardStatistics)
-    | ToggleControls ProjectId TaskId
-    | EnterEditTask ProjectId TaskId
-    | ExitEditTask ProjectId TaskId
     | SetProjectsPagination PaginationSettings
     | SetSearchString String
-    | SetViewType ViewType
-
-
-type ViewType
-    = Total
-    | Counting
+    | SetViewType Pages.Statistics.Page.ViewType
 
 
 type alias Msg =
