@@ -1,4 +1,4 @@
-module Math.Positive exposing (Positive, fromInt, fromString, integerValue, one, oneHundred, selection, tenToTheNth, toGraphQLInput, toString)
+module Math.Positive exposing (Positive, fromInt, fromString, integerValue, one, oneHundred, oneThousand, selection, tenToTheNth, toGraphQLInput, toString)
 
 import BigInt exposing (BigInt)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -58,6 +58,12 @@ tenToTheNth n =
 oneHundred : Positive
 oneHundred =
     Constants.oneHundredBigInt
+        |> Positive
+
+
+oneThousand : Positive
+oneThousand =
+    Constants.oneThousandBigInt
         |> Positive
 
 

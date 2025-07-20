@@ -54,7 +54,6 @@ from task =
 toGraphQLInput : ClientInput -> LondoGQL.InputObject.TaskUpdate
 toGraphQLInput clientInput =
     { name = clientInput.name.value
-    , taskKind = clientInput.taskKind
     , unit = clientInput.unit |> OptionalArgument.fromMaybe
     , counting = clientInput.counting
     , progressUpdate = clientInput.progressUpdate |> Types.Progress.Input.toGraphQLInput

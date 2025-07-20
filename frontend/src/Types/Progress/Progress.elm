@@ -1,11 +1,10 @@
 module Types.Progress.Progress exposing (..)
 
-import BigInt exposing (BigInt)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import List.Extra
+import LondoGQL.Enum.TaskKind
 import LondoGQL.Object
 import LondoGQL.Object.Progress
-import Math.Constants as Constants
 import Math.Natural as Natural exposing (Natural)
 import Math.Positive as Positive exposing (Positive)
 import Maybe.Extra
@@ -94,57 +93,20 @@ booleanToggle progress =
     Progress Positive.one reached
 
 
-toDiscrete : Progress -> Progress
-toDiscrete progress =
-    { reached =
-        if progress |> isComplete then
-            Natural.one
+default : LondoGQL.Enum.TaskKind.TaskKind -> Progress
+default taskKind =
+    case taskKind of
+        LondoGQL.Enum.TaskKind.Discrete ->
+            { reachable = Positive.one
+            , reached = Natural.zero
+            }
 
-        else
-            Natural.zero
-    , reachable = Positive.one
-    }
+        LondoGQL.Enum.TaskKind.Percent ->
+            { reachable = Positive.oneThousand
+            , reached = Natural.zero
+            }
 
-
-toPercent : Progress -> Progress
-toPercent progress =
-    let
-        approximation =
-            approximatePercent progress
-
-        decimalPlaces =
-            approximation.decimal
-                |> String.length
-
-        reached =
-            [ approximation.whole, approximation.decimal ]
-                |> String.concat
-                |> Natural.fromString
-                |> Result.withDefault Natural.zero
-    in
-    { reachable = Positive.tenToTheNth (2 + decimalPlaces)
-    , reached = reached
-    }
-
-
-approximatePercent : Progress -> { whole : String, decimal : String }
-approximatePercent progress =
-    let
-        reachable =
-            progress.reachable |> Positive.integerValue
-
-        ( timesWhole, rem ) =
-            BigInt.divmod (progress.reached |> Natural.integerValue |> BigInt.mul Constants.oneHundredBigInt) reachable
-                |> Maybe.withDefault ( Constants.zeroBigInt, Constants.zeroBigInt )
-
-        timesDecimal =
-            BigInt.div (rem |> BigInt.mul (BigInt.pow Constants.tenBigInt Constants.tenBigInt)) reachable
-    in
-    { whole = timesWhole |> BigInt.toString
-    , decimal =
-        timesDecimal
-            |> BigInt.toString
-            |> String.toList
-            |> List.Extra.dropWhileRight ((==) '0')
-            |> String.fromList
-    }
+        LondoGQL.Enum.TaskKind.Fraction ->
+            { reachable = Positive.oneHundred
+            , reached = Natural.zero
+            }

@@ -8,22 +8,22 @@ import Json.Decode as Decode exposing (Decoder)
 
 
 type Bucket
-    = Below60
-    | Below30
-    | Below20
-    | Exactly100
-    | Below100
-    | Below40
+    = Below100
     | Below70
     | Below80
     | Below50
-    | Below90
+    | Below60
+    | Below30
+    | Below40
     | Below10
+    | Below20
+    | Exactly100
+    | Below90
 
 
 list : List Bucket
 list =
-    [ Below60, Below30, Below20, Exactly100, Below100, Below40, Below70, Below80, Below50, Below90, Below10 ]
+    [ Below100, Below70, Below80, Below50, Below60, Below30, Below40, Below10, Below20, Exactly100, Below90 ]
 
 
 decoder : Decoder Bucket
@@ -32,23 +32,8 @@ decoder =
         |> Decode.andThen
             (\string ->
                 case string of
-                    "Below60" ->
-                        Decode.succeed Below60
-
-                    "Below30" ->
-                        Decode.succeed Below30
-
-                    "Below20" ->
-                        Decode.succeed Below20
-
-                    "Exactly100" ->
-                        Decode.succeed Exactly100
-
                     "Below100" ->
                         Decode.succeed Below100
-
-                    "Below40" ->
-                        Decode.succeed Below40
 
                     "Below70" ->
                         Decode.succeed Below70
@@ -59,11 +44,26 @@ decoder =
                     "Below50" ->
                         Decode.succeed Below50
 
-                    "Below90" ->
-                        Decode.succeed Below90
+                    "Below60" ->
+                        Decode.succeed Below60
+
+                    "Below30" ->
+                        Decode.succeed Below30
+
+                    "Below40" ->
+                        Decode.succeed Below40
 
                     "Below10" ->
                         Decode.succeed Below10
+
+                    "Below20" ->
+                        Decode.succeed Below20
+
+                    "Exactly100" ->
+                        Decode.succeed Exactly100
+
+                    "Below90" ->
+                        Decode.succeed Below90
 
                     _ ->
                         Decode.fail ("Invalid Bucket type, " ++ string ++ " try re-running the @dillonkearns/elm-graphql CLI ")
@@ -75,23 +75,8 @@ decoder =
 toString : Bucket -> String
 toString enum____ =
     case enum____ of
-        Below60 ->
-            "Below60"
-
-        Below30 ->
-            "Below30"
-
-        Below20 ->
-            "Below20"
-
-        Exactly100 ->
-            "Exactly100"
-
         Below100 ->
             "Below100"
-
-        Below40 ->
-            "Below40"
 
         Below70 ->
             "Below70"
@@ -102,11 +87,26 @@ toString enum____ =
         Below50 ->
             "Below50"
 
-        Below90 ->
-            "Below90"
+        Below60 ->
+            "Below60"
+
+        Below30 ->
+            "Below30"
+
+        Below40 ->
+            "Below40"
 
         Below10 ->
             "Below10"
+
+        Below20 ->
+            "Below20"
+
+        Exactly100 ->
+            "Exactly100"
+
+        Below90 ->
+            "Below90"
 
 
 {-| Convert from a String representation to an elm representation enum.
@@ -123,23 +123,8 @@ This can be useful for generating Strings to use for <select> menus to check whi
 fromString : String -> Maybe Bucket
 fromString enumString____ =
     case enumString____ of
-        "Below60" ->
-            Just Below60
-
-        "Below30" ->
-            Just Below30
-
-        "Below20" ->
-            Just Below20
-
-        "Exactly100" ->
-            Just Exactly100
-
         "Below100" ->
             Just Below100
-
-        "Below40" ->
-            Just Below40
 
         "Below70" ->
             Just Below70
@@ -150,11 +135,26 @@ fromString enumString____ =
         "Below50" ->
             Just Below50
 
-        "Below90" ->
-            Just Below90
+        "Below60" ->
+            Just Below60
+
+        "Below30" ->
+            Just Below30
+
+        "Below40" ->
+            Just Below40
 
         "Below10" ->
             Just Below10
+
+        "Below20" ->
+            Just Below20
+
+        "Exactly100" ->
+            Just Exactly100
+
+        "Below90" ->
+            Just Below90
 
         _ ->
             Nothing
