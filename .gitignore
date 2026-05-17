@@ -13,8 +13,9 @@ target
 
 null
 
-# Ignore the deployment file due to possibly sensitive content.
+# Ignore files with possibly sensitive content.
 deployment.env
+deployment/secret.local.yaml
 /.bsp/sbt.json
 
 # Frontend
