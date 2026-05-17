@@ -32,7 +32,7 @@ object DependencyVersions {
 
   val EnumeratumCirce: String = "1.7.3"
 
-  val PlayMailer: String = "10.0.0"
+  val PlayMailer: String = "10.0.1"
 
   val Pprint: String = "0.8.1"
 
