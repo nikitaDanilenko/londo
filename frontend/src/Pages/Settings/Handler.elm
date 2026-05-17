@@ -154,7 +154,7 @@ updateLogic msg model =
                                 [ Ports.doDeleteToken ()
                                 , ()
                                     |> Addresses.Frontend.login.address
-                                    |> Links.frontendPage model.configuration
+                                    |> Links.frontendPage
                                     |> Browser.Navigation.load
                                 ]
                             )

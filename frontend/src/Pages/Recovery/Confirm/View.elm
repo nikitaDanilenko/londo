@@ -1,7 +1,6 @@
 module Pages.Recovery.Confirm.View exposing (view)
 
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, form, h1, input, label, text)
 import Html.Attributes exposing (disabled, for, id, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -24,11 +23,10 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration model =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain model =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Nothing
+        { currentPage = Nothing
         , showNavigation = False
         , id = Style.ids.accountRecovery
         }
@@ -38,7 +36,7 @@ viewMain configuration model =
                 viewResetting model
 
             Page.Confirmed ->
-                viewConfirmed model.language configuration
+                viewConfirmed model.language
 
 
 viewResetting : Page.Main -> List (Html Page.LogicMsg)
@@ -101,11 +99,10 @@ viewResetting main =
     ]
 
 
-viewConfirmed : Page.Language -> Configuration -> List (Html Page.LogicMsg)
-viewConfirmed language configuration =
+viewConfirmed : Page.Language -> List (Html Page.LogicMsg)
+viewConfirmed language =
     [ text <| .successfullyUpdatedPassword <| language
     , Links.toLoginButton
-        { configuration = configuration
-        , buttonText = language |> .mainPage
+        { buttonText = language |> .mainPage
         }
     ]

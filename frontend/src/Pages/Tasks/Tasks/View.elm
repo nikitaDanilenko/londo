@@ -1,7 +1,6 @@
 module Pages.Tasks.Tasks.View exposing (..)
 
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
 import Dropdown exposing (dropdown)
 import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (checked, disabled, type_, value)
@@ -29,8 +28,8 @@ import Util.SearchUtil as SearchUtil
 import Util.ValidatedInput as ValidatedInput exposing (ValidatedInput)
 
 
-viewSubMain : Types.Project.Id.Id -> Configuration -> Page.SubMain -> List (Html Page.LogicMsg)
-viewSubMain projectId configuration subMain =
+viewSubMain : Types.Project.Id.Id -> Page.SubMain -> List (Html Page.LogicMsg)
+viewSubMain projectId subMain =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Nothing
         , showNavigation = False
@@ -39,7 +38,7 @@ viewSubMain projectId configuration subMain =
                 SearchUtil.search string task.name
         , sort = List.sortBy (.original >> .name >> String.toLower)
         , tableHeader = tableHeader subMain.language
-        , viewLine = \language _ -> viewTaskLine language
+        , viewLine = \language -> viewTaskLine language
         , updateLine = \language task -> updateTaskLine language task.id
         , deleteLine = deleteTaskLine
         , create =
@@ -54,7 +53,6 @@ viewSubMain projectId configuration subMain =
         , clearSearchWord = subMain.language.clearSearch
         }
         subMain.language
-        configuration
         subMain
 
 
@@ -148,7 +146,7 @@ updateTaskLine language taskId update =
     editTaskLineWith
         { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit taskId
         , nameLens = Types.Task.Update.lenses.name
-        , taskKindLens = Lens (\_ -> TaskKind.Fraction) (\b a -> a)
+        , taskKindLens = Lens (\_ -> TaskKind.Fraction) (\_ a -> a)
         , progressLens = Types.Task.Update.lenses.progressUpdate
         , unitLens = Types.Task.Update.lenses.unit
         , countingLens = Types.Task.Update.lenses.counting

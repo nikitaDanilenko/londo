@@ -1,6 +1,5 @@
 module Pages.DashboardEntries.Dashboard.View exposing (..)
 
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, p, text)
 import Html.Events exposing (onClick)
 import Pages.DashboardEntries.Dashboard.Page as Page
@@ -11,8 +10,8 @@ import Pages.Util.Style as Style
 import Types.Dashboard.Update
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
-viewMain _ main =
+viewMain : Page.Main -> Html Page.LogicMsg
+viewMain main =
     Pages.Util.Parent.View.viewMain
         { tableHeader = Pages.Dashboards.View.tableHeader
         , onView =

@@ -1,6 +1,5 @@
 module Pages.Recovery.Request.View exposing (view)
 
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, form, h1, h2, input, label, section, text)
 import Html.Attributes exposing (disabled, for, id, required, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -19,11 +18,10 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Nothing
+        { currentPage = Nothing
         , showNavigation = False
         , id = Style.ids.accountRecovery
         }
@@ -36,7 +34,7 @@ viewMain configuration main =
                 viewRequesting main
 
             Page.Requested ->
-                viewRequested main.language configuration
+                viewRequested main.language
 
 
 viewInitial : Page.Main -> List (Html Page.LogicMsg)
@@ -71,12 +69,11 @@ viewRequesting main =
     searchComponents main ++ remainder
 
 
-viewRequested : Page.Language -> Configuration -> List (Html Page.LogicMsg)
-viewRequested language configuration =
+viewRequested : Page.Language -> List (Html Page.LogicMsg)
+viewRequested language =
     [ text <| .requestSuccessful <| language
     , Links.toLoginButton
-        { configuration = configuration
-        , buttonText = language |> .mainPage
+        { buttonText = language |> .mainPage
         }
     ]
 

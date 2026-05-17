@@ -56,7 +56,7 @@ updateLogic msg model =
                         ( model
                         , Cmd.batch
                             [ Ports.storeToken token
-                            , Addresses.Frontend.overview.address () |> Links.frontendPage model.configuration |> Browser.Navigation.load
+                            , Addresses.Frontend.overview.address () |> Links.frontendPage |> Browser.Navigation.load
                             ]
                         )
                     )

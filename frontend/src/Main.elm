@@ -365,7 +365,7 @@ plainRouteParser =
 
 parsePage : Url -> Maybe Route
 parsePage =
-    fragmentToPath >> Parser.parse plainRouteParser
+    Parser.parse plainRouteParser
 
 
 {-| Todo: Rethink the structure - the matching is inelegant, error prone, and contains duplication.
@@ -475,11 +475,6 @@ followRoute model =
                 _ ->
                     Pages.Login.Handler.init { configuration = model.configuration }
                         |> stepThrough steps.login model
-
-
-fragmentToPath : Url -> Url
-fragmentToPath url =
-    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
 
 
 route : Parser a b -> a -> Parser (b -> c) c

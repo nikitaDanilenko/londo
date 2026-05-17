@@ -2,7 +2,6 @@ module Pages.Dashboards.View exposing (..)
 
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
 import Dropdown exposing (dropdown)
 import Html exposing (Attribute, Html, button, input, td, text, th, tr)
 import Html.Attributes exposing (value)
@@ -35,8 +34,8 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Just ViewUtil.Dashboards
         , showNavigation = True
@@ -61,7 +60,6 @@ viewMain configuration main =
         , clearSearchWord = main.language.clearSearch
         }
         main.language
-        configuration
         main
 
 
@@ -77,15 +75,15 @@ tableHeader language =
         }
 
 
-viewDashboardLine : Page.Language -> Configuration -> Page.Dashboard -> Bool -> List (Html Page.LogicMsg)
-viewDashboardLine language configuration dashboard showControls =
+viewDashboardLine : Page.Language -> Page.Dashboard -> Bool -> List (Html Page.LogicMsg)
+viewDashboardLine language dashboard showControls =
     dashboardLineWith
         { controls =
             [ button
                 [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| dashboard.id ]
                 [ text <| language.edit ]
             , Links.linkButton
-                { url = Links.frontendPage configuration <| Addresses.Frontend.dashboardEntries.address <| dashboard.id
+                { url = Links.frontendPage <| Addresses.Frontend.dashboardEntries.address <| dashboard.id
                 , attributes = [ Style.classes.button.editor ]
                 , linkText = language.dashboardEntryEditor
                 }
@@ -93,7 +91,7 @@ viewDashboardLine language configuration dashboard showControls =
                 [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| dashboard.id ]
                 [ text <| language.delete ]
             , Links.linkButton
-                { url = Links.frontendPage configuration <| Addresses.Frontend.statistics.address <| dashboard.id
+                { url = Links.frontendPage <| Addresses.Frontend.statistics.address <| dashboard.id
                 , attributes = [ Style.classes.button.navigation ]
                 , linkText = "Statistics"
                 }

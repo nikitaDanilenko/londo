@@ -1,7 +1,6 @@
 module Pages.Projects.View exposing (editProjectLineWith, projectInfoColumns, projectLineWith, tableHeader, view)
 
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
 import Html exposing (Attribute, Html, button, input, p, td, text, th, tr)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onInput)
@@ -32,8 +31,8 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     Pages.Util.ParentEditor.View.viewParentsWith
         { currentPage = Just ViewUtil.Projects
         , showNavigation = True
@@ -58,7 +57,6 @@ viewMain configuration main =
         , clearSearchWord = main.language.clearSearch
         }
         main.language
-        configuration
         main
 
 
@@ -73,14 +71,14 @@ tableHeader language =
         }
 
 
-viewProjectLine : Page.Language -> Configuration -> Page.Project -> Bool -> List (Html Page.LogicMsg)
-viewProjectLine language configuration project showControls =
+viewProjectLine : Page.Language -> Page.Project -> Bool -> List (Html Page.LogicMsg)
+viewProjectLine language project showControls =
     projectLineWith
         { controls =
             [ button
                 [ Style.classes.button.edit, onClick <| Pages.Util.ParentEditor.Page.EnterEdit <| project.id ]
                 [ text <| language.edit ]
-            , NavigationUtil.projectEditorLinkButton configuration project.id language.taskEditor
+            , NavigationUtil.projectEditorLinkButton project.id language.taskEditor
             , button
                 [ Style.classes.button.delete, onClick <| Pages.Util.ParentEditor.Page.RequestDelete <| project.id ]
                 [ text <| language.delete ]

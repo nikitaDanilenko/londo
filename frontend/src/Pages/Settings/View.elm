@@ -1,7 +1,7 @@
 module Pages.Settings.View exposing (..)
 
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
+
 import Html exposing (Html, button, form, h1, h2, input, label, section, text)
 import Html.Attributes exposing (disabled, for, id, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -26,11 +26,10 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Just UserSettings
+        { currentPage = Just UserSettings
         , showNavigation = True
         , id = Style.ids.settings
         }

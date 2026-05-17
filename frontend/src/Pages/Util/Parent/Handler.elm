@@ -124,7 +124,6 @@ updateLogic ps msg model =
                     (\_ ->
                         ( model
                         , Links.loadFrontendPage
-                            model.configuration
                             (() |> ps.navigateAfterDeletionAddress)
                         )
                     )

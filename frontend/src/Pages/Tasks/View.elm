@@ -1,6 +1,5 @@
 module Pages.Tasks.View exposing (..)
 
-import Configuration exposing (Configuration)
 import Html exposing (Html, h1, text)
 import Pages.Tasks.Page as Page
 import Pages.Tasks.Project.View
@@ -18,19 +17,18 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Nothing
+        { currentPage = Nothing
         , showNavigation = True
         , id = Style.ids.taskEditor
         }
     <|
-        [ Pages.Tasks.Project.View.viewMain configuration main.project
+        [ Pages.Tasks.Project.View.viewMain main.project
             |> Html.map Page.ProjectMsg
         , h1 [ Style.classes.elements ] [ text <| main.tasks.language.tasks ]
         ]
-            ++ (Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id configuration main.tasks
+            ++ (Pages.Tasks.Tasks.View.viewSubMain main.project.parent.original.id main.tasks
                     |> List.map (Html.map Page.TasksMsg)
                )

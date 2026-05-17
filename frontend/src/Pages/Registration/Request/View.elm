@@ -1,7 +1,6 @@
 module Pages.Registration.Request.View exposing (view)
 
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, form, h1, input, label, main_, text)
 import Html.Attributes exposing (disabled, for, id, type_)
 import Html.Events exposing (onClick, onInput)
@@ -26,15 +25,15 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     [ main_ [ Style.ids.requestRegistration ] <|
         case main.mode of
             Page.Editing ->
                 viewEditing main
 
             Page.Confirmed ->
-                viewConfirmed configuration main.language
+                viewConfirmed main.language
     ]
 
 
@@ -96,11 +95,10 @@ viewEditing main =
     ]
 
 
-viewConfirmed : Configuration -> Language.RequestRegistration -> List (Html Page.LogicMsg)
-viewConfirmed configuration language =
+viewConfirmed : Language.RequestRegistration -> List (Html Page.LogicMsg)
+viewConfirmed language =
     [ text <| language.registrationSuccessful
     , Links.toLoginButton
-        { configuration = configuration
-        , buttonText = language.mainPage
+        { buttonText = language.mainPage
         }
     ]

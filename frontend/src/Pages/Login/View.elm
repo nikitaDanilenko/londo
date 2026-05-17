@@ -2,7 +2,7 @@ module Pages.Login.View exposing (..)
 
 import Addresses.Frontend
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
+
 import Html exposing (Html, button, form, h1, input, label, main_, text)
 import Html.Attributes exposing (autocomplete, for, id, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -22,8 +22,8 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     let
         username =
             "username"
@@ -79,12 +79,12 @@ viewMain configuration main =
                 []
             , button [ Style.classes.button.confirm, type_ "submit" ] [ text <| main.language.login ]
             , Links.linkButton
-                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRegistration.address ()
+                { url = Links.frontendPage <| Addresses.Frontend.requestRegistration.address ()
                 , attributes = [ Style.classes.button.navigation ]
                 , linkText = main.language.createAccount
                 }
             , Links.linkButton
-                { url = Links.frontendPage configuration <| Addresses.Frontend.requestRecovery.address ()
+                { url = Links.frontendPage <| Addresses.Frontend.requestRecovery.address ()
                 , attributes = [ Style.classes.button.navigation ]
                 , linkText = main.language.recoverAccount
                 }

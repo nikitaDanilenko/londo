@@ -1,7 +1,6 @@
 module Pages.Registration.Confirm.View exposing (view)
 
 import Basics.Extra exposing (flip)
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, h1, input, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -27,11 +26,10 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Nothing
+        { currentPage = Nothing
         , showNavigation = False
         , id = Style.ids.confirmRegistration
         }
@@ -41,7 +39,7 @@ viewMain configuration main =
                 viewEditing main
 
             Page.Confirmed ->
-                viewConfirmed configuration main.language
+                viewConfirmed main.language
 
 
 viewEditing : Page.Main -> List (Html Page.LogicMsg)
@@ -141,11 +139,10 @@ viewEditing main =
     ]
 
 
-viewConfirmed : Configuration -> Language.ConfirmRegistration -> List (Html Page.LogicMsg)
-viewConfirmed configuration language =
+viewConfirmed : Language.ConfirmRegistration -> List (Html Page.LogicMsg)
+viewConfirmed language =
     [ text <| language.successfullyCreatedUser
     , Links.toLoginButton
-        { configuration = configuration
-        , buttonText = language.mainPage
+        { buttonText = language.mainPage
         }
     ]

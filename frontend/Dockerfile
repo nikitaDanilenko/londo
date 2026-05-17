@@ -12,7 +12,6 @@ COPY src/ src/
 COPY public/ public/
 
 ENV ELM_APP_GRAPH_QL_ENDPOINT=/graphql
-ENV ELM_APP_MAIN_PAGE_URL=/
 
 RUN elm-app build
 

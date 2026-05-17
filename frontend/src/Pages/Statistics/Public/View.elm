@@ -1,6 +1,6 @@
 module Pages.Statistics.Public.View exposing (view)
 
-import Configuration exposing (Configuration)
+
 import Html exposing (Html, h2, hr, section, table, tbody, td, text, tr)
 import Html.Attributes exposing (colspan)
 import Maybe.Extra
@@ -25,11 +25,10 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Nothing
+        { currentPage = Nothing
         , showNavigation = True
         , id = Style.ids.statistics
         }
