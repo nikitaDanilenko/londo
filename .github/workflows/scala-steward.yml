@@ -1,0 +1,15 @@
+name: Scala Steward
+
+on:
+  schedule:
+    - cron: '0 23 * * 0'
+  workflow_dispatch:
+
+jobs:
+  scala-steward:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: scala-steward-org/scala-steward-action@b186ab858ce163f9af7b016fac32cfb3f2c2f503 # v2.88.0
+        with:
+          github-app-id: ${{ vars.SCALA_STEWARD_APP_ID }}
+          github-app-key: ${{ secrets.SCALA_STEWARD_APP_KEY }}

@@ -1,0 +1,108 @@
+name: Update GitOps manifests
+
+on:
+  workflow_call:
+    inputs:
+      back-end-version:
+        type: string
+        required: false
+        default: ""
+        description: "Back end version to set (empty = preserve existing)"
+      front-end-version:
+        type: string
+        required: false
+        default: ""
+        description: "Front end version to set (empty = preserve existing)"
+
+jobs:
+  update-gitops:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          path: ${{ github.workspace }}/source
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.GITOPS_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.GITOPS_BOT_PRIVATE_KEY }}
+          owner: nikitaDanilenko
+          repositories: git-ops
+
+      - name: Check out GitOps repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: nikitaDanilenko/git-ops
+          token: ${{ steps.app-token.outputs.token }}
+          path: ${{ github.workspace }}/git-ops
+
+      - name: Copy deployment manifests and update tags
+        run: |
+          GITOPS_DIR="${{ github.workspace }}/git-ops/londo"
+          SOURCE_DIR="${{ github.workspace }}/source/deployment"
+
+          if [ -f "$GITOPS_DIR/values.yaml" ]; then
+            BACKEND_TAG=$(yq -r '.backend.image.tag' "$GITOPS_DIR/values.yaml")
+            FRONTEND_TAG=$(yq -r '.frontend.image.tag' "$GITOPS_DIR/values.yaml")
+          else
+            BACKEND_TAG="latest"
+            FRONTEND_TAG="latest"
+          fi
+
+          if [ -n "${{ inputs.back-end-version }}" ]; then
+            BACKEND_TAG="${{ inputs.back-end-version }}"
+          fi
+          if [ -n "${{ inputs.front-end-version }}" ]; then
+            FRONTEND_TAG="${{ inputs.front-end-version }}"
+          fi
+
+          rm -rf "$GITOPS_DIR"
+          cp -r "$SOURCE_DIR" "$GITOPS_DIR"
+
+          rm -f "$GITOPS_DIR/secret.local.yaml"
+
+          export BACKEND_TAG
+          export FRONTEND_TAG
+          yq -i '.backend.image.tag = env(BACKEND_TAG)' "$GITOPS_DIR/values.yaml"
+          yq -i '.frontend.image.tag = env(FRONTEND_TAG)' "$GITOPS_DIR/values.yaml"
+
+      - name: Determine commit title
+        id: commit
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: echo "title=$(echo "$COMMIT_MSG" | head -n 1)" >> $GITHUB_OUTPUT
+
+      - name: Determine PR title
+        id: pr-title
+        run: |
+          TITLE="Update londo manifests"
+          if [ -n "${{ inputs.back-end-version }}" ] && [ -n "${{ inputs.front-end-version }}" ]; then
+            TITLE="Deploy londo backend:${{ inputs.back-end-version }}, frontend:${{ inputs.front-end-version }}"
+          elif [ -n "${{ inputs.back-end-version }}" ]; then
+            TITLE="Deploy londo-backend:${{ inputs.back-end-version }}"
+          elif [ -n "${{ inputs.front-end-version }}" ]; then
+            TITLE="Deploy londo-frontend:${{ inputs.front-end-version }}"
+          fi
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          path: ${{ github.workspace }}/git-ops
+          branch: deploy/londo-${{ github.run_id }}
+          delete-branch: true
+          title: ${{ steps.pr-title.outputs.title }}
+          body: |
+            Automated deployment PR for londo.
+
+            **Back end version:** `${{ inputs.back-end-version || 'unchanged' }}`
+            **Front end version:** `${{ inputs.front-end-version || 'unchanged' }}`
+            **Triggered by:** [${{ steps.commit.outputs.title }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+          commit-message: ${{ steps.pr-title.outputs.title }}
+          labels: |
+            deployment
+            automated
