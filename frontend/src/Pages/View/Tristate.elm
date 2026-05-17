@@ -207,18 +207,12 @@ view ps t =
                         ]
 
                 redirectBlock =
-                    t.configuration
-                        |> Just
-                        |> Maybe.Extra.filter (always ps.showLoginRedirect)
-                        |> Maybe.Extra.unwrap []
-                            -- todo: Remove
-                            (\configuration ->
-                                [ Links.toLoginButtonWith
-                                    { buttonText = t.errorLanguage.login
-                                    , attributes = [ Style.classes.button.navigation ]
-                                    }
-                                ]
-                            )
+                    [ Links.toLoginButtonWith
+                        { buttonText = t.errorLanguage.login
+                        , attributes = [ Style.classes.button.navigation ]
+                        }
+                    ]
+                        |> List.filter (always ps.showLoginRedirect)
 
                 retryBlock =
                     [ button
