@@ -71,19 +71,3 @@ scalacOptions ++= Seq(
   "-Ymacro-annotations"
 )
 
-Docker / maintainer    := "nikita.danilenko.is@gmail.com"
-Docker / packageName   := "londo"
-Docker / version       := sys.env.getOrElse("BUILD_NUMBER", "0")
-Docker / daemonUserUid := None
-Docker / daemonUser    := "daemon"
-dockerBaseImage        := "adoptopenjdk/openjdk11:latest"
-dockerUpdateLatest     := true
-
-// Patches and workarounds
-
-// Docker has known issues with Play's PID file. The below command disables Play's PID file.
-// cf. https://www.playframework.com/documentation/2.8.x/Deploying#Play-PID-Configuration
-// The setting is a possible duplicate of the same setting in the application.conf.
-Universal / javaOptions ++= Seq(
-  "-Dpidfile.path=/dev/null"
-)
