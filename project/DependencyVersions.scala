@@ -16,7 +16,7 @@ object DependencyVersions {
 
   val FlywayPlay: String = "9.0.0"
 
-  val PlaySlick: String = "6.0.0"
+  val PlaySlick: String = "6.2.0"
 
   val PlayCirce: String = "3014.1"
 
