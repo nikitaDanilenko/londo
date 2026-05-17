@@ -14,7 +14,7 @@ object DependencyVersions {
 
   val Spire: String = "0.18.0"
 
-  val FlywayPlay: String = "9.0.0"
+  val FlywayPlay: String = "9.1.0"
 
   val PlaySlick: String = "6.0.0"
 
