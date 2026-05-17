@@ -11,6 +11,8 @@ COPY elm.json elmapp.config.js ./
 COPY src/ src/
 COPY public/ public/
 
+# Baked in here, because this is a mono-repo.
+# For separation, use XHR workaround, cf. nikitaDanilenko/pubquiz-frontend.
 ENV ELM_APP_GRAPH_QL_ENDPOINT=/graphql
 
 RUN elm-app build
