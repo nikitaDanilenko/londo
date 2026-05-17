@@ -40,7 +40,7 @@ object DependencyVersions {
 
   val JacksonModuleScala: String = "2.16.0"
 
-  val Sangria: String = "3.5.3"
+  val Sangria: String = "4.2.18"
 
   val SangriaCirce: String = "1.3.2"
 
