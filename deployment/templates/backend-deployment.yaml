@@ -79,14 +79,12 @@ spec:
         resources:
           {{- toYaml .Values.backend.resources | nindent 10 }}
         readinessProbe:
-          httpGet:
-            path: /
+          tcpSocket:
             port: {{ .Values.backend.port }}
           initialDelaySeconds: 30
           periodSeconds: 10
         livenessProbe:
-          httpGet:
-            path: /
+          tcpSocket:
             port: {{ .Values.backend.port }}
           initialDelaySeconds: 60
           periodSeconds: 20
