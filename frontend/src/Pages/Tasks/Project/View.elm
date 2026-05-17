@@ -1,6 +1,5 @@
 module Pages.Tasks.Project.View exposing (viewMain)
 
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, text)
 import Html.Events exposing (onClick)
 import Pages.Projects.View
@@ -11,8 +10,8 @@ import Pages.Util.Style as Style
 import Types.Project.Update
 
 
-viewMain : Configuration -> Page.Main -> Html Page.LogicMsg
-viewMain _ main =
+viewMain : Page.Main -> Html Page.LogicMsg
+viewMain main =
     Pages.Util.Parent.View.viewMain
         { tableHeader = Pages.Projects.View.tableHeader
         , onView =

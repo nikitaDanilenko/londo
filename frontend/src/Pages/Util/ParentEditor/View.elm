@@ -1,6 +1,6 @@
 module Pages.Util.ParentEditor.View exposing (..)
 
-import Configuration exposing (Configuration)
+
 import Html exposing (Attribute, Html, button, nav, p, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (colspan, disabled)
 import Html.Events exposing (onClick)
@@ -24,7 +24,7 @@ viewParentsWith :
     , matchesSearchText : String -> parent -> Bool
     , sort : List (Editing parent update) -> List (Editing parent update)
     , tableHeader : Html msg
-    , viewLine : language -> Configuration -> parent -> Bool -> List (Html msg)
+    , viewLine : language -> parent -> Bool -> List (Html msg)
     , updateLine : language -> parent -> update -> List (Html msg)
     , deleteLine : language -> parent -> List (Html msg)
     , create :
@@ -39,13 +39,11 @@ viewParentsWith :
     , clearSearchWord : String
     }
     -> language
-    -> Configuration
     -> Page.Main parentId parent creation update language
     -> List (Html msg)
-viewParentsWith ps language configuration main =
+viewParentsWith ps language main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = ps.currentPage
+        { currentPage = ps.currentPage
         , showNavigation = ps.showNavigation
         , id = ps.styling
         }
@@ -53,7 +51,7 @@ viewParentsWith ps language configuration main =
         let
             viewParent =
                 Editing.unpack
-                    { onView = ps.viewLine language configuration
+                    { onView = ps.viewLine language
                     , onUpdate = ps.updateLine language
                     , onDelete = ps.deleteLine language
                     }

@@ -1,7 +1,7 @@
 module Pages.Util.ViewUtil exposing (Page(..), navigationBarWith, navigationToPageButton, navigationToPageButtonWith, pagerButtons, paginate, viewMainWith)
 
 import Addresses.Frontend
-import Configuration exposing (Configuration)
+
 import Html exposing (Attribute, Html, button, header, main_, nav, p, table, tbody, td, text, tr)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
@@ -16,8 +16,7 @@ import Util.MaybeUtil as MaybeUtil
 
 
 viewMainWith :
-    { configuration : Configuration
-    , currentPage : Maybe Page
+    { currentPage : Maybe Page
     , showNavigation : Bool
     , id : Attribute msg
     }
@@ -27,8 +26,7 @@ viewMainWith ps html =
     let
         navigation =
             [ navigationBar
-                { mainPageURL = ps.configuration |> .mainPageURL
-                , currentPage = ps.currentPage
+                { currentPage = ps.currentPage
                 }
             ]
                 |> List.filter (always ps.showNavigation)
@@ -93,19 +91,13 @@ nameOf page =
             "Overview"
 
 
-navigationLink : { mainPageURL : String, page : String } -> String
+navigationLink : { page : String } -> String
 navigationLink ps =
-    Url.Builder.relative
-        [ ps.mainPageURL
-        , "#"
-        , ps.page
-        ]
-        []
+    Url.Builder.absolute [ ps.page ] []
 
 
 navigationToPageButton :
     { page : Page
-    , mainPageURL : String
     , currentPage : Maybe Page
     }
     -> Html msg
@@ -114,7 +106,6 @@ navigationToPageButton ps =
         { page = ps.page
         , nameOf = nameOf
         , addressSuffix = addressSuffix
-        , mainPageURL = ps.mainPageURL
         , currentPage = ps.currentPage
         }
 
@@ -123,7 +114,6 @@ navigationToPageButtonWith :
     { page : page
     , nameOf : page -> String
     , addressSuffix : page -> String
-    , mainPageURL : String
     , currentPage : Maybe page
     }
     -> Html msg
@@ -141,19 +131,14 @@ navigationToPageButtonWith ps =
 
     else
         Links.linkButton
-            { url =
-                navigationLink
-                    { mainPageURL = ps.mainPageURL
-                    , page = ps.addressSuffix ps.page
-                    }
+            { url = navigationLink { page = ps.addressSuffix ps.page }
             , attributes = navigationAttributes
             , linkText = ps.nameOf <| ps.page
             }
 
 
 navigationBar :
-    { mainPageURL : String
-    , currentPage : Maybe Page
+    { currentPage : Maybe Page
     }
     -> Html msg
 navigationBar ps =
@@ -163,7 +148,6 @@ navigationBar ps =
             \page ->
                 navigationToPageButton
                     { page = page
-                    , mainPageURL = ps.mainPageURL
                     , currentPage = ps.currentPage
                     }
         }

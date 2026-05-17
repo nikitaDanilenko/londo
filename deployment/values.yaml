@@ -1,0 +1,52 @@
+backend:
+  image:
+    repository: nikitadanilenko/londo
+    tag: latest
+    pullPolicy: Always
+  port: 9000
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  javaOpts: "-Xmx768m -Xms256m"
+
+frontend:
+  image:
+    repository: nikitadanilenko/londo-frontend
+    tag: latest
+    pullPolicy: Always
+  port: 80
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "32Mi"
+      cpu: "10m"
+    limits:
+      memory: "64Mi"
+      cpu: "100m"
+
+postgres:
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  port: 5432
+  database: londo
+  username: londo
+  storage:
+    size: 1Gi
+
+ingress:
+  host: londo.danilenko.io
+  clusterIssuer: letsencrypt-prod
+
+config:
+  jwtDurationSeconds: "86400"
+  jwtPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA35RQYto/afcKDutzGDxDSXW0Axu2OYizACHCihmZtJWynwRjp4vjAC4qUU4LZkPRu/zh6nk8ib/HVwHsbrJ8HGFvjo0O5PMHCimW/rfXx3VMFYLfH2SmjumiSviO73bvp0U/lwfpTK9TMoAR3U8t/KVHWWvwmiwu6T13OPUOaYBoexvfrqILXHr/7Tlbsvbtcs97cVOLacx9CAlqtpdCbcLy9WmUjS6VD81sV/vj/9P8Jrbt/tNi3IZePGuQxAJqkCGNe95FynR5B+0/67ywAOnyQdYqFod+3/fIcLZdNylnRHo1qopco6nDN11gkOfNuBUF4X/e+uEptpoAfT1uAQIDAQAB"
+  mailerFrom: londo@mail.danilenko.io
+  mailerPort: "587"
+  mailerTls: "true"

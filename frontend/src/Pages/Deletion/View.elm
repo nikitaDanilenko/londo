@@ -1,6 +1,5 @@
 module Pages.Deletion.View exposing (view)
 
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, form, h1, input, label, text)
 import Html.Attributes exposing (disabled, for, type_, value)
 import Html.Events exposing (onClick)
@@ -19,25 +18,24 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Nothing
+        { currentPage = Nothing
         , showNavigation = False
         , id = Style.ids.accountDeletion
         }
     <|
         case main.mode of
             Page.Checking ->
-                viewChecking configuration main
+                viewChecking main
 
             Page.Confirmed ->
-                viewConfirmed main.language configuration
+                viewConfirmed main.language
 
 
-viewChecking : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewChecking configuration main =
+viewChecking : Page.Main -> List (Html Page.LogicMsg)
+viewChecking main =
     let
         nickname =
             "nickname"
@@ -60,18 +58,16 @@ viewChecking configuration main =
             ]
             [ text <| .delete <| .language <| main ]
         , Links.toLoginButton
-            { configuration = configuration
-            , buttonText = main |> .language |> .cancel
+            { buttonText = main |> .language |> .cancel
             }
         ]
     ]
 
 
-viewConfirmed : Page.Language -> Configuration -> List (Html Page.LogicMsg)
-viewConfirmed language configuration =
+viewConfirmed : Page.Language -> List (Html Page.LogicMsg)
+viewConfirmed language =
     [ text <| .deletionSuccessful <| language
     , Links.toLoginButton
-        { configuration = configuration
-        , buttonText = language |> .mainPage
+        { buttonText = language |> .mainPage
         }
     ]

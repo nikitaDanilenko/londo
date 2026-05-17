@@ -1,6 +1,5 @@
 module Pages.DashboardEntries.Entries.View exposing (viewEntries, viewProjects)
 
-import Configuration exposing (Configuration)
 import Html exposing (Html, button, text, th)
 import Html.Attributes exposing (disabled)
 import Html.Events exposing (onClick)
@@ -22,8 +21,8 @@ import Util.MaybeUtil as MaybeUtil
 import Util.SearchUtil as SearchUtil
 
 
-viewEntries : Configuration -> Page.Main -> Html Page.LogicMsg
-viewEntries configuration main =
+viewEntries : Page.Main -> Html Page.LogicMsg
+viewEntries main =
     Pages.Util.Choice.View.viewElements
         { header = main.language.dashboardEntries
         , nameOfChoice = .name
@@ -37,7 +36,7 @@ viewEntries configuration main =
                     [ button
                         [ Style.classes.button.delete, onClick <| Pages.Util.Choice.Page.RequestDelete <| entry.projectId ]
                         [ text <| .delete <| main.language ]
-                    , NavigationUtil.projectEditorLinkButton configuration entry.projectId <| .taskEditor <| main.language
+                    , NavigationUtil.projectEditorLinkButton entry.projectId <| .taskEditor <| main.language
                     ]
                 }
         , isValidInput = always True
@@ -50,8 +49,8 @@ viewEntries configuration main =
         main
 
 
-viewProjects : Configuration -> Page.Main -> Html Page.LogicMsg
-viewProjects configuration main =
+viewProjects : Page.Main -> Html Page.LogicMsg
+viewProjects main =
     Pages.Util.Choice.View.viewChoices
         { header = main.language.projects
         , matchesSearchText = \string project -> SearchUtil.search string project.name || SearchUtil.search string (project.description |> Maybe.withDefault "")
@@ -101,7 +100,7 @@ viewProjects configuration main =
                     [ button
                         [ Style.classes.button.select, onClick <| Pages.Util.Choice.Page.SelectChoice <| project ]
                         [ text <| .select <| .language <| main ]
-                    , NavigationUtil.projectEditorLinkButton configuration project.id main.language.taskEditor
+                    , NavigationUtil.projectEditorLinkButton project.id main.language.taskEditor
                     ]
                 }
         , clearSearchWord = main.language.clearSearch

@@ -1,0 +1,101 @@
+name: Release new version (Image, GitHub, GitOps)
+
+on:
+  push:
+    branches:
+      - "main"
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  create_new_version:
+    name: Create New Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version-tag: ${{ steps.semantic-version.outputs.version_tag }}
+      version: ${{ steps.semantic-version.outputs.version }}
+      back-end-paths-changed: ${{ steps.back-end.outputs.back-end-src }}
+      front-end-paths-changed: ${{ steps.front-end.outputs.front-end-src }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Determine version
+        id: semantic-version
+        uses: paulhatch/semantic-version@9f72830310d5ed81233b641ee59253644cd8a8fc # v6.0.2
+        with:
+          major_pattern: "/(major)/i"
+          minor_pattern: "/(minor)/i"
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: back-end
+        with:
+          base: "main"
+          filters: |
+            back-end-src:
+              - 'app/**'
+              - 'test/**'
+              - 'conf/**'
+              - 'build.sbt'
+              - 'project/**'
+              - '.scalafmt.conf'
+              - 'Dockerfile'
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: front-end
+        with:
+          base: "main"
+          filters: |
+            front-end-src:
+              - 'frontend/**'
+      - name: Publish new release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag ${{ steps.semantic-version.outputs.version_tag }} ${{ github.sha }}
+          git push origin ${{ steps.semantic-version.outputs.version_tag }}
+          gh release create ${{ steps.semantic-version.outputs.version_tag }} --generate-notes --verify-tag
+
+  build_and_publish_back_end:
+    name: Build and Publish Back End Image
+    needs:
+      - create_new_version
+    if: ${{ needs.create_new_version.outputs.back-end-paths-changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/build-and-publish
+        with:
+          version-tag: ${{ needs.create_new_version.outputs.version-tag }}
+          image-name: nikitadanilenko/londo
+          context: .
+          docker-hub-username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          docker-hub-token: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+  build_and_publish_front_end:
+    name: Build and Publish Front End Image
+    needs:
+      - create_new_version
+    if: ${{ needs.create_new_version.outputs.front-end-paths-changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/build-and-publish
+        with:
+          version-tag: ${{ needs.create_new_version.outputs.version-tag }}
+          image-name: nikitadanilenko/londo-frontend
+          context: frontend
+          docker-hub-username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          docker-hub-token: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+  update_gitops:
+    name: Update GitOps Manifests
+    needs:
+      - create_new_version
+      - build_and_publish_back_end
+      - build_and_publish_front_end
+    if: ${{ always() && needs.create_new_version.result == 'success' }}
+    uses: ./.github/workflows/_update-gitops-manifests.yml
+    with:
+      back-end-version: ${{ needs.build_and_publish_back_end.result == 'success' && needs.create_new_version.outputs.version || '' }}
+      front-end-version: ${{ needs.build_and_publish_front_end.result == 'success' && needs.create_new_version.outputs.version || '' }}
+    secrets: inherit

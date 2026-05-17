@@ -183,7 +183,7 @@ toError model error =
 
 view :
     { showLoginRedirect : Bool
-    , viewMain : Configuration -> main -> List (Html msg)
+    , viewMain : main -> List (Html msg)
     }
     -> Model main initial
     -> List (Html (Msg msg))
@@ -193,7 +193,7 @@ view ps t =
             [ main_ [] [ Links.loadingSymbol ] ]
 
         Main main ->
-            ps.viewMain t.configuration main |> List.map (Html.map Logic)
+            ps.viewMain main |> List.map (Html.map Logic)
 
         Error errorState ->
             let
@@ -207,18 +207,12 @@ view ps t =
                         ]
 
                 redirectBlock =
-                    t.configuration
-                        |> Just
-                        |> Maybe.Extra.filter (always ps.showLoginRedirect)
-                        |> Maybe.Extra.unwrap []
-                            (\configuration ->
-                                [ Links.toLoginButtonWith
-                                    { configuration = configuration
-                                    , buttonText = t.errorLanguage.login
-                                    , attributes = [ Style.classes.button.navigation ]
-                                    }
-                                ]
-                            )
+                    [ Links.toLoginButtonWith
+                        { buttonText = t.errorLanguage.login
+                        , attributes = [ Style.classes.button.navigation ]
+                        }
+                    ]
+                        |> List.filter (always ps.showLoginRedirect)
 
                 retryBlock =
                     [ button

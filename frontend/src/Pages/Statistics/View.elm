@@ -2,7 +2,7 @@ module Pages.Statistics.View exposing (..)
 
 import Basics.Extra exposing (flip)
 import BigInt exposing (BigInt)
-import Configuration exposing (Configuration)
+
 import Html exposing (Html, button, h1, h2, hr, input, p, section, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (checked, colspan, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -49,11 +49,10 @@ view =
         }
 
 
-viewMain : Configuration -> Page.Main -> List (Html Page.LogicMsg)
-viewMain configuration main =
+viewMain : Page.Main -> List (Html Page.LogicMsg)
+viewMain main =
     ViewUtil.viewMainWith
-        { configuration = configuration
-        , currentPage = Nothing
+        { currentPage = Nothing
         , showNavigation = True
         , id = Style.ids.statistics
         }

@@ -96,7 +96,7 @@ updateLogic ps msg model =
                             |> ps.navigateToAddress
                             |> Maybe.Extra.unwrap
                                 Cmd.none
-                                (Links.loadFrontendPage model.configuration)
+                                Links.loadFrontendPage
                         )
                     )
 

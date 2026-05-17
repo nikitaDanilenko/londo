@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  labels:
+    app: {{ .Release.Name }}
+    component: backend
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.backend.port }}
+        env:
+        - name: JAVA_OPTS
+          value: {{ .Values.backend.javaOpts | quote }}
+        - name: PLAY_HTTP_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: londo-secrets
+              key: PLAY_HTTP_SECRET_KEY
+        - name: BACKEND_HOST
+          value: {{ .Values.ingress.host }}
+        - name: DB_DEFAULT_URL
+          value: "jdbc:postgresql://{{ .Release.Name }}-postgres:{{ .Values.postgres.port }}/{{ .Values.postgres.database }}"
+        - name: DB_DEFAULT_USERNAME
+          value: {{ .Values.postgres.username }}
+        - name: DB_DEFAULT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: londo-secrets
+              key: DB_DEFAULT_PASSWORD
+        - name: JWT_CONFIGURATION_SIGNATURE_PUBLIC_KEY
+          value: {{ .Values.config.jwtPublicKey | quote }}
+        - name: JWT_CONFIGURATION_SIGNATURE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: londo-secrets
+              key: JWT_CONFIGURATION_SIGNATURE_PRIVATE_KEY
+        - name: JWT_CONFIGURATION_RESTRICTED_DURATION_IN_SECONDS
+          value: {{ .Values.config.jwtDurationSeconds | quote }}
+        - name: PLAY_MAILER_HOST
+          valueFrom:
+            secretKeyRef:
+              name: londo-secrets
+              key: PLAY_MAILER_HOST
+        - name: PLAY_MAILER_USER
+          valueFrom:
+            secretKeyRef:
+              name: londo-secrets
+              key: PLAY_MAILER_USER
+        - name: PLAY_MAILER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: londo-secrets
+              key: PLAY_MAILER_PASSWORD
+        - name: PLAY_MAILER_FROM
+          value: {{ .Values.config.mailerFrom }}
+        - name: PLAY_MAILER_PORT
+          value: {{ .Values.config.mailerPort | quote }}
+        - name: PLAY_MAILER_TLS
+          value: {{ .Values.config.mailerTls | quote }}
+        - name: USER_CONFIGURATION_FRONTEND
+          value: {{ .Values.ingress.host }}
+        - name: APPLICATION_FRONTEND_URL
+          value: {{ .Values.ingress.host }}
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.backend.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.backend.port }}
+          initialDelaySeconds: 60
+          periodSeconds: 20

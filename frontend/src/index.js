@@ -4,8 +4,7 @@ import './main.css'
 const app = Elm.Main.init({
     node: document.getElementById('root'),
     flags: {
-        graphQLEndpoint: process.env.ELM_APP_GRAPH_QL_ENDPOINT,
-        mainPageURL: process.env.ELM_APP_MAIN_PAGE_URL
+        graphQLEndpoint: process.env.ELM_APP_GRAPH_QL_ENDPOINT
     }
 });
 
