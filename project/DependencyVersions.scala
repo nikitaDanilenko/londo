@@ -22,7 +22,7 @@ object DependencyVersions {
 
   val Config: String = "1.4.2"
 
-  val Chimney: String = "0.7.2"
+  val Chimney: String = "0.7.5"
 
   val Pureconfig: String = "0.17.4"
 
