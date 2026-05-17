@@ -4,10 +4,6 @@ name         := "londo"
 organization := "io.danilenko"
 version      := "0.1.0"
 
-val circeVersion = "0.14.6"
-val jwtVersion   = "9.2.0"
-val slickVersion = "3.4.1"
-
 val config = ConfigFactory
   .parseFile(new File("conf/application.conf"))
   .resolve()
@@ -20,42 +16,42 @@ lazy val root = (project in file("."))
     scalaVersion := "2.13.12",
     libraryDependencies ++= Seq(
       guice,
-      "org.postgresql"              % "postgresql"           % "42.7.0",
-      "org.flywaydb"               %% "flyway-play"          % "9.0.0",
-      "com.typesafe.slick"         %% "slick"                % slickVersion,
-      "com.typesafe.slick"         %% "slick-hikaricp"       % slickVersion,
-      "com.typesafe.slick"         %% "slick-codegen"        % slickVersion,
-      "org.typelevel"              %% "cats-core"            % "2.10.0",
-      "org.typelevel"              %% "cats-effect"          % "3.4.9",
-      "org.scalameta"              %% "scalafmt-dynamic"     % "3.7.2",
-      "ch.qos.logback"              % "logback-classic"      % "1.4.7",
-      "io.circe"                   %% "circe-core"           % circeVersion,
-      "io.circe"                   %% "circe-generic"        % circeVersion,
-      "io.circe"                   %% "circe-parser"         % circeVersion,
-      "org.sangria-graphql"        %% "sangria"              % "3.5.3",
-      "org.sangria-graphql"        %% "sangria-circe"        % "1.3.2",
-      "org.playframework"          %% "play-slick"           % "6.0.0",
-      "com.dripower"               %% "play-circe"           % "3014.1",
-      "com.github.jwt-scala"       %% "jwt-core"             % jwtVersion,
-      "com.github.jwt-scala"       %% "jwt-circe"            % jwtVersion,
-      "org.typelevel"              %% "spire"                % "0.18.0",
-      "com.beachape"               %% "enumeratum-circe"     % "1.7.3",
-      "com.github.julien-truffaut" %% "monocle-core"         % "3.0.0-M5",
-      "com.github.julien-truffaut" %% "monocle-macro"        % "3.0.0-M5",
-      "io.circe"                   %% "circe-generic-extras" % "0.14.3",
-      "com.typesafe"                % "config"               % "1.4.2",
-      "io.scalaland"               %% "chimney"              % "0.7.2",
-      "com.github.pureconfig"      %% "pureconfig"           % "0.17.4",
-      "org.playframework"          %% "play-mailer"          % "10.0.0",
-      "org.playframework"          %% "play-mailer-guice"    % "10.0.0",
-      "com.kubukoz"                %% "slick-effect"         % "0.5.0",
-      "com.kubukoz"                %% "slick-effect-catsio"  % "0.5.0",
-      "com.lihaoyi"                %% "pprint"               % "0.8.1",
+      "org.postgresql"              % "postgresql"           % DependencyVersions.Postgresql,
+      "org.flywaydb"               %% "flyway-play"          % DependencyVersions.FlywayPlay,
+      "com.typesafe.slick"         %% "slick"                % DependencyVersions.Slick,
+      "com.typesafe.slick"         %% "slick-hikaricp"       % DependencyVersions.Slick,
+      "com.typesafe.slick"         %% "slick-codegen"        % DependencyVersions.Slick,
+      "org.typelevel"              %% "cats-core"            % DependencyVersions.CatsCore,
+      "org.typelevel"              %% "cats-effect"          % DependencyVersions.CatsEffect,
+      "org.scalameta"              %% "scalafmt-dynamic"     % DependencyVersions.ScalafmtDynamic,
+      "ch.qos.logback"              % "logback-classic"      % DependencyVersions.LogbackClassic,
+      "io.circe"                   %% "circe-core"           % DependencyVersions.Circe,
+      "io.circe"                   %% "circe-generic"        % DependencyVersions.Circe,
+      "io.circe"                   %% "circe-parser"         % DependencyVersions.Circe,
+      "org.sangria-graphql"        %% "sangria"              % DependencyVersions.Sangria,
+      "org.sangria-graphql"        %% "sangria-circe"        % DependencyVersions.SangriaCirce,
+      "org.playframework"          %% "play-slick"           % DependencyVersions.PlaySlick,
+      "com.dripower"               %% "play-circe"           % DependencyVersions.PlayCirce,
+      "com.github.jwt-scala"       %% "jwt-core"             % DependencyVersions.Jwt,
+      "com.github.jwt-scala"       %% "jwt-circe"            % DependencyVersions.Jwt,
+      "org.typelevel"              %% "spire"                % DependencyVersions.Spire,
+      "com.beachape"               %% "enumeratum-circe"     % DependencyVersions.EnumeratumCirce,
+      "com.github.julien-truffaut" %% "monocle-core"         % DependencyVersions.Monocle,
+      "com.github.julien-truffaut" %% "monocle-macro"        % DependencyVersions.Monocle,
+      "io.circe"                   %% "circe-generic-extras" % DependencyVersions.CirceGenericExtras,
+      "com.typesafe"                % "config"               % DependencyVersions.Config,
+      "io.scalaland"               %% "chimney"              % DependencyVersions.Chimney,
+      "com.github.pureconfig"      %% "pureconfig"           % DependencyVersions.Pureconfig,
+      "org.playframework"          %% "play-mailer"          % DependencyVersions.PlayMailer,
+      "org.playframework"          %% "play-mailer-guice"    % DependencyVersions.PlayMailer,
+      "com.kubukoz"                %% "slick-effect"         % DependencyVersions.SlickEffect,
+      "com.kubukoz"                %% "slick-effect-catsio"  % DependencyVersions.SlickEffect,
+      "com.lihaoyi"                %% "pprint"               % DependencyVersions.Pprint,
       // Transitive dependency. Override added for proper version.
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.16.0"
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % DependencyVersions.JacksonModuleScala
     ),
     dependencyOverrides ++= Seq(
-      "com.google.inject" % "guice" % "5.1.0"
+      "com.google.inject" % "guice" % DependencyVersions.Guice
     ),
     slickCodegenDatabaseUrl      := config.getString("slick.dbs.default.db.url"),
     slickCodegenDatabaseUser     := config.getString("slick.dbs.default.db.user"),
