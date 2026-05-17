@@ -30,7 +30,7 @@ object DependencyVersions {
 
   val CatsCore: String = "2.10.0"
 
-  val EnumeratumCirce: String = "1.7.3"
+  val EnumeratumCirce: String = "1.7.5"
 
   val PlayMailer: String = "10.0.0"
 
