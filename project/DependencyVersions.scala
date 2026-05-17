@@ -10,7 +10,7 @@ object DependencyVersions {
 
   val Postgresql: String = "42.7.0"
 
-  val LogbackClassic: String = "1.4.7"
+  val LogbackClassic: String = "1.4.14"
 
   val Spire: String = "0.18.0"
 
