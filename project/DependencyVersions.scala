@@ -2,7 +2,7 @@ object DependencyVersions {
 
   val Circe: String = "0.14.6"
 
-  val CirceGenericExtras: String = "0.14.3"
+  val CirceGenericExtras: String = "0.14.4"
 
   val Slick: String = "3.4.1"
 
