@@ -129,7 +129,6 @@ object Live {
         } yield inserted
       }
 
-    // TODO: Add clean-up step to make sure that the task progress always matches the task kind.
     override def update(
         userId: UserId,
         taskId: TaskId,

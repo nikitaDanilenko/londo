@@ -29,7 +29,7 @@ default taskKind =
                     Positive.one
 
                 LondoGQL.Enum.TaskKind.Percent ->
-                    Positive.tenToTheNth 3
+                    Positive.oneThousand
 
                 LondoGQL.Enum.TaskKind.Fraction ->
                     Positive.oneHundred

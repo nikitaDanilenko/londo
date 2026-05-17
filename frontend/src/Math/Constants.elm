@@ -21,3 +21,8 @@ tenBigInt =
 oneHundredBigInt : BigInt
 oneHundredBigInt =
     100 |> BigInt.fromInt
+
+
+oneThousandBigInt : BigInt
+oneThousandBigInt =
+    1000 |> BigInt.fromInt

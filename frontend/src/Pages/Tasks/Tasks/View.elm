@@ -148,7 +148,7 @@ updateTaskLine language taskId update =
     editTaskLineWith
         { saveMsg = Pages.Util.ParentEditor.Page.SaveEdit taskId
         , nameLens = Types.Task.Update.lenses.name
-        , taskKindLens = Types.Task.Update.lenses.taskKind
+        , taskKindLens = Lens (\_ -> TaskKind.Fraction) (\b a -> a)
         , progressLens = Types.Task.Update.lenses.progressUpdate
         , unitLens = Types.Task.Update.lenses.unit
         , countingLens = Types.Task.Update.lenses.counting
@@ -244,20 +244,8 @@ editTaskLineWith handling editedValue =
                         Maybe.andThen TaskKind.fromString
                             >> Maybe.Extra.unwrap editedValue (flip handling.taskKindLens.set editedValue)
                             >> (\ev ->
-                                    let
-                                        progressModifier =
-                                            case handling.taskKindLens.get ev of
-                                                TaskKind.Discrete ->
-                                                    Progress.toDiscrete
-
-                                                TaskKind.Percent ->
-                                                    Progress.toPercent
-
-                                                TaskKind.Fraction ->
-                                                    identity
-                                    in
-                                    Lens.modify (handling.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.progress)
-                                        progressModifier
+                                    (handling.progressLens |> Compose.lensWithLens Types.Progress.Input.lenses.progress).set
+                                        (Progress.default (handling.taskKindLens.get ev))
                                         ev
                                )
                             >> handling.updateMsg

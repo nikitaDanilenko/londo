@@ -9,10 +9,12 @@ import graphql.{ HasGraphQLServices, HasLoggedInUser }
 import io.scalaland.chimney.dsl._
 import sangria.macros.derive.GraphQLField
 
+import scala.annotation.unused
 import scala.concurrent.Future
 
 trait Mutation extends HasGraphQLServices with HasLoggedInUser {
 
+  @unused("Public API function")
   @GraphQLField
   def createProject(
       input: CreateProjectInput
@@ -30,6 +32,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         .handleServerError
     }
 
+  @unused("Public API function")
   @GraphQLField
   def updateProject(
       input: UpdateProjectInput
@@ -39,7 +42,6 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         graphQLServices.projectService
           .update(
             userId = userId,
-            // TODO: Consider nesting, i.e. use one type for the update, and one type for the input to avoid the somewhat awkward transformation below.
             projectId = input.projectId.transformInto[db.ProjectId],
             update = input.transformInto[services.project.Update]
           )
@@ -49,6 +51,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         .handleServerError
     }
 
+  @unused("Public API function")
   @GraphQLField
   def deleteProject(
       input: DeleteProjectInput
@@ -63,6 +66,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
       ).value.handleServerError
     }
 
+  @unused("Public API function")
   @GraphQLField
   def createTask(
       input: CreateTaskInput
@@ -78,6 +82,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
       ).map(_.transformInto[Task]).value.handleServerError
     }
 
+  @unused("Public API function")
   @GraphQLField
   def updateTask(
       input: UpdateTaskInput
@@ -96,6 +101,7 @@ trait Mutation extends HasGraphQLServices with HasLoggedInUser {
         .handleServerError
     }
 
+  @unused("Public API function")
   @GraphQLField
   def deleteTask(
       input: DeleteTaskInput

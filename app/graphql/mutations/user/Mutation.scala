@@ -20,6 +20,7 @@ import utils.transformer.implicits._
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import scala.annotation.unused
 import scala.concurrent.Future
 
 trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedInUser {
@@ -27,11 +28,11 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
   private val maxLoginAttempts       = 5
   private val loginThrottleInMinutes = 1
 
+  @unused("Public API function")
   @GraphQLField
   def login(
       input: LoginInput
   ): Future[String] = {
-    // TODO: Reconsider style!
     def getOrCreateThrottle(userId: db.UserId): EitherT[Future, ServerError, LoginThrottle] =
       EitherT {
         graphQLServices.loginThrottleService
@@ -122,6 +123,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
     transformer.value.handleServerError
   }
 
+  @unused("Public API function")
   @GraphQLField
   def logout(input: LogoutInput): Future[Boolean] = {
     withUser { loggedIn =>
@@ -138,6 +140,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
     }
   }
 
+  @unused("Public API function")
   @GraphQLField
   def updateUser(input: UpdateUserInput): Future[User] =
     withUserId { userId =>
@@ -153,6 +156,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
         .handleServerError
     }
 
+  @unused("Public API function")
   @GraphQLField
   def updatePassword(input: UpdatePasswordInput): Future[Boolean] =
     withUserId { userId =>
@@ -165,6 +169,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
       ).value.handleServerError
     }
 
+  @unused("Public API function")
   @GraphQLField
   def requestRegistration(
       input: RequestRegistrationInput
@@ -191,6 +196,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
     transformer.value.handleServerError
   }
 
+  @unused("Public API function")
   @GraphQLField
   def confirmRegistration(
       input: ConfirmRegistrationInput
@@ -214,6 +220,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
     transformer.value.handleServerError
   }
 
+  @unused("Public API function")
   @GraphQLField
   def requestRecovery(
       input: RequestRecoveryInput
@@ -248,6 +255,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
     transformer.value.handleServerError
   }
 
+  @unused("Public API function")
   @GraphQLField
   def confirmRecovery(
       input: ConfirmRecoveryInput
@@ -273,6 +281,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
     transformer.value.handleServerError
   }
 
+  @unused("Public API function")
   @GraphQLField
   def requestDeletion: Future[Unit] = {
     withUserId { userId =>
@@ -302,6 +311,7 @@ trait Mutation extends HasGraphQLServices with HasConfigurations with HasLoggedI
     }
   }
 
+  @unused("Public API function")
   @GraphQLField
   def confirmDeletion(
       input: ConfirmDeletionInput
