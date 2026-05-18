@@ -28,7 +28,7 @@ object DependencyVersions {
 
   val CatsEffect: String = "3.4.11"
 
-  val CatsCore: String = "2.10.0"
+  val CatsCore: String = "2.13.0"
 
   val EnumeratumCirce: String = "1.7.3"
 
