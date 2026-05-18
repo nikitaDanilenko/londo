@@ -46,7 +46,7 @@ object DependencyVersions {
 
   val Monocle: String = "3.0.0-M5"
 
-  val ScalafmtDynamic: String = "3.7.2"
+  val ScalafmtDynamic: String = "3.7.17"
 
   val Guice: String = "5.1.0"
 
