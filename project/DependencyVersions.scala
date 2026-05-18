@@ -34,7 +34,7 @@ object DependencyVersions {
 
   val PlayMailer: String = "10.0.1"
 
-  val Pprint: String = "0.8.1"
+  val Pprint: String = "0.9.6"
 
   val SlickEffect: String = "0.6.1"
 
