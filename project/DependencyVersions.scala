@@ -36,7 +36,7 @@ object DependencyVersions {
 
   val Pprint: String = "0.8.1"
 
-  val SlickEffect: String = "0.5.0"
+  val SlickEffect: String = "0.6.1"
 
   val JacksonModuleScala: String = "2.16.0"
 
