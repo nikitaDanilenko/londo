@@ -8,7 +8,7 @@ object DependencyVersions {
 
   val Jwt: String = "9.2.0"
 
-  val Postgresql: String = "42.7.0"
+  val Postgresql: String = "42.7.11"
 
   val LogbackClassic: String = "1.4.14"
 
