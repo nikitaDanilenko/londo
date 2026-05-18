@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
   .enablePlugins(CodegenPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .settings(
-    scalaVersion := "2.13.12",
+    scalaVersion := "2.13.18",
     libraryDependencies ++= Seq(
       guice,
       "org.postgresql"              % "postgresql"           % DependencyVersions.Postgresql,
@@ -66,4 +66,3 @@ lazy val root = (project in file("."))
 scalacOptions ++= Seq(
   "-Ymacro-annotations"
 )
-
