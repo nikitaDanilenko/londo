@@ -44,7 +44,7 @@ object DependencyVersions {
 
   val SangriaCirce: String = "1.3.2"
 
-  val Monocle: String = "3.0.0-M5"
+  val Monocle: String = "3.0.0-M6"
 
   val ScalafmtDynamic: String = "3.7.17"
 
