@@ -10,7 +10,7 @@ object DependencyVersions {
 
   val Postgresql: String = "42.7.11"
 
-  val LogbackClassic: String = "1.4.7"
+  val LogbackClassic: String = "1.4.14"
 
   val Spire: String = "0.18.0"
 
@@ -22,13 +22,13 @@ object DependencyVersions {
 
   val Config: String = "1.4.2"
 
-  val Chimney: String = "0.7.2"
+  val Chimney: String = "0.7.5"
 
   val Pureconfig: String = "0.17.4"
 
-  val CatsEffect: String = "3.4.9"
+  val CatsEffect: String = "3.4.11"
 
-  val CatsCore: String = "2.10.0"
+  val CatsCore: String = "2.13.0"
 
   val EnumeratumCirce: String = "1.7.3"
 
@@ -40,7 +40,7 @@ object DependencyVersions {
 
   val JacksonModuleScala: String = "2.16.0"
 
-  val Sangria: String = "3.5.3"
+  val Sangria: String = "4.2.18"
 
   val SangriaCirce: String = "1.3.2"
 
