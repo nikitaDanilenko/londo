@@ -20,7 +20,7 @@ object DependencyVersions {
 
   val PlayCirce: String = "3014.1"
 
-  val Config: String = "1.4.2"
+  val Config: String = "1.4.8"
 
   val Chimney: String = "0.7.5"
 
