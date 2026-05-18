@@ -4,7 +4,7 @@ object DependencyVersions {
 
   val CirceGenericExtras: String = "0.14.3"
 
-  val Slick: String = "3.4.1"
+  val Slick: String = "3.6.1"
 
   val Jwt: String = "9.2.0"
 
