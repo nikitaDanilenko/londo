@@ -6,7 +6,7 @@ object DependencyVersions {
 
   val Slick: String = "3.6.1"
 
-  val Jwt: String = "9.2.0"
+  val Jwt: String = "9.4.6"
 
   val Postgresql: String = "42.7.11"
 
