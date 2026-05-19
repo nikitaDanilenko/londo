@@ -51,7 +51,8 @@ lazy val root = (project in file("."))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % DependencyVersions.JacksonModuleScala
     ),
     dependencyOverrides ++= Seq(
-      "com.google.inject" % "guice" % DependencyVersions.Guice
+      "com.google.inject"            % "guice"               % DependencyVersions.Guice,
+      "com.google.inject.extensions" % "guice-assistedinject" % DependencyVersions.Guice
     ),
     slickCodegenDatabaseUrl      := config.getString("slick.dbs.default.db.url"),
     slickCodegenDatabaseUser     := config.getString("slick.dbs.default.db.user"),

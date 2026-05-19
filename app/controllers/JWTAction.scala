@@ -10,7 +10,7 @@ import services.session.SessionService
 import utils.jwt.JwtUtil
 import utils.transformer.implicits._
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.chaining._
 

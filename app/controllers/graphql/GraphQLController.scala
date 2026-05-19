@@ -11,7 +11,7 @@ import sangria.execution.{ ErrorWithResolver, Executor, QueryAnalysisError }
 import sangria.marshalling.circe._
 import sangria.parser.QueryParser
 
-import javax.inject.{ Inject, Singleton }
+import jakarta.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton

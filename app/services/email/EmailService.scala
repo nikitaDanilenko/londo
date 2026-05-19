@@ -5,7 +5,7 @@ import errors.{ ErrorContext, ServerError }
 import play.api.libs.mailer.{ Email, MailerClient }
 import cats.syntax.functor._
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
