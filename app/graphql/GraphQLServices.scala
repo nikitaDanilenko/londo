@@ -10,7 +10,7 @@ import services.simulation.SimulationService
 import services.task.TaskService
 import services.user.UserService
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.ExecutionContext
 
 case class GraphQLServices @Inject() (
