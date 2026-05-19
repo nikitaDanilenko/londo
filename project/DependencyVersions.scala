@@ -48,6 +48,6 @@ object DependencyVersions {
 
   val ScalafmtDynamic: String = "3.7.17"
 
-  val Guice: String = "7.0.0"
+  val Guice: String = "6.0.0"
 
 }

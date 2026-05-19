@@ -14,7 +14,7 @@ import slick.jdbc.PostgresProfile
 import slickeffect.catsio.implicits._
 import utils.DBIOUtil.instances._
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 
 class Live @Inject() (

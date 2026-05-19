@@ -15,7 +15,7 @@ import utils.transformer.implicits._
 
 import java.sql.Timestamp
 import java.time.temporal.ChronoUnit
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 
 class Live @Inject() (

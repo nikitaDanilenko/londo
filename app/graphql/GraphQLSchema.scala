@@ -2,7 +2,7 @@ package graphql
 
 import sangria.macros.derive.deriveContextObjectType
 import sangria.schema.{ ObjectType, Schema }
-import javax.inject.Singleton
+import jakarta.inject.Singleton
 import utils.graphql.SangriaUtil.instances._
 import sangria.marshalling.circe._
 

@@ -9,13 +9,13 @@ import Json.Decode as Decode exposing (Decoder)
 
 type TaskKind
     = Discrete
-    | Percent
     | Fraction
+    | Percent
 
 
 list : List TaskKind
 list =
-    [ Discrete, Percent, Fraction ]
+    [ Discrete, Fraction, Percent ]
 
 
 decoder : Decoder TaskKind
@@ -27,11 +27,11 @@ decoder =
                     "Discrete" ->
                         Decode.succeed Discrete
 
-                    "Percent" ->
-                        Decode.succeed Percent
-
                     "Fraction" ->
                         Decode.succeed Fraction
+
+                    "Percent" ->
+                        Decode.succeed Percent
 
                     _ ->
                         Decode.fail ("Invalid TaskKind type, " ++ string ++ " try re-running the @dillonkearns/elm-graphql CLI ")
@@ -46,11 +46,11 @@ toString enum____ =
         Discrete ->
             "Discrete"
 
-        Percent ->
-            "Percent"
-
         Fraction ->
             "Fraction"
+
+        Percent ->
+            "Percent"
 
 
 {-| Convert from a String representation to an elm representation enum.
@@ -70,11 +70,11 @@ fromString enumString____ =
         "Discrete" ->
             Just Discrete
 
-        "Percent" ->
-            Just Percent
-
         "Fraction" ->
             Just Fraction
+
+        "Percent" ->
+            Just Percent
 
         _ ->
             Nothing

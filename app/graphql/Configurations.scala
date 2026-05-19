@@ -4,7 +4,7 @@ import graphql.mutations.user.UserHandlingConfiguration
 import security.jwt.JwtConfiguration
 import services.email.MailConfiguration
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 case class Configurations @Inject() (
     userHandlingConfiguration: UserHandlingConfiguration,
