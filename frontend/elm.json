@@ -26,6 +26,7 @@
             "elm-community/maybe-extra": "5.3.0",
             "elm-community/result-extra": "2.4.0",
             "icidasset/elm-material-icons": "11.0.0",
+            "j-maas/elm-ordered-containers": "1.0.0",
             "jschomay/elm-paginate": "3.1.2",
             "krisajenkins/remotedata": "6.1.0",
             "mgold/elm-nonempty-list": "4.2.0",

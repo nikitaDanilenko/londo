@@ -8,13 +8,13 @@ import Json.Decode as Decode exposing (Decoder)
 
 
 type Visibility
-    = Public
-    | Private
+    = Private
+    | Public
 
 
 list : List Visibility
 list =
-    [ Public, Private ]
+    [ Private, Public ]
 
 
 decoder : Decoder Visibility
@@ -23,11 +23,11 @@ decoder =
         |> Decode.andThen
             (\string ->
                 case string of
-                    "Public" ->
-                        Decode.succeed Public
-
                     "Private" ->
                         Decode.succeed Private
+
+                    "Public" ->
+                        Decode.succeed Public
 
                     _ ->
                         Decode.fail ("Invalid Visibility type, " ++ string ++ " try re-running the @dillonkearns/elm-graphql CLI ")
@@ -39,11 +39,11 @@ decoder =
 toString : Visibility -> String
 toString enum____ =
     case enum____ of
-        Public ->
-            "Public"
-
         Private ->
             "Private"
+
+        Public ->
+            "Public"
 
 
 {-| Convert from a String representation to an elm representation enum.
@@ -60,11 +60,11 @@ This can be useful for generating Strings to use for <select> menus to check whi
 fromString : String -> Maybe Visibility
 fromString enumString____ =
     case enumString____ of
-        "Public" ->
-            Just Public
-
         "Private" ->
             Just Private
+
+        "Public" ->
+            Just Public
 
         _ ->
             Nothing

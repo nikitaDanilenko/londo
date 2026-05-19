@@ -8,13 +8,13 @@ import Json.Decode as Decode exposing (Decoder)
 
 
 type LogoutMode
-    = ThisSession
-    | AllSessions
+    = AllSessions
+    | ThisSession
 
 
 list : List LogoutMode
 list =
-    [ ThisSession, AllSessions ]
+    [ AllSessions, ThisSession ]
 
 
 decoder : Decoder LogoutMode
@@ -23,11 +23,11 @@ decoder =
         |> Decode.andThen
             (\string ->
                 case string of
-                    "ThisSession" ->
-                        Decode.succeed ThisSession
-
                     "AllSessions" ->
                         Decode.succeed AllSessions
+
+                    "ThisSession" ->
+                        Decode.succeed ThisSession
 
                     _ ->
                         Decode.fail ("Invalid LogoutMode type, " ++ string ++ " try re-running the @dillonkearns/elm-graphql CLI ")
@@ -39,11 +39,11 @@ decoder =
 toString : LogoutMode -> String
 toString enum____ =
     case enum____ of
-        ThisSession ->
-            "ThisSession"
-
         AllSessions ->
             "AllSessions"
+
+        ThisSession ->
+            "ThisSession"
 
 
 {-| Convert from a String representation to an elm representation enum.
@@ -60,11 +60,11 @@ This can be useful for generating Strings to use for <select> menus to check whi
 fromString : String -> Maybe LogoutMode
 fromString enumString____ =
     case enumString____ of
-        "ThisSession" ->
-            Just ThisSession
-
         "AllSessions" ->
             Just AllSessions
+
+        "ThisSession" ->
+            Just ThisSession
 
         _ ->
             Nothing

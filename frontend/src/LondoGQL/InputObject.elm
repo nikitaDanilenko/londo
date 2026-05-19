@@ -991,11 +991,12 @@ buildTaskUpdate required____ fillOptionals____ =
             fillOptionals____
                 { unit = Absent }
     in
-    { name = required____.name, unit = optionals____.unit, counting = required____.counting, progressUpdate = required____.progressUpdate }
+    { name = required____.name, taskKind = required____.taskKind, unit = optionals____.unit, counting = required____.counting, progressUpdate = required____.progressUpdate }
 
 
 type alias TaskUpdateRequiredFields =
     { name : String
+    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
     , counting : Bool
     , progressUpdate : ProgressUpdate
     }
@@ -1009,6 +1010,7 @@ type alias TaskUpdateOptionalFields =
 -}
 type alias TaskUpdate =
     { name : String
+    , taskKind : LondoGQL.Enum.TaskKind.TaskKind
     , unit : OptionalArgument String
     , counting : Bool
     , progressUpdate : ProgressUpdate
@@ -1020,7 +1022,7 @@ type alias TaskUpdate =
 encodeTaskUpdate : TaskUpdate -> Value
 encodeTaskUpdate input____ =
     Encode.maybeObject
-        [ ( "name", Encode.string input____.name |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "counting", Encode.bool input____.counting |> Just ), ( "progressUpdate", encodeProgressUpdate input____.progressUpdate |> Just ) ]
+        [ ( "name", Encode.string input____.name |> Just ), ( "taskKind", Encode.enum LondoGQL.Enum.TaskKind.toString input____.taskKind |> Just ), ( "unit", Encode.string |> Encode.optional input____.unit ), ( "counting", Encode.bool input____.counting |> Just ), ( "progressUpdate", encodeProgressUpdate input____.progressUpdate |> Just ) ]
 
 
 buildUpdateDashboardInput :
