@@ -50,6 +50,7 @@ jobs:
       - back-end-test
       - front-end-test
     runs-on: ubuntu-latest
+    permissions: {}
     if: always() && (needs.back-end-test.result == 'success' || needs.back-end-test.result == 'skipped') && (needs.front-end-test.result == 'success' || needs.front-end-test.result == 'skipped')
     steps:
       - name: Finish test
