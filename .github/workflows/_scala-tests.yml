@@ -10,6 +10,7 @@ jobs:
   test:
     name: Prepare environment, and run Scala tests
     runs-on: ubuntu-latest
+    permissions: {}
     services:
       postgres:
         image: postgres:16-alpine
@@ -28,6 +29,8 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Set up JDK 25
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:

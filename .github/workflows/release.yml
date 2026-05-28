@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: false
   queue: max
 
+permissions: {}
+
 jobs:
   create_new_version:
     name: Create New Version
@@ -57,10 +59,12 @@ jobs:
       - name: Publish new release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ steps.semantic-version.outputs.version_tag }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          git tag ${{ steps.semantic-version.outputs.version_tag }} ${{ github.sha }}
-          git push origin ${{ steps.semantic-version.outputs.version_tag }}
-          gh release create ${{ steps.semantic-version.outputs.version_tag }} --generate-notes --verify-tag
+          git tag "$VERSION_TAG" "$COMMIT_SHA"
+          git push origin "$VERSION_TAG"
+          gh release create "$VERSION_TAG" --generate-notes --verify-tag
 
   build_and_publish_back_end:
     name: Build and Publish Back End Image
@@ -68,9 +72,12 @@ jobs:
       - create_new_version
     if: ${{ needs.create_new_version.outputs.back-end-paths-changed == 'true' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/build-and-publish
         with:
           version-tag: ${{ needs.create_new_version.outputs.version-tag }}
@@ -85,9 +92,12 @@ jobs:
       - create_new_version
     if: ${{ needs.create_new_version.outputs.front-end-paths-changed == 'true' }}
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/build-and-publish
         with:
           version-tag: ${{ needs.create_new_version.outputs.version-tag }}
