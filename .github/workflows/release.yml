@@ -7,6 +7,11 @@ on:
     paths-ignore:
       - '.github/**'
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   create_new_version:
     name: Create New Version
