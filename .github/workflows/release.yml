@@ -58,13 +58,11 @@ jobs:
               - 'frontend/**'
       - name: Publish new release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           VERSION_TAG: ${{ steps.semantic-version.outputs.version_tag }}
-          COMMIT_SHA: ${{ github.sha }}
-        run: |
-          git tag "$VERSION_TAG" "$COMMIT_SHA"
-          git push origin "$VERSION_TAG"
-          gh release create "$VERSION_TAG" --generate-notes --verify-tag
+          TARGET_SHA: ${{ github.sha }}
+        run: gh release create "$VERSION_TAG" --target "$TARGET_SHA" --generate-notes
 
   build_and_publish_back_end:
     name: Build and Publish Back End Image
