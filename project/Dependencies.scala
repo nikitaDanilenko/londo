@@ -33,7 +33,7 @@ object Dependencies {
 
   val CatsCore = "org.typelevel" %% "cats-core" % "2.13.0"
 
-  val CatsEffect = "org.typelevel" %% "cats-effect" % "3.4.11"
+  val CatsEffect = "org.typelevel" %% "cats-effect" % "3.7-4972921"
 
   val ScalafmtDynamic = "org.scalameta" %% "scalafmt-dynamic" % "3.7.17"
 
