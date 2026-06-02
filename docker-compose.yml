@@ -3,7 +3,7 @@ services:
   db:
     container_name: londo-postgres
     restart: always
-    image: postgres:12.22-alpine
+    image: postgres:18.4-alpine
     env_file:
       - db.env
     volumes:

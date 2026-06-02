@@ -32,7 +32,7 @@ frontend:
 postgres:
   image:
     repository: postgres
-    tag: "16-alpine"
+    tag: "18-alpine"
     pullPolicy: IfNotPresent
   port: 5432
   database: londo
