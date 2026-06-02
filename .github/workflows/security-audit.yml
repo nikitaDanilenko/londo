@@ -30,3 +30,53 @@ jobs:
         with:
           persist-credentials: false
       - uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
+
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+      - run: pip install semgrep
+      - run: semgrep ci --config=p/default --config=p/csharp --config=p/github-actions
+
+  gitleaks:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  combine-audit:
+    needs:
+      - actionlint
+      - zizmor
+      - semgrep
+      - gitleaks
+    runs-on: ubuntu-latest
+    permissions: {}
+    if: always()
+    steps:
+      - name: Verify upstream
+        run: |
+          actionlint_result='${{ needs.actionlint.result }}'
+          zizmor_result='${{ needs.zizmor.result }}'
+          semgrep_result='${{ needs.semgrep.result }}'
+          gitleaks_result='${{ needs.gitleaks.result }}'
+          for result in "$actionlint_result" "$zizmor_result" "$semgrep_result" "$gitleaks_result"; do
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              echo "Audit failed: actionlint=$actionlint_result zizmor=$zizmor_result semgrep=$semgrep_result gitleaks=$gitleaks_result"
+              exit 1
+            fi
+          done
+          echo "All audits passed"
