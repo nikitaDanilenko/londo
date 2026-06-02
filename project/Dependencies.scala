@@ -17,7 +17,7 @@ object Dependencies {
 
   private val SlickEffectVersion = "0.6.1"
 
-  private val GuiceVersion = "6.0.0"
+  private val GuiceVersion = "7.0.0"
 
   // Dependencies
 
