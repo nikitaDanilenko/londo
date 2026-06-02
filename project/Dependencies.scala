@@ -9,7 +9,7 @@ object Dependencies {
 
   private val SlickVersion = "3.6.1"
 
-  private val JwtVersion = "9.4.6"
+  private val JwtVersion = "11.0.4"
 
   private val MonocleVersion = "3.0.0-M6"
 
