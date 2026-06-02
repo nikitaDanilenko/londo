@@ -13,7 +13,7 @@ object Dependencies {
 
   private val MonocleVersion = "3.0.0-M6"
 
-  private val PlayMailerVersion = "10.0.1"
+  private val PlayMailerVersion = "10.1.0"
 
   private val SlickEffectVersion = "0.6.1"
 
@@ -33,11 +33,11 @@ object Dependencies {
 
   val CatsCore = "org.typelevel" %% "cats-core" % "2.13.0"
 
-  val CatsEffect = "org.typelevel" %% "cats-effect" % "3.4.11"
+  val CatsEffect = "org.typelevel" %% "cats-effect" % "3.7-4972921"
 
-  val ScalafmtDynamic = "org.scalameta" %% "scalafmt-dynamic" % "3.7.17"
+  val ScalafmtDynamic = "org.scalameta" %% "scalafmt-dynamic" % "3.11.1"
 
-  val LogbackClassic = "ch.qos.logback" % "logback-classic" % "1.4.14"
+  val LogbackClassic = "ch.qos.logback" % "logback-classic" % "1.5.34"
 
   val CirceCore = "io.circe" %% "circe-core" % CirceVersion
 
@@ -59,7 +59,7 @@ object Dependencies {
 
   val Spire = "org.typelevel" %% "spire" % "0.18.0"
 
-  val EnumeratumCirce = "com.beachape" %% "enumeratum-circe" % "1.7.5"
+  val EnumeratumCirce = "com.beachape" %% "enumeratum-circe" % "1.9.7"
 
   val MonocleCore = "com.github.julien-truffaut" %% "monocle-core" % MonocleVersion
 
@@ -69,7 +69,7 @@ object Dependencies {
 
   val Config = "com.typesafe" % "config" % "1.4.8"
 
-  val Chimney = "io.scalaland" %% "chimney" % "0.7.5"
+  val Chimney = "io.scalaland" %% "chimney" % "1.10.0"
 
   val Pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.17.10"
 
@@ -84,7 +84,7 @@ object Dependencies {
   val Pprint = "com.lihaoyi" %% "pprint" % "0.9.6"
 
   // Transitive dependency. Override added for proper version.
-  val JacksonModuleScala = "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.16.2"
+  val JacksonModuleScala = "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.21.4"
 
   // Dependency overrides
 
