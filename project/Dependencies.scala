@@ -35,7 +35,7 @@ object Dependencies {
 
   val CatsEffect = "org.typelevel" %% "cats-effect" % "3.4.11"
 
-  val ScalafmtDynamic = "org.scalameta" %% "scalafmt-dynamic" % "3.7.17"
+  val ScalafmtDynamic = "org.scalameta" %% "scalafmt-dynamic" % "3.11.1"
 
   val LogbackClassic = "ch.qos.logback" % "logback-classic" % "1.4.14"
 
