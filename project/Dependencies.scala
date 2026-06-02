@@ -13,7 +13,7 @@ object Dependencies {
 
   private val MonocleVersion = "3.0.0-M6"
 
-  private val PlayMailerVersion = "10.0.1"
+  private val PlayMailerVersion = "10.1.0"
 
   private val SlickEffectVersion = "0.6.1"
 
