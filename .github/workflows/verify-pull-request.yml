@@ -51,7 +51,17 @@ jobs:
       - front-end-test
     runs-on: ubuntu-latest
     permissions: {}
-    if: always() && (needs.back-end-test.result == 'success' || needs.back-end-test.result == 'skipped') && (needs.front-end-test.result == 'success' || needs.front-end-test.result == 'skipped')
+    # Must always run so that, when set as a required check, a skipped upstream
+    # failure cannot be treated as a passing required check by branch protection.
+    if: always()
     steps:
-      - name: Finish test
-        run: echo "All tests passed"
+      - name: Verify upstream
+        run: |
+          be='${{ needs.back-end-test.result }}'
+          fe='${{ needs.front-end-test.result }}'
+          if [[ "$be" != "success" && "$be" != "skipped" ]] || \
+             [[ "$fe" != "success" && "$fe" != "skipped" ]]; then
+            echo "Tests failed: back-end=$be, front-end=$fe"
+            exit 1
+          fi
+          echo "All tests passed"
