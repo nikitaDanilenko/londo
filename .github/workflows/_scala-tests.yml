@@ -13,7 +13,7 @@ jobs:
     permissions: {}
     services:
       postgres:
-        image: postgres:18-alpine
+        image: postgres:16-alpine
         env:
           POSTGRES_DB: londo_test
           POSTGRES_PASSWORD: 5WuVjFBUWYWasGBLpw7MtNvLL87Mn7RgH09wlsBH
