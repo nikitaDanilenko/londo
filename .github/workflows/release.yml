@@ -25,6 +25,7 @@ jobs:
       version: ${{ steps.semantic-version.outputs.version }}
       back-end-paths-changed: ${{ steps.back-end.outputs.back-end-src }}
       front-end-paths-changed: ${{ steps.front-end.outputs.front-end-src }}
+      deployment-changed: ${{ steps.deployment.outputs.deployment }}
     steps:
       - name: Check out repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -56,7 +57,15 @@ jobs:
           filters: |
             front-end-src:
               - 'frontend/**'
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: deployment
+        with:
+          base: "main"
+          filters: |
+            deployment:
+              - 'deployment/**'
       - name: Publish new release
+        if: steps.back-end.outputs.back-end-src == 'true' || steps.front-end.outputs.front-end-src == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -108,7 +117,11 @@ jobs:
       - create_new_version
       - build_and_publish_back_end
       - build_and_publish_front_end
-    if: ${{ always() && needs.create_new_version.result == 'success' }}
+    if: >-
+      ${{ always() && needs.create_new_version.result == 'success'
+          && (needs.create_new_version.outputs.back-end-paths-changed == 'true'
+              || needs.create_new_version.outputs.front-end-paths-changed == 'true'
+              || needs.create_new_version.outputs.deployment-changed == 'true') }}
     uses: ./.github/workflows/_update-gitops-manifests.yml
     with:
       back-end-version: ${{ needs.build_and_publish_back_end.result == 'success' && needs.create_new_version.outputs.version || '' }}
