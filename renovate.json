@@ -23,6 +23,12 @@
     {
       "matchDepNames": ["scala"],
       "allowedVersions": "<3.0.0"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
     }
   ]
 }
