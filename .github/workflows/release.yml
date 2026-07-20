@@ -37,7 +37,7 @@ jobs:
         with:
           major_pattern: "/(major)/i"
           minor_pattern: "/(minor)/i"
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         id: back-end
         with:
           base: "main"
@@ -50,14 +50,14 @@ jobs:
               - 'project/**'
               - '.scalafmt.conf'
               - 'Dockerfile'
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         id: front-end
         with:
           base: "main"
           filters: |
             front-end-src:
               - 'frontend/**'
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         id: deployment
         with:
           base: "main"
