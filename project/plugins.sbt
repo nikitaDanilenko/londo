@@ -6,4 +6,4 @@ addSbtPlugin("com.github.tototoshi" % "sbt-slick-codegen" % "2.2.0")
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.1")
 
-libraryDependencies += "org.postgresql" % "postgresql" % "42.7.11"
+libraryDependencies += "org.postgresql" % "postgresql" % "42.7.13"
