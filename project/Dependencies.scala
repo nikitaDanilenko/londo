@@ -84,7 +84,7 @@ object Dependencies {
   val Pprint = "com.lihaoyi" %% "pprint" % "0.9.6"
 
   // Transitive dependency. Override added for proper version.
-  val JacksonModuleScala = "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.21.4"
+  val JacksonModuleScala = "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.1"
 
   // Dependency overrides
 
