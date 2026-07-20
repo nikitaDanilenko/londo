@@ -37,7 +37,7 @@ object Dependencies {
 
   val ScalafmtDynamic = "org.scalameta" %% "scalafmt-dynamic" % "3.11.1"
 
-  val LogbackClassic = "ch.qos.logback" % "logback-classic" % "1.5.34"
+  val LogbackClassic = "ch.qos.logback" % "logback-classic" % "1.5.38"
 
   val CirceCore = "io.circe" %% "circe-core" % CirceVersion
 
