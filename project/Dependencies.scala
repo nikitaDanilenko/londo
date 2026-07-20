@@ -5,7 +5,7 @@ object Dependencies {
   // Renovate's sbt manager can resolve variables, but not from a nested object.
   // For this reason, we limit the sharing to only those versions that are used multiple times.
   // All singleton occurrences are inlined directly.
-  private val CirceVersion = "0.14.15"
+  private val CirceVersion = "0.14.16"
 
   private val SlickVersion = "3.6.1"
 
