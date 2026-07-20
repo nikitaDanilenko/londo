@@ -59,7 +59,7 @@ object Dependencies {
 
   val Spire = "org.typelevel" %% "spire" % "0.18.0"
 
-  val EnumeratumCirce = "com.beachape" %% "enumeratum-circe" % "1.9.7"
+  val EnumeratumCirce = "com.beachape" %% "enumeratum-circe" % "1.9.8"
 
   val MonocleCore = "com.github.julien-truffaut" %% "monocle-core" % MonocleVersion
 
