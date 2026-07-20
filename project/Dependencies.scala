@@ -67,7 +67,7 @@ object Dependencies {
 
   val CirceGenericExtras = "io.circe" %% "circe-generic-extras" % "0.14.4"
 
-  val Config = "com.typesafe" % "config" % "1.4.8"
+  val Config = "com.typesafe" % "config" % "1.4.9"
 
   val Chimney = "io.scalaland" %% "chimney" % "1.10.0"
 
