@@ -69,7 +69,7 @@ object Dependencies {
 
   val Config = "com.typesafe" % "config" % "1.4.8"
 
-  val Chimney = "io.scalaland" %% "chimney" % "1.10.0"
+  val Chimney = "io.scalaland" %% "chimney" % "1.11.0"
 
   val Pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.17.10"
 
