@@ -45,7 +45,7 @@ object Dependencies {
 
   val CirceParser = "io.circe" %% "circe-parser" % CirceVersion
 
-  val Sangria = "org.sangria-graphql" %% "sangria" % "4.2.18"
+  val Sangria = "org.sangria-graphql" %% "sangria" % "4.2.19"
 
   val SangriaCirce = "org.sangria-graphql" %% "sangria-circe" % "1.3.2"
 
