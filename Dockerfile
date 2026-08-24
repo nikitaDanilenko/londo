@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25.0.3_9-jdk AS build
+FROM eclipse-temurin:25.0.4_7-jdk AS build
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY app/ app/
 
 RUN sbt stage
 
-FROM eclipse-temurin:25.0.3_9-jre
+FROM eclipse-temurin:25.0.4_7-jre
 
 WORKDIR /opt/docker
 
