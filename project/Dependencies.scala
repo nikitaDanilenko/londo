@@ -71,7 +71,7 @@ object Dependencies {
 
   val Chimney = "io.scalaland" %% "chimney" % "1.11.0"
 
-  val Pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.17.10"
+  val Pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.17.11"
 
   val PlayMailer = "org.playframework" %% "play-mailer" % PlayMailerVersion
 
