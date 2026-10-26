@@ -1,6 +1,6 @@
 addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.12")
 
-addSbtPlugin("nl.gn0s1s" % "sbt-dotenv" % "3.3.0")
+addSbtPlugin("nl.gn0s1s" % "sbt-dotenv" % "3.4.0")
 
 addSbtPlugin("com.github.tototoshi" % "sbt-slick-codegen" % "2.2.0")
 
